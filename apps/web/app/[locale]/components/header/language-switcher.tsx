@@ -12,11 +12,7 @@ import { useParams, usePathname, useRouter } from "next/navigation";
 
 const languages = [
   { label: "🇬🇧 English", value: "en" },
-  { label: "🇪🇸 Español", value: "es" },
-  { label: "🇩🇪 Deutsch", value: "de" },
-  { label: "🇨🇳 中文", value: "zh" },
-  { label: "🇫🇷 Français", value: "fr" },
-  { label: "🇵🇹 Português", value: "pt" },
+  { label: "🇲🇾 Bahasa Melayu", value: "ms" },
 ];
 
 export const LanguageSwitcher = () => {
@@ -47,7 +43,7 @@ export const LanguageSwitcher = () => {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          className="shrink-0 text-foreground"
+          className="relative size-9 shrink-0 text-foreground"
           size="icon"
           variant="ghost"
         >

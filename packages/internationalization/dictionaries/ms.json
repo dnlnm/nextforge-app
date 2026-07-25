@@ -1,0 +1,189 @@
+{
+  "web": {
+    "global": {
+      "primaryCta": "Tempah panggilan",
+      "secondaryCta": "Daftar"
+    },
+    "header": {
+      "home": "Laman Utama",
+      "product": {
+        "title": "Produk",
+        "description": "Mengurus perniagaan kecil hari ini memang mencabar.",
+        "pricing": "Harga"
+      },
+      "blog": "Blog",
+      "docs": "Dokumentasi",
+      "contact": "Hubungi Kami",
+      "signIn": "Log masuk",
+      "signUp": "Mula sekarang"
+    },
+    "home": {
+      "meta": {
+        "title": "Ubah Operasi Perniagaan Anda Hari Ini",
+        "description": "Dalam dunia yang bergerak pantas hari ini, perniagaan anda layak mendapat penyelesaian yang lebih baik daripada sistem perdagangan yang ketinggalan zaman. Platform inovatif kami memudahkan operasi, mengurangkan kerumitan dan membantu perniagaan kecil berkembang dalam ekonomi moden."
+      },
+      "hero": {
+        "announcement": "Baca artikel terbaru kami"
+      },
+      "cases": {
+        "title": "Membina Kisah Kejayaan di Seluruh Dunia"
+      },
+      "features": {
+        "title": "Alat Berkuasa untuk Perniagaan Moden",
+        "description": "Ketahui bagaimana ciri canggih kami boleh mengubah operasi harian anda.",
+        "items": [
+          {
+            "title": "Operasi Dipermudah",
+            "description": "Platform kami memudahkan operasi, mengurangkan kerumitan dan membantu perniagaan kecil berkembang dalam ekonomi moden."
+          },
+          {
+            "title": "Analitik Masa Nyata",
+            "description": "Dapatkan pandangan segera tentang prestasi perniagaan anda melalui alat analitik dan pelaporan yang menyeluruh."
+          },
+          {
+            "title": "Aliran Kerja Automatik",
+            "description": "Jimat masa dan kurangkan kesilapan dengan automasi pintar yang mengurus tugasan berulang untuk anda."
+          },
+          {
+            "title": "Transaksi Selamat",
+            "description": "Tenang menjalankan operasi perniagaan dengan perlindungan keselamatan dan penyulitan bertaraf perusahaan."
+          }
+        ]
+      },
+      "stats": {
+        "title": "Hasil Nyata, Impak Nyata",
+        "description": "Sertai ribuan perniagaan yang telah mengubah operasi mereka dengan platform kami. Penyelesaian kami membantu syarikat mengurangkan beban pentadbiran sebanyak 60% dan meningkatkan kecekapan perdagangan sebanyak 45% secara purata.",
+        "items": [
+          {
+            "title": "Pengguna aktif bulanan",
+            "metric": "100000",
+            "delta": "10",
+            "type": "unit"
+          },
+          {
+            "title": "Pengguna aktif harian",
+            "metric": "10000",
+            "delta": "-5",
+            "type": "unit"
+          },
+          {
+            "title": "Hasil berulang bulanan",
+            "metric": "100000",
+            "delta": "20",
+            "type": "currency"
+          },
+          {
+            "title": "Kos pemerolehan pelanggan",
+            "metric": "100",
+            "delta": "-10",
+            "type": "currency"
+          }
+        ]
+      },
+      "testimonials": {
+        "title": "Dengarkan Suara Komuniti Kami yang Berkembang",
+        "items": [
+          {
+            "title": "Keputusan terbaik",
+            "description": "Matlamat kami adalah memudahkan perdagangan PKS supaya menjadi lebih mudah dan pantas daripada sebelumnya, dan kami mencapainya bersama-sama.",
+            "author": {
+              "name": "Hayden Bleasel",
+              "image": "https://github.com/haydenbleasel.png"
+            }
+          },
+          {
+            "title": "Mengubah cara kerja",
+            "description": "Platform ini mengubah cara kami mengurus operasi harian. Peningkatan kecekapan yang kami lihat benar-benar ketara.",
+            "author": {
+              "name": "Lee Robinson",
+              "image": "https://github.com/leerob.png"
+            }
+          },
+          {
+            "title": "Melebihi jangkaan",
+            "description": "Pelaksanaan berjalan lancar dan hasilnya dapat dilihat dengan segera. Pasukan kami cepat menyesuaikan diri dan produktiviti meningkat.",
+            "author": {
+              "name": "shadcn",
+              "image": "https://github.com/shadcn.png"
+            }
+          },
+          {
+            "title": "Sokongan yang cemerlang",
+            "description": "Platform ini bukan sahaja berkuasa, malah pasukan sokongan pelanggan sangat membantu kami memaksimumkan potensinya.",
+            "author": {
+              "name": "Pontus Abrahamsson",
+              "image": "https://github.com/pontusab.png"
+            }
+          }
+        ]
+      },
+      "faq": {
+        "title": "Soalan Lazim, Jawapan Pakar",
+        "description": "Dapatkan jawapan pantas untuk soalan penting tentang platform kami. Kami telah mengumpulkan perkara utama yang perlu anda ketahui untuk mengubah operasi perniagaan dan bermula dengan penyelesaian perdagangan moden.",
+        "cta": "Ada soalan? Hubungi kami",
+        "items": [
+          {
+            "question": "Apakah platform ini?",
+            "answer": "Platform ini ialah platform perdagangan yang membolehkan anda berdagang dengan yakin."
+          },
+          {
+            "question": "Sejauh mana platform ini selamat?",
+            "answer": "Platform kami menggunakan langkah keselamatan bertaraf perusahaan, termasuk penyulitan hujung ke hujung dan pengesahan berbilang faktor, untuk memastikan aktiviti perdagangan anda kekal selamat sepenuhnya."
+          },
+          {
+            "question": "Apakah ciri perdagangan yang tersedia?",
+            "answer": "Platform ini menawarkan alat perdagangan menyeluruh termasuk data pasaran masa nyata, carta lanjutan, strategi perdagangan automatik dan analitik terperinci untuk menyokong keputusan yang lebih tepat."
+          },
+          {
+            "question": "Bagaimana harga ditetapkan?",
+            "answer": "Kami menawarkan pelan harga fleksibel yang direka untuk berkembang mengikut keperluan perniagaan anda, daripada pelan permulaan untuk pedagang individu hingga penyelesaian perusahaan untuk organisasi besar."
+          },
+          {
+            "question": "Apakah jenis sokongan yang disediakan?",
+            "answer": "Pasukan sokongan khusus kami tersedia 24/7 melalui pelbagai saluran termasuk sembang langsung, e-mel dan telefon. Kami juga menyediakan dokumentasi dan sumber latihan yang lengkap."
+          }
+        ]
+      },
+      "cta": {
+        "title": "Mulakan Transformasi Perniagaan Anda",
+        "description": "Sertai ribuan perniagaan berpandangan jauh yang telah memodenkan operasi mereka. Platform kami menyediakan alat, sokongan dan kecekapan yang anda perlukan untuk berjaya dalam pasaran kompetitif hari ini. Mula dalam beberapa minit."
+      }
+    },
+    "blog": {
+      "meta": {
+        "title": "Blog",
+        "description": "Pemikiran, idea dan pandangan."
+      }
+    },
+    "contact": {
+      "meta": {
+        "title": "Mari Berbincang Tentang Perniagaan Anda",
+        "description": "Jadualkan konsultasi dengan pasukan kami untuk membincangkan bagaimana kami boleh membantu memudahkan operasi dan memacu pertumbuhan perniagaan anda."
+      },
+      "hero": {
+        "benefits": [
+          {
+            "title": "Konsultasi Peribadi",
+            "description": "Dapatkan penyelesaian tersuai dan nasihat pakar yang khusus untuk keperluan perniagaan anda."
+          },
+          {
+            "title": "Integrasi Lancar",
+            "description": "Kami berintegrasi dengan lancar bersama sistem sedia ada anda untuk memastikan peralihan yang mudah dan gangguan yang minimum."
+          },
+          {
+            "title": "Bimbingan Pakar",
+            "description": "Pasukan pakar kami akan membimbing anda sepanjang proses supaya anda mendapat manfaat maksimum daripada platform kami."
+          }
+        ],
+        "form": {
+          "title": "Tempah mesyuarat",
+          "date": "Tarikh",
+          "firstName": "Nama pertama",
+          "lastName": "Nama keluarga",
+          "resume": "Muat naik resume",
+          "cta": "Tempah mesyuarat"
+        }
+      }
+    }
+  }
+}

@@ -125,23 +125,24 @@ export const Header = ({ dictionary }: HeaderProps) => {
           </svg>
           <p className="whitespace-nowrap font-semibold">next-forge</p>
         </div>
-        <div className="flex w-full justify-end gap-4">
-          <Button asChild className="hidden md:inline" variant="ghost">
+        <div className="flex w-full items-center justify-end gap-4">
+          <Button asChild className="hidden lg:inline-flex" variant="ghost">
             <Link href="/contact">{dictionary.web.header.contact}</Link>
           </Button>
-          <div className="hidden border-r md:inline" />
-          <div className="hidden md:inline">
+          <div className="hidden items-center gap-1 lg:flex">
             <LanguageSwitcher />
-          </div>
-          <div className="hidden md:inline">
             <ModeToggle />
           </div>
-          <Button asChild className="hidden md:inline" variant="outline">
+          <Button
+            asChild
+            className="hidden lg:ml-2 lg:inline-flex"
+            variant="outline"
+          >
             <Link href={`${env.NEXT_PUBLIC_APP_URL}/sign-in`}>
               {dictionary.web.header.signIn}
             </Link>
           </Button>
-          <Button asChild>
+          <Button asChild className="lg:inline-flex">
             <Link href={`${env.NEXT_PUBLIC_APP_URL}/sign-up`}>
               {dictionary.web.header.signUp}
             </Link>

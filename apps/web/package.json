@@ -2,9 +2,9 @@
   "name": "web",
   "private": true,
   "scripts": {
-    "dev": "bun --bun next dev -p 3001",
-    "build": "bun --bun next build",
-    "start": "bun --bun next start",
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start",
     "analyze": "ANALYZE=true npm run build",
     "clean": "git clean -xdf .cache .turbo dist node_modules",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
@@ -28,6 +28,7 @@
     "@t3-oss/env-nextjs": "^0.13.10",
     "date-fns": "^4.1.0",
     "fumadocs-core": "^16.6.12",
+    "framer-motion": "^12.23.26",
     "import-in-the-middle": "^3.0.0",
     "lucide-react": "^0.577.0",
     "mdx-bundler": "^10.1.1",

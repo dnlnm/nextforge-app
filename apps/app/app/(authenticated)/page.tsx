@@ -23,12 +23,30 @@ export const metadata: Metadata = {
 };
 
 const App = async () => {
-  const pages = await database.page.findMany();
   const { orgId } = await auth();
 
   if (!orgId) {
     notFound();
   }
+
+  const pages = await database.page.findMany().catch((error: unknown) => {
+    const prismaError = error as {
+      clientVersion?: string;
+      code?: string;
+      message?: string;
+      meta?: unknown;
+      name?: string;
+    };
+
+    console.error("Failed to load dashboard pages", {
+      clientVersion: prismaError.clientVersion,
+      code: prismaError.code,
+      message: prismaError.message,
+      meta: prismaError.meta,
+      name: prismaError.name,
+    });
+    throw error;
+  });
 
   return (
     <>
