@@ -12,25 +12,25 @@ interface HeroProps {
   dictionary: Dictionary;
 }
 
-const titles = ["amazing", "modern", "efficient", "secure", "smart"];
-
 export const Hero = ({ dictionary }: HeroProps) => {
   const [titleNumber, setTitleNumber] = useState(0);
+  const titles = dictionary.web.home.hero.words;
+  const titleCount = titles.length;
 
   useEffect(() => {
     const intervalId = setInterval(() => {
       setTitleNumber((current) =>
-        current === titles.length - 1 ? 0 : current + 1
+        current === titleCount - 1 ? 0 : current + 1
       );
     }, 2000);
 
     return () => clearInterval(intervalId);
-  }, []);
+  }, [titleCount]);
 
   return (
     <div className="w-full">
       <div className="container mx-auto">
-        <div className="flex flex-col items-center justify-center gap-8 py-20 lg:py-40">
+        <div className="flex flex-col items-center justify-center gap-8 py-20 lg:py-32">
           <div>
             <Button asChild className="gap-4" size="sm" variant="secondary">
               <Link href="/blog">
@@ -40,7 +40,7 @@ export const Hero = ({ dictionary }: HeroProps) => {
             </Button>
           </div>
           <div className="flex flex-col gap-4">
-            <h1 className="max-w-2xl text-center font-regular text-5xl tracking-tighter md:text-7xl">
+            <h1 className="max-w-4xl text-center font-regular text-5xl tracking-tighter md:text-7xl">
               <span>{dictionary.web.home.meta.title}</span>
               <span className="relative flex w-full justify-center overflow-hidden text-center md:pt-1 md:pb-4">
                 &nbsp;

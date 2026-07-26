@@ -14,7 +14,7 @@ export const Footer = async () => {
     },
     {
       title: "Pages",
-      description: "Managing a small business today is already tough.",
+      description: "Tuition centre operations, billing, and reporting.",
       items: [
         {
           title: "Blog",
@@ -24,11 +24,15 @@ export const Footer = async () => {
     },
     {
       title: "Legal",
-      description: "We stay on top of the latest legal requirements.",
-      items: legalPages.map((post) => ({
-        title: post._title,
-        href: `/legal/${post._slug}`,
-      })),
+      description: "Terms for TLAS.MY subscription and data handling.",
+      items: [
+        { title: "Privacy", href: "/privacy" },
+        { title: "Terms", href: "/terms" },
+        ...legalPages.map((post) => ({
+          title: post._title,
+          href: `/legal/${post._slug}`,
+        })),
+      ],
     },
   ];
 
@@ -47,10 +51,11 @@ export const Footer = async () => {
             <div className="flex flex-col items-start gap-8">
               <div className="flex flex-col gap-2">
                 <h2 className="max-w-xl text-left font-regular text-3xl tracking-tighter md:text-5xl">
-                  next-forge
+                  TLAS.MY
                 </h2>
                 <p className="max-w-lg text-left text-foreground/75 text-lg leading-relaxed tracking-tight">
-                  This is the start of something new.
+                  Tuition centre management for Malaysian owners, admins, and
+                  teachers.
                 </p>
               </div>
               <Status />

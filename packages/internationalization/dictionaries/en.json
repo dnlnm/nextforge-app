@@ -1,187 +1,261 @@
 {
   "web": {
     "global": {
-      "primaryCta": "Book a call",
-      "secondaryCta": "Sign up"
+      "primaryCta": "Book a walkthrough",
+      "secondaryCta": "Start free trial"
     },
     "header": {
       "home": "Home",
       "product": {
         "title": "Product",
-        "description": "Managing a small business today is already tough.",
+        "description": "Run student records, classes, attendance, invoicing, and payments in one place.",
         "pricing": "Pricing"
       },
       "blog": "Blog",
       "docs": "Docs",
       "contact": "Contact",
       "signIn": "Sign in",
-      "signUp": "Get started"
+      "signUp": "Start trial"
     },
     "home": {
       "meta": {
-        "title": "Transform Your Business Operations Today",
-        "description": "In today's fast-paced world, your business deserves better than outdated trading systems. Our innovative platform streamlines operations, reduces complexity, and helps small businesses thrive in the modern economy."
+        "title": "Tuition centre management for Malaysia",
+        "description": "TLAS.MY helps small tuition centres manage students, guardians, teachers, classes, attendance, invoices, manual payments, and reports without messy spreadsheets."
       },
       "hero": {
-        "announcement": "Read our latest article"
+        "announcement": "Built for Malaysian tuition centres",
+        "words": ["organized", "chargeable", "teacher-ready", "simple", "local"]
       },
       "cases": {
-        "title": "Empowering Success Stories Across the Globe"
+        "title": "Built around the daily work of small centres"
       },
       "features": {
-        "title": "Powerful Tools for Modern Business",
-        "description": "Discover how our cutting-edge features can revolutionize your daily operations.",
+        "title": "Everything a centre owner needs to operate clearly",
+        "description": "Keep the admin workflow simple: add students, schedule classes, mark attendance, issue monthly invoices, record payments, and export reports.",
         "items": [
           {
-            "title": "Streamlined Operations",
-            "description": "Our platform streamlines operations, reduces complexity, and helps small businesses thrive in the modern economy."
+            "title": "Student and guardian records",
+            "description": "Keep student details, primary guardians, contact numbers, levels, schools, and billing contacts together."
           },
           {
-            "title": "Real-Time Analytics",
-            "description": "Get instant insights into your business performance with comprehensive analytics and reporting tools."
+            "title": "Classes and teacher workflow",
+            "description": "Set subjects, weekly schedules, teachers, fees, enrolments, and a Today page for fast attendance."
           },
           {
-            "title": "Automated Workflows",
-            "description": "Save time and reduce errors with intelligent automation that handles repetitive tasks for you."
+            "title": "Monthly invoices and receipts",
+            "description": "Generate monthly invoices from active enrolments, record manual payments, print invoices, and reverse mistakes safely."
           },
           {
-            "title": "Secure Transactions",
-            "description": "Rest easy knowing your business operations are protected by enterprise-grade security and encryption."
+            "title": "Reports and exports",
+            "description": "Export centre-friendly CSV reports for students, enrolments, attendance, invoices, and payments."
           }
         ]
       },
       "stats": {
-        "title": "Real Results, Real Impact",
-        "description": "Join thousands of businesses that have transformed their operations with our platform. Our solutions have helped companies reduce administrative overhead by 60% and increase trading efficiency by 45% on average.",
+        "title": "Designed for the centres that do not need enterprise software",
+        "description": "Start with the operational basics, then grow into subscriptions, limits, teacher workflows, and clean reporting.",
         "items": [
           {
-            "title": "Monthly active users",
-            "metric": "100000",
-            "delta": "10",
+            "title": "Free trial included",
+            "metric": "14",
+            "delta": "0",
             "type": "unit"
           },
           {
-            "title": "Daily active users",
-            "metric": "10000",
-            "delta": "-5",
-            "type": "unit"
-          },
-          {
-            "title": "Monthly recurring revenue",
-            "metric": "100000",
-            "delta": "20",
-            "type": "currency"
-          },
-          {
-            "title": "Cost per acquisition",
+            "title": "Starter students",
             "metric": "100",
-            "delta": "-10",
-            "type": "currency"
+            "delta": "0",
+            "type": "unit"
+          },
+          {
+            "title": "Pro students",
+            "metric": "300",
+            "delta": "0",
+            "type": "unit"
+          },
+          {
+            "title": "Manual tuition payment tracking",
+            "metric": "100",
+            "delta": "0",
+            "type": "unit"
+          }
+        ]
+      },
+      "pricing": {
+        "badge": "Pricing",
+        "title": "Simple monthly plans for tuition centres",
+        "description": "Start free, then choose the plan that matches your centre size. Stripe is used only for your TLAS.MY subscription; tuition payments are recorded manually.",
+        "plans": [
+          {
+            "name": "Trial",
+            "description": "Try the full operating workflow before choosing a paid plan.",
+            "price": "Free",
+            "period": " / 14 days",
+            "cta": "Start trial",
+            "highlighted": false,
+            "features": [
+              {
+                "title": "50 active students",
+                "description": "Enough to pilot with a small centre."
+              },
+              {
+                "title": "5 teachers and 10 classes",
+                "description": "Set up real schedules and attendance."
+              },
+              {
+                "title": "Invoices and reports",
+                "description": "Test monthly invoicing and CSV exports."
+              }
+            ]
+          },
+          {
+            "name": "Starter",
+            "description": "For small centres that want a cleaner operating system.",
+            "price": "RM49",
+            "period": " / month",
+            "cta": "Choose Starter",
+            "highlighted": true,
+            "features": [
+              {
+                "title": "100 active students",
+                "description": "Manage the core records for a growing centre."
+              },
+              {
+                "title": "10 teachers and 20 classes",
+                "description": "Enough for multiple subjects and schedules."
+              },
+              {
+                "title": "100 invoices per month",
+                "description": "Generate monthly billing from enrolments."
+              }
+            ]
+          },
+          {
+            "name": "Pro",
+            "description": "For larger centres with more classes and monthly billing volume.",
+            "price": "RM99",
+            "period": " / month",
+            "cta": "Choose Pro",
+            "highlighted": false,
+            "features": [
+              {
+                "title": "300 active students",
+                "description": "Support a larger student base."
+              },
+              {
+                "title": "30 teachers and 60 classes",
+                "description": "Scale class operations without spreadsheet drift."
+              },
+              {
+                "title": "300 invoices per month",
+                "description": "Handle higher monthly billing volume."
+              }
+            ]
           }
         ]
       },
       "testimonials": {
-        "title": "Hear from Our Thriving Community",
+        "title": "What early centres usually want fixed first",
         "items": [
           {
-            "title": "Best decision",
-            "description": "Our goal was to streamline SMB trade, making it easier and faster than ever and we did it together.",
+            "title": "No more scattered student lists",
+            "description": "Owners can keep students, guardians, classes, and enrolments in one workflow instead of separate sheets.",
             "author": {
-              "name": "Hayden Bleasel",
-              "image": "https://github.com/haydenbleasel.png"
+              "name": "TLAS.MY pilot insight",
+              "image": "https://github.com/dnlnm.png"
             }
           },
           {
-            "title": "Game changer",
-            "description": "This platform revolutionized how we handle our day-to-day operations. The efficiency gains have been remarkable.",
+            "title": "Attendance is faster",
+            "description": "Teachers can open Today, create sessions, and mark all students present before adjusting absences or lateness.",
             "author": {
-              "name": "Lee Robinson",
-              "image": "https://github.com/leerob.png"
+              "name": "Teacher workflow",
+              "image": "https://github.com/dnlnm.png"
             }
           },
           {
-            "title": "Exceeded expectations",
-            "description": "Implementation was smooth and the results were immediate. Our team adapted quickly and productivity soared.",
+            "title": "Billing is clearer",
+            "description": "Monthly invoices come from active enrolments, while cash, transfer, DuitNow, FPX, card, and other payments can be recorded manually.",
             "author": {
-              "name": "shadcn",
-              "image": "https://github.com/shadcn.png"
+              "name": "Owner workflow",
+              "image": "https://github.com/dnlnm.png"
             }
           },
           {
-            "title": "Outstanding support",
-            "description": "Not only is the platform powerful, but the customer support team has been exceptional in helping us maximize its potential.",
+            "title": "Reports are exportable",
+            "description": "Centre owners can export operational CSVs when they need a backup, accountant view, or offline analysis.",
             "author": {
-              "name": "Pontus Abrahamsson",
-              "image": "https://github.com/pontusab.png"
+              "name": "Admin workflow",
+              "image": "https://github.com/dnlnm.png"
             }
           }
         ]
       },
       "faq": {
-        "title": "Common Questions, Expert Answers",
-        "description": "Get quick answers to your most pressing questions about our platform. We've compiled everything you need to know about transforming your business operations and getting started with modern trading solutions.",
-        "cta": "Any questions? Reach out",
+        "title": "Common questions",
+        "description": "Short answers for tuition centre owners evaluating TLAS.MY.",
+        "cta": "Still have questions? Contact us",
         "items": [
           {
-            "question": "What is the platform?",
-            "answer": "The platform is a trading platform that allows you to trade with confidence."
+            "question": "Is TLAS.MY for parents and students too?",
+            "answer": "Not yet. The MVP is for owners, admins, and teachers. Parent/student portals can come later."
           },
           {
-            "question": "How secure is the platform?",
-            "answer": "Our platform employs enterprise-grade security measures, including end-to-end encryption and multi-factor authentication, to ensure your trading activities remain completely secure."
+            "question": "Can parents pay tuition through TLAS.MY?",
+            "answer": "For MVP, tuition payments are recorded manually. Stripe is used only for the centre's TLAS.MY subscription."
           },
           {
-            "question": "What trading features are available?",
-            "answer": "The platform offers comprehensive trading tools including real-time market data, advanced charting, automated trading strategies, and detailed analytics to support informed decision-making."
+            "question": "Does it support Bahasa Malaysia?",
+            "answer": "The marketing site supports English and Bahasa Malaysia. The authenticated app is being localized progressively."
           },
           {
-            "question": "How does pricing work?",
-            "answer": "We offer flexible pricing tiers designed to scale with your business needs, from starter plans for individual traders to enterprise solutions for large organizations."
+            "question": "Can I import existing students?",
+            "answer": "Yes. Admins can import students and guardians using the CSV template in the Students page."
           },
           {
-            "question": "What kind of support do you provide?",
-            "answer": "Our dedicated support team is available 24/7 through multiple channels including live chat, email, and phone. We also provide extensive documentation and training resources."
+            "question": "What happens after the trial?",
+            "answer": "Choose Starter or Pro from Billing. If a trial or subscription is inactive, new record creation is limited until billing is resolved."
           }
         ]
       },
       "cta": {
-        "title": "Start Your Business Transformation",
-        "description": "Join thousands of forward-thinking businesses who have already modernized their operations. Our platform offers the tools, support, and efficiency you need to succeed in today's competitive market. Get started in minutes."
+        "title": "Launch your centre operations from one dashboard",
+        "description": "Start the trial, add your teachers and students, then run attendance and billing with less spreadsheet cleanup."
       }
     },
     "blog": {
       "meta": {
         "title": "Blog",
-        "description": "Thoughts, ideas, and opinions."
+        "description": "Updates and notes from TLAS.MY."
       }
     },
     "contact": {
       "meta": {
-        "title": "Let's Talk About Your Business",
-        "description": "Schedule a consultation with our team to discuss how we can help streamline your operations and drive growth for your business."
+        "title": "Talk to TLAS.MY",
+        "description": "Book a walkthrough and see how TLAS.MY can fit your tuition centre workflow."
       },
       "hero": {
         "benefits": [
           {
-            "title": "Personalized Consultation",
-            "description": "Get tailored solutions and expert advice specific to your business needs."
+            "title": "Workflow walkthrough",
+            "description": "See students, classes, attendance, invoices, payments, exports, and billing in one flow."
           },
           {
-            "title": "Seamless Integration",
-            "description": "We seamlessly integrate with your existing systems to ensure a smooth transition and minimal disruption."
+            "title": "Pilot setup guidance",
+            "description": "We can help map your existing spreadsheets to the student import template."
           },
           {
-            "title": "Expert Guidance",
-            "description": "Our team of experts will guide you through the process, ensuring you get the most out of our platform."
+            "title": "Malaysia-first context",
+            "description": "Designed around small Malaysian tuition centres, monthly fees, and manual payment recording."
           }
         ],
         "form": {
-          "title": "Book a meeting",
+          "title": "Book a walkthrough",
           "date": "Date",
           "firstName": "First name",
           "lastName": "Last name",
-          "resume": "Upload resume",
-          "cta": "Book the meeting"
+          "resume": "Upload file",
+          "cta": "Request walkthrough"
         }
       }
     }

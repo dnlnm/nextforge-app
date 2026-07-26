@@ -15,8 +15,10 @@ import {
   TableHeader,
   TableRow,
 } from "@repo/design-system/components/ui/table";
+import { CheckCircle2Icon, CircleIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getBillingState } from "./billing/limits";
 import { Header } from "./components/header";
 
 export const metadata: Metadata = {
@@ -42,6 +44,10 @@ const App = async () => {
     todaySessions,
     openInvoices,
     recentPayments,
+    settings,
+    subjects,
+    enrolments,
+    billingState,
   ] = await Promise.all([
     database.student.count({
       where: { organizationId: tenant.organizationId, status: "ACTIVE" },
@@ -75,6 +81,16 @@ const App = async () => {
       orderBy: { paidAt: "desc" },
       take: 5,
     }),
+    database.organizationSettings.findUnique({
+      where: { organizationId: tenant.organizationId },
+    }),
+    database.subject.count({
+      where: { organizationId: tenant.organizationId, status: "ACTIVE" },
+    }),
+    database.enrollment.count({
+      where: { organizationId: tenant.organizationId, status: "ACTIVE" },
+    }),
+    getBillingState(tenant.organizationId),
   ]);
   const outstandingSen = openInvoices.reduce(
     (sum, invoice) => sum + (invoice.totalSen - invoice.amountPaidSen),
@@ -84,6 +100,42 @@ const App = async () => {
     (sum, session) => sum + session.attendance.length,
     0
   );
+  const checklist = [
+    {
+      done: Boolean(settings),
+      href: "/settings",
+      title: "Complete centre settings",
+    },
+    { done: activeTeachers > 0, href: "/teachers", title: "Add a teacher" },
+    { done: subjects > 0, href: "/subjects", title: "Add a subject" },
+    { done: activeClasses > 0, href: "/classes", title: "Create a class" },
+    {
+      done: activeStudents > 0,
+      href: "/students",
+      title: "Add or import students",
+    },
+    {
+      done: enrolments > 0,
+      href: "/classes",
+      title: "Enrol students into classes",
+    },
+    {
+      done: todaySessions.length > 0,
+      href: "/today",
+      title: "Create today's sessions",
+    },
+    {
+      done: openInvoices.length > 0,
+      href: "/invoices",
+      title: "Generate first invoices",
+    },
+    {
+      done: billingState.subscription.status === "ACTIVE",
+      href: "/billing",
+      title: "Choose a TLAS.MY plan",
+    },
+  ];
+  const checklistComplete = checklist.filter((item) => item.done).length;
 
   return (
     <>
@@ -132,6 +184,35 @@ const App = async () => {
           </Card>
         </section>
         <section className="grid gap-4 xl:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Launch checklist</CardTitle>
+              <CardDescription>
+                {checklistComplete} of {checklist.length} setup steps complete
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-3">
+              {checklist.map((item) => (
+                <Link
+                  className="flex items-center justify-between rounded-md border p-3 text-sm transition-colors hover:bg-muted"
+                  href={item.href}
+                  key={item.title}
+                >
+                  <span className="flex items-center gap-2">
+                    {item.done ? (
+                      <CheckCircle2Icon className="h-4 w-4 text-success" />
+                    ) : (
+                      <CircleIcon className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    {item.title}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {item.done ? "Done" : "Open"}
+                  </span>
+                </Link>
+              ))}
+            </CardContent>
+          </Card>
           <Card>
             <CardHeader>
               <CardTitle>Today&apos;s sessions</CardTitle>

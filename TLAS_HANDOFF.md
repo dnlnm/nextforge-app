@@ -151,6 +151,45 @@ Important deployment note:
 
 - The repo's existing migrations are not in sync with the TLAS domain schema, so the current workflow remains Prisma schema + generated client. Run the repo's database sync path (`bun run db:push` or a full migration reset strategy) before production deployment rather than relying on the starter migration history.
 
+## Phase D Launch Polish Work
+
+Implemented locally after `744df33`, validated, and ready to commit/push:
+
+- Replaced generic marketing dictionaries with TLAS.MY English and Bahasa Malaysia launch copy.
+- Updated marketing header/footer branding from next-forge to TLAS.MY.
+- Kept the TLAS visual theme already present in `packages/design-system/styles/globals.css`.
+- Updated marketing pricing content for Trial, Starter RM49/month, and Pro RM99/month.
+- Added static bilingual starter legal pages:
+  - `/privacy`
+  - `/terms`
+- Added student CSV template download route:
+  - `/students/template`
+- Added template download button to the Students import card.
+- Added authenticated dashboard launch checklist based on real setup state:
+  - centre settings
+  - teachers
+  - subjects
+  - classes
+  - students
+  - enrolments
+  - today's sessions
+  - invoices
+  - billing plan
+
+Phase D validation passed:
+
+- `bun run check`
+- `bun run typecheck` in `apps/web`
+- `bun run typecheck` in `apps/app`
+- `bun run typecheck` in `packages/internationalization`
+- `bun run test` in `apps/app`
+- `SKIP_ENV_VALIDATION=true NEXT_PUBLIC_APP_URL=http://localhost:3000 NEXT_PUBLIC_WEB_URL=http://localhost:3001 NEXT_PUBLIC_DOCS_URL=http://localhost:3004 bun run build` in `apps/app`
+- `SKIP_ENV_VALIDATION=true NEXT_PUBLIC_APP_URL=http://localhost:3000 NEXT_PUBLIC_WEB_URL=http://localhost:3001 NEXT_PUBLIC_DOCS_URL=http://localhost:3004 bun run build` in `apps/web`
+
+Local env note:
+
+- `apps/app/.env.local` and `apps/api/.env.local` have local Stripe test secrets and TLAS price IDs configured. These files are not meant to be committed.
+
 Validation commands that passed after the `/today` work:
 
 ```bash

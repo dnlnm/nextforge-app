@@ -1,187 +1,261 @@
 {
   "web": {
     "global": {
-      "primaryCta": "Tempah panggilan",
-      "secondaryCta": "Daftar"
+      "primaryCta": "Tempah demo",
+      "secondaryCta": "Mula percubaan percuma"
     },
     "header": {
       "home": "Laman Utama",
       "product": {
         "title": "Produk",
-        "description": "Mengurus perniagaan kecil hari ini memang mencabar.",
+        "description": "Urus rekod pelajar, kelas, kehadiran, invois dan bayaran dalam satu tempat.",
         "pricing": "Harga"
       },
       "blog": "Blog",
       "docs": "Dokumentasi",
       "contact": "Hubungi Kami",
       "signIn": "Log masuk",
-      "signUp": "Mula sekarang"
+      "signUp": "Mula percubaan"
     },
     "home": {
       "meta": {
-        "title": "Ubah Operasi Perniagaan Anda Hari Ini",
-        "description": "Dalam dunia yang bergerak pantas hari ini, perniagaan anda layak mendapat penyelesaian yang lebih baik daripada sistem perdagangan yang ketinggalan zaman. Platform inovatif kami memudahkan operasi, mengurangkan kerumitan dan membantu perniagaan kecil berkembang dalam ekonomi moden."
+        "title": "Sistem pengurusan pusat tuisyen untuk Malaysia",
+        "description": "TLAS.MY membantu pusat tuisyen kecil mengurus pelajar, penjaga, guru, kelas, kehadiran, invois, bayaran manual dan laporan tanpa fail spreadsheet yang berselerak."
       },
       "hero": {
-        "announcement": "Baca artikel terbaru kami"
+        "announcement": "Dibina untuk pusat tuisyen Malaysia",
+        "words": ["tersusun", "boleh dicaj", "mesra guru", "mudah", "tempatan"]
       },
       "cases": {
-        "title": "Membina Kisah Kejayaan di Seluruh Dunia"
+        "title": "Dibina mengikut kerja harian pusat kecil"
       },
       "features": {
-        "title": "Alat Berkuasa untuk Perniagaan Moden",
-        "description": "Ketahui bagaimana ciri canggih kami boleh mengubah operasi harian anda.",
+        "title": "Semua asas operasi yang pemilik pusat perlukan",
+        "description": "Mudahkan kerja admin: tambah pelajar, susun kelas, tanda kehadiran, jana invois bulanan, rekod bayaran dan eksport laporan.",
         "items": [
           {
-            "title": "Operasi Dipermudah",
-            "description": "Platform kami memudahkan operasi, mengurangkan kerumitan dan membantu perniagaan kecil berkembang dalam ekonomi moden."
+            "title": "Rekod pelajar dan penjaga",
+            "description": "Simpan butiran pelajar, penjaga utama, nombor telefon, tahap, sekolah dan kontak bil dalam satu tempat."
           },
           {
-            "title": "Analitik Masa Nyata",
-            "description": "Dapatkan pandangan segera tentang prestasi perniagaan anda melalui alat analitik dan pelaporan yang menyeluruh."
+            "title": "Kelas dan aliran kerja guru",
+            "description": "Tetapkan subjek, jadual mingguan, guru, yuran, pendaftaran kelas dan halaman Today untuk kehadiran pantas."
           },
           {
-            "title": "Aliran Kerja Automatik",
-            "description": "Jimat masa dan kurangkan kesilapan dengan automasi pintar yang mengurus tugasan berulang untuk anda."
+            "title": "Invois bulanan dan resit",
+            "description": "Jana invois bulanan daripada enrolmen aktif, rekod bayaran manual, cetak invois dan betulkan kesilapan dengan selamat."
           },
           {
-            "title": "Transaksi Selamat",
-            "description": "Tenang menjalankan operasi perniagaan dengan perlindungan keselamatan dan penyulitan bertaraf perusahaan."
+            "title": "Laporan dan eksport",
+            "description": "Eksport laporan CSV untuk pelajar, enrolmen, kehadiran, invois dan bayaran."
           }
         ]
       },
       "stats": {
-        "title": "Hasil Nyata, Impak Nyata",
-        "description": "Sertai ribuan perniagaan yang telah mengubah operasi mereka dengan platform kami. Penyelesaian kami membantu syarikat mengurangkan beban pentadbiran sebanyak 60% dan meningkatkan kecekapan perdagangan sebanyak 45% secara purata.",
+        "title": "Direka untuk pusat yang tidak perlukan sistem perusahaan",
+        "description": "Mulakan dengan asas operasi, kemudian berkembang kepada langganan, had pelan, aliran kerja guru dan laporan yang kemas.",
         "items": [
           {
-            "title": "Pengguna aktif bulanan",
-            "metric": "100000",
-            "delta": "10",
+            "title": "Percubaan percuma",
+            "metric": "14",
+            "delta": "0",
             "type": "unit"
           },
           {
-            "title": "Pengguna aktif harian",
-            "metric": "10000",
-            "delta": "-5",
-            "type": "unit"
-          },
-          {
-            "title": "Hasil berulang bulanan",
-            "metric": "100000",
-            "delta": "20",
-            "type": "currency"
-          },
-          {
-            "title": "Kos pemerolehan pelanggan",
+            "title": "Pelajar pelan Starter",
             "metric": "100",
-            "delta": "-10",
-            "type": "currency"
+            "delta": "0",
+            "type": "unit"
+          },
+          {
+            "title": "Pelajar pelan Pro",
+            "metric": "300",
+            "delta": "0",
+            "type": "unit"
+          },
+          {
+            "title": "Rekod bayaran tuisyen manual",
+            "metric": "100",
+            "delta": "0",
+            "type": "unit"
+          }
+        ]
+      },
+      "pricing": {
+        "badge": "Harga",
+        "title": "Pelan bulanan mudah untuk pusat tuisyen",
+        "description": "Mula secara percuma, kemudian pilih pelan mengikut saiz pusat anda. Stripe hanya digunakan untuk langganan TLAS.MY; bayaran tuisyen direkod secara manual.",
+        "plans": [
+          {
+            "name": "Percubaan",
+            "description": "Cuba aliran kerja operasi sebelum memilih pelan berbayar.",
+            "price": "Percuma",
+            "period": " / 14 hari",
+            "cta": "Mula percubaan",
+            "highlighted": false,
+            "features": [
+              {
+                "title": "50 pelajar aktif",
+                "description": "Sesuai untuk pilot pusat kecil."
+              },
+              {
+                "title": "5 guru dan 10 kelas",
+                "description": "Cukup untuk jadual sebenar dan kehadiran."
+              },
+              {
+                "title": "Invois dan laporan",
+                "description": "Uji invois bulanan dan eksport CSV."
+              }
+            ]
+          },
+          {
+            "name": "Starter",
+            "description": "Untuk pusat kecil yang mahu operasi lebih kemas.",
+            "price": "RM49",
+            "period": " / bulan",
+            "cta": "Pilih Starter",
+            "highlighted": true,
+            "features": [
+              {
+                "title": "100 pelajar aktif",
+                "description": "Urus rekod asas untuk pusat yang sedang berkembang."
+              },
+              {
+                "title": "10 guru dan 20 kelas",
+                "description": "Sesuai untuk beberapa subjek dan jadual."
+              },
+              {
+                "title": "100 invois sebulan",
+                "description": "Jana bil bulanan daripada enrolmen."
+              }
+            ]
+          },
+          {
+            "name": "Pro",
+            "description": "Untuk pusat lebih besar dengan lebih banyak kelas dan invois bulanan.",
+            "price": "RM99",
+            "period": " / bulan",
+            "cta": "Pilih Pro",
+            "highlighted": false,
+            "features": [
+              {
+                "title": "300 pelajar aktif",
+                "description": "Sokong jumlah pelajar yang lebih besar."
+              },
+              {
+                "title": "30 guru dan 60 kelas",
+                "description": "Kembangkan operasi kelas tanpa spreadsheet berselerak."
+              },
+              {
+                "title": "300 invois sebulan",
+                "description": "Urus jumlah bil bulanan yang lebih tinggi."
+              }
+            ]
           }
         ]
       },
       "testimonials": {
-        "title": "Dengarkan Suara Komuniti Kami yang Berkembang",
+        "title": "Masalah awal yang biasanya mahu diselesaikan pusat",
         "items": [
           {
-            "title": "Keputusan terbaik",
-            "description": "Matlamat kami adalah memudahkan perdagangan PKS supaya menjadi lebih mudah dan pantas daripada sebelumnya, dan kami mencapainya bersama-sama.",
+            "title": "Senarai pelajar tidak lagi berselerak",
+            "description": "Pemilik boleh simpan pelajar, penjaga, kelas dan enrolmen dalam satu aliran kerja.",
             "author": {
-              "name": "Hayden Bleasel",
-              "image": "https://github.com/haydenbleasel.png"
+              "name": "Insight pilot TLAS.MY",
+              "image": "https://github.com/dnlnm.png"
             }
           },
           {
-            "title": "Mengubah cara kerja",
-            "description": "Platform ini mengubah cara kami mengurus operasi harian. Peningkatan kecekapan yang kami lihat benar-benar ketara.",
+            "title": "Kehadiran lebih pantas",
+            "description": "Guru boleh buka Today, cipta sesi dan tandakan semua hadir sebelum membetulkan tidak hadir atau lewat.",
             "author": {
-              "name": "Lee Robinson",
-              "image": "https://github.com/leerob.png"
+              "name": "Aliran kerja guru",
+              "image": "https://github.com/dnlnm.png"
             }
           },
           {
-            "title": "Melebihi jangkaan",
-            "description": "Pelaksanaan berjalan lancar dan hasilnya dapat dilihat dengan segera. Pasukan kami cepat menyesuaikan diri dan produktiviti meningkat.",
+            "title": "Bil lebih jelas",
+            "description": "Invois bulanan dijana daripada enrolmen aktif, manakala bayaran tunai, transfer, DuitNow, FPX, kad dan lain-lain boleh direkod manual.",
             "author": {
-              "name": "shadcn",
-              "image": "https://github.com/shadcn.png"
+              "name": "Aliran kerja pemilik",
+              "image": "https://github.com/dnlnm.png"
             }
           },
           {
-            "title": "Sokongan yang cemerlang",
-            "description": "Platform ini bukan sahaja berkuasa, malah pasukan sokongan pelanggan sangat membantu kami memaksimumkan potensinya.",
+            "title": "Laporan boleh dieksport",
+            "description": "Pemilik pusat boleh eksport CSV untuk sandaran, akaun atau analisis luar talian.",
             "author": {
-              "name": "Pontus Abrahamsson",
-              "image": "https://github.com/pontusab.png"
+              "name": "Aliran kerja admin",
+              "image": "https://github.com/dnlnm.png"
             }
           }
         ]
       },
       "faq": {
-        "title": "Soalan Lazim, Jawapan Pakar",
-        "description": "Dapatkan jawapan pantas untuk soalan penting tentang platform kami. Kami telah mengumpulkan perkara utama yang perlu anda ketahui untuk mengubah operasi perniagaan dan bermula dengan penyelesaian perdagangan moden.",
-        "cta": "Ada soalan? Hubungi kami",
+        "title": "Soalan lazim",
+        "description": "Jawapan ringkas untuk pemilik pusat tuisyen yang menilai TLAS.MY.",
+        "cta": "Masih ada soalan? Hubungi kami",
         "items": [
           {
-            "question": "Apakah platform ini?",
-            "answer": "Platform ini ialah platform perdagangan yang membolehkan anda berdagang dengan yakin."
+            "question": "Adakah TLAS.MY untuk ibu bapa dan pelajar juga?",
+            "answer": "Belum lagi. MVP ini untuk pemilik, admin dan guru. Portal ibu bapa/pelajar boleh dibina kemudian."
           },
           {
-            "question": "Sejauh mana platform ini selamat?",
-            "answer": "Platform kami menggunakan langkah keselamatan bertaraf perusahaan, termasuk penyulitan hujung ke hujung dan pengesahan berbilang faktor, untuk memastikan aktiviti perdagangan anda kekal selamat sepenuhnya."
+            "question": "Bolehkah ibu bapa bayar tuisyen melalui TLAS.MY?",
+            "answer": "Untuk MVP, bayaran tuisyen direkod secara manual. Stripe hanya digunakan untuk langganan TLAS.MY oleh pusat."
           },
           {
-            "question": "Apakah ciri perdagangan yang tersedia?",
-            "answer": "Platform ini menawarkan alat perdagangan menyeluruh termasuk data pasaran masa nyata, carta lanjutan, strategi perdagangan automatik dan analitik terperinci untuk menyokong keputusan yang lebih tepat."
+            "question": "Adakah ia menyokong Bahasa Malaysia?",
+            "answer": "Laman pemasaran menyokong English dan Bahasa Malaysia. Aplikasi dalaman akan diterjemah secara berperingkat."
           },
           {
-            "question": "Bagaimana harga ditetapkan?",
-            "answer": "Kami menawarkan pelan harga fleksibel yang direka untuk berkembang mengikut keperluan perniagaan anda, daripada pelan permulaan untuk pedagang individu hingga penyelesaian perusahaan untuk organisasi besar."
+            "question": "Bolehkah saya import pelajar sedia ada?",
+            "answer": "Ya. Admin boleh import pelajar dan penjaga menggunakan templat CSV di halaman Students."
           },
           {
-            "question": "Apakah jenis sokongan yang disediakan?",
-            "answer": "Pasukan sokongan khusus kami tersedia 24/7 melalui pelbagai saluran termasuk sembang langsung, e-mel dan telefon. Kami juga menyediakan dokumentasi dan sumber latihan yang lengkap."
+            "question": "Apa berlaku selepas percubaan tamat?",
+            "answer": "Pilih Starter atau Pro dari Billing. Jika percubaan atau langganan tidak aktif, penciptaan rekod baharu akan dihadkan sehingga bil diselesaikan."
           }
         ]
       },
       "cta": {
-        "title": "Mulakan Transformasi Perniagaan Anda",
-        "description": "Sertai ribuan perniagaan berpandangan jauh yang telah memodenkan operasi mereka. Platform kami menyediakan alat, sokongan dan kecekapan yang anda perlukan untuk berjaya dalam pasaran kompetitif hari ini. Mula dalam beberapa minit."
+        "title": "Mulakan operasi pusat dari satu dashboard",
+        "description": "Mula percubaan, tambah guru dan pelajar, kemudian urus kehadiran dan bil dengan kurang kerja spreadsheet."
       }
     },
     "blog": {
       "meta": {
         "title": "Blog",
-        "description": "Pemikiran, idea dan pandangan."
+        "description": "Kemas kini dan nota daripada TLAS.MY."
       }
     },
     "contact": {
       "meta": {
-        "title": "Mari Berbincang Tentang Perniagaan Anda",
-        "description": "Jadualkan konsultasi dengan pasukan kami untuk membincangkan bagaimana kami boleh membantu memudahkan operasi dan memacu pertumbuhan perniagaan anda."
+        "title": "Bercakap dengan TLAS.MY",
+        "description": "Tempah demo dan lihat bagaimana TLAS.MY boleh sesuai dengan aliran kerja pusat tuisyen anda."
       },
       "hero": {
         "benefits": [
           {
-            "title": "Konsultasi Peribadi",
-            "description": "Dapatkan penyelesaian tersuai dan nasihat pakar yang khusus untuk keperluan perniagaan anda."
+            "title": "Demo aliran kerja",
+            "description": "Lihat pelajar, kelas, kehadiran, invois, bayaran, eksport dan billing dalam satu aliran."
           },
           {
-            "title": "Integrasi Lancar",
-            "description": "Kami berintegrasi dengan lancar bersama sistem sedia ada anda untuk memastikan peralihan yang mudah dan gangguan yang minimum."
+            "title": "Panduan setup pilot",
+            "description": "Kami boleh bantu padankan spreadsheet sedia ada kepada templat import pelajar."
           },
           {
-            "title": "Bimbingan Pakar",
-            "description": "Pasukan pakar kami akan membimbing anda sepanjang proses supaya anda mendapat manfaat maksimum daripada platform kami."
+            "title": "Konteks Malaysia",
+            "description": "Direka sekitar pusat tuisyen kecil Malaysia, yuran bulanan dan rekod bayaran manual."
           }
         ],
         "form": {
-          "title": "Tempah mesyuarat",
+          "title": "Tempah demo",
           "date": "Tarikh",
           "firstName": "Nama pertama",
-          "lastName": "Nama keluarga",
-          "resume": "Muat naik resume",
-          "cta": "Tempah mesyuarat"
+          "lastName": "Nama akhir",
+          "resume": "Muat naik fail",
+          "cta": "Minta demo"
         }
       }
     }

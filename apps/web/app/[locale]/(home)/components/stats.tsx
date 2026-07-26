@@ -1,5 +1,5 @@
 import type { Dictionary } from "@repo/internationalization";
-import { MoveDownLeft, MoveUpRight } from "lucide-react";
+import { CircleCheck } from "lucide-react";
 
 interface StatsProps {
   dictionary: Dictionary;
@@ -26,20 +26,11 @@ export const Stats = ({ dictionary }: StatsProps) => (
                 className="flex flex-col justify-between gap-0 rounded-md border p-6"
                 key={item.title}
               >
-                {Number.parseFloat(item.delta) > 0 ? (
-                  <MoveUpRight className="mb-10 h-4 w-4 text-primary" />
-                ) : (
-                  <MoveDownLeft className="mb-10 h-4 w-4 text-destructive" />
-                )}
+                <CircleCheck className="mb-10 h-4 w-4 text-primary" />
                 <h2 className="flex max-w-xl flex-row items-end gap-4 text-left font-regular text-4xl tracking-tighter">
-                  {item.type === "currency" && "$"}
                   {new Intl.NumberFormat().format(
                     Number.parseFloat(item.metric)
                   )}
-                  <span className="text-muted-foreground text-sm tracking-normal">
-                    {Number.parseFloat(item.delta) > 0 ? "+" : ""}
-                    {item.delta}%
-                  </span>
                 </h2>
                 <p className="max-w-xl text-left text-base text-muted-foreground leading-relaxed tracking-tight">
                   {item.title}

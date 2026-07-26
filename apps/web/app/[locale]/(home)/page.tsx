@@ -7,6 +7,7 @@ import { CTA } from "./components/cta";
 import { FAQ } from "./components/faq";
 import { Features } from "./components/features";
 import { Hero } from "./components/hero";
+import { Pricing } from "./components/pricing";
 import { Stats } from "./components/stats";
 import { Testimonials } from "./components/testimonials";
 
@@ -41,6 +42,7 @@ const Home = async ({ params }: HomeProps) => {
       <Cases dictionary={dictionary} />
       <Features dictionary={dictionary} />
       <Stats dictionary={dictionary} />
+      <Pricing dictionary={dictionary} />
       <Testimonials dictionary={dictionary} />
       <FAQ dictionary={dictionary} />
       <CTA dictionary={dictionary} />

@@ -129,6 +129,9 @@ const StudentsPage = async () => {
           </CardHeader>
           <CardContent>
             <form action={importStudents} className="grid gap-4">
+              <Button asChild size="sm" variant="outline">
+                <Link href="/students/template">Download CSV template</Link>
+              </Button>
               <Input accept=".csv,text/csv" name="csv" required type="file" />
               <Button type="submit" variant="outline">
                 Import CSV
