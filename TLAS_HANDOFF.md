@@ -16,12 +16,8 @@
 - Repo path: `/home/dnlnm/dev/nextfo/nextforge-app`
 - Remote: `origin https://github.com/dnlnm/nextforge-app.git`
 - Branch: `main`
-- Last pushed commit: `c12b358 Build TLAS tuition management MVP`
-- Worktree may contain unrelated pre-existing unstaged changes that must not be reverted:
-  - `apps/web/app/[locale]/(home)/page.tsx`
-  - `packages/design-system/styles/globals.css`
-  - `packages/internationalization/dictionaries/en.json`
-  - `packages/internationalization/dictionaries/ms.json`
+- Last pushed commit: `f147009 Polish TLAS launch experience`
+- Worktree should be clean after the Phase D push unless a new session has made changes.
 
 ## Completed Work
 
@@ -149,11 +145,13 @@ Phase C validation passed:
 
 Important deployment note:
 
-- The repo's existing migrations are not in sync with the TLAS domain schema, so the current workflow remains Prisma schema + generated client. Run the repo's database sync path (`bun run db:push` or a full migration reset strategy) before production deployment rather than relying on the starter migration history.
+- Commit after `f147009` replaces the stale starter `Page` migration with a full TLAS baseline migration generated from `packages/database/prisma/schema.prisma`.
+- This baseline is intended for a fresh pilot/production database via `bun run migrate:deploy`.
+- If an existing database has already applied the old starter migration, reset/recreate that database or reconcile Prisma migration history before deploying.
 
 ## Phase D Launch Polish Work
 
-Implemented locally after `744df33`, validated, and ready to commit/push:
+Implemented after `744df33`, validated, committed, and pushed in `f147009`:
 
 - Replaced generic marketing dictionaries with TLAS.MY English and Bahasa Malaysia launch copy.
 - Updated marketing header/footer branding from next-forge to TLAS.MY.
@@ -189,6 +187,14 @@ Phase D validation passed:
 Local env note:
 
 - `apps/app/.env.local` and `apps/api/.env.local` have local Stripe test secrets and TLAS price IDs configured. These files are not meant to be committed.
+
+## Phase E Pilot Hardening Work
+
+Implemented locally after `f147009`:
+
+- Replaced the stale starter migration SQL with a full TLAS baseline migration generated from the current Prisma schema.
+- Added TLAS Stripe price ID placeholders to `apps/app/.env.example` and `apps/api/.env.example`.
+- Updated deployment notes so fresh pilot databases can use `bun run migrate:deploy` instead of `db:push`.
 
 Validation commands that passed after the `/today` work:
 
