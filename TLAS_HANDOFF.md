@@ -68,16 +68,27 @@ These commands passed before commit `c12b358`:
 - `SKIP_ENV_VALIDATION=true NEXT_PUBLIC_APP_URL=http://localhost:3000 NEXT_PUBLIC_WEB_URL=http://localhost:3001 NEXT_PUBLIC_DOCS_URL=http://localhost:3004 bun run build` in `apps/app`
 - `SKIP_ENV_VALIDATION=true bun run build` in `apps/api`
 
-## Current Teacher Workflow Work
+## Phase B Teacher Workflow Work
 
-Next phase started: teacher-focused daily workflow.
+Phase B teacher-focused daily workflow is implemented and pushed up to the initial `/today` workflow commit. Additional Phase B completion work has been implemented locally and should be committed/pushed next.
 
-Added and validated, but not yet committed or pushed after `c12b358`:
+Already committed and pushed in `bd9621f Add teacher today workflow`:
 
 - `apps/app/app/(authenticated)/today/actions.ts`
 - `apps/app/app/(authenticated)/today/date.ts`
 - `apps/app/app/(authenticated)/today/page.tsx`
 - `apps/app/app/(authenticated)/components/sidebar.tsx`
+
+Implemented locally after `bd9621f`, validated, and ready to commit/push:
+
+- Teacher-scoped `/today` visibility by matching the logged-in user's email to an active teacher profile email.
+- Admins/owners continue to see all classes and sessions.
+- Teachers without a linked teacher profile see a guidance message and cannot create sessions.
+- `createTodaySessions` only creates assigned class sessions for teacher users.
+- Attendance marking now enforces the same teacher assignment scope for teacher users.
+- Bulk session attendance action added for mark-all present, absent, late, or excused.
+- `/today` revalidates after attendance changes.
+- Empty state added when no sessions exist for today.
 
 `today/actions.ts` adds:
 
@@ -96,9 +107,9 @@ Added and validated, but not yet committed or pushed after `c12b358`:
 
 ## Immediate Next Steps
 
-1. Commit and push the validated teacher workflow if desired.
+1. Commit and push the validated Phase B completion work if desired.
 2. Stage only intended files; do not include unrelated web/design/i18n changes unless explicitly requested.
-3. Continue next teacher workflow enhancements, such as teacher-scoped schedule filters or quicker absent-late-present bulk actions.
+3. Continue the next phase, likely pilot hardening and production readiness.
 
 Validation commands that passed after the `/today` work:
 

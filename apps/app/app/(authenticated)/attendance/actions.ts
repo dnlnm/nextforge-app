@@ -11,6 +11,36 @@ const statuses = new Set<AttendanceStatus>([
   "EXCUSED",
 ]);
 
+const getTeacherProfileId = async (tenant: {
+  readonly organizationId: string;
+  readonly role: string;
+  readonly userId: string;
+}) => {
+  if (tenant.role !== "TEACHER") {
+    return;
+  }
+
+  const user = await database.user.findUnique({
+    where: { id: tenant.userId },
+    select: { email: true },
+  });
+
+  if (!user?.email) {
+    return "__unassigned_teacher__";
+  }
+
+  const teacher = await database.teacherProfile.findFirst({
+    where: {
+      archivedAt: null,
+      email: { equals: user.email, mode: "insensitive" },
+      organizationId: tenant.organizationId,
+    },
+    select: { id: true },
+  });
+
+  return teacher?.id ?? "__unassigned_teacher__";
+};
+
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);
 
@@ -66,13 +96,18 @@ export const createClassSession = async (formData: FormData) => {
 export const markAttendance = async (formData: FormData) => {
   const tenant = await requireTenantRole(["TEACHER"]);
   const sessionId = getString(formData, "sessionId");
+  const teacherProfileId = await getTeacherProfileId(tenant);
 
   if (!sessionId) {
     throw new Error("Session is required.");
   }
 
   const session = await database.classSession.findFirst({
-    where: { id: sessionId, organizationId: tenant.organizationId },
+    where: {
+      id: sessionId,
+      organizationId: tenant.organizationId,
+      ...(teacherProfileId ? { class: { teacherId: teacherProfileId } } : {}),
+    },
     include: {
       class: {
         include: {
@@ -136,4 +171,71 @@ export const markAttendance = async (formData: FormData) => {
   });
 
   revalidatePath("/attendance");
+  revalidatePath("/today");
+};
+
+export const markSessionAttendanceStatus = async (formData: FormData) => {
+  const tenant = await requireTenantRole(["TEACHER"]);
+  const sessionId = getString(formData, "sessionId");
+  const status = getString(formData, "status");
+  const teacherProfileId = await getTeacherProfileId(tenant);
+
+  if (!(sessionId && status && statuses.has(status as AttendanceStatus))) {
+    throw new Error("Session and valid attendance status are required.");
+  }
+
+  const session = await database.classSession.findFirst({
+    where: {
+      id: sessionId,
+      organizationId: tenant.organizationId,
+      ...(teacherProfileId ? { class: { teacherId: teacherProfileId } } : {}),
+    },
+    include: {
+      class: {
+        include: {
+          enrollments: {
+            where: { status: "ACTIVE" },
+            select: { studentId: true },
+          },
+        },
+      },
+    },
+  });
+
+  if (!session) {
+    throw new Error("Session not found.");
+  }
+
+  await database.$transaction(async (tx) => {
+    for (const enrollment of session.class.enrollments) {
+      await tx.attendanceRecord.upsert({
+        where: {
+          sessionId_studentId: {
+            sessionId: session.id,
+            studentId: enrollment.studentId,
+          },
+        },
+        create: {
+          organizationId: tenant.organizationId,
+          markedByUserId: tenant.userId,
+          sessionId: session.id,
+          status: status as AttendanceStatus,
+          studentId: enrollment.studentId,
+        },
+        update: {
+          markedAt: new Date(),
+          markedByUserId: tenant.userId,
+          status: status as AttendanceStatus,
+        },
+      });
+    }
+
+    await tx.classSession.update({
+      where: { id: session.id },
+      data: { status: "COMPLETED" },
+    });
+  });
+
+  revalidatePath("/attendance");
+  revalidatePath("/today");
 };
