@@ -27,7 +27,7 @@ export const Header = ({ pages, page, children }: HeaderProps) => (
             <Fragment key={page}>
               {index > 0 && <BreadcrumbSeparator className="hidden md:block" />}
               <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="#">{page}</BreadcrumbLink>
+                <BreadcrumbLink href="/">{page}</BreadcrumbLink>
               </BreadcrumbItem>
             </Fragment>
           ))}

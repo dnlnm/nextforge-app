@@ -7,13 +7,563 @@ generator client {
 }
 
 datasource db {
-  provider     = "postgresql"
-  relationMode = "prisma"
+  provider = "postgresql"
 }
 
-// This is a stub model.
-// Delete it and add your own Prisma models.
-model Page {
-  id   Int    @id @default(autoincrement())
-  name String
+enum OrganizationStatus {
+  ACTIVE
+  SUSPENDED
+  ARCHIVED
+}
+
+enum MembershipRole {
+  OWNER
+  ADMIN
+  TEACHER
+}
+
+enum MembershipStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum WebhookStatus {
+  PROCESSING
+  PROCESSED
+  FAILED
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  ARCHIVE
+  RESTORE
+  ACCESS
+  SYSTEM
+}
+
+enum StudentStatus {
+  ACTIVE
+  INACTIVE
+  GRADUATED
+  ARCHIVED
+}
+
+enum GuardianRelationship {
+  FATHER
+  MOTHER
+  GUARDIAN
+  OTHER
+}
+
+enum SubjectStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum ClassStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  ENDED
+  ARCHIVED
+}
+
+enum ClassSessionStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  VOID
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  DUITNOW
+  FPX
+  CARD
+  OTHER
+}
+
+enum PaymentStatus {
+  RECORDED
+  REVERSED
+}
+
+model User {
+  id              String    @id @default(cuid())
+  clerkUserId     String    @unique
+  email           String?
+  firstName       String?
+  lastName        String?
+  imageUrl        String?
+  preferredLocale String    @default("en")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  archivedAt      DateTime?
+
+  createdOrganizations Organization[]           @relation("CreatedOrganizations")
+  memberships          OrganizationMembership[]
+  auditEvents          AuditEvent[]             @relation("ActorAuditEvents")
+  attendanceRecords    AttendanceRecord[]
+  recordedPayments     Payment[]
+
+  @@index([email])
+}
+
+model Organization {
+  id                  String             @id @default(cuid())
+  clerkOrganizationId String             @unique
+  name                String
+  slug                String?
+  imageUrl            String?
+  status              OrganizationStatus @default(ACTIVE)
+  createdByUserId     String?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  archivedAt          DateTime?
+
+  createdBy         User?                    @relation("CreatedOrganizations", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  settings          OrganizationSettings?
+  branches          Branch[]
+  students          Student[]
+  guardians         Guardian[]
+  teachers          TeacherProfile[]
+  subjects          Subject[]
+  classes           LearningClass[]
+  invoices          Invoice[]
+  payments          Payment[]
+  memberships       OrganizationMembership[]
+  auditEvents       AuditEvent[]
+  enrollments       Enrollment[]
+  classSessions     ClassSession[]
+  attendanceRecords AttendanceRecord[]
+
+  @@index([status])
+  @@index([createdByUserId])
+}
+
+model OrganizationSettings {
+  id                   String   @id @default(cuid())
+  organizationId       String   @unique
+  defaultLocale        String   @default("en")
+  timezone             String   @default("Asia/Kuala_Lumpur")
+  currency             String   @default("MYR")
+  phone                String?
+  email                String?
+  addressLine1         String?
+  addressLine2         String?
+  city                 String?
+  state                String?
+  postcode             String?
+  country              String   @default("MY")
+  invoicePrefix        String   @default("INV")
+  receiptPrefix        String   @default("RCP")
+  defaultInvoiceDueDay Int      @default(7)
+  paymentInstructions  String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model OrganizationMembership {
+  id                String           @id @default(cuid())
+  clerkMembershipId String           @unique
+  organizationId    String
+  userId            String
+  role              MembershipRole
+  status            MembershipStatus @default(ACTIVE)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  archivedAt        DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([organizationId, role])
+  @@index([userId, status])
+}
+
+model Branch {
+  id             String    @id @default(cuid())
+  organizationId String
+  name           String
+  isDefault      Boolean   @default(false)
+  phone          String?
+  addressLine1   String?
+  addressLine2   String?
+  city           String?
+  state          String?
+  postcode       String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  archivedAt     DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  students Student[]
+  teachers TeacherProfile[]
+  classes  LearningClass[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId, isDefault])
+}
+
+model Student {
+  id             String        @id @default(cuid())
+  organizationId String
+  branchId       String?
+  fullName       String
+  preferredName  String?
+  schoolName     String?
+  academicLevel  String?
+  enrolledAt     DateTime      @default(now())
+  status         StudentStatus @default(ACTIVE)
+  notes          String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  archivedAt     DateTime?
+
+  organization      Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  branch            Branch?            @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  guardians         StudentGuardian[]
+  enrollments       Enrollment[]
+  attendanceRecords AttendanceRecord[]
+  invoices          Invoice[]
+  payments          Payment[]
+
+  @@index([organizationId, status])
+  @@index([organizationId, fullName])
+  @@index([branchId])
+}
+
+model Guardian {
+  id             String    @id @default(cuid())
+  organizationId String
+  fullName       String
+  phone          String?
+  email          String?
+  addressLine1   String?
+  addressLine2   String?
+  city           String?
+  state          String?
+  postcode       String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  archivedAt     DateTime?
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  students     StudentGuardian[]
+
+  @@index([organizationId, fullName])
+  @@index([organizationId, phone])
+}
+
+model StudentGuardian {
+  id              String               @id @default(cuid())
+  studentId       String
+  guardianId      String
+  relationship    GuardianRelationship @default(GUARDIAN)
+  isPrimary       Boolean              @default(false)
+  receivesBilling Boolean              @default(true)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  student  Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  guardian Guardian @relation(fields: [guardianId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, guardianId])
+  @@index([guardianId])
+  @@index([studentId, isPrimary])
+}
+
+model TeacherProfile {
+  id             String    @id @default(cuid())
+  organizationId String
+  branchId       String?
+  fullName       String
+  email          String?
+  phone          String?
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  archivedAt     DateTime?
+
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  branch       Branch?         @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  classes      LearningClass[]
+
+  @@index([organizationId, fullName])
+  @@index([organizationId, archivedAt])
+  @@index([branchId])
+}
+
+model Subject {
+  id             String        @id @default(cuid())
+  organizationId String
+  name           String
+  academicLevel  String?
+  description    String?
+  status         SubjectStatus @default(ACTIVE)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  archivedAt     DateTime?
+
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  classes      LearningClass[]
+
+  @@unique([organizationId, name, academicLevel])
+  @@index([organizationId, status])
+}
+
+model LearningClass {
+  id             String      @id @default(cuid())
+  organizationId String
+  branchId       String?
+  subjectId      String
+  teacherId      String?
+  name           String
+  dayOfWeek      DayOfWeek
+  startsAt       String
+  endsAt         String
+  room           String?
+  capacity       Int?
+  monthlyFeeSen  Int         @default(0)
+  status         ClassStatus @default(ACTIVE)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  archivedAt     DateTime?
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  branch       Branch?           @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  subject      Subject           @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  teacher      TeacherProfile?   @relation(fields: [teacherId], references: [id], onDelete: SetNull)
+  enrollments  Enrollment[]
+  sessions     ClassSession[]
+  invoiceLines InvoiceLineItem[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId, status])
+  @@index([organizationId, dayOfWeek])
+  @@index([subjectId])
+  @@index([teacherId])
+}
+
+model Enrollment {
+  id             String           @id @default(cuid())
+  organizationId String
+  studentId      String
+  classId        String
+  startsOn       DateTime         @default(now())
+  endsOn         DateTime?
+  status         EnrollmentStatus @default(ACTIVE)
+  customFeeSen   Int?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  archivedAt     DateTime?
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  student      Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  class        LearningClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, classId, status])
+  @@index([organizationId, status])
+  @@index([classId, status])
+  @@index([studentId, status])
+}
+
+model ClassSession {
+  id             String             @id @default(cuid())
+  organizationId String
+  classId        String
+  sessionDate    DateTime
+  startsAt       String
+  endsAt         String
+  status         ClassSessionStatus @default(SCHEDULED)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  cancelledAt    DateTime?
+
+  organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  class        LearningClass      @relation(fields: [classId], references: [id], onDelete: Cascade)
+  attendance   AttendanceRecord[]
+
+  @@unique([classId, sessionDate])
+  @@index([organizationId, sessionDate])
+  @@index([classId, status])
+}
+
+model AttendanceRecord {
+  id             String           @id @default(cuid())
+  organizationId String
+  sessionId      String
+  studentId      String
+  status         AttendanceStatus
+  notes          String?
+  markedByUserId String?
+  markedAt       DateTime         @default(now())
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  session      ClassSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  student      Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  markedBy     User?        @relation(fields: [markedByUserId], references: [id], onDelete: SetNull)
+
+  @@unique([sessionId, studentId])
+  @@index([organizationId, status])
+  @@index([studentId, markedAt])
+}
+
+model Invoice {
+  id             String        @id @default(cuid())
+  organizationId String
+  studentId      String
+  invoiceNumber  String
+  billingMonth   String
+  issueDate      DateTime      @default(now())
+  dueDate        DateTime
+  status         InvoiceStatus @default(ISSUED)
+  subtotalSen    Int           @default(0)
+  discountSen    Int           @default(0)
+  totalSen       Int           @default(0)
+  amountPaidSen  Int           @default(0)
+  notes          String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  voidedAt       DateTime?
+
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  student      Student             @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  lineItems    InvoiceLineItem[]
+  allocations  PaymentAllocation[]
+
+  @@unique([organizationId, invoiceNumber])
+  @@unique([organizationId, studentId, billingMonth])
+  @@index([organizationId, billingMonth])
+  @@index([organizationId, status])
+  @@index([studentId])
+}
+
+model InvoiceLineItem {
+  id           String   @id @default(cuid())
+  invoiceId    String
+  classId      String?
+  description  String
+  quantity     Int      @default(1)
+  unitPriceSen Int
+  totalSen     Int
+  createdAt    DateTime @default(now())
+
+  invoice Invoice        @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  class   LearningClass? @relation(fields: [classId], references: [id], onDelete: SetNull)
+
+  @@index([invoiceId])
+  @@index([classId])
+}
+
+model Payment {
+  id               String        @id @default(cuid())
+  organizationId   String
+  studentId        String
+  receiptNumber    String
+  amountSen        Int
+  method           PaymentMethod
+  status           PaymentStatus @default(RECORDED)
+  paidAt           DateTime      @default(now())
+  reference        String?
+  notes            String?
+  recordedByUserId String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  reversedAt       DateTime?
+
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  student      Student             @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  recordedBy   User?               @relation(fields: [recordedByUserId], references: [id], onDelete: SetNull)
+  allocations  PaymentAllocation[]
+
+  @@unique([organizationId, receiptNumber])
+  @@index([organizationId, paidAt])
+  @@index([studentId])
+}
+
+model PaymentAllocation {
+  id        String   @id @default(cuid())
+  paymentId String
+  invoiceId String
+  amountSen Int
+  createdAt DateTime @default(now())
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@unique([paymentId, invoiceId])
+  @@index([invoiceId])
+}
+
+model WebhookEvent {
+  id          String        @id @default(cuid())
+  provider    String
+  eventId     String
+  eventType   String
+  status      WebhookStatus @default(PROCESSING)
+  error       String?
+  processedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@unique([provider, eventId])
+  @@index([provider, eventType])
+  @@index([status])
+}
+
+model AuditEvent {
+  id             String      @id @default(cuid())
+  organizationId String?
+  actorUserId    String?
+  action         AuditAction
+  targetType     String
+  targetId       String?
+  summary        String
+  metadata       Json?
+  createdAt      DateTime    @default(now())
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  actor        User?         @relation("ActorAuditEvents", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@index([actorUserId, createdAt])
+  @@index([targetType, targetId])
 }
