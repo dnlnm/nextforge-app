@@ -21,6 +21,7 @@ import { NotificationsTrigger } from "@repo/notifications/components/trigger";
 import {
   BarChart3Icon,
   BookOpenIcon,
+  CalendarCheckIcon,
   CalendarDaysIcon,
   ClipboardCheckIcon,
   CreditCardIcon,
@@ -40,6 +41,7 @@ interface GlobalSidebarProperties {
 
 const navigation = [
   { title: "Dashboard", url: "/", icon: HomeIcon },
+  { title: "Today", url: "/today", icon: CalendarCheckIcon },
   { title: "Students", url: "/students", icon: UsersIcon },
   { title: "Teachers", url: "/teachers", icon: UsersIcon },
   { title: "Subjects", url: "/subjects", icon: BookOpenIcon },
