@@ -111,6 +111,46 @@ Implemented locally after `bd9621f`, validated, and ready to commit/push:
 2. Stage only intended files; do not include unrelated web/design/i18n changes unless explicitly requested.
 3. Continue the next phase, likely pilot hardening and production readiness.
 
+## Phase C Chargeable SaaS Work
+
+Implemented locally after `bd0bd72`, validated, and ready to commit/push:
+
+- Added `OrganizationSubscription` with `SubscriptionPlan` and `SubscriptionStatus` in Prisma schema.
+- Added TLAS plan definitions in `packages/payments/plans.ts`:
+  - Trial: 50 students, 5 teachers, 10 classes, 50 invoices/month.
+  - Starter: RM49/month, 100 students, 10 teachers, 20 classes, 100 invoices/month.
+  - Pro: RM99/month, 300 students, 30 teachers, 60 classes, 300 invoices/month.
+- Added Stripe price env keys:
+  - `TLAS_STRIPE_STARTER_PRICE_ID`
+  - `TLAS_STRIPE_PRO_PRICE_ID`
+- Added `/billing` authenticated page with current plan, status, trial/period dates, usage meters, Checkout buttons, and Billing Portal button.
+- Added billing navigation item in authenticated sidebar.
+- Added Stripe Checkout subscription action and Billing Portal action.
+- Extended payments webhook to sync subscription create/update/delete and checkout completion into `OrganizationSubscription`.
+- Extended founder `/admin` dashboard with subscription status and metadata usage counts.
+- Enforced plan limits server-side on:
+  - Student create/import.
+  - Teacher create.
+  - Class create.
+  - Monthly invoice generation.
+- Platform admin allowlist bypasses plan limits.
+
+Phase C validation passed:
+
+- `bun run check`
+- `bun run typecheck` in `apps/app`
+- `bun run typecheck` in `apps/api`
+- `bun run typecheck` in `packages/payments`
+- `bun run typecheck` in `packages/database`
+- `bun run test` in `apps/app`
+- `bun run test` in `apps/api`
+- `SKIP_ENV_VALIDATION=true NEXT_PUBLIC_APP_URL=http://localhost:3000 NEXT_PUBLIC_WEB_URL=http://localhost:3001 NEXT_PUBLIC_DOCS_URL=http://localhost:3004 bun run build` in `apps/app`
+- `SKIP_ENV_VALIDATION=true bun run build` in `apps/api`
+
+Important deployment note:
+
+- The repo's existing migrations are not in sync with the TLAS domain schema, so the current workflow remains Prisma schema + generated client. Run the repo's database sync path (`bun run db:push` or a full migration reset strategy) before production deployment rather than relying on the starter migration history.
+
 Validation commands that passed after the `/today` work:
 
 ```bash

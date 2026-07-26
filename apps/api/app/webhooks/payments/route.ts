@@ -1,9 +1,11 @@
 import { analytics } from "@repo/analytics/server";
 import { clerkClient } from "@repo/auth/server";
+import { database, type SubscriptionStatus } from "@repo/database";
 import { parseError } from "@repo/observability/error";
 import { log } from "@repo/observability/log";
 import type { Stripe } from "@repo/payments";
 import { stripe } from "@repo/payments";
+import { getPlanFromStripePriceId } from "@repo/payments/plans";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { env } from "@/env";
@@ -22,6 +24,19 @@ const getUserFromCustomerId = async (customerId: string) => {
 const handleCheckoutSessionCompleted = async (
   data: Stripe.Checkout.Session
 ) => {
+  if (data.mode === "subscription") {
+    const organizationId = data.metadata?.organizationId;
+    const subscriptionId =
+      typeof data.subscription === "string"
+        ? data.subscription
+        : data.subscription?.id;
+
+    if (organizationId && subscriptionId && stripe) {
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      await syncSubscription(subscription, organizationId);
+    }
+  }
+
   if (!data.customer) {
     return;
   }
@@ -37,6 +52,89 @@ const handleCheckoutSessionCompleted = async (
   analytics?.capture({
     event: "User Subscribed",
     distinctId: user.id,
+  });
+};
+
+const statusMap: Partial<
+  Record<Stripe.Subscription.Status, SubscriptionStatus>
+> = {
+  active: "ACTIVE",
+  canceled: "CANCELED",
+  incomplete: "INCOMPLETE",
+  incomplete_expired: "INCOMPLETE",
+  past_due: "PAST_DUE",
+  paused: "PAST_DUE",
+  trialing: "TRIALING",
+  unpaid: "UNPAID",
+};
+
+const getDateFromUnix = (value?: number | null) =>
+  value ? new Date(value * 1000) : undefined;
+
+const getCurrentPeriodEnd = (subscription: Stripe.Subscription) =>
+  (subscription as Stripe.Subscription & { current_period_end?: number | null })
+    .current_period_end;
+
+const getOrganizationId = async (subscription: Stripe.Subscription) => {
+  if (subscription.metadata.organizationId) {
+    return subscription.metadata.organizationId;
+  }
+
+  const customerId =
+    typeof subscription.customer === "string"
+      ? subscription.customer
+      : subscription.customer.id;
+  const existing = await database.organizationSubscription.findUnique({
+    where: { stripeCustomerId: customerId },
+    select: { organizationId: true },
+  });
+
+  return existing?.organizationId;
+};
+
+const syncSubscription = async (
+  subscription: Stripe.Subscription,
+  fallbackOrganizationId?: string
+) => {
+  const organizationId =
+    fallbackOrganizationId ?? (await getOrganizationId(subscription));
+
+  if (!organizationId) {
+    log.warn(
+      `No TLAS organization found for Stripe subscription ${subscription.id}`
+    );
+    return;
+  }
+
+  const customerId =
+    typeof subscription.customer === "string"
+      ? subscription.customer
+      : subscription.customer.id;
+  const priceId = subscription.items.data.at(0)?.price.id;
+
+  await database.organizationSubscription.upsert({
+    where: { organizationId },
+    create: {
+      organizationId,
+      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+      currentPeriodEndsAt: getDateFromUnix(getCurrentPeriodEnd(subscription)),
+      plan: getPlanFromStripePriceId(priceId),
+      status: statusMap[subscription.status] ?? "INCOMPLETE",
+      stripeCustomerId: customerId,
+      stripePriceId: priceId,
+      stripeSubscriptionId: subscription.id,
+      trialEndsAt: getDateFromUnix(subscription.trial_end),
+    },
+    update: {
+      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+      currentPeriodEndsAt: getDateFromUnix(getCurrentPeriodEnd(subscription)),
+      plan: getPlanFromStripePriceId(priceId),
+      status: statusMap[subscription.status] ?? "INCOMPLETE",
+      stripeCustomerId: customerId,
+      stripePriceId: priceId,
+      stripeSubscriptionId: subscription.id,
+      trialEndsAt: getDateFromUnix(subscription.trial_end),
+    },
   });
 };
 
@@ -84,6 +182,12 @@ export const POST = async (request: Request): Promise<Response> => {
     switch (event.type) {
       case "checkout.session.completed": {
         await handleCheckoutSessionCompleted(event.data.object);
+        break;
+      }
+      case "customer.subscription.created":
+      case "customer.subscription.deleted":
+      case "customer.subscription.updated": {
+        await syncSubscription(event.data.object);
         break;
       }
       case "subscription_schedule.canceled": {

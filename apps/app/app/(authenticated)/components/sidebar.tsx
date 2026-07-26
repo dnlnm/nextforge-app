@@ -50,6 +50,7 @@ const navigation = [
   { title: "Invoices", url: "/invoices", icon: ReceiptTextIcon },
   { title: "Payments", url: "/payments", icon: CreditCardIcon },
   { title: "Reports", url: "/reports", icon: BarChart3Icon },
+  { title: "Billing", url: "/billing", icon: CreditCardIcon },
   { title: "Settings", url: "/settings", icon: SettingsIcon },
 ];
 

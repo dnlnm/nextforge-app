@@ -3,6 +3,7 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { database } from "@repo/database";
 import { revalidatePath } from "next/cache";
+import { assertWithinPlanLimit } from "../billing/limits";
 
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);
@@ -67,6 +68,25 @@ export const generateMonthlyInvoices = async (formData: FormData) => {
     current.push(enrollment);
     enrollmentsByStudent.set(enrollment.studentId, current);
   }
+
+  const existingInvoices = await database.invoice.findMany({
+    where: {
+      billingMonth,
+      organizationId: tenant.organizationId,
+      studentId: { in: Array.from(enrollmentsByStudent.keys()) },
+    },
+    select: { studentId: true },
+  });
+  const newInvoiceCount =
+    enrollmentsByStudent.size -
+    new Set(existingInvoices.map((invoice) => invoice.studentId)).size;
+
+  await assertWithinPlanLimit({
+    increment: newInvoiceCount,
+    organizationId: tenant.organizationId,
+    resource: "invoicesPerMonth",
+    userId: tenant.clerkUserId,
+  });
 
   for (const [studentId, studentEnrollments] of enrollmentsByStudent) {
     const existing = await database.invoice.findUnique({

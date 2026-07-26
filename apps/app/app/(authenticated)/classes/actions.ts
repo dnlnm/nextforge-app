@@ -4,6 +4,7 @@ import { requireTenantRole } from "@repo/auth/authorization";
 import { type DayOfWeek, database } from "@repo/database";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { assertWithinPlanLimit } from "../billing/limits";
 
 const days = new Set<DayOfWeek>([
   "MONDAY",
@@ -71,6 +72,12 @@ export const createClass = async (formData: FormData) => {
   if (!subject) {
     throw new Error("Subject not found.");
   }
+
+  await assertWithinPlanLimit({
+    organizationId: tenant.organizationId,
+    resource: "classes",
+    userId: tenant.clerkUserId,
+  });
 
   const teacherId = getString(formData, "teacherId");
   const teacher = teacherId

@@ -119,6 +119,21 @@ enum PaymentStatus {
   REVERSED
 }
 
+enum SubscriptionPlan {
+  TRIAL
+  STARTER
+  PRO
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
+  UNPAID
+}
+
 model User {
   id              String    @id @default(cuid())
   clerkUserId     String    @unique
@@ -152,7 +167,7 @@ model Organization {
   updatedAt           DateTime           @updatedAt
   archivedAt          DateTime?
 
-  createdBy         User?                    @relation("CreatedOrganizations", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  createdBy         User?                     @relation("CreatedOrganizations", fields: [createdByUserId], references: [id], onDelete: SetNull)
   settings          OrganizationSettings?
   branches          Branch[]
   students          Student[]
@@ -167,9 +182,30 @@ model Organization {
   enrollments       Enrollment[]
   classSessions     ClassSession[]
   attendanceRecords AttendanceRecord[]
+  subscription      OrganizationSubscription?
 
   @@index([status])
   @@index([createdByUserId])
+}
+
+model OrganizationSubscription {
+  id                   String             @id @default(cuid())
+  organizationId       String             @unique
+  plan                 SubscriptionPlan   @default(TRIAL)
+  status               SubscriptionStatus @default(TRIALING)
+  stripeCustomerId     String?            @unique
+  stripeSubscriptionId String?            @unique
+  stripePriceId        String?
+  trialEndsAt          DateTime?
+  currentPeriodEndsAt  DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([plan, status])
+  @@index([trialEndsAt])
 }
 
 model OrganizationSettings {

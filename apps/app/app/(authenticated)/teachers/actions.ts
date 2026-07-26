@@ -3,6 +3,7 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { database } from "@repo/database";
 import { revalidatePath } from "next/cache";
+import { assertWithinPlanLimit } from "../billing/limits";
 
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);
@@ -17,6 +18,12 @@ export const createTeacher = async (formData: FormData) => {
   if (!fullName) {
     throw new Error("Teacher name is required.");
   }
+
+  await assertWithinPlanLimit({
+    organizationId: tenant.organizationId,
+    resource: "teachers",
+    userId: tenant.clerkUserId,
+  });
 
   await database.teacherProfile.create({
     data: {

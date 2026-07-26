@@ -4,6 +4,7 @@ import { requireTenantRole } from "@repo/auth/authorization";
 import { database, type GuardianRelationship } from "@repo/database";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { assertWithinPlanLimit } from "../billing/limits";
 
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);
@@ -28,6 +29,12 @@ export const createStudent = async (formData: FormData) => {
   if (!(fullName && guardianName)) {
     throw new Error("Student and guardian names are required.");
   }
+
+  await assertWithinPlanLimit({
+    organizationId: tenant.organizationId,
+    resource: "students",
+    userId: tenant.clerkUserId,
+  });
 
   const relationship = getString(formData, "relationship") as
     | GuardianRelationship
@@ -187,15 +194,19 @@ export const importStudents = async (formData: FormData) => {
       headers.map((header, index) => [header, values[index]])
     );
   });
+  const importableRows = rows.filter((row) => row.fullname && row.guardianname);
+
+  await assertWithinPlanLimit({
+    increment: importableRows.length,
+    organizationId: tenant.organizationId,
+    resource: "students",
+    userId: tenant.clerkUserId,
+  });
 
   await database.$transaction(async (tx) => {
-    for (const row of rows) {
+    for (const row of importableRows) {
       const fullName = row.fullname;
       const guardianName = row.guardianname;
-
-      if (!(fullName && guardianName)) {
-        continue;
-      }
 
       const student = await tx.student.create({
         data: {
