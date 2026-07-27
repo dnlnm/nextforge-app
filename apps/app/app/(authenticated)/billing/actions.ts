@@ -54,6 +54,14 @@ export const startSubscriptionCheckout = async (formData: FormData) => {
     throw new Error("Choose a valid paid plan.");
   }
 
+  const subscription = await getOrCreateSubscription(tenant.organizationId);
+
+  if (subscription.stripeSubscriptionId) {
+    throw new Error(
+      "This centre already has a Stripe subscription. Use the billing portal to manage plan changes."
+    );
+  }
+
   const priceId = getStripePriceId(plan as Exclude<SubscriptionPlan, "TRIAL">);
 
   if (!(stripe && priceId)) {

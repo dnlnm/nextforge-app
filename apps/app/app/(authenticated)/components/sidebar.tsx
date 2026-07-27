@@ -23,6 +23,7 @@ import {
   BookOpenIcon,
   CalendarCheckIcon,
   CalendarDaysIcon,
+  CircleDollarSignIcon,
   ClipboardCheckIcon,
   CreditCardIcon,
   HomeIcon,
@@ -39,19 +40,39 @@ interface GlobalSidebarProperties {
   readonly children: ReactNode;
 }
 
-const navigation = [
-  { title: "Dashboard", url: "/", icon: HomeIcon },
-  { title: "Today", url: "/today", icon: CalendarCheckIcon },
-  { title: "Students", url: "/students", icon: UsersIcon },
-  { title: "Teachers", url: "/teachers", icon: UsersIcon },
-  { title: "Subjects", url: "/subjects", icon: BookOpenIcon },
-  { title: "Classes", url: "/classes", icon: CalendarDaysIcon },
-  { title: "Attendance", url: "/attendance", icon: ClipboardCheckIcon },
-  { title: "Invoices", url: "/invoices", icon: ReceiptTextIcon },
-  { title: "Payments", url: "/payments", icon: CreditCardIcon },
-  { title: "Reports", url: "/reports", icon: BarChart3Icon },
-  { title: "Billing", url: "/billing", icon: CreditCardIcon },
-  { title: "Settings", url: "/settings", icon: SettingsIcon },
+const navigationSections = [
+  {
+    items: [
+      { title: "Dashboard", url: "/", icon: HomeIcon },
+      { title: "Today", url: "/today", icon: CalendarCheckIcon },
+    ],
+    title: "Overview",
+  },
+  {
+    items: [
+      { title: "Students", url: "/students", icon: UsersIcon },
+      { title: "Teachers", url: "/teachers", icon: UsersIcon },
+      { title: "Subjects", url: "/subjects", icon: BookOpenIcon },
+      { title: "Classes", url: "/classes", icon: CalendarDaysIcon },
+    ],
+    title: "Centre Setup",
+  },
+  {
+    items: [
+      { title: "Attendance", url: "/attendance", icon: ClipboardCheckIcon },
+      { title: "Invoices", url: "/invoices", icon: ReceiptTextIcon },
+      { title: "Payments", url: "/payments", icon: CreditCardIcon },
+      { title: "Reports", url: "/reports", icon: BarChart3Icon },
+    ],
+    title: "Operations",
+  },
+  {
+    items: [
+      { title: "Billing", url: "/billing", icon: CircleDollarSignIcon },
+      { title: "Settings", url: "/settings", icon: SettingsIcon },
+    ],
+    title: "Account",
+  },
 ];
 
 const isActivePath = (pathname: string, url: string) =>
@@ -86,25 +107,27 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
           </SidebarMenu>
         </SidebarHeader>
         <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupLabel>Centre</SidebarGroupLabel>
-            <SidebarMenu>
-              {navigation.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActivePath(pathname, item.url)}
-                    tooltip={item.title}
-                  >
-                    <Link href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroup>
+          {navigationSections.map((section) => (
+            <SidebarGroup key={section.title}>
+              <SidebarGroupLabel>{section.title}</SidebarGroupLabel>
+              <SidebarMenu>
+                {section.items.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActivePath(pathname, item.url)}
+                      tooltip={item.title}
+                    >
+                      <Link href={item.url}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroup>
+          ))}
         </SidebarContent>
         <SidebarFooter>
           <SidebarMenu>

@@ -14,6 +14,11 @@ import { Header } from "../components/header";
 import { openBillingPortal, startSubscriptionCheckout } from "./actions";
 import { getBillingState, getPlanUsageRows } from "./limits";
 
+const paidPlanRank = {
+  STARTER: 1,
+  PRO: 2,
+} as const;
+
 const formatDate = (date?: Date | null) =>
   date
     ? new Intl.DateTimeFormat("en-MY", { dateStyle: "medium" }).format(date)
@@ -92,6 +97,25 @@ const BillingPage = async () => {
         <div className="grid gap-4">
           {(["STARTER", "PRO"] as const).map((plan) => {
             const definition = planDefinitions[plan];
+            const isCurrentPlan = state.subscription.plan === plan;
+            const hasStripeSubscription = Boolean(
+              state.subscription.stripeSubscriptionId
+            );
+            const isUpgrade =
+              state.subscription.plan !== "TRIAL" &&
+              paidPlanRank[plan] > paidPlanRank[state.subscription.plan];
+            let buttonLabel = "Choose plan";
+
+            if (isCurrentPlan) {
+              buttonLabel = "Current plan";
+            } else if (hasStripeSubscription) {
+              buttonLabel = isUpgrade
+                ? `Upgrade to ${definition.name}`
+                : "Manage in billing portal";
+            }
+            const formAction = hasStripeSubscription
+              ? openBillingPortal
+              : startSubscriptionCheckout;
 
             return (
               <Card key={plan}>
@@ -106,12 +130,14 @@ const BillingPage = async () => {
                     <li>{definition.classes} active classes</li>
                     <li>{definition.invoicesPerMonth} invoices per month</li>
                   </ul>
-                  <form action={startSubscriptionCheckout}>
+                  <form action={formAction}>
                     <input name="plan" type="hidden" value={plan} />
-                    <Button className="w-full" type="submit">
-                      {state.subscription.plan === plan
-                        ? "Update subscription"
-                        : "Choose plan"}
+                    <Button
+                      className="w-full"
+                      disabled={isCurrentPlan}
+                      type="submit"
+                    >
+                      {buttonLabel}
                     </Button>
                   </form>
                 </CardContent>
