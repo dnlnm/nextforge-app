@@ -146,7 +146,7 @@ export const SignUp = () => {
             </p>
           </form>
           <div className="relative hidden min-h-[520px] bg-muted md:block">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.22),transparent_42%),linear-gradient(225deg,hsl(var(--muted)),hsl(var(--background)))]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,color-mix(in_oklch,var(--primary)_22%,transparent),transparent_42%),linear-gradient(225deg,var(--muted),var(--background))]" />
             <div className="absolute inset-x-8 bottom-8 space-y-2">
               <p className="font-medium text-lg">
                 Built for the work behind every lesson.

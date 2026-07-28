@@ -110,7 +110,7 @@ export const SignIn = () => {
             </p>
           </form>
           <div className="relative hidden min-h-[420px] bg-muted md:block">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,hsl(var(--primary)/0.22),transparent_42%),linear-gradient(145deg,hsl(var(--muted)),hsl(var(--background)))]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,color-mix(in_oklch,var(--primary)_22%,transparent),transparent_42%),linear-gradient(145deg,var(--muted),var(--background))]" />
             <div className="absolute inset-x-8 bottom-8 space-y-2">
               <p className="font-medium text-lg">
                 One calm place to run your centre.
