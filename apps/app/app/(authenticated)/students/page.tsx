@@ -61,12 +61,6 @@ const formatDate = (date: Date) =>
 const studentCode = (index: number) =>
   `STU${String(index + 145).padStart(5, "0")}`;
 
-const getAge = (date: Date) => {
-  const years = new Date().getUTCFullYear() - date.getUTCFullYear();
-
-  return Math.max(1, years);
-};
-
 const StudentsPage = async () => {
   const tenant = await requireTenant();
   const today = new Date();
@@ -161,7 +155,7 @@ const StudentsPage = async () => {
               </Link>
             </Button>
             <Button asChild className="flex-1 md:flex-none">
-              <Link href="#add-student">
+              <Link href="/students/new">
                 <PlusIcon className="size-4" />
                 <span className="hidden sm:inline">Add Student</span>
                 <span className="sm:hidden">Add</span>
@@ -218,66 +212,66 @@ const StudentsPage = async () => {
             </section>
 
             <Card>
-              <CardContent className="grid gap-4 p-4">
-                <div className="grid gap-3 lg:grid-cols-[1.4fr_repeat(4,1fr)_auto_auto]">
-                  <div className="relative">
-                    <SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input className="pl-9" placeholder="Search students..." />
-                  </div>
-                  {[
-                    ["Branch", "All"],
-                    ["Class", "All"],
-                    ["Tutor", "All"],
-                    ["Status", "All"],
-                  ].map(([label, value]) => (
-                    <div className="grid gap-1" key={label}>
-                      <span className="text-muted-foreground text-xs">
-                        {label}
-                      </span>
-                      <Select defaultValue="all">
-                        <SelectTrigger>
-                          <SelectValue placeholder={value} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">{value}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  ))}
-                  <Button className="self-end" variant="outline">
-                    <FilterIcon className="size-4" />
-                    Advanced Filter
-                  </Button>
-                  <Button className="self-end" size="icon" variant="outline">
-                    <RefreshCwIcon className="size-4" />
-                  </Button>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-3 border-t pt-4">
-                  <div className="flex items-center gap-3 pr-2">
-                    <Checkbox />
-                    <span className="font-medium text-sm">0 selected</span>
-                  </div>
-                  <Button size="sm" variant="outline">
-                    Send WhatsApp
-                  </Button>
-                  <Button size="sm" variant="outline">
-                    Assign Class
-                  </Button>
-                  <Button size="sm" variant="outline">
-                    <DownloadIcon className="size-4" />
-                    Export
-                  </Button>
-                  <Button size="sm" variant="outline">
-                    <Trash2Icon className="size-4" />
-                    Delete
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
               <CardContent className="p-0">
+                <div className="grid gap-4 p-4">
+                  <div className="flex flex-wrap items-end gap-3">
+                    <div className="relative min-w-64 flex-1 sm:max-w-sm">
+                      <SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        className="pl-9"
+                        placeholder="Search students..."
+                      />
+                    </div>
+                    {[
+                      ["Branch", "All"],
+                      ["Class", "All"],
+                      ["Tutor", "All"],
+                      ["Status", "All"],
+                    ].map(([label, value]) => (
+                      <div className="grid w-32 gap-1" key={label}>
+                        <span className="text-muted-foreground text-xs">
+                          {label}
+                        </span>
+                        <Select defaultValue="all">
+                          <SelectTrigger>
+                            <SelectValue placeholder={value} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">{value}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ))}
+                    <Button className="ml-auto" variant="outline">
+                      <FilterIcon className="size-4" />
+                      Advanced Filter
+                    </Button>
+                    <Button className="self-end" size="icon" variant="outline">
+                      <RefreshCwIcon className="size-4" />
+                    </Button>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3 border-t pt-4">
+                    <div className="flex items-center gap-3 pr-2">
+                      <Checkbox />
+                      <span className="font-medium text-sm">0 selected</span>
+                    </div>
+                    <Button size="sm" variant="outline">
+                      Send WhatsApp
+                    </Button>
+                    <Button size="sm" variant="outline">
+                      Assign Class
+                    </Button>
+                    <Button size="sm" variant="outline">
+                      <DownloadIcon className="size-4" />
+                      Export
+                    </Button>
+                    <Button size="sm" variant="outline">
+                      <Trash2Icon className="size-4" />
+                      Delete
+                    </Button>
+                  </div>
+                </div>
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -288,28 +282,13 @@ const StudentsPage = async () => {
                         <TableHead>Student</TableHead>
                         <TableHead>Student ID</TableHead>
                         <TableHead>Level/Year</TableHead>
-                        <TableHead>Class</TableHead>
-                        <TableHead>Parent / Guardian</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Outstanding</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {students.map((student, index) => {
                         const guardian = student.guardians.at(0)?.guardian;
-                        const outstandingSen = student.invoices.reduce(
-                          (total, invoice) =>
-                            total +
-                            Math.max(
-                              0,
-                              invoice.totalSen - invoice.amountPaidSen
-                            ),
-                          0
-                        );
-                        const classes = student.enrollments.map(
-                          (enrollment) => enrollment.class
-                        );
                         const code = studentCode(index);
 
                         return (
@@ -322,17 +301,12 @@ const StudentsPage = async () => {
                                 <div className="flex size-10 shrink-0 items-center justify-center border bg-muted text-muted-foreground">
                                   <UserRoundIcon className="size-5" />
                                 </div>
-                                <div>
-                                  <Link
-                                    className="font-medium hover:underline"
-                                    href={`/students/${student.id}`}
-                                  >
-                                    {student.fullName}
-                                  </Link>
-                                  <p className="text-muted-foreground text-xs">
-                                    {getAge(student.enrolledAt)} years old
-                                  </p>
-                                </div>
+                                <Link
+                                  className="font-medium hover:underline"
+                                  href={`/students/${student.id}`}
+                                >
+                                  {student.fullName}
+                                </Link>
                               </div>
                             </TableCell>
                             <TableCell className="text-muted-foreground">
@@ -342,37 +316,12 @@ const StudentsPage = async () => {
                               {student.academicLevel ?? "-"}
                             </TableCell>
                             <TableCell>
-                              <div className="flex max-w-36 flex-wrap gap-1">
-                                {classes.length > 0 ? (
-                                  classes.slice(0, 2).map((learningClass) => (
-                                    <Badge
-                                      key={learningClass.id}
-                                      variant="outline"
-                                    >
-                                      {learningClass.name}
-                                    </Badge>
-                                  ))
-                                ) : (
-                                  <span className="text-muted-foreground">
-                                    -
-                                  </span>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <p>{guardian?.fullName ?? "-"}</p>
-                              <p className="text-muted-foreground text-xs">
-                                {guardian?.phone ?? "-"}
-                              </p>
-                            </TableCell>
-                            <TableCell>
                               <Badge variant="outline">
                                 {student.status === "ACTIVE"
                                   ? "Active"
                                   : "Inactive"}
                               </Badge>
                             </TableCell>
-                            <TableCell>{formatMoney(outstandingSen)}</TableCell>
                             <TableCell>
                               <div className="flex justify-end gap-2">
                                 <Button asChild size="icon" variant="outline">
