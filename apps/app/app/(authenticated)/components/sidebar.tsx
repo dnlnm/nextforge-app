@@ -14,9 +14,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "@repo/design-system/components/ui/sidebar";
-import { cn } from "@repo/design-system/lib/utils";
 import { NotificationsTrigger } from "@repo/notifications/components/trigger";
 import {
   BarChart3Icon,
@@ -35,7 +33,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Brand } from "@/components/brand";
-import { OrganizationSwitcher } from "./organization-switcher";
 
 interface GlobalSidebarProperties {
   readonly children: ReactNode;
@@ -80,7 +77,6 @@ const isActivePath = (pathname: string, url: string) =>
   url === "/" ? pathname === "/" : pathname.startsWith(url);
 
 export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
-  const sidebar = useSidebar();
   const pathname = usePathname();
 
   return (
@@ -92,14 +88,6 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
               <Link className="mb-2 block px-2" href="/">
                 <Brand />
               </Link>
-              <div
-                className={cn(
-                  "transition-all [&>div]:w-full",
-                  sidebar.open ? "" : "-mx-1"
-                )}
-              >
-                <OrganizationSwitcher />
-              </div>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarHeader>
