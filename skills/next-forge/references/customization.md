@@ -20,12 +20,10 @@ To swap: update `packages/database/`, change the client export, and update `DATA
 
 ### Authentication
 
-**Default**: Clerk
+**Default**: Supabase Auth
 
 **Alternatives**:
-- **Supabase Auth** — Replace `@repo/auth` with Supabase Auth client. Update middleware and session handling.
 - **Auth.js** — Implement Auth.js (NextAuth v5) with chosen providers. Update session access patterns.
-- **Better Auth** — Use Better Auth's session management. Update `@repo/auth` exports.
 
 To swap: replace `packages/auth/`, update the `AuthProvider` in the design system, and update webhook handlers.
 

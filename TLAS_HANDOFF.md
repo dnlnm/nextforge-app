@@ -9,7 +9,7 @@
 - SaaS subscription billing: Stripe for TLAS subscriptions only.
 - Tuition payments: recorded manually for MVP; no Stripe Connect.
 - Founder/superadmin access: metadata by default; founder allowlist via `TLAS_PLATFORM_ADMIN_USER_IDS`.
-- Clerk local dev webhook setup was deferred; safe local fallback sync is intentionally kept.
+- Supabase Auth session refresh is handled in middleware; local user provisioning is application-managed.
 
 ## Repo State
 
@@ -23,7 +23,7 @@
 
 - Product planning/research completed for TLAS.MY MVP.
 - Prisma schema replaced starter `Page` model with TLAS tenant/domain models and PostgreSQL foreign keys.
-- Clerk auth webhook refactored to sync users, organizations, and memberships.
+- Organization and membership provisioning is handled through database-backed application actions.
 - Local dev fallback organization sync implemented for onboarding synchronization.
 - Tenant auth helpers added.
 - Founder `/admin` dashboard added.
@@ -280,9 +280,7 @@ const navigation = [
 - `packages/auth/tenant.ts`: `requireTenant`, `requireTenantRole`.
 - `packages/auth/platform-admin.ts`: `TLAS_PLATFORM_ADMIN_USER_IDS` founder guard.
 - `packages/auth/roles.ts`: role constants/helpers.
-- `apps/api/app/webhooks/auth/route.ts`: Clerk webhook endpoint.
-- `apps/api/app/webhooks/auth/handlers.ts`: Clerk event handlers.
-- `apps/api/app/webhooks/auth/synchronize.ts`: Clerk sync logic.
+- `apps/api/app/webhooks/auth/route.ts`: Retired provider webhook endpoint.
 - `apps/app/app/(authenticated)/onboarding/synchronizing/sync-active-organization.ts`: local fallback sync.
 - `apps/app/app/(authenticated)/components/sidebar.tsx`: authenticated app navigation.
 - `apps/app/app/(authenticated)/today/actions.ts`: new teacher-focused daily workflow actions.

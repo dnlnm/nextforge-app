@@ -4,7 +4,7 @@ export const tenantRoles = ["OWNER", "ADMIN", "TEACHER"] as const;
 
 export type TenantRole = (typeof tenantRoles)[number];
 
-const clerkRoleMap: Record<string, TenantRole> = {
+const roleMap: Record<string, TenantRole> = {
   "org:admin": "ADMIN",
   "org:member": "TEACHER",
   admin: "ADMIN",
@@ -13,12 +13,12 @@ const clerkRoleMap: Record<string, TenantRole> = {
   teacher: "TEACHER",
 };
 
-export const normalizeClerkRole = (role?: string | null): MembershipRole => {
+export const normalizeRole = (role?: string | null): MembershipRole => {
   if (!role) {
     return "TEACHER";
   }
 
-  return clerkRoleMap[role.toLowerCase()] ?? "TEACHER";
+  return roleMap[role.toLowerCase()] ?? "TEACHER";
 };
 
 const roleRank: Record<TenantRole, number> = {

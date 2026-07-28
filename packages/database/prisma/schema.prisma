@@ -136,7 +136,7 @@ enum SubscriptionStatus {
 
 model User {
   id              String    @id @default(cuid())
-  clerkUserId     String    @unique
+  authUserId      String    @unique
   email           String?
   firstName       String?
   lastName        String?
@@ -157,7 +157,6 @@ model User {
 
 model Organization {
   id                  String             @id @default(cuid())
-  clerkOrganizationId String             @unique
   name                String
   slug                String?
   imageUrl            String?
@@ -234,7 +233,7 @@ model OrganizationSettings {
 
 model OrganizationMembership {
   id                String           @id @default(cuid())
-  clerkMembershipId String           @unique
+  externalId       String?          @unique
   organizationId    String
   userId            String
   role              MembershipRole

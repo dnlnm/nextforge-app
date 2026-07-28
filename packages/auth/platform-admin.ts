@@ -15,10 +15,10 @@ export const requirePlatformAdmin = async () => {
   const session = await auth();
 
   if (!session.userId) {
-    return session.redirectToSignIn() as never;
+    return null;
   }
 
   return isPlatformAdminUserId(session.userId)
-    ? { clerkUserId: session.userId }
+    ? { authUserId: session.userId }
     : null;
 };

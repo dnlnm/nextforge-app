@@ -4,22 +4,23 @@ All packages live in `/packages/` and are imported as `@repo/<name>`.
 
 ## Authentication (`@repo/auth`)
 
-**Provider**: Clerk
+**Provider**: Supabase Auth
 
 Handles user authentication, organization management, and session handling.
 
 **Key exports**:
 - `AuthProvider` — wrapped inside `DesignSystemProvider`
-- Pre-built Clerk components: `<OrganizationSwitcher>`, `<UserButton>`, `<SignIn>`, `<SignUp>`
+- Supabase SSR clients for server and browser authentication
+- Application-managed organization and membership helpers
 
-**Webhooks**: Clerk sends user lifecycle events to `POST /api/webhooks/auth` (handled in the `api` app). Events include user creation, updates, and deletion.
+**Sessions**: Supabase Auth sessions are refreshed in application middleware. Organizations and memberships are managed in the application database.
 
-**Swappable to**: Supabase Auth, Auth.js, Better Auth.
+**Swappable to**: Supabase Auth, Auth.js.
 
 ## Database (`@repo/database`)
 
 **ORM**: Prisma
-**Default provider**: Neon PostgreSQL
+**Default provider**: Supabase PostgreSQL
 
 **Key exports**:
 - `database` — Prisma client instance
@@ -227,7 +228,7 @@ const dict = await getDictionary(locale);
 
 ### Inbound
 - **Stripe**: `POST /api/webhooks/payments` — payment and subscription events
-- **Clerk**: `POST /api/webhooks/auth` — user lifecycle events
+- **Supabase Auth**: sessions are refreshed through middleware; user records are provisioned by application code
 - **Local testing**: Stripe CLI auto-forwards to localhost
 
 ### Outbound
@@ -289,7 +290,7 @@ Rate limiting utilities used in conjunction with `@repo/security` for request th
 
 Shared Next.js configuration applied across apps:
 - Image optimization (AVIF, WebP)
-- Clerk image domain patterns
+- Supabase image domains can be added to `packages/next-config` when external avatars are enabled
 - Prisma webpack plugin for monorepo builds
 - PostHog reverse proxy rewrites (`/ingest/*`)
 - OpenTelemetry webpack compatibility fix

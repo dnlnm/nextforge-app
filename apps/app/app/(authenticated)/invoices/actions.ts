@@ -85,7 +85,7 @@ export const generateMonthlyInvoices = async (formData: FormData) => {
     increment: newInvoiceCount,
     organizationId: tenant.organizationId,
     resource: "invoicesPerMonth",
-    userId: tenant.clerkUserId,
+    userId: tenant.authUserId,
   });
 
   for (const [studentId, studentEnrollments] of enrollmentsByStudent) {

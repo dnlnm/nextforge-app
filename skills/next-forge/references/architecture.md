@@ -17,7 +17,7 @@ next-forge/
 ├── packages/
 │   ├── ai/                    # AI/LLM integration
 │   ├── analytics/             # PostHog, Google Analytics, Vercel Analytics
-│   ├── auth/                  # Clerk authentication
+│   ├── auth/                  # Supabase authentication
 │   ├── cms/                   # BaseHub CMS
 │   ├── collaboration/         # Liveblocks real-time features
 │   ├── cron/                  # Vercel cron jobs
@@ -35,7 +35,7 @@ next-forge/
 │   ├── seo/                   # Metadata, sitemap, JSON-LD
 │   ├── storage/               # Vercel Blob
 │   ├── typescript-config/     # Shared TS configs
-│   └── webhooks/              # Svix outbound + Stripe/Clerk inbound
+│   └── webhooks/              # Outbound + Stripe inbound webhooks
 ├── turbo.json
 └── package.json
 ```
@@ -43,13 +43,13 @@ next-forge/
 ## Apps
 
 ### app (Port 3000)
-The main user-facing SaaS application. Includes authentication via Clerk, database access via Prisma, collaboration features via Liveblocks, and notification feeds via Knock. Contains authenticated route layouts with security middleware.
+The main user-facing SaaS application. Includes authentication via Supabase Auth, database access via Prisma, collaboration features via Liveblocks, and notification feeds via Knock. Contains authenticated route layouts with security middleware.
 
 ### web (Port 3001)
 The marketing website. Integrates BaseHub CMS for blog posts and content, SEO optimization with metadata and sitemap generation, analytics tracking, and internationalization support.
 
 ### api (Port 3002)
-Serverless API endpoints for webhooks (Stripe, Clerk), cron jobs, and any dedicated API routes. Deployed as a separate Vercel project.
+Serverless API endpoints for webhooks (Stripe), cron jobs, and any dedicated API routes. Deployed as a separate Vercel project.
 
 ### email (Port 3003)
 React Email preview server for developing and testing email templates. Templates are React components in the `@repo/email` package.

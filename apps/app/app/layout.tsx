@@ -1,4 +1,3 @@
-import { env } from "@/env";
 import "./styles.css";
 import { AnalyticsProvider } from "@repo/analytics/provider";
 import { AuthProvider } from "@repo/auth/provider";
@@ -17,28 +16,12 @@ export const metadata: Metadata = {
   description: "Bilingual tuition centre administration for Malaysia.",
 };
 
-const getWebUrl = () => {
-  try {
-    return new URL(env.NEXT_PUBLIC_WEB_URL).toString();
-  } catch {
-    return "http://localhost:3001";
-  }
-};
-
-const webUrl = getWebUrl();
-
 const RootLayout = ({ children }: RootLayoutProperties) => (
   <html className={fonts} lang="en" suppressHydrationWarning>
     <body>
       <AnalyticsProvider>
         <DesignSystemProvider>
-          <AuthProvider
-            helpUrl={env.NEXT_PUBLIC_DOCS_URL}
-            privacyUrl={new URL("/legal/privacy", webUrl).toString()}
-            termsUrl={new URL("/legal/terms", webUrl).toString()}
-          >
-            {children}
-          </AuthProvider>
+          <AuthProvider>{children}</AuthProvider>
         </DesignSystemProvider>
       </AnalyticsProvider>
       <Toolbar />

@@ -33,7 +33,7 @@ export const createStudent = async (formData: FormData) => {
   await assertWithinPlanLimit({
     organizationId: tenant.organizationId,
     resource: "students",
-    userId: tenant.clerkUserId,
+    userId: tenant.authUserId,
   });
 
   const relationship = getString(formData, "relationship") as
@@ -200,7 +200,7 @@ export const importStudents = async (formData: FormData) => {
     increment: importableRows.length,
     organizationId: tenant.organizationId,
     resource: "students",
-    userId: tenant.clerkUserId,
+    userId: tenant.authUserId,
   });
 
   await database.$transaction(async (tx) => {

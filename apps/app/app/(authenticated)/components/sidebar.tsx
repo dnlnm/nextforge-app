@@ -1,6 +1,6 @@
 "use client";
 
-import { OrganizationSwitcher, UserButton } from "@repo/auth/client";
+import { UserButton } from "@repo/auth/client";
 import { ModeToggle } from "@repo/design-system/components/mode-toggle";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
@@ -35,6 +35,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Brand } from "@/components/brand";
+import { OrganizationSwitcher } from "./organization-switcher";
 
 interface GlobalSidebarProperties {
   readonly children: ReactNode;
@@ -93,15 +94,11 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
               </Link>
               <div
                 className={cn(
-                  "h-[36px] overflow-hidden transition-all [&>div]:w-full",
+                  "transition-all [&>div]:w-full",
                   sidebar.open ? "" : "-mx-1"
                 )}
               >
-                <OrganizationSwitcher
-                  afterCreateOrganizationUrl="/onboarding/synchronizing"
-                  afterSelectOrganizationUrl="/onboarding/synchronizing"
-                  hidePersonal
-                />
+                <OrganizationSwitcher />
               </div>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -132,16 +129,7 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem className="flex items-center gap-2">
-              <UserButton
-                appearance={{
-                  elements: {
-                    rootBox: "flex overflow-hidden w-full",
-                    userButtonBox: "flex-row-reverse",
-                    userButtonOuterIdentifier: "truncate pl-0",
-                  },
-                }}
-                showName
-              />
+              <UserButton showName />
               <div className="flex shrink-0 items-center gap-px">
                 <ModeToggle />
                 <Button

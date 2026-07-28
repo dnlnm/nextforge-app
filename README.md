@@ -48,8 +48,8 @@ next-forge comes with batteries included:
 
 ### Packages
 
-- **Authentication** — Powered by [Clerk](https://clerk.com)
-- **Database** — Type-safe ORM with migrations
+- **Authentication** — Powered by [Supabase Auth](https://supabase.com/docs/guides/auth)
+- **Database** — Supabase Postgres with Prisma ORM and migrations
 - **Design System** — Comprehensive component library with dark mode
 - **Payments** — Subscription management via [Stripe](https://stripe.com)
 - **Email** — Transactional emails via [Resend](https://resend.com)
@@ -86,7 +86,7 @@ npx next-forge@latest init
 ### Setup
 
 1. Configure your environment variables
-2. Set up required service accounts (Clerk, Stripe, Resend, etc.)
+2. Set up required service accounts (Supabase, Stripe, Resend, etc.)
 3. Run the development server
 
 For detailed setup instructions, read the [documentation](https://www.next-forge.com/docs).

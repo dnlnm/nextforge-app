@@ -11,26 +11,23 @@ import {
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Header } from "../../components/header";
-import { syncActiveOrganization } from "./sync-active-organization";
 
 const SynchronizingPage = async () => {
   const session = await auth();
 
   if (!session.userId) {
-    return session.redirectToSignIn();
+    redirect("/sign-in");
   }
 
   if (!session.orgId) {
     redirect("/onboarding/organization");
   }
 
-  await syncActiveOrganization();
-
   const membership = await database.organizationMembership.findFirst({
     where: {
       status: "ACTIVE",
-      organization: { clerkOrganizationId: session.orgId, status: "ACTIVE" },
-      user: { clerkUserId: session.userId, archivedAt: null },
+      organization: { id: session.orgId, status: "ACTIVE" },
+      user: { authUserId: session.userId, archivedAt: null },
     },
     select: { id: true },
   });
@@ -47,8 +44,7 @@ const SynchronizingPage = async () => {
           <CardHeader>
             <CardTitle>Preparing your centre workspace</CardTitle>
             <CardDescription>
-              Clerk has accepted your organization change. TLAS.MY is preparing
-              the local workspace records for this centre.
+              TLAS.MY is preparing the local workspace records for this centre.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex gap-3">

@@ -6,8 +6,8 @@ import { hasTenantRole } from "./roles";
 import { auth } from "./server";
 
 export interface TenantContext {
-  readonly clerkOrganizationId: string;
-  readonly clerkUserId: string;
+  readonly authOrganizationId: string;
+  readonly authUserId: string;
   readonly membershipId: string;
   readonly organizationId: string;
   readonly role: MembershipRole;
@@ -18,7 +18,7 @@ export const requireTenant = async (): Promise<TenantContext> => {
   const session = await auth();
 
   if (!session.userId) {
-    return session.redirectToSignIn() as never;
+    redirect("/sign-in");
   }
 
   if (!session.orgId) {
@@ -30,11 +30,11 @@ export const requireTenant = async (): Promise<TenantContext> => {
     where: {
       status: "ACTIVE",
       organization: {
-        clerkOrganizationId: session.orgId,
+        id: session.orgId,
         status: "ACTIVE",
       },
       user: {
-        clerkUserId: session.userId,
+        authUserId: session.userId,
         archivedAt: null,
       },
     },
@@ -45,12 +45,12 @@ export const requireTenant = async (): Promise<TenantContext> => {
       userId: true,
       organization: {
         select: {
-          clerkOrganizationId: true,
+          id: true,
         },
       },
       user: {
         select: {
-          clerkUserId: true,
+          authUserId: true,
         },
       },
     },
@@ -62,8 +62,8 @@ export const requireTenant = async (): Promise<TenantContext> => {
   }
 
   return {
-    clerkUserId: membership.user.clerkUserId,
-    clerkOrganizationId: membership.organization.clerkOrganizationId,
+    authUserId: membership.user.authUserId,
+    authOrganizationId: membership.organization.id,
     userId: membership.userId,
     organizationId: membership.organizationId,
     membershipId: membership.id,

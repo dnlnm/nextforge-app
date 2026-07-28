@@ -50,7 +50,7 @@ For detailed structure, see `references/architecture.md`.
 
 Environment variable files live alongside apps and packages:
 
-- `apps/app/.env.local` — Main app keys (Clerk, Stripe, etc.)
+- `apps/app/.env.local` — Main app keys (Supabase, Stripe, etc.)
 - `apps/web/.env.local` — Marketing site keys
 - `apps/api/.env.local` — API keys
 - `packages/database/.env` — `DATABASE_URL` (required)

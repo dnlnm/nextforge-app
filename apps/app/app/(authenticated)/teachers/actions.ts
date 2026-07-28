@@ -22,7 +22,7 @@ export const createTeacher = async (formData: FormData) => {
   await assertWithinPlanLimit({
     organizationId: tenant.organizationId,
     resource: "teachers",
-    userId: tenant.clerkUserId,
+    userId: tenant.authUserId,
   });
 
   await database.teacherProfile.create({

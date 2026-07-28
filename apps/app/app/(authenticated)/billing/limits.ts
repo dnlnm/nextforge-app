@@ -12,20 +12,14 @@ export type LimitResource =
   | "students"
   | "teachers";
 
-export const getOrCreateSubscription = async (organizationId: string) => {
-  const existing = await database.organizationSubscription.findUnique({
-    where: { organizationId },
-  });
-
-  if (existing) {
-    return existing;
-  }
-
+export const getOrCreateSubscription = (organizationId: string) => {
   const trialEndsAt = new Date();
   trialEndsAt.setDate(trialEndsAt.getDate() + 14);
 
-  return database.organizationSubscription.create({
-    data: { organizationId, trialEndsAt },
+  return database.organizationSubscription.upsert({
+    where: { organizationId },
+    create: { organizationId, trialEndsAt },
+    update: {},
   });
 };
 

@@ -45,7 +45,7 @@ const arcjetMiddleware = async (request: NextRequest) => {
   }
 };
 
-// Compose non-Clerk middleware with Nemo
+// Compose application middleware with Nemo
 const composedMiddleware = createNEMO(
   {},
   {
@@ -53,7 +53,6 @@ const composedMiddleware = createNEMO(
   }
 );
 
-// Clerk middleware wraps other middleware in its callback
 export default authMiddleware(async (_auth, request, event) => {
   // Run security headers first
   const headersResponse = securityHeaders();

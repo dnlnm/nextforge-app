@@ -1,5 +1,4 @@
 import { analytics } from "@repo/analytics/server";
-import { clerkClient } from "@repo/auth/server";
 import { database, type SubscriptionStatus } from "@repo/database";
 import { parseError } from "@repo/observability/error";
 import { log } from "@repo/observability/log";
@@ -11,14 +10,16 @@ import { NextResponse } from "next/server";
 import { env } from "@/env";
 
 const getUserFromCustomerId = async (customerId: string) => {
-  const clerk = await clerkClient();
-  const users = await clerk.users.getUserList();
+  const subscription = await database.organizationSubscription.findFirst({
+    where: { stripeCustomerId: customerId },
+    include: {
+      organization: {
+        select: { createdBy: { select: { id: true, authUserId: true } } },
+      },
+    },
+  });
 
-  const user = users.data.find(
-    (currentUser) => currentUser.privateMetadata.stripeCustomerId === customerId
-  );
-
-  return user;
+  return subscription?.organization.createdBy;
 };
 
 const handleCheckoutSessionCompleted = async (

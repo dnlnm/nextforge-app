@@ -76,7 +76,7 @@ export const createClass = async (formData: FormData) => {
   await assertWithinPlanLimit({
     organizationId: tenant.organizationId,
     resource: "classes",
-    userId: tenant.clerkUserId,
+    userId: tenant.authUserId,
   });
 
   const teacherId = getString(formData, "teacherId");

@@ -47,14 +47,13 @@ NEXT_PUBLIC_DOCS_URL="http://localhost:3004"
 
 All integrations below are optional. If the corresponding environment variable is not set, the feature is disabled gracefully.
 
-### Authentication (Clerk)
+### Authentication (Supabase Auth)
 
 Set in `apps/app/.env.local`:
 
 ```bash
-CLERK_SECRET_KEY="sk_test_..."
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."
-CLERK_WEBHOOK_SECRET="whsec_..."
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="your-publishable-key"
 ```
 
 ### Payments (Stripe)
