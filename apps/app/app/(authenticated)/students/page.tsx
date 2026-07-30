@@ -220,7 +220,6 @@ const StudentsPage = async () => {
                       />
                     </div>
                     {[
-                      ["Branch", "All"],
                       ["Class", "All"],
                       ["Tutor", "All"],
                       ["Status", "All"],
@@ -303,7 +302,7 @@ const StudentsPage = async () => {
                                   </Link>
                                 </Button>
                                 <Button asChild size="icon" variant="outline">
-                                  <Link href={`/students/${student.id}`}>
+                                  <Link href={`/students/${student.id}/edit`}>
                                     <Edit3Icon className="size-4" />
                                   </Link>
                                 </Button>
@@ -375,8 +374,6 @@ const StudentsPage = async () => {
                       </CardTitle>
                       <div className="mt-2 flex flex-wrap items-center gap-2 text-muted-foreground text-sm">
                         <span>{studentCode(0)}</span>
-                        <span>+</span>
-                        <span>{selectedStudent.academicLevel ?? "-"}</span>
                         <Badge variant="outline">
                           {selectedStudent.status === "ACTIVE"
                             ? "Active"
@@ -393,7 +390,7 @@ const StudentsPage = async () => {
                         </Link>
                       </Button>
                       <Button asChild variant="outline">
-                        <Link href={`/students/${selectedStudent.id}`}>
+                        <Link href={`/students/${selectedStudent.id}/edit`}>
                           Edit
                         </Link>
                       </Button>
@@ -410,15 +407,9 @@ const StudentsPage = async () => {
                           "Registration Date",
                           formatDate(selectedStudent.enrolledAt),
                         ],
-                        ["No. IC / Passport", "-"],
                         ["Gender", "-"],
-                        ["Branch", selectedStudent.branch?.name ?? "-"],
-                        [
-                          "Status",
-                          selectedStudent.status === "ACTIVE"
-                            ? "Active"
-                            : "Inactive",
-                        ],
+                        ["Level", "-"],
+                        ["Phone", "-"],
                       ].map(([label, value]) => (
                         <div
                           className="grid grid-cols-[6rem_1fr] gap-3 text-sm"

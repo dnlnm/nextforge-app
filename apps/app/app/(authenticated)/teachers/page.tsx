@@ -180,7 +180,6 @@ const TeachersPage = async ({ searchParams }: TeachersPageProperties) => {
                     {[
                       ["Status", "All Status"],
                       ["Subject", "All Subjects"],
-                      ["Branch", "All Branches"],
                     ].map(([label, value]) => (
                       <div className="grid w-36 gap-1" key={label}>
                         <span className="text-muted-foreground text-xs">

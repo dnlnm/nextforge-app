@@ -66,7 +66,7 @@ export const createOrganization = async (name: string) => {
       name,
       createdByUserId: user.id,
       settings: { create: {} },
-      branches: { create: { name: "Main Branch", isDefault: true } },
+      branch: { create: { name: "Main Branch", isDefault: true } },
       memberships: {
         create: { userId: user.id, role: "OWNER", status: "ACTIVE" },
       },

@@ -88,6 +88,25 @@ CREATE TABLE "Organization" (
 );
 
 -- CreateTable
+CREATE TABLE "Branch" (
+    "id" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "isDefault" BOOLEAN NOT NULL DEFAULT false,
+    "phone" TEXT,
+    "addressLine1" TEXT,
+    "addressLine2" TEXT,
+    "city" TEXT,
+    "state" TEXT,
+    "postcode" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "archivedAt" TIMESTAMP(3),
+
+    CONSTRAINT "Branch_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "OrganizationSubscription" (
     "id" TEXT NOT NULL,
     "organizationId" TEXT NOT NULL,
@@ -143,25 +162,6 @@ CREATE TABLE "OrganizationMembership" (
     "archivedAt" TIMESTAMP(3),
 
     CONSTRAINT "OrganizationMembership_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Branch" (
-    "id" TEXT NOT NULL,
-    "organizationId" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "isDefault" BOOLEAN NOT NULL DEFAULT false,
-    "phone" TEXT,
-    "addressLine1" TEXT,
-    "addressLine2" TEXT,
-    "city" TEXT,
-    "state" TEXT,
-    "postcode" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-    "archivedAt" TIMESTAMP(3),
-
-    CONSTRAINT "Branch_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -461,10 +461,10 @@ CREATE INDEX "OrganizationMembership_userId_status_idx" ON "OrganizationMembersh
 CREATE UNIQUE INDEX "OrganizationMembership_organizationId_userId_key" ON "OrganizationMembership"("organizationId", "userId");
 
 -- CreateIndex
-CREATE INDEX "Branch_organizationId_isDefault_idx" ON "Branch"("organizationId", "isDefault");
+CREATE UNIQUE INDEX "Branch_organizationId_key" ON "Branch"("organizationId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Branch_organizationId_name_key" ON "Branch"("organizationId", "name");
+CREATE INDEX "Branch_organizationId_isDefault_idx" ON "Branch"("organizationId", "isDefault");
 
 -- CreateIndex
 CREATE INDEX "Student_organizationId_status_idx" ON "Student"("organizationId", "status");
@@ -717,4 +717,3 @@ ALTER TABLE "AuditEvent" ADD CONSTRAINT "AuditEvent_organizationId_fkey" FOREIGN
 
 -- AddForeignKey
 ALTER TABLE "AuditEvent" ADD CONSTRAINT "AuditEvent_actorUserId_fkey" FOREIGN KEY ("actorUserId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-

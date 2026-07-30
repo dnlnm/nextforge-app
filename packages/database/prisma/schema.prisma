@@ -156,19 +156,19 @@ model User {
 }
 
 model Organization {
-  id                  String             @id @default(cuid())
-  name                String
-  slug                String?
-  imageUrl            String?
-  status              OrganizationStatus @default(ACTIVE)
-  createdByUserId     String?
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
-  archivedAt          DateTime?
+  id              String             @id @default(cuid())
+  name            String
+  slug            String?
+  imageUrl        String?
+  status          OrganizationStatus @default(ACTIVE)
+  createdByUserId String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  archivedAt      DateTime?
 
   createdBy         User?                     @relation("CreatedOrganizations", fields: [createdByUserId], references: [id], onDelete: SetNull)
   settings          OrganizationSettings?
-  branches          Branch[]
+  branch            Branch?
   students          Student[]
   guardians         Guardian[]
   teachers          TeacherProfile[]
@@ -232,15 +232,15 @@ model OrganizationSettings {
 }
 
 model OrganizationMembership {
-  id                String           @id @default(cuid())
-  externalId       String?          @unique
-  organizationId    String
-  userId            String
-  role              MembershipRole
-  status            MembershipStatus @default(ACTIVE)
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-  archivedAt        DateTime?
+  id             String           @id @default(cuid())
+  externalId     String?          @unique
+  organizationId String
+  userId         String
+  role           MembershipRole
+  status         MembershipStatus @default(ACTIVE)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  archivedAt     DateTime?
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -252,7 +252,7 @@ model OrganizationMembership {
 
 model Branch {
   id             String    @id @default(cuid())
-  organizationId String
+  organizationId String    @unique
   name           String
   isDefault      Boolean   @default(false)
   phone          String?
@@ -271,7 +271,6 @@ model Branch {
   teachers TeacherProfile[]
   classes  LearningClass[]
 
-  @@unique([organizationId, name])
   @@index([organizationId, isDefault])
 }
 
