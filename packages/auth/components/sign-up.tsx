@@ -42,7 +42,7 @@ export const SignUp = () => {
       return;
     }
 
-    router.push("/onboarding/organization");
+    router.push("/center-setup");
     router.refresh();
   };
 

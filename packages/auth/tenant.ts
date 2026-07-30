@@ -22,7 +22,7 @@ export const requireTenant = async (): Promise<TenantContext> => {
   }
 
   if (!session.orgId) {
-    redirect("/onboarding/organization");
+    redirect("/center-setup");
     throw new Error("Missing active organization");
   }
 

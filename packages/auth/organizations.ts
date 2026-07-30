@@ -54,7 +54,7 @@ export const getOrganizations = async () => {
   });
 };
 
-export const createOrganization = async (name: string) => {
+export const createOrganization = async (name: string, imageUrl?: string) => {
   const user = await ensureLocalUser();
 
   if (!user) {
@@ -64,6 +64,7 @@ export const createOrganization = async (name: string) => {
   const organization = await database.organization.create({
     data: {
       name,
+      imageUrl,
       createdByUserId: user.id,
       settings: { create: {} },
       branch: { create: { name: "Main Branch", isDefault: true } },

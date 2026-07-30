@@ -20,7 +20,7 @@ const SynchronizingPage = async () => {
   }
 
   if (!session.orgId) {
-    redirect("/onboarding/organization");
+    redirect("/center-setup");
   }
 
   const membership = await database.organizationMembership.findFirst({
@@ -52,7 +52,7 @@ const SynchronizingPage = async () => {
               <Link href="/onboarding/synchronizing">Check again</Link>
             </Button>
             <Button asChild variant="outline">
-              <Link href="/onboarding/organization">Back</Link>
+              <Link href="/center-setup">Back</Link>
             </Button>
           </CardContent>
         </Card>
