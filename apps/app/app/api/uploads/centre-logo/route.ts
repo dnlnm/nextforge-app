@@ -32,6 +32,7 @@ export const POST = async (request: Request) => {
     const pathname = `centre-logos/${crypto.randomUUID()}-${sanitizeFileName(logo.name)}`;
     const { url } = await put(pathname, logo, {
       access: "public",
+      contentType: logo.type,
     });
 
     return NextResponse.json({ url });
