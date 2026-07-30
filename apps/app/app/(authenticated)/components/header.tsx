@@ -9,6 +9,7 @@ import {
 import { Separator } from "@repo/design-system/components/ui/separator";
 import { SidebarTrigger } from "@repo/design-system/components/ui/sidebar";
 import { Fragment, type ReactNode } from "react";
+import { OrganizationMenu } from "./organization-menu";
 
 type BreadcrumbParent =
   | string
@@ -56,6 +57,9 @@ export const Header = ({ pages, page, children }: HeaderProps) => (
         </BreadcrumbList>
       </Breadcrumb>
     </div>
-    {children}
+    <div className="flex items-center gap-2 px-4">
+      <OrganizationMenu />
+      {children}
+    </div>
   </header>
 );

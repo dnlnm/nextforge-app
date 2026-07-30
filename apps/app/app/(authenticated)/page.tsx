@@ -298,7 +298,7 @@ const App = async () => {
   return (
     <>
       <Header page="Dashboard" pages={["TLAS.MY"]} />
-      <main className="grid gap-5 p-4 pt-0">
+      <main className="grid gap-5 p-4 pt-4">
         <section className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
           {stats.map((stat) => (
             <Card className="overflow-hidden" key={stat.label}>

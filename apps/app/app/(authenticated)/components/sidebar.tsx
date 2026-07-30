@@ -2,11 +2,6 @@
 
 import { UserButton } from "@repo/auth/client";
 import { ModeToggle } from "@repo/design-system/components/mode-toggle";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@repo/design-system/components/ui/avatar";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
   Sidebar,
@@ -41,10 +36,6 @@ import { Brand } from "@/components/brand";
 
 interface GlobalSidebarProperties {
   readonly children: ReactNode;
-  readonly organization?: {
-    readonly imageUrl: string | null;
-    readonly name: string;
-  } | null;
 }
 
 const navigationSections = [
@@ -82,29 +73,11 @@ const navigationSections = [
   },
 ];
 
-const whitespaceRegex = /\s+/;
-
 const isActivePath = (pathname: string, url: string) =>
   url === "/" ? pathname === "/" : pathname.startsWith(url);
 
-const getInitials = (value?: string) => {
-  const parts = value?.trim().split(whitespaceRegex).filter(Boolean) ?? [];
-
-  return (
-    parts
-      .slice(0, 2)
-      .map((part) => part.at(0))
-      .join("")
-      .toUpperCase() || "T"
-  );
-};
-
-export const GlobalSidebar = ({
-  children,
-  organization,
-}: GlobalSidebarProperties) => {
+export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
   const pathname = usePathname();
-  const centreName = organization?.name ?? "TLAS.MY";
 
   return (
     <>
@@ -114,30 +87,6 @@ export const GlobalSidebar = ({
             <SidebarMenuItem>
               <Link className="mb-2 block px-2" href="/">
                 <Brand />
-              </Link>
-              <Link
-                className="mx-2 flex items-center gap-3 rounded-lg border bg-sidebar-accent/40 p-3 text-sidebar-foreground transition hover:bg-sidebar-accent"
-                href="/settings"
-              >
-                <Avatar className="size-10 rounded-lg border bg-sidebar">
-                  {organization?.imageUrl ? (
-                    <AvatarImage
-                      alt={centreName}
-                      src="/api/organization-logo"
-                    />
-                  ) : null}
-                  <AvatarFallback className="rounded-lg bg-primary font-semibold text-primary-foreground">
-                    {getInitials(centreName)}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="min-w-0">
-                  <span className="block truncate font-medium text-sm">
-                    {centreName}
-                  </span>
-                  <span className="block truncate text-muted-foreground text-xs">
-                    Active centre
-                  </span>
-                </span>
               </Link>
             </SidebarMenuItem>
           </SidebarMenu>

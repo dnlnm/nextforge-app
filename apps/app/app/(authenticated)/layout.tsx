@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { env } from "@/env";
 import { NotificationsProvider } from "./components/notifications-provider";
+import { OrganizationProvider } from "./components/organization-context";
 import { GlobalSidebar } from "./components/sidebar";
 
 interface AppLayoutProperties {
@@ -53,16 +54,18 @@ const AppLayout = async ({ children }: AppLayoutProperties) => {
 
   return (
     <NotificationsProvider userId={user.id}>
-      <SidebarProvider>
-        <GlobalSidebar organization={organization}>
-          {betaFeature && (
-            <div className="m-4 rounded-full bg-blue-500 p-1.5 text-center text-sm text-white">
-              Beta feature now available
-            </div>
-          )}
-          {children}
-        </GlobalSidebar>
-      </SidebarProvider>
+      <OrganizationProvider organization={organization}>
+        <SidebarProvider>
+          <GlobalSidebar>
+            {betaFeature && (
+              <div className="m-4 rounded-full bg-blue-500 p-1.5 text-center text-sm text-white">
+                Beta feature now available
+              </div>
+            )}
+            {children}
+          </GlobalSidebar>
+        </SidebarProvider>
+      </OrganizationProvider>
     </NotificationsProvider>
   );
 };
