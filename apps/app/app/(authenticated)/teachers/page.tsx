@@ -112,7 +112,7 @@ const TeachersPage = async ({ searchParams }: TeachersPageProperties) => {
   return (
     <>
       <Header page="Teachers" pages={["TLAS.MY"]} />
-      <main className="grid gap-5 p-4 pt-0">
+      <main className="grid gap-5 p-4 pt-4">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
             <h1 className="font-semibold text-2xl tracking-tight">Teachers</h1>

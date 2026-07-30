@@ -155,7 +155,7 @@ const ClassesPage = async () => {
   return (
     <>
       <Header page="Classes" pages={["TLAS.MY"]} />
-      <main className="grid gap-5 p-4 pt-0">
+      <main className="grid gap-5 p-4 pt-4">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
             <h1 className="font-semibold text-2xl tracking-tight">Classes</h1>

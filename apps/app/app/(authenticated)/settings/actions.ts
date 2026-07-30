@@ -2,7 +2,7 @@
 
 import { requireTenantRole } from "@repo/auth/authorization";
 import { database } from "@repo/database";
-import { revalidatePath } from "next/cache";
+import { refresh, revalidatePath } from "next/cache";
 
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);
@@ -34,7 +34,7 @@ export const updateCentreSettings = async (formData: FormData) => {
   await database.$transaction(async (tx) => {
     await tx.organization.update({
       where: { id: tenant.organizationId },
-      data: { name },
+      data: { imageUrl: getString(formData, "imageUrl"), name },
     });
     await tx.organizationSettings.upsert({
       where: { organizationId: tenant.organizationId },
@@ -69,6 +69,8 @@ export const updateCentreSettings = async (formData: FormData) => {
   });
 
   revalidatePath("/settings");
+  revalidatePath("/api/organization-logo");
   revalidatePath("/invoices");
   revalidatePath("/payments");
+  refresh();
 };

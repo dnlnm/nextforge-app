@@ -8,6 +8,7 @@ import {
 } from "@repo/design-system/components/ui/breadcrumb";
 import { Separator } from "@repo/design-system/components/ui/separator";
 import { SidebarTrigger } from "@repo/design-system/components/ui/sidebar";
+import Link from "next/link";
 import { Fragment, type ReactNode } from "react";
 import { OrganizationMenu } from "./organization-menu";
 
@@ -43,8 +44,8 @@ export const Header = ({ pages, page, children }: HeaderProps) => (
                   <BreadcrumbSeparator className="hidden md:block" />
                 )}
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href={breadcrumb.href}>
-                    {breadcrumb.label}
+                  <BreadcrumbLink asChild>
+                    <Link href={breadcrumb.href}>{breadcrumb.label}</Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
               </Fragment>

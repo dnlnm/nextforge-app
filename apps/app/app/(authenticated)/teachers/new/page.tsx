@@ -29,18 +29,23 @@ const AddTeacherPage = () => (
       page="Add New Teacher"
       pages={["TLAS.MY", { href: "/teachers", label: "Teachers" }]}
     />
-    <main className="grid gap-6 p-4 pt-0 md:p-6 md:pt-0">
-      <div>
-        <h1 className="font-semibold text-2xl tracking-tight md:text-3xl">
-          Add New Teacher
-        </h1>
+    <main className="grid gap-5 p-4 pt-4">
+      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+        <div>
+          <h1 className="font-semibold text-2xl tracking-tight">
+            Add New Teacher
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Add a new teacher to your centre.
+          </p>
+        </div>
       </div>
 
       <form
         action={createTeacher}
-        className="grid gap-6 xl:grid-cols-[1fr_360px]"
+        className="grid gap-5 items-start xl:grid-cols-[1fr_300px] 2xl:grid-cols-[1fr_360px]"
       >
-        <section className="grid content-start gap-6">
+        <section className="grid content-start gap-5">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-3 text-base">
@@ -280,7 +285,7 @@ const AddTeacherPage = () => (
           </Card>
         </section>
 
-        <aside className="grid content-start gap-6">
+        <aside className="grid content-start gap-5 xl:sticky xl:top-4 xl:self-start">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-3 text-base">
@@ -332,19 +337,14 @@ const AddTeacherPage = () => (
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-3">
-                <Button asChild variant="outline">
-                  <Link href="/teachers">Cancel</Link>
-                </Button>
-                <Button type="submit">Save Teacher</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-2 gap-3">
+            <Button asChild size="lg" variant="outline">
+              <Link href="/teachers">Cancel</Link>
+            </Button>
+            <Button size="lg" type="submit">
+              Save Teacher
+            </Button>
+          </div>
         </aside>
       </form>
     </main>

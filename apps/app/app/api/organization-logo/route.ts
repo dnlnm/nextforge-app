@@ -52,7 +52,7 @@ export const GET = async () => {
 
   return new NextResponse(response.body, {
     headers: {
-      "cache-control": "public, max-age=300",
+      "cache-control": "private, no-store",
       "content-type": response.headers.get("content-type") ?? "image/png",
     },
   });

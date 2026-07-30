@@ -32,21 +32,24 @@ const Required = () => <span className="text-destructive">*</span>;
 const AddStudentPage = () => (
   <>
     <Header
-      page="Add New Student"
+      page="Add Student"
       pages={["TLAS.MY", { href: "/students", label: "Students" }]}
     />
-    <main className="grid gap-6 p-4 pt-0 md:p-6 md:pt-0">
-      <div>
-        <h1 className="font-semibold text-2xl tracking-tight md:text-3xl">
-          Add New Student
-        </h1>
+    <main className="grid gap-5 p-4 pt-4">
+      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+        <div>
+          <h1 className="font-semibold text-2xl tracking-tight">Add Student</h1>
+          <p className="text-muted-foreground text-sm">
+            Capture student and guardian details in one place.
+          </p>
+        </div>
       </div>
 
       <form
         action={createStudent}
-        className="grid gap-6 xl:grid-cols-[1fr_360px]"
+        className="grid items-start gap-5 xl:grid-cols-[1fr_300px] 2xl:grid-cols-[1fr_360px]"
       >
-        <section className="grid content-start gap-6">
+        <section className="grid content-start gap-5">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-3 text-base">
@@ -207,7 +210,7 @@ const AddStudentPage = () => (
           </Card>
         </section>
 
-        <aside className="grid content-start gap-6">
+        <aside className="grid content-start gap-5 xl:sticky xl:top-4 xl:self-start">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Profile Photo</CardTitle>

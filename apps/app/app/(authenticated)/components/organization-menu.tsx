@@ -35,6 +35,9 @@ const getInitials = (value?: string) => {
 export const OrganizationMenu = () => {
   const organization = useOrganization();
   const centreName = organization?.name ?? "TLAS.MY";
+  const logoSrc = organization?.imageUrl
+    ? `/api/organization-logo?version=${encodeURIComponent(organization.imageUrl)}`
+    : null;
 
   return (
     <DropdownMenu>
@@ -44,9 +47,7 @@ export const OrganizationMenu = () => {
           variant="outline"
         >
           <Avatar className="size-8 rounded-lg border bg-sidebar">
-            {organization?.imageUrl ? (
-              <AvatarImage alt={centreName} src="/api/organization-logo" />
-            ) : null}
+            {logoSrc ? <AvatarImage alt={centreName} src={logoSrc} /> : null}
             <AvatarFallback className="rounded-lg bg-primary font-semibold text-primary-foreground">
               {getInitials(centreName)}
             </AvatarFallback>

@@ -679,8 +679,23 @@ const StudentProfilePage = async ({ params }: StudentPageProperties) => {
 
   return (
     <>
-      <Header page={student.fullName} pages={["Students"]} />
-      <main className="grid gap-5 p-4 pt-0">
+      <Header
+        page="Student Information"
+        pages={["TLAS.MY", { href: "/students", label: "Students" }]}
+      />
+      <main className="grid gap-5 p-4 pt-4">
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+          <div>
+            <h1 className="font-semibold text-2xl tracking-tight">
+              Student Information
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              View student profile details, guardian contacts, class enrollments,
+              billing, and attendance.
+            </p>
+          </div>
+        </div>
+
         <section className="grid gap-5 xl:grid-cols-[1fr_340px] 2xl:grid-cols-[1fr_380px]">
           <section className="grid content-start gap-5">
             <StudentHeader

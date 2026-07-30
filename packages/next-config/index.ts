@@ -4,7 +4,12 @@ import type { NextConfig } from "next";
 export const config: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
-    remotePatterns: [],
+    remotePatterns: [
+      {
+        hostname: "*.public.blob.vercel-storage.com",
+        protocol: "https",
+      },
+    ],
   },
 
   // biome-ignore lint/suspicious/useAwait: rewrites is async
