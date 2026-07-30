@@ -15,9 +15,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/design-system/components/ui/select";
+import { Separator } from "@repo/design-system/components/ui/separator";
 import { Textarea } from "@repo/design-system/components/ui/textarea";
 import {
-  BookOpenIcon,
   CalendarIcon,
   CloudUploadIcon,
   UserRoundIcon,
@@ -46,7 +46,7 @@ const AddStudentPage = () => (
         action={createStudent}
         className="grid gap-6 xl:grid-cols-[1fr_360px]"
       >
-        <section className="grid gap-6">
+        <section className="grid content-start gap-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-3 text-base">
@@ -164,17 +164,9 @@ const AddStudentPage = () => (
                   />
                 </div>
               </div>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-base">
-                <BookOpenIcon className="size-5 text-muted-foreground" />
-                Additional Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-5">
+              <Separator />
+
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1.2fr]">
                 <div className="grid gap-2">
                   <Label htmlFor="schoolName">School Name</Label>
@@ -195,7 +187,6 @@ const AddStudentPage = () => (
                     <SelectContent>
                       <SelectItem value="Year 1">Year 1</SelectItem>
                       <SelectItem value="Year 2">Year 2</SelectItem>
-                      <SelectItem value="Year 3">Year 3</SelectItem>
                       <SelectItem value="Form 1">Form 1</SelectItem>
                       <SelectItem value="Form 2">Form 2</SelectItem>
                       <SelectItem value="Form 3">Form 3</SelectItem>

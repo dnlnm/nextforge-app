@@ -31,6 +31,7 @@ export const createTeacher = async (formData: FormData) => {
       email: getString(formData, "email"),
       fullName,
       phone: getString(formData, "phone"),
+      notes: getString(formData, "notes"),
     },
   });
 

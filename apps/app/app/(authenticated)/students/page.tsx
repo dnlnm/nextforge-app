@@ -29,15 +29,12 @@ import {
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  DownloadIcon,
   Edit3Icon,
   EyeIcon,
   FilterIcon,
   MoreHorizontalIcon,
   PlusIcon,
-  RefreshCwIcon,
   SearchIcon,
-  Trash2Icon,
   UploadIcon,
   UserRoundIcon,
 } from "lucide-react";
@@ -245,30 +242,6 @@ const StudentsPage = async () => {
                     <Button className="ml-auto" variant="outline">
                       <FilterIcon className="size-4" />
                       Advanced Filter
-                    </Button>
-                    <Button className="self-end" size="icon" variant="outline">
-                      <RefreshCwIcon className="size-4" />
-                    </Button>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-3 border-t pt-4">
-                    <div className="flex items-center gap-3 pr-2">
-                      <Checkbox />
-                      <span className="font-medium text-sm">0 selected</span>
-                    </div>
-                    <Button size="sm" variant="outline">
-                      Send WhatsApp
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      Assign Class
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <DownloadIcon className="size-4" />
-                      Export
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <Trash2Icon className="size-4" />
-                      Delete
                     </Button>
                   </div>
                 </div>
