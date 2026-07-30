@@ -136,7 +136,7 @@ export const updateStudent = async (formData: FormData) => {
   });
 
   revalidatePath("/students");
-  redirect("/students");
+  redirect(`/students/${studentId}`);
 };
 
 const parseCsvLine = (line: string) => {
