@@ -5,6 +5,7 @@ import { DesignSystemProvider } from "@repo/design-system";
 import { fonts } from "@repo/design-system/lib/fonts";
 import { Toolbar } from "@repo/feature-flags/components/toolbar";
 import type { Metadata } from "next";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import type { ReactNode } from "react";
 
 interface RootLayoutProperties {
@@ -21,7 +22,9 @@ const RootLayout = ({ children }: RootLayoutProperties) => (
     <body>
       <AnalyticsProvider>
         <DesignSystemProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <NuqsAdapter>{children}</NuqsAdapter>
+          </AuthProvider>
         </DesignSystemProvider>
       </AnalyticsProvider>
       <Toolbar />

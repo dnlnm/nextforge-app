@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "next-forge": {
+      "source": "vercel/next-forge",
+      "sourceType": "github",
+      "skillPath": "skills/next-forge/SKILL.md",
+      "computedHash": "a0015149b9a498e33d376cb4efb21951b055a9509068f01b2b1df3206cfcc12e"
+    },
+    "niko-table-best-practices": {
+      "source": "Semkoo/niko-table-registry",
+      "sourceType": "github",
+      "skillPath": ".cursor/skills/niko-table-best-practices/SKILL.md",
+      "computedHash": "6544d6d395c6ec9463d15d946c7ad671635e2b92c2311b8b8b9ee585744c1827"
+    }
+  }
+}

@@ -17,5 +17,8 @@
     "lib": "@repo/design-system/lib",
     "ui": "@repo/design-system/components/ui"
   },
-  "iconLibrary": "lucide"
+  "iconLibrary": "lucide",
+  "registries": {
+    "@niko-table": "https://niko-table.com/r/{name}.json"
+  }
 }

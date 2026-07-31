@@ -1,7 +1,7 @@
 "use server";
 
-import { requireTenantRole } from "@repo/auth/authorization";
-import { database, type GuardianRelationship } from "@repo/database";
+import { requireTenant, requireTenantRole } from "@repo/auth/authorization";
+import { database, type GuardianRelationship, type Prisma, type StudentStatus } from "@repo/database";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { assertWithinPlanLimit } from "../billing/limits";
@@ -241,3 +241,162 @@ export const importStudents = async (formData: FormData) => {
 
   revalidatePath("/students");
 };
+
+// Types for table queries
+export type StudentsQueryParams = {
+  page: number;
+  pageSize: number;
+  search?: string;
+  sorting?: Array<{ id: string; desc: boolean }>;
+  filters?: Array<{ id: string; value: unknown }>;
+};
+
+// Fetch students for table with server-side pagination, filtering, and sorting
+export async function getStudentsForTable(params: StudentsQueryParams) {
+  const tenant = await requireTenant();
+
+  // Build where clause
+  const where: Prisma.StudentWhereInput = {
+    organizationId: tenant.organizationId,
+    archivedAt: null,
+  };
+
+  // Apply global search
+  if (params.search) {
+    where.OR = [
+      { fullName: { contains: params.search, mode: "insensitive" } },
+      { preferredName: { contains: params.search, mode: "insensitive" } },
+      { schoolName: { contains: params.search, mode: "insensitive" } },
+    ];
+  }
+
+  // Apply column filters
+  if (params.filters && params.filters.length > 0) {
+    for (const filter of params.filters) {
+      switch (filter.id) {
+        case "status": {
+          const values = Array.isArray(filter.value) ? filter.value : [filter.value];
+          const validStatuses = values.filter((v): v is StudentStatus => 
+            typeof v === "string" && ["ACTIVE", "INACTIVE", "GRADUATED", "ARCHIVED"].includes(v)
+          );
+          if (validStatuses.length > 0) {
+            where.status = { in: validStatuses };
+          }
+          break;
+        }
+        case "class": {
+          const values = Array.isArray(filter.value) ? filter.value : [filter.value];
+          where.enrollments = {
+            some: {
+              classId: { in: values as string[] },
+              status: "ACTIVE",
+              archivedAt: null,
+            },
+          };
+          break;
+        }
+        case "tutor": {
+          const values = Array.isArray(filter.value) ? filter.value : [filter.value];
+          where.enrollments = {
+            some: {
+              class: {
+                teacherId: { in: values as string[] },
+              },
+              status: "ACTIVE",
+              archivedAt: null,
+            },
+          };
+          break;
+        }
+        case "academicLevel": {
+          const values = Array.isArray(filter.value) ? filter.value : [filter.value];
+          where.academicLevel = { in: values as string[] };
+          break;
+        }
+      }
+    }
+  }
+
+  // Build orderBy
+  const orderBy: Prisma.StudentOrderByWithRelationInput[] = [];
+  if (params.sorting && params.sorting.length > 0) {
+    for (const sort of params.sorting) {
+      switch (sort.id) {
+        case "fullName":
+          orderBy.push({ fullName: sort.desc ? "desc" : "asc" });
+          break;
+        case "status":
+          orderBy.push({ status: sort.desc ? "desc" : "asc" });
+          break;
+        case "academicLevel":
+          orderBy.push({ academicLevel: sort.desc ? "desc" : "asc" });
+          break;
+      }
+    }
+  } else {
+    // Default sorting
+    orderBy.push({ fullName: "asc" });
+  }
+
+  // Execute query with pagination
+  const [students, totalCount] = await Promise.all([
+    database.student.findMany({
+      where,
+      orderBy,
+      skip: params.page * params.pageSize,
+      take: params.pageSize,
+      include: {
+        branch: true,
+        enrollments: {
+          where: { status: "ACTIVE", archivedAt: null },
+          include: {
+            class: {
+              include: {
+                subject: true,
+                teacher: true,
+              },
+            },
+          },
+        },
+        guardians: {
+          where: { isPrimary: true },
+          include: { guardian: true },
+          take: 1,
+        },
+      },
+    }),
+    database.student.count({ where }),
+  ]);
+
+  return {
+    data: students,
+    totalCount,
+  };
+}
+
+// Get filter options for classes, tutors, and statuses
+export async function getStudentFilterOptions() {
+  const tenant = await requireTenant();
+
+  const [classes, teachers] = await Promise.all([
+    database.learningClass.findMany({
+      where: { organizationId: tenant.organizationId, archivedAt: null },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+    database.teacherProfile.findMany({
+      where: { organizationId: tenant.organizationId, archivedAt: null },
+      select: { id: true, fullName: true },
+      orderBy: { fullName: "asc" },
+    }),
+  ]);
+
+  return {
+    classes: classes.map((c) => ({ label: c.name, value: c.id })),
+    tutors: teachers.map((t) => ({ label: t.fullName, value: t.id })),
+    statuses: [
+      { label: "Active", value: "ACTIVE" },
+      { label: "Inactive", value: "INACTIVE" },
+    ],
+  };
+}
