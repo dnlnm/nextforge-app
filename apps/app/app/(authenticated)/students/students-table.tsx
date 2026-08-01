@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useQueryStates, parseAsInteger, parseAsString, parseAsJson } from "nuqs";
-import type { SortingState, ColumnFiltersState } from "@tanstack/react-table";
+import type { ColumnFiltersState } from "@tanstack/react-table";
 import type { GlobalFilter } from "@repo/design-system/components/niko-table/types";
 import { z } from "zod";
 
@@ -53,7 +53,6 @@ export function StudentsTable({
   const [isLoading, setIsLoading] = useState(false);
 
   // URL state management
-  const sortSchema = z.array(z.object({ id: z.string(), desc: z.boolean() }));
   const filtersSchema = z.array(
     z.object({ id: z.string(), value: z.unknown() })
   );
@@ -63,10 +62,6 @@ export function StudentsTable({
       page: parseAsInteger.withDefault(0),
       pageSize: parseAsInteger.withDefault(10),
       search: parseAsString.withDefault(""),
-      sort: parseAsJson((value) => {
-        const parsed = sortSchema.safeParse(value);
-        return parsed.success ? parsed.data : [];
-      }).withDefault([]),
       filters: parseAsJson((value) => {
         const parsed = filtersSchema.safeParse(value);
         return parsed.success ? parsed.data : [];
@@ -82,7 +77,6 @@ export function StudentsTable({
         pageIndex: urlParams.page,
         pageSize: urlParams.pageSize,
       },
-      sorting: urlParams.sort,
       columnFilters: urlParams.filters,
       globalFilter: urlParams.search,
     }),
@@ -98,7 +92,6 @@ export function StudentsTable({
           page: urlParams.page,
           pageSize: urlParams.pageSize,
           search: urlParams.search || undefined,
-          sorting: urlParams.sort.length > 0 ? urlParams.sort : undefined,
           filters: urlParams.filters.length > 0 ? urlParams.filters : undefined,
         };
 
@@ -128,15 +121,6 @@ export function StudentsTable({
       });
     },
     [tableState.pagination, setUrlParams]
-  );
-
-  const handleSortingChange = useCallback(
-    (updater: any) => {
-      const newSorting =
-        typeof updater === "function" ? updater(tableState.sorting) : updater;
-      setUrlParams({ sort: newSorting });
-    },
-    [tableState.sorting, setUrlParams]
   );
 
   const handleColumnFiltersChange = useCallback(
@@ -178,13 +162,12 @@ export function StudentsTable({
             getRowId={(row) => row.id}
             config={{
               manualPagination: true,
-              manualSorting: true,
+              enableSorting: false,
               manualFiltering: true,
               pageCount: Math.ceil(totalCount / urlParams.pageSize),
             }}
             state={tableState}
             onPaginationChange={handlePaginationChange}
-            onSortingChange={handleSortingChange}
             onColumnFiltersChange={handleColumnFiltersChange}
             onGlobalFilterChange={handleGlobalFilterChange}
           >

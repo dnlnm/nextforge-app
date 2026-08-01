@@ -132,12 +132,12 @@ const StudentHeader = ({
   <Card>
     <CardContent className="flex flex-col gap-5 p-5 md:flex-row md:items-start md:justify-between">
       <div className="flex items-start gap-4">
-        <div className="flex size-20 shrink-0 items-center justify-center border bg-muted text-muted-foreground">
+        <div className="flex size-20 shrink-0 items-center justify-center rounded-full border bg-muted text-muted-foreground">
           <UserRoundIcon className="size-10" />
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="font-semibold text-2xl tracking-tight md:text-3xl">
+            <h1 className="truncate font-semibold text-2xl tracking-tight md:text-3xl">
               {student.fullName}
             </h1>
             <Badge variant="outline">

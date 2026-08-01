@@ -122,15 +122,15 @@ export function StudentsPageClient({
             <>
               <CardHeader className="border-b">
                 <div className="flex items-start justify-between gap-4">
-                  <div className="flex size-20 items-center justify-center border bg-muted text-muted-foreground">
+                  <div className="flex size-20 items-center justify-center rounded-full border bg-muted text-muted-foreground">
                     <UserRoundIcon className="size-10" />
                   </div>
                   <Button size="icon" variant="ghost">
                     <MoreHorizontalIcon className="size-4" />
                   </Button>
                 </div>
-                <div>
-                  <CardTitle className="text-xl">
+                <div className="min-w-0">
+                  <CardTitle className="truncate text-xl">
                     {selectedStudent.fullName}
                   </CardTitle>
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-muted-foreground text-sm">

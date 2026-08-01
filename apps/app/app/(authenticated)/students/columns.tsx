@@ -3,13 +3,19 @@
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import { Checkbox } from "@repo/design-system/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@repo/design-system/components/ui/dropdown-menu";
 import { DataTableColumnHeader } from "@repo/design-system/components/niko-table/components/data-table-column-header";
 import { DataTableColumnTitle } from "@repo/design-system/components/niko-table/components/data-table-column-title";
-import { DataTableSortMenu } from "@repo/design-system/components/niko-table/components/data-table-sort-menu";
-import { DataTableColumnFacetedFilterMenu } from "@repo/design-system/components/niko-table/components/data-table-column-faceted-filter";
 import type { DataTableColumnDef } from "@repo/design-system/components/niko-table/types";
-import { Edit3Icon, EyeIcon, MoreHorizontalIcon, UserRoundIcon } from "lucide-react";
+import { ArchiveIcon, Edit3Icon, EyeIcon, MessageCircleIcon, MoreHorizontalIcon, UserRoundIcon } from "lucide-react";
 import Link from "next/link";
+
+import { archiveStudent } from "./actions";
 
 export type Student = {
   id: string;
@@ -51,42 +57,36 @@ export const columns: DataTableColumnDef<Student>[] = [
   },
   {
     accessorKey: "fullName",
+    size: 280,
     header: () => (
       <DataTableColumnHeader>
         <DataTableColumnTitle />
-        <DataTableSortMenu />
       </DataTableColumnHeader>
     ),
-    cell: ({ row }) => (
-      <div className="flex items-center gap-3">
-        <div className="flex size-10 shrink-0 items-center justify-center border bg-muted text-muted-foreground">
-          <UserRoundIcon className="size-5" />
-        </div>
-        <Link
-          className="font-medium hover:underline"
-          href={`/students/${row.original.id}`}
-        >
-          {row.original.fullName}
-        </Link>
-      </div>
-    ),
-    meta: {
-      label: "Student",
-    },
-    enableHiding: false,
-  },
-  {
-    id: "studentId",
-    header: "Student ID",
     cell: ({ row, table }) => {
       const index = table.getSortedRowModel().rows.indexOf(row);
       return (
-        <span className="text-muted-foreground">
-          {studentCode(index)}
-        </span>
+        <div className="flex items-center gap-3 max-w-full">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-full border bg-muted text-muted-foreground">
+            <UserRoundIcon className="size-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <Link
+              className="block truncate font-medium hover:underline"
+              href={`/students/${row.original.id}`}
+            >
+              {row.original.fullName}
+            </Link>
+            <span className="block truncate text-xs text-muted-foreground">
+              {studentCode(index)}
+            </span>
+          </div>
+        </div>
       );
     },
-    enableSorting: false,
+    meta: {
+      label: "Student",
+    },
     enableHiding: false,
   },
   {
@@ -94,7 +94,6 @@ export const columns: DataTableColumnDef<Student>[] = [
     header: () => (
       <DataTableColumnHeader>
         <DataTableColumnTitle />
-        <DataTableSortMenu />
       </DataTableColumnHeader>
     ),
     cell: ({ row }) => row.original.academicLevel ?? "-",
@@ -108,8 +107,6 @@ export const columns: DataTableColumnDef<Student>[] = [
     header: () => (
       <DataTableColumnHeader>
         <DataTableColumnTitle />
-        <DataTableSortMenu />
-        <DataTableColumnFacetedFilterMenu multiple />
       </DataTableColumnHeader>
     ),
     cell: ({ row }) => (
@@ -134,22 +131,56 @@ export const columns: DataTableColumnDef<Student>[] = [
     cell: ({ row }) => {
       const guardian = row.original.guardians[0]?.guardian;
       return (
-        <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-          <Button asChild size="icon" variant="outline">
-            <Link href={`/students/${row.original.id}`}>
-              <EyeIcon className="size-4" />
-            </Link>
-          </Button>
-          <Button asChild size="icon" variant="outline">
-            <Link href={`/students/${row.original.id}/edit`}>
-              <Edit3Icon className="size-4" />
-            </Link>
-          </Button>
-          <Button asChild size="icon" variant="outline">
-            <Link href={`https://wa.me/${guardian?.phone ?? ""}`}>
-              <MoreHorizontalIcon className="size-4" />
-            </Link>
-          </Button>
+        <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="icon" variant="ghost" aria-label="Row actions">
+                <MoreHorizontalIcon className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuItem asChild>
+                <Link href={`/students/${row.original.id}`}>
+                  <EyeIcon />
+                  View profile
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/students/${row.original.id}/edit`}>
+                  <Edit3Icon />
+                  Edit
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link
+                  href={
+                    guardian?.phone
+                      ? `https://wa.me/${guardian.phone}`
+                      : "#"
+                  }
+                >
+                  <MessageCircleIcon />
+                  WhatsApp
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="text-destructive focus:text-destructive">
+                <form
+                  action={archiveStudent}
+                  onSubmit={(e) => {
+                    if (!window.confirm("Archive this student?")) {
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  <input type="hidden" name="studentId" value={row.original.id} />
+                  <button type="submit" className="flex items-center gap-2">
+                    <ArchiveIcon />
+                    Archive
+                  </button>
+                </form>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       );
     },
