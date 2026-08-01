@@ -23,7 +23,7 @@ const PricingPage = async ({ params }: PricingPageProps) => {
   const { locale } = await params;
   const dictionary = await getDictionary(locale);
 
-  return <Pricing dictionary={dictionary} />;
+  return <Pricing dictionary={dictionary} locale={locale} />;
 };
 
 export default PricingPage;

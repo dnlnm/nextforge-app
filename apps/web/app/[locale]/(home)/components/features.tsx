@@ -6,7 +6,7 @@ interface FeaturesProps {
 }
 
 export const Features = ({ dictionary }: FeaturesProps) => (
-  <div className="w-full py-20 lg:py-40">
+  <div className="w-full scroll-mt-24 py-20 lg:py-40" id="features">
     <div className="container mx-auto">
       <div className="flex flex-col gap-10">
         <div className="flex flex-col items-start gap-4">

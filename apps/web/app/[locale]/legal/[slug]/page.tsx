@@ -3,6 +3,7 @@ import { legal } from "@repo/cms";
 import { Body } from "@repo/cms/components/body";
 import { Feed } from "@repo/cms/components/feed";
 import { TableOfContents } from "@repo/cms/components/toc";
+import { localizePath } from "@repo/internationalization";
 import { createMetadata } from "@repo/seo/metadata";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -11,6 +12,7 @@ import { Sidebar } from "@/components/sidebar";
 
 interface LegalPageProperties {
   readonly params: Promise<{
+    locale: string;
     slug: string;
   }>;
 }
@@ -38,7 +40,7 @@ export const generateStaticParams = async (): Promise<{ slug: string }[]> => {
 };
 
 const LegalPage = async ({ params }: LegalPageProperties) => {
-  const { slug } = await params;
+  const { locale, slug } = await params;
 
   return (
     <Feed queries={[legal.postQuery(slug)]}>
@@ -55,7 +57,7 @@ const LegalPage = async ({ params }: LegalPageProperties) => {
           <div className="container max-w-5xl py-16">
             <Link
               className="mb-4 inline-flex items-center gap-1 text-muted-foreground text-sm focus:underline focus:outline-none"
-              href="/"
+              href={localizePath(locale, "/")}
             >
               <ArrowLeftIcon className="h-4 w-4" />
               Back to Home

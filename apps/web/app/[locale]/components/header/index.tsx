@@ -4,44 +4,66 @@ import { ModeToggle } from "@repo/design-system/components/mode-toggle";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
   NavigationMenu,
-  NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
 } from "@repo/design-system/components/ui/navigation-menu";
 import type { Dictionary } from "@repo/internationalization";
+import { localizePath } from "@repo/internationalization/path";
 import { Menu, MoveRight, X } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useState, type MouseEvent } from "react";
 import { env } from "@/env";
 import { LanguageSwitcher } from "./language-switcher";
 
 interface HeaderProps {
   dictionary: Dictionary;
+  locale: string;
 }
 
-export const Header = ({ dictionary }: HeaderProps) => {
+export const Header = ({ dictionary, locale }: HeaderProps) => {
+  const pathname = usePathname();
+
+  const handleHashClick = (
+    event: MouseEvent<HTMLAnchorElement>,
+    href: string
+  ) => {
+    const hashIndex = href.indexOf("#");
+
+    if (hashIndex === -1) {
+      return;
+    }
+
+    const path = href.slice(0, hashIndex) || "/";
+    const hash = href.slice(hashIndex);
+
+    if (pathname === path) {
+      event.preventDefault();
+      const target = document.querySelector(hash);
+      target?.scrollIntoView({ behavior: "smooth" });
+      if (target && window.location.hash !== hash) {
+        window.history.replaceState(null, "", href);
+      }
+    }
+  };
+
   const navigationItems = [
     {
       title: dictionary.web.header.home,
-      href: "/",
-      description: "",
+      href: localizePath(locale, "/"),
     },
     {
-      title: dictionary.web.header.product.title,
-      description: dictionary.web.header.product.description,
-      items: [
-        {
-          title: dictionary.web.header.product.pricing,
-          href: "/pricing",
-        },
-      ],
+      title: dictionary.web.header.features,
+      href: localizePath(locale, "/#features"),
+    },
+    {
+      title: dictionary.web.header.product.pricing,
+      href: localizePath(locale, "/#pricing"),
     },
     {
       title: dictionary.web.header.blog,
-      href: "/blog",
-      description: "",
+      href: localizePath(locale, "/blog"),
     },
   ];
 
@@ -49,7 +71,6 @@ export const Header = ({ dictionary }: HeaderProps) => {
     navigationItems.push({
       title: dictionary.web.header.docs,
       href: env.NEXT_PUBLIC_DOCS_URL,
-      description: "",
     });
   }
 
@@ -62,48 +83,24 @@ export const Header = ({ dictionary }: HeaderProps) => {
             <NavigationMenuList className="flex flex-row justify-start gap-4">
               {navigationItems.map((item) => (
                 <NavigationMenuItem key={item.title}>
-                  {item.href ? (
-                    <NavigationMenuLink asChild>
-                      <Button asChild variant="ghost">
-                        <Link href={item.href}>{item.title}</Link>
-                      </Button>
-                    </NavigationMenuLink>
-                  ) : (
-                    <>
-                      <NavigationMenuTrigger className="font-medium text-sm">
+                  <NavigationMenuLink asChild>
+                    <Button asChild variant="ghost">
+                      <Link
+                        href={item.href}
+                        onClick={(event) => handleHashClick(event, item.href)}
+                        rel={
+                          item.href.startsWith("http")
+                            ? "noopener noreferrer"
+                            : undefined
+                        }
+                        target={
+                          item.href.startsWith("http") ? "_blank" : undefined
+                        }
+                      >
                         {item.title}
-                      </NavigationMenuTrigger>
-                      <NavigationMenuContent className="!w-[450px] p-4">
-                        <div className="flex grid-cols-2 flex-col gap-4 lg:grid">
-                          <div className="flex h-full flex-col justify-between">
-                            <div className="flex flex-col">
-                              <p className="text-base">{item.title}</p>
-                              <p className="text-muted-foreground text-sm">
-                                {item.description}
-                              </p>
-                            </div>
-                            <Button asChild className="mt-10" size="sm">
-                              <Link href="/contact">
-                                {dictionary.web.global.primaryCta}
-                              </Link>
-                            </Button>
-                          </div>
-                          <div className="flex h-full flex-col justify-end text-sm">
-                            {item.items?.map((subItem) => (
-                              <NavigationMenuLink
-                                className="flex flex-row items-center justify-between rounded px-4 py-2 hover:bg-muted"
-                                href={subItem.href}
-                                key={subItem.href}
-                              >
-                                <span>{subItem.title}</span>
-                                <MoveRight className="h-4 w-4 text-muted-foreground" />
-                              </NavigationMenuLink>
-                            ))}
-                          </div>
-                        </div>
-                      </NavigationMenuContent>
-                    </>
-                  )}
+                      </Link>
+                    </Button>
+                  </NavigationMenuLink>
                 </NavigationMenuItem>
               ))}
             </NavigationMenuList>
@@ -117,7 +114,19 @@ export const Header = ({ dictionary }: HeaderProps) => {
         </div>
         <div className="flex w-full items-center justify-end gap-4">
           <Button asChild className="hidden lg:inline-flex" variant="ghost">
-            <Link href="/contact">{dictionary.web.header.contact}</Link>
+            <Link href={localizePath(locale, "/contact")}>
+              {dictionary.web.header.contact}
+            </Link>
+          </Button>
+          <Button asChild className="hidden lg:inline-flex" variant="ghost">
+            <Link
+              href={localizePath(locale, "/#faq")}
+              onClick={(event) =>
+                handleHashClick(event, localizePath(locale, "/#faq"))
+              }
+            >
+              {dictionary.web.header.faq}
+            </Link>
           </Button>
           <div className="hidden items-center gap-1 lg:flex">
             <LanguageSwitcher />
@@ -145,41 +154,23 @@ export const Header = ({ dictionary }: HeaderProps) => {
           {isOpen && (
             <div className="container absolute top-20 right-0 flex w-full flex-col gap-8 border-t bg-background py-4 shadow-lg">
               {navigationItems.map((item) => (
-                <div key={item.title}>
-                  <div className="flex flex-col gap-2">
-                    {item.href ? (
-                      <Link
-                        className="flex items-center justify-between"
-                        href={item.href}
-                        rel={
-                          item.href.startsWith("http")
-                            ? "noopener noreferrer"
-                            : undefined
-                        }
-                        target={
-                          item.href.startsWith("http") ? "_blank" : undefined
-                        }
-                      >
-                        <span className="text-lg">{item.title}</span>
-                        <MoveRight className="h-4 w-4 stroke-1 text-muted-foreground" />
-                      </Link>
-                    ) : (
-                      <p className="text-lg">{item.title}</p>
-                    )}
-                    {item.items?.map((subItem) => (
-                      <Link
-                        className="flex items-center justify-between"
-                        href={subItem.href}
-                        key={subItem.title}
-                      >
-                        <span className="text-muted-foreground">
-                          {subItem.title}
-                        </span>
-                        <MoveRight className="h-4 w-4 stroke-1" />
-                      </Link>
-                    ))}
-                  </div>
-                </div>
+                <Link
+                  className="flex items-center justify-between"
+                  href={item.href}
+                  key={item.title}
+                  onClick={(event) => handleHashClick(event, item.href)}
+                  rel={
+                    item.href.startsWith("http")
+                      ? "noopener noreferrer"
+                      : undefined
+                  }
+                  target={
+                    item.href.startsWith("http") ? "_blank" : undefined
+                  }
+                >
+                  <span className="text-lg">{item.title}</span>
+                  <MoveRight className="h-4 w-4 stroke-1 text-muted-foreground" />
+                </Link>
               ))}
             </div>
           )}

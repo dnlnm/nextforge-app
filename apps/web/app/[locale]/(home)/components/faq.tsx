@@ -6,15 +6,17 @@ import {
 } from "@repo/design-system/components/ui/accordion";
 import { Button } from "@repo/design-system/components/ui/button";
 import type { Dictionary } from "@repo/internationalization";
+import { localizePath } from "@repo/internationalization";
 import { PhoneCall } from "lucide-react";
 import Link from "next/link";
 
 interface FAQProps {
   dictionary: Dictionary;
+  locale: string;
 }
 
-export const FAQ = ({ dictionary }: FAQProps) => (
-  <div className="w-full py-20 lg:py-40">
+export const FAQ = ({ dictionary, locale }: FAQProps) => (
+  <div className="w-full scroll-mt-24 py-20 lg:py-40" id="faq">
     <div className="container mx-auto">
       <div className="grid gap-10 lg:grid-cols-2">
         <div className="flex flex-col gap-10">
@@ -29,7 +31,7 @@ export const FAQ = ({ dictionary }: FAQProps) => (
             </div>
             <div className="">
               <Button asChild className="gap-4" variant="outline">
-                <Link href="/contact">
+                <Link href={localizePath(locale, "/contact")}>
                   {dictionary.web.home.faq.cta}{" "}
                   <PhoneCall className="h-4 w-4" />
                 </Link>

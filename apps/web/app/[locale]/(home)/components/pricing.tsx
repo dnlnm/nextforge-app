@@ -8,16 +8,23 @@ import {
   CardTitle,
 } from "@repo/design-system/components/ui/card";
 import type { Dictionary } from "@repo/internationalization";
+import { localizePath } from "@repo/internationalization";
 import { Check, MoveRight, PhoneCall } from "lucide-react";
 import Link from "next/link";
 import { env } from "@/env";
 
 interface PricingProps {
   dictionary: Dictionary;
+  locale: string;
+  showFullComparison?: boolean;
 }
 
-export const Pricing = ({ dictionary }: PricingProps) => (
-  <div className="w-full py-20 lg:py-40">
+export const Pricing = ({
+  dictionary,
+  locale,
+  showFullComparison = false,
+}: PricingProps) => (
+  <div className="w-full scroll-mt-24 py-20 lg:py-40" id="pricing">
     <div className="container mx-auto">
       <div className="flex flex-col items-center justify-center gap-4 text-center">
         <Badge>{dictionary.web.home.pricing.badge}</Badge>
@@ -75,7 +82,9 @@ export const Pricing = ({ dictionary }: PricingProps) => (
                   >
                     <Link
                       href={
-                        planIndex === 2 ? "/contact" : env.NEXT_PUBLIC_APP_URL
+                        planIndex === 2
+                          ? localizePath(locale, "/contact")
+                          : env.NEXT_PUBLIC_APP_URL
                       }
                     >
                       {plan.cta}{" "}
@@ -91,6 +100,14 @@ export const Pricing = ({ dictionary }: PricingProps) => (
             </Card>
           ))}
         </div>
+        {showFullComparison && (
+          <Button asChild className="mt-10 gap-4" variant="outline">
+            <Link href={localizePath(locale, "/pricing")}>
+              {dictionary.web.home.pricing.fullComparison}
+              <MoveRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        )}
       </div>
     </div>
   </div>

@@ -6,6 +6,7 @@
     },
     "header": {
       "home": "Home",
+      "features": "Features",
       "product": {
         "title": "Product",
         "description": "Run student records, classes, attendance, invoicing, and payments in one place.",
@@ -14,6 +15,7 @@
       "blog": "Blog",
       "docs": "Docs",
       "contact": "Contact",
+      "faq": "FAQ",
       "signIn": "Sign in",
       "signUp": "Start trial"
     },
@@ -85,6 +87,7 @@
         "badge": "Pricing",
         "title": "Simple monthly plans for tuition centres",
         "description": "Start free, then choose the plan that matches your centre size. Stripe is used only for your TLAS.MY subscription; tuition payments are recorded manually.",
+        "fullComparison": "Full comparison",
         "plans": [
           {
             "name": "Trial",

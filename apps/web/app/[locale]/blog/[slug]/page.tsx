@@ -5,6 +5,7 @@ import { CodeBlock } from "@repo/cms/components/code-block";
 import { Feed } from "@repo/cms/components/feed";
 import { Image } from "@repo/cms/components/image";
 import { TableOfContents } from "@repo/cms/components/toc";
+import { localizePath } from "@repo/internationalization";
 import { JsonLd } from "@repo/seo/json-ld";
 import { createMetadata } from "@repo/seo/metadata";
 import type { Metadata } from "next";
@@ -20,6 +21,7 @@ const url = new URL(`${protocol}://${env.VERCEL_PROJECT_PRODUCTION_URL}`);
 
 interface BlogPostProperties {
   readonly params: Promise<{
+    locale: string;
     slug: string;
   }>;
 }
@@ -48,7 +50,7 @@ export const generateStaticParams = async (): Promise<{ slug: string }[]> => {
 };
 
 const BlogPost = async ({ params }: BlogPostProperties) => {
-  const { slug } = await params;
+  const { locale, slug } = await params;
 
   return (
     <Feed queries={[blog.postQuery(slug)]}>
@@ -83,7 +85,7 @@ const BlogPost = async ({ params }: BlogPostProperties) => {
             <div className="container mx-auto py-16">
               <Link
                 className="mb-4 inline-flex items-center gap-1 text-muted-foreground text-sm focus:underline focus:outline-none"
-                href="/blog"
+                href={localizePath(locale, "/blog")}
               >
                 <ArrowLeftIcon className="h-4 w-4" />
                 Back to Blog

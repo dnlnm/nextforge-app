@@ -2,6 +2,8 @@ import "server-only";
 import type en from "./dictionaries/en.json";
 import languine from "./languine.json" with { type: "json" };
 
+export { localizePath } from "./path";
+
 export const locales = [
   languine.locale.source,
   ...languine.locale.targets,

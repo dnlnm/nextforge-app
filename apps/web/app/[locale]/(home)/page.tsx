@@ -38,14 +38,14 @@ const Home = async ({ params }: HomeProps) => {
           Beta feature now available
         </div>
       )}
-      <Hero dictionary={dictionary} />
-      <Cases dictionary={dictionary} />
+      <Hero dictionary={dictionary} locale={locale} />
+      {/* <Cases dictionary={dictionary} /> */}
       <Features dictionary={dictionary} />
-      <Stats dictionary={dictionary} />
-      <Pricing dictionary={dictionary} />
-      <Testimonials dictionary={dictionary} />
-      <FAQ dictionary={dictionary} />
-      <CTA dictionary={dictionary} />
+      {/* <Stats dictionary={dictionary} /> */}
+      <Pricing dictionary={dictionary} locale={locale} showFullComparison />
+      {/* <Testimonials dictionary={dictionary} /> */}
+      <FAQ dictionary={dictionary} locale={locale} />
+      {/* <CTA dictionary={dictionary} locale={locale} /> */}
     </>
   );
 };

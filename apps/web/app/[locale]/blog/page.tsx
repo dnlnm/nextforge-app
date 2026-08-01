@@ -2,7 +2,7 @@ import { blog } from "@repo/cms";
 import { Feed } from "@repo/cms/components/feed";
 import { Image } from "@repo/cms/components/image";
 import { cn } from "@repo/design-system/lib/utils";
-import { getDictionary } from "@repo/internationalization";
+import { getDictionary, localizePath } from "@repo/internationalization";
 import type { Blog, WithContext } from "@repo/seo/json-ld";
 import { JsonLd } from "@repo/seo/json-ld";
 import { createMetadata } from "@repo/seo/metadata";
@@ -58,7 +58,7 @@ const BlogIndex = async ({ params }: BlogProps) => {
                       "flex cursor-pointer flex-col gap-4 hover:opacity-75",
                       !index && "md:col-span-2"
                     )}
-                    href={`/blog/${post._slug}`}
+                    href={localizePath(locale, `/blog/${post._slug}`)}
                     key={post._slug}
                   >
                     <Image

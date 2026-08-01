@@ -1,15 +1,20 @@
 import { legal } from "@repo/cms";
+import { localizePath } from "@repo/internationalization";
 import { Status } from "@repo/observability/status";
 import Link from "next/link";
 import { env } from "@/env";
 
-export const Footer = async () => {
+interface FooterProps {
+  locale: string;
+}
+
+export const Footer = async ({ locale }: FooterProps) => {
   const legalPages = await legal.getPostsMeta();
 
   const navigationItems = [
     {
       title: "Home",
-      href: "/",
+      href: localizePath(locale, "/"),
       description: "",
     },
     {
@@ -18,7 +23,7 @@ export const Footer = async () => {
       items: [
         {
           title: "Blog",
-          href: "/blog",
+          href: localizePath(locale, "/blog"),
         },
       ],
     },
@@ -26,11 +31,11 @@ export const Footer = async () => {
       title: "Legal",
       description: "Terms for TLAS.MY subscription and data handling.",
       items: [
-        { title: "Privacy", href: "/privacy" },
-        { title: "Terms", href: "/terms" },
+        { title: "Privacy", href: localizePath(locale, "/privacy") },
+        { title: "Terms", href: localizePath(locale, "/terms") },
         ...legalPages.map((post) => ({
           title: post._title,
-          href: `/legal/${post._slug}`,
+          href: localizePath(locale, `/legal/${post._slug}`),
         })),
       ],
     },

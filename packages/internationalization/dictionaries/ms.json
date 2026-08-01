@@ -6,6 +6,7 @@
     },
     "header": {
       "home": "Laman Utama",
+      "features": "Ciri-ciri",
       "product": {
         "title": "Produk",
         "description": "Urus rekod pelajar, kelas, kehadiran, invois dan bayaran dalam satu tempat.",
@@ -14,6 +15,7 @@
       "blog": "Blog",
       "docs": "Dokumentasi",
       "contact": "Hubungi Kami",
+      "faq": "FAQ",
       "signIn": "Log masuk",
       "signUp": "Mula percubaan"
     },
@@ -85,6 +87,7 @@
         "badge": "Harga",
         "title": "Pelan bulanan mudah untuk pusat tuisyen",
         "description": "Mula secara percuma, kemudian pilih pelan mengikut saiz pusat anda. Stripe hanya digunakan untuk langganan TLAS.MY; bayaran tuisyen direkod secara manual.",
+        "fullComparison": "Perbandingan penuh",
         "plans": [
           {
             "name": "Percubaan",

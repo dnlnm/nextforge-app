@@ -1,14 +1,16 @@
 import { Button } from "@repo/design-system/components/ui/button";
 import type { Dictionary } from "@repo/internationalization";
+import { localizePath } from "@repo/internationalization";
 import { MoveRight, PhoneCall } from "lucide-react";
 import Link from "next/link";
 import { env } from "@/env";
 
 interface CTAProps {
   dictionary: Dictionary;
+  locale: string;
 }
 
-export const CTA = ({ dictionary }: CTAProps) => (
+export const CTA = ({ dictionary, locale }: CTAProps) => (
   <div className="w-full py-20 lg:py-40">
     <div className="container mx-auto">
       <div className="flex flex-col items-center gap-8 rounded-md bg-muted p-4 text-center lg:p-14">
@@ -22,7 +24,7 @@ export const CTA = ({ dictionary }: CTAProps) => (
         </div>
         <div className="flex flex-row gap-4">
           <Button asChild className="gap-4" variant="outline">
-            <Link href="/contact">
+            <Link href={localizePath(locale, "/contact")}>
               {dictionary.web.global.primaryCta}{" "}
               <PhoneCall className="h-4 w-4" />
             </Link>
