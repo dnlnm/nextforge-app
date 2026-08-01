@@ -10,15 +10,16 @@
     "cssVariables": true,
     "prefix": ""
   },
+  "iconLibrary": "lucide",
   "aliases": {
     "components": "@repo/design-system/components",
     "utils": "@repo/design-system/lib/utils",
-    "hooks": "@repo/design-system/hooks",
+    "ui": "@repo/design-system/components/ui",
     "lib": "@repo/design-system/lib",
-    "ui": "@repo/design-system/components/ui"
+    "hooks": "@repo/design-system/hooks"
   },
-  "iconLibrary": "lucide",
   "registries": {
-    "@niko-table": "https://niko-table.com/r/{name}.json"
+    "@niko-table": "https://niko-table.com/r/{name}.json",
+    "@diceui": "https://diceui.com/r/{style}/{name}.json"
   }
 }

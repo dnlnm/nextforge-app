@@ -2,14 +2,22 @@ import { requireTenant } from "@repo/auth/authorization";
 import { database } from "@repo/database";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
-  CardContent,
-} from "@repo/design-system/components/ui/card";
+  Stat,
+  StatDescription,
+  StatIndicator,
+  StatLabel,
+  StatTrend,
+  StatValue,
+} from "@repo/design-system/components/ui/stat";
 import {
+  ArrowUp,
   ChevronDownIcon,
+  LandmarkIcon,
   PlusIcon,
   UploadIcon,
-  UserRoundIcon,
+  UserCheckIcon,
+  UserPlusIcon,
+  UsersRoundIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { Header } from "../components/header";
@@ -104,45 +112,56 @@ const StudentsPage = async () => {
         </div>
 
         <section className="grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
-          {[
-            [
-              "Total Students",
-              allStudents.length.toLocaleString(),
-              "+ 12 from last month",
-            ],
-            [
-              "Active Students",
-              activeStudents.length.toLocaleString(),
-              `${allStudents.length > 0 ? Math.round((activeStudents.length / allStudents.length) * 100) : 0}% of total`,
-            ],
-            [
-              `New Students (${today.toLocaleString("en-MY", { month: "short" })})`,
-              newStudentsThisMonth.length.toLocaleString(),
-              "+ 4 from last month",
-            ],
-            [
-              "Outstanding Fees",
-              formatMoney(totalOutstandingSen),
-              `${studentsWithOutstanding.length} students`,
-            ],
-          ].map(([label, value, detail]) => (
-            <Card key={label}>
-              <CardContent className="flex items-center gap-4 p-4">
-                <div className="flex size-14 shrink-0 items-center justify-center border bg-muted text-muted-foreground">
-                  <UserRoundIcon className="size-7" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-muted-foreground text-xs">{label}</p>
-                  <p className="mt-1 truncate font-semibold text-2xl tracking-tight">
-                    {value}
-                  </p>
-                  <p className="mt-1 text-muted-foreground text-xs">
-                    {detail}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          <Stat>
+            <StatLabel>Total Students</StatLabel>
+            <StatIndicator color="info" variant="icon">
+              <UsersRoundIcon />
+            </StatIndicator>
+            <StatValue>{allStudents.length.toLocaleString()}</StatValue>
+            <StatTrend trend="up">
+              <ArrowUp />
+              +12 from last month
+            </StatTrend>
+          </Stat>
+
+          <Stat>
+            <StatLabel>Active Students</StatLabel>
+            <StatIndicator color="success" variant="icon">
+              <UserCheckIcon />
+            </StatIndicator>
+            <StatValue>{activeStudents.length.toLocaleString()}</StatValue>
+            <StatDescription>
+              {allStudents.length > 0
+                ? `${Math.round((activeStudents.length / allStudents.length) * 100)}% of total`
+                : "0% of total"}
+            </StatDescription>
+          </Stat>
+
+          <Stat>
+            <StatLabel>
+              New Students (
+              {today.toLocaleString("en-MY", { month: "short" })})
+            </StatLabel>
+            <StatIndicator color="info" variant="icon">
+              <UserPlusIcon />
+            </StatIndicator>
+            <StatValue>{newStudentsThisMonth.length.toLocaleString()}</StatValue>
+            <StatTrend trend="up">
+              <ArrowUp />
+              +4 from last month
+            </StatTrend>
+          </Stat>
+
+          <Stat>
+            <StatLabel>Outstanding Fees</StatLabel>
+            <StatIndicator color="warning" variant="icon">
+              <LandmarkIcon />
+            </StatIndicator>
+            <StatValue>{formatMoney(totalOutstandingSen)}</StatValue>
+            <StatDescription>
+              {studentsWithOutstanding.length} students
+            </StatDescription>
+          </Stat>
         </section>
 
         <StudentsPageClient

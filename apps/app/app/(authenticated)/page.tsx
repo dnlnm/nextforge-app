@@ -10,6 +10,14 @@ import {
   CardTitle,
 } from "@repo/design-system/components/ui/card";
 import {
+  Stat,
+  StatDescription,
+  StatIndicator,
+  StatLabel,
+  StatTrend,
+  StatValue,
+} from "@repo/design-system/components/ui/stat";
+import {
   ArrowDownIcon,
   ArrowUpIcon,
   BanknoteIcon,
@@ -258,6 +266,7 @@ const App = async () => {
   );
   const stats = [
     {
+      color: "info" as const,
       detail: `+ ${studentsAddedThisMonth} this month`,
       href: "/students",
       icon: UsersRoundIcon,
@@ -265,6 +274,7 @@ const App = async () => {
       value: activeStudents.toLocaleString(),
     },
     {
+      color: "default" as const,
       detail: `+ ${classesAddedThisMonth} this month`,
       href: "/classes",
       icon: BookOpenIcon,
@@ -272,6 +282,7 @@ const App = async () => {
       value: activeClasses.toLocaleString(),
     },
     {
+      color: "info" as const,
       detail: `+ ${teachersAddedThisMonth} this month`,
       href: "/teachers",
       icon: UserRoundIcon,
@@ -279,6 +290,7 @@ const App = async () => {
       value: activeTeachers.toLocaleString(),
     },
     {
+      color: "success" as const,
       detail: formatPercentChange(revenueChange),
       href: "/payments",
       icon: CircleDollarSignIcon,
@@ -287,6 +299,7 @@ const App = async () => {
       value: formatMoney(currentMonthCollectedSen),
     },
     {
+      color: "warning" as const,
       detail: "Current unpaid balance",
       href: "/invoices",
       icon: FileTextIcon,
@@ -299,32 +312,30 @@ const App = async () => {
     <>
       <Header page="Dashboard" pages={["TLAS.MY"]} />
       <main className="grid gap-5 p-4 pt-4">
-        <section className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
+        <section className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
           {stats.map((stat) => (
-            <Card className="overflow-hidden" key={stat.label}>
-              <Link className="block h-full" href={stat.href}>
-                <CardContent className="flex h-full items-center gap-4 p-5">
-                  <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border bg-muted/50 text-muted-foreground">
-                    <stat.icon className="size-7" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-medium text-sm">{stat.label}</p>
-                    <p className="mt-2 truncate font-semibold text-2xl tracking-tight">
-                      {stat.value}
-                    </p>
-                    <p className="mt-1 flex items-center gap-1 text-muted-foreground text-xs">
-                      {typeof stat.trend === "number" && stat.trend > 0 ? (
-                        <ArrowUpIcon className="size-3" />
-                      ) : null}
-                      {typeof stat.trend === "number" && stat.trend < 0 ? (
-                        <ArrowDownIcon className="size-3" />
-                      ) : null}
-                      {stat.detail}
-                    </p>
-                  </div>
-                </CardContent>
-              </Link>
-            </Card>
+            <Link className="block h-full" href={stat.href} key={stat.label}>
+              <Stat className="h-full">
+                <StatLabel>{stat.label}</StatLabel>
+                <StatIndicator color={stat.color} variant="icon">
+                  <stat.icon />
+                </StatIndicator>
+                <StatValue>{stat.value}</StatValue>
+                {typeof stat.trend === "number" ? (
+                  <StatTrend
+                    trend={
+                      stat.trend > 0 ? "up" : stat.trend < 0 ? "down" : "neutral"
+                    }
+                  >
+                    {stat.trend > 0 ? <ArrowUpIcon /> : null}
+                    {stat.trend < 0 ? <ArrowDownIcon /> : null}
+                    {stat.detail}
+                  </StatTrend>
+                ) : (
+                  <StatDescription>{stat.detail}</StatDescription>
+                )}
+              </Stat>
+            </Link>
           ))}
         </section>
 
