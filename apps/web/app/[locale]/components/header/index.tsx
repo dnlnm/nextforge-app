@@ -77,10 +77,10 @@ export const Header = ({ dictionary, locale }: HeaderProps) => {
   const [isOpen, setOpen] = useState(false);
   return (
     <header className="sticky top-0 left-0 z-40 w-full border-b bg-background">
-      <div className="container relative mx-auto flex min-h-20 flex-row items-center gap-4 lg:grid lg:grid-cols-3">
+      <div className="container relative mx-auto flex min-h-20 flex-row items-center gap-4 lg:justify-between">
         <div className="hidden flex-row items-center justify-start gap-4 lg:flex">
           <NavigationMenu className="flex items-start justify-start">
-            <NavigationMenuList className="flex flex-row justify-start gap-4">
+            <NavigationMenuList className="flex flex-row justify-start gap-3">
               {navigationItems.map((item) => (
                 <NavigationMenuItem key={item.title}>
                   <NavigationMenuLink asChild>
@@ -106,13 +106,13 @@ export const Header = ({ dictionary, locale }: HeaderProps) => {
             </NavigationMenuList>
           </NavigationMenu>
         </div>
-        <div className="flex items-center gap-2 lg:justify-center">
+        <div className="flex items-center gap-2 lg:absolute lg:left-1/2 lg:-translate-x-1/2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary font-bold text-primary-foreground text-sm">
             T
           </div>
           <p className="whitespace-nowrap font-semibold">TLAS.MY</p>
         </div>
-        <div className="flex w-full items-center justify-end gap-4">
+        <div className="flex w-full items-center justify-end gap-3 lg:w-auto lg:gap-2">
           <Button asChild className="hidden lg:inline-flex" variant="ghost">
             <Link href={localizePath(locale, "/contact")}>
               {dictionary.web.header.contact}
@@ -134,7 +134,7 @@ export const Header = ({ dictionary, locale }: HeaderProps) => {
           </div>
           <Button
             asChild
-            className="hidden lg:ml-2 lg:inline-flex"
+            className="hidden lg:inline-flex"
             variant="outline"
           >
             <Link href={`${env.NEXT_PUBLIC_APP_URL}/sign-in`}>
