@@ -9,7 +9,24 @@ import {
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
-import { ChevronRightIcon, MoreHorizontalIcon, UserRoundIcon } from "lucide-react";
+import {
+  Stat,
+  StatDescription,
+  StatIndicator,
+  StatLabel,
+  StatTrend,
+  StatValue,
+} from "@repo/design-system/components/ui/stat";
+import {
+  ArrowUp,
+  ChevronRightIcon,
+  LandmarkIcon,
+  MoreHorizontalIcon,
+  UserCheckIcon,
+  UserPlusIcon,
+  UserRoundIcon,
+  UsersRoundIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { StudentsTable } from "./students-table";
 
@@ -42,12 +59,18 @@ type FilterOption = {
 };
 
 type StudentsPageClientProps = {
+  activeStudents: number;
+  allStudents: Student[];
+  classOptions: FilterOption[];
   initialData: Student[];
   initialTotalCount: number;
-  classOptions: FilterOption[];
-  tutorOptions: FilterOption[];
+  monthLabel: string;
+  newStudentsThisMonth: number;
+  outstandingSen: number;
   statusOptions: FilterOption[];
-  allStudents: Student[];
+  studentsWithOutstanding: number;
+  totalStudents: number;
+  tutorOptions: FilterOption[];
 };
 
 const formatMoney = (amountSen: number) =>
@@ -68,12 +91,18 @@ const studentCode = (index: number) =>
   `STU${String(index + 145).padStart(5, "0")}`;
 
 export function StudentsPageClient({
+  activeStudents,
+  allStudents,
+  classOptions,
   initialData,
   initialTotalCount,
-  classOptions,
-  tutorOptions,
+  monthLabel,
+  newStudentsThisMonth,
+  outstandingSen,
   statusOptions,
-  allStudents,
+  studentsWithOutstanding,
+  totalStudents,
+  tutorOptions,
 }: StudentsPageClientProps) {
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
     allStudents[0]?.id ?? null
@@ -106,6 +135,56 @@ export function StudentsPageClient({
   return (
     <div className="grid items-start gap-5 xl:grid-cols-[1fr_300px] 2xl:grid-cols-[1fr_360px]">
       <section className="grid content-start gap-5">
+        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <Stat>
+            <StatLabel>Total Students</StatLabel>
+            <StatIndicator color="info" variant="icon">
+              <UsersRoundIcon />
+            </StatIndicator>
+            <StatValue>{totalStudents.toLocaleString()}</StatValue>
+            <StatTrend trend="up">
+              <ArrowUp />
+              +12 from last month
+            </StatTrend>
+          </Stat>
+
+          <Stat>
+            <StatLabel>Active Students</StatLabel>
+            <StatIndicator color="success" variant="icon">
+              <UserCheckIcon />
+            </StatIndicator>
+            <StatValue>{activeStudents.toLocaleString()}</StatValue>
+            <StatDescription>
+              {totalStudents > 0
+                ? `${Math.round((activeStudents / totalStudents) * 100)}% of total`
+                : "0% of total"}
+            </StatDescription>
+          </Stat>
+
+          <Stat>
+            <StatLabel>New Students ({monthLabel})</StatLabel>
+            <StatIndicator color="info" variant="icon">
+              <UserPlusIcon />
+            </StatIndicator>
+            <StatValue>{newStudentsThisMonth.toLocaleString()}</StatValue>
+            <StatTrend trend="up">
+              <ArrowUp />
+              +4 from last month
+            </StatTrend>
+          </Stat>
+
+          <Stat>
+            <StatLabel>Outstanding Fees</StatLabel>
+            <StatIndicator color="warning" variant="icon">
+              <LandmarkIcon />
+            </StatIndicator>
+            <StatValue>{formatMoney(outstandingSen)}</StatValue>
+            <StatDescription>
+              {studentsWithOutstanding} students
+            </StatDescription>
+          </Stat>
+        </section>
+
         <StudentsTable
           initialData={initialData}
           initialTotalCount={initialTotalCount}

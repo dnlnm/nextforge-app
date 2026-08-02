@@ -1,35 +1,11 @@
 import { requireTenant } from "@repo/auth/authorization";
 import { database } from "@repo/database";
 import { Button } from "@repo/design-system/components/ui/button";
-import {
-  Stat,
-  StatDescription,
-  StatIndicator,
-  StatLabel,
-  StatTrend,
-  StatValue,
-} from "@repo/design-system/components/ui/stat";
-import {
-  ArrowUp,
-  ChevronDownIcon,
-  LandmarkIcon,
-  PlusIcon,
-  UploadIcon,
-  UserCheckIcon,
-  UserPlusIcon,
-  UsersRoundIcon,
-} from "lucide-react";
+import { ChevronDownIcon, PlusIcon, UploadIcon } from "lucide-react";
 import Link from "next/link";
 import { Header } from "../components/header";
 import { StudentsPageClient } from "./students-page-client";
 import { getStudentsForTable, getStudentFilterOptions } from "./actions";
-
-const formatMoney = (amountSen: number) =>
-  new Intl.NumberFormat("en-MY", {
-    currency: "MYR",
-    maximumFractionDigits: 0,
-    style: "currency",
-  }).format(amountSen / 100);
 
 const StudentsPage = async () => {
   const tenant = await requireTenant();
@@ -111,66 +87,19 @@ const StudentsPage = async () => {
           </div>
         </div>
 
-        <section className="grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
-          <Stat>
-            <StatLabel>Total Students</StatLabel>
-            <StatIndicator color="info" variant="icon">
-              <UsersRoundIcon />
-            </StatIndicator>
-            <StatValue>{allStudents.length.toLocaleString()}</StatValue>
-            <StatTrend trend="up">
-              <ArrowUp />
-              +12 from last month
-            </StatTrend>
-          </Stat>
-
-          <Stat>
-            <StatLabel>Active Students</StatLabel>
-            <StatIndicator color="success" variant="icon">
-              <UserCheckIcon />
-            </StatIndicator>
-            <StatValue>{activeStudents.length.toLocaleString()}</StatValue>
-            <StatDescription>
-              {allStudents.length > 0
-                ? `${Math.round((activeStudents.length / allStudents.length) * 100)}% of total`
-                : "0% of total"}
-            </StatDescription>
-          </Stat>
-
-          <Stat>
-            <StatLabel>
-              New Students (
-              {today.toLocaleString("en-MY", { month: "short" })})
-            </StatLabel>
-            <StatIndicator color="info" variant="icon">
-              <UserPlusIcon />
-            </StatIndicator>
-            <StatValue>{newStudentsThisMonth.length.toLocaleString()}</StatValue>
-            <StatTrend trend="up">
-              <ArrowUp />
-              +4 from last month
-            </StatTrend>
-          </Stat>
-
-          <Stat>
-            <StatLabel>Outstanding Fees</StatLabel>
-            <StatIndicator color="warning" variant="icon">
-              <LandmarkIcon />
-            </StatIndicator>
-            <StatValue>{formatMoney(totalOutstandingSen)}</StatValue>
-            <StatDescription>
-              {studentsWithOutstanding.length} students
-            </StatDescription>
-          </Stat>
-        </section>
-
         <StudentsPageClient
+          activeStudents={activeStudents.length}
+          allStudents={allStudents}
+          classOptions={filterOptions.classes}
           initialData={initialTableData.data}
           initialTotalCount={initialTableData.totalCount}
-          classOptions={filterOptions.classes}
-          tutorOptions={filterOptions.tutors}
+          monthLabel={today.toLocaleString("en-MY", { month: "short" })}
+          newStudentsThisMonth={newStudentsThisMonth.length}
+          outstandingSen={totalOutstandingSen}
           statusOptions={filterOptions.statuses}
-          allStudents={allStudents}
+          studentsWithOutstanding={studentsWithOutstanding.length}
+          totalStudents={allStudents.length}
+          tutorOptions={filterOptions.tutors}
         />
       </main>
     </>
