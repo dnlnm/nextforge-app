@@ -28,6 +28,7 @@ import {
   UsersRoundIcon,
 } from "lucide-react";
 import Link from "next/link";
+import Balancer from "react-wrap-balancer";
 import { StudentsTable } from "./students-table";
 
 type Student = {
@@ -209,8 +210,8 @@ export function StudentsPageClient({
                   </Button>
                 </div>
                 <div className="min-w-0">
-                  <CardTitle className="truncate text-xl">
-                    {selectedStudent.fullName}
+                  <CardTitle className="text-xl">
+                    <Balancer>{selectedStudent.fullName}</Balancer>
                   </CardTitle>
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-muted-foreground text-sm">
                     <span>{studentCode(0)}</span>

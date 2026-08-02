@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import Balancer from "react-wrap-balancer";
 import { Header } from "../../components/header";
 
 interface StudentPageProperties {
@@ -137,8 +138,8 @@ const StudentHeader = ({
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="truncate font-semibold text-2xl tracking-tight md:text-3xl">
-              {student.fullName}
+            <h1 className="font-semibold text-2xl tracking-tight md:text-3xl">
+              <Balancer>{student.fullName}</Balancer>
             </h1>
             <Badge variant="outline">
               {student.status === "ACTIVE" ? "Active" : "Inactive"}
