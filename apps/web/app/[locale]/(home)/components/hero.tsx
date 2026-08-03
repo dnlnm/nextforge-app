@@ -54,7 +54,7 @@ export const Hero = ({ dictionary, locale }: HeroProps) => {
             className="mx-auto aspect-3/4 h-full max-h-[524px] w-full max-w-5xl rounded-lg border border-border object-cover object-top-left md:aspect-video md:object-top dark:hidden"
           />
           <img
-            src="https://deifkwefumgah.cloudfront.net/shadcnblocks/image-set/modern/saas-hero/saas-hero-1-16x9-dark.png"
+            src="https://plx3ciirtse6qrmk.public.blob.vercel-storage.com/Screenshot%202026-08-02%20081759.png"
             alt="Hero Image Placeholder"
             className="mx-auto hidden aspect-3/4 h-full max-h-[524px] w-full max-w-5xl rounded-lg border border-border object-cover object-top-left md:aspect-video md:object-top dark:block"
           />
