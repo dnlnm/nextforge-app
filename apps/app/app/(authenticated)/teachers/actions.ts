@@ -11,6 +11,18 @@ const getString = (formData: FormData, key: string) => {
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 };
 
+const formatCode = (prefix: string, sequence: number) =>
+  `${prefix}${String(sequence).padStart(4, "0")}`;
+
+export const getNextTeacherCode = async () => {
+  const tenant = await requireTenant();
+  const count = await database.teacherProfile.count({
+    where: { organizationId: tenant.organizationId },
+  });
+
+  return formatCode("TCH", count + 1);
+};
+
 export const createTeacher = async (formData: FormData) => {
   const tenant = await requireTenantRole(["ADMIN"]);
   const fullName = getString(formData, "fullName");
@@ -25,11 +37,16 @@ export const createTeacher = async (formData: FormData) => {
     userId: tenant.authUserId,
   });
 
+  const count = await database.teacherProfile.count({
+    where: { organizationId: tenant.organizationId },
+  });
+
   await database.teacherProfile.create({
     data: {
       organizationId: tenant.organizationId,
       email: getString(formData, "email"),
       fullName,
+      code: formatCode("TCH", count + 1),
       phone: getString(formData, "phone"),
       notes: getString(formData, "notes"),
     },
@@ -138,6 +155,7 @@ export async function getTeachersForTable(params: TeachersQueryParams) {
     data: teachers.map((teacher) => ({
       branchName: teacher.branch?.name ?? null,
       classCount: teacher.classes.length,
+      code: teacher.code,
       email: teacher.email,
       fullName: teacher.fullName,
       id: teacher.id,

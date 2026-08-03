@@ -68,68 +68,56 @@ const formatTime = (value: string) =>
     minute: "2-digit",
   }).format(new Date(`1970-01-01T${value}:00`));
 
-const studentCode = (studentIndex: number) =>
-  `STU${String(studentIndex + 145).padStart(5, "0")}`;
-
 const getStudentData = async (studentId: string, organizationId: string) => {
-  const [student, studentCount] = await Promise.all([
-    database.student.findFirst({
-      where: { id: studentId, organizationId },
-      include: {
-        branch: true,
-        level: true,
-        guardians: {
-          include: { guardian: true },
-          orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }],
-        },
-        enrollments: {
-          where: { archivedAt: null, status: "ACTIVE" },
-          include: {
-            class: {
-              include: { branch: true, subject: true, teacher: true },
-            },
-          },
-          orderBy: { createdAt: "desc" },
-        },
-        invoices: {
-          orderBy: { billingMonth: "desc" },
-          take: 6,
-        },
-        attendanceRecords: {
-          orderBy: { markedAt: "desc" },
-          take: 8,
-          include: {
-            session: {
-              include: { class: { include: { subject: true, teacher: true } } },
-            },
+  const student = await database.student.findFirst({
+    where: { id: studentId, organizationId },
+    include: {
+      branch: true,
+      level: true,
+      guardians: {
+        include: { guardian: true },
+        orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }],
+      },
+      enrollments: {
+        where: { archivedAt: null, status: "ACTIVE" },
+        include: {
+          class: {
+            include: { branch: true, subject: true, teacher: true },
           },
         },
-        payments: {
-          orderBy: { createdAt: "desc" },
-          take: 6,
+        orderBy: { createdAt: "desc" },
+      },
+      invoices: {
+        orderBy: { billingMonth: "desc" },
+        take: 6,
+      },
+      attendanceRecords: {
+        orderBy: { markedAt: "desc" },
+        take: 8,
+        include: {
+          session: {
+            include: { class: { include: { subject: true, teacher: true } } },
+          },
         },
       },
-    }),
-    database.student.count({
-      where: { organizationId, archivedAt: null },
-    }),
-  ]);
+      payments: {
+        orderBy: { createdAt: "desc" },
+        take: 6,
+      },
+    },
+  });
 
-  return { student, studentCount };
+  return student;
 };
 
-type StudentData = NonNullable<
-  Awaited<ReturnType<typeof getStudentData>>["student"]
->;
+type StudentData = NonNullable<Awaited<ReturnType<typeof getStudentData>>>;
 
 const StudentHeader = ({
   primaryGuardianPhone,
   student,
-  studentIndex,
 }: {
   readonly primaryGuardianPhone?: string;
   readonly student: StudentData;
-  readonly studentIndex: number;
 }) => (
   <Card>
     <CardContent className="flex flex-col gap-5 p-5 md:flex-row md:items-start md:justify-between">
@@ -147,7 +135,7 @@ const StudentHeader = ({
             </Badge>
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-muted-foreground text-sm">
-            <span>{studentCode(studentIndex)}</span>
+            <span>{student.code}</span>
             <span>•</span>
             <span>{student.branch?.name ?? "No branch assigned"}</span>
             <span>•</span>
@@ -646,10 +634,7 @@ const StudentSidebar = ({
 const StudentProfilePage = async ({ params }: StudentPageProperties) => {
   const tenant = await requireTenantRole(["ADMIN"]);
   const { studentId } = await params;
-  const { student, studentCount } = await getStudentData(
-    studentId,
-    tenant.organizationId
-  );
+  const student = await getStudentData(studentId, tenant.organizationId);
 
   if (!student) {
     notFound();
@@ -677,7 +662,6 @@ const StudentProfilePage = async ({ params }: StudentPageProperties) => {
     student.attendanceRecords.length > 0
       ? Math.round((presentCount / student.attendanceRecords.length) * 100)
       : 0;
-  const studentIndex = Math.max(studentCount - 1, 0);
 
   return (
     <>
@@ -703,7 +687,6 @@ const StudentProfilePage = async ({ params }: StudentPageProperties) => {
             <StudentHeader
               primaryGuardianPhone={primaryGuardian?.phone ?? undefined}
               student={student}
-              studentIndex={studentIndex}
             />
 
             <StudentMetrics

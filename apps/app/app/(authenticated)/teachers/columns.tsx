@@ -26,6 +26,7 @@ import { archiveTeacher } from "./actions";
 export interface Teacher {
   branchName: string | null;
   classCount: number;
+  code: string;
   email: string | null;
   fullName: string;
   id: string;
@@ -33,9 +34,6 @@ export interface Teacher {
   status: string;
   subjects: string[];
 }
-
-const teacherCode = (index: number) =>
-  `TCH-${String(index + 1).padStart(3, "0")}`;
 
 export const columns: DataTableColumnDef<Teacher>[] = [
   {
@@ -66,9 +64,7 @@ export const columns: DataTableColumnDef<Teacher>[] = [
         <DataTableColumnTitle />
       </DataTableColumnHeader>
     ),
-    cell: ({ row, table }) => {
-      const index = table.getSortedRowModel().rows.indexOf(row);
-
+    cell: ({ row }) => {
       return (
         <div className="flex max-w-full items-center gap-3">
           <div className="flex size-10 shrink-0 items-center justify-center rounded-full border bg-muted text-muted-foreground">
@@ -82,7 +78,7 @@ export const columns: DataTableColumnDef<Teacher>[] = [
               {row.original.fullName}
             </Link>
             <span className="block truncate text-muted-foreground text-xs">
-              {teacherCode(index)}
+              {row.original.code}
             </span>
           </div>
         </div>

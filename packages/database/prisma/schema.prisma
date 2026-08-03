@@ -150,6 +150,7 @@ model Student {
   id                String             @id @default(cuid())
   organizationId    String
   branchId          String?
+  code              String
   fullName          String
   preferredName     String?
   schoolName        String?
@@ -169,6 +170,7 @@ model Student {
   level             Level?             @relation("StudentLevel", fields: [levelId], references: [id])
   levelId           String?
 
+  @@unique([organizationId, code])
   @@index([organizationId, status])
   @@index([organizationId, fullName])
   @@index([branchId])
@@ -216,6 +218,7 @@ model TeacherProfile {
   id             String          @id @default(cuid())
   organizationId String
   branchId       String?
+  code           String
   fullName       String
   email          String?
   phone          String?
@@ -229,6 +232,7 @@ model TeacherProfile {
   organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   User           User?           @relation(fields: [userId], references: [id])
 
+  @@unique([organizationId, code])
   @@index([organizationId, fullName])
   @@index([organizationId, archivedAt])
   @@index([branchId])

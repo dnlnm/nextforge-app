@@ -1,5 +1,8 @@
 "use client";
 
+import { DataTableColumnHeader } from "@repo/design-system/components/niko-table/components/data-table-column-header";
+import { DataTableColumnTitle } from "@repo/design-system/components/niko-table/components/data-table-column-title";
+import type { DataTableColumnDef } from "@repo/design-system/components/niko-table/types";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import { Checkbox } from "@repo/design-system/components/ui/checkbox";
@@ -9,10 +12,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@repo/design-system/components/ui/dropdown-menu";
-import { DataTableColumnHeader } from "@repo/design-system/components/niko-table/components/data-table-column-header";
-import { DataTableColumnTitle } from "@repo/design-system/components/niko-table/components/data-table-column-title";
-import type { DataTableColumnDef } from "@repo/design-system/components/niko-table/types";
-import { ArchiveIcon, Edit3Icon, EyeIcon, MessageCircleIcon, MoreHorizontalIcon, UserRoundIcon } from "lucide-react";
+import {
+  ArchiveIcon,
+  Edit3Icon,
+  EyeIcon,
+  MessageCircleIcon,
+  MoreHorizontalIcon,
+  UserRoundIcon,
+} from "lucide-react";
 import Link from "next/link";
 
 import { archiveStudent } from "./actions";
@@ -21,6 +28,7 @@ export type Student = {
   id: string;
   fullName: string;
   status: string;
+  code: string;
   level: {
     name: string;
   } | null;
@@ -33,24 +41,21 @@ export type Student = {
   }>;
 };
 
-const studentCode = (index: number) =>
-  `STU${String(index + 145).padStart(5, "0")}`;
-
 export const columns: DataTableColumnDef<Student>[] = [
   {
     id: "select",
     header: ({ table }) => (
       <Checkbox
+        aria-label="Select all"
         checked={table.getIsAllPageRowsSelected()}
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
       />
     ),
     cell: ({ row }) => (
       <Checkbox
+        aria-label="Select row"
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
         onClick={(e) => e.stopPropagation()}
       />
     ),
@@ -65,10 +70,9 @@ export const columns: DataTableColumnDef<Student>[] = [
         <DataTableColumnTitle />
       </DataTableColumnHeader>
     ),
-    cell: ({ row, table }) => {
-      const index = table.getSortedRowModel().rows.indexOf(row);
+    cell: ({ row }) => {
       return (
-        <div className="flex items-center gap-3 max-w-full">
+        <div className="flex max-w-full items-center gap-3">
           <div className="flex size-10 shrink-0 items-center justify-center rounded-full border bg-muted text-muted-foreground">
             <UserRoundIcon className="size-5" />
           </div>
@@ -79,8 +83,8 @@ export const columns: DataTableColumnDef<Student>[] = [
             >
               {row.original.fullName}
             </Link>
-            <span className="block truncate text-xs text-muted-foreground">
-              {studentCode(index)}
+            <span className="block truncate text-muted-foreground text-xs">
+              {row.original.code}
             </span>
           </div>
         </div>
@@ -136,7 +140,7 @@ export const columns: DataTableColumnDef<Student>[] = [
         <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="icon" variant="ghost" aria-label="Row actions">
+              <Button aria-label="Row actions" size="icon" variant="ghost">
                 <MoreHorizontalIcon className="size-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -156,9 +160,7 @@ export const columns: DataTableColumnDef<Student>[] = [
               <DropdownMenuItem asChild>
                 <Link
                   href={
-                    guardian?.phone
-                      ? `https://wa.me/${guardian.phone}`
-                      : "#"
+                    guardian?.phone ? `https://wa.me/${guardian.phone}` : "#"
                   }
                 >
                   <MessageCircleIcon />
@@ -174,8 +176,12 @@ export const columns: DataTableColumnDef<Student>[] = [
                     }
                   }}
                 >
-                  <input type="hidden" name="studentId" value={row.original.id} />
-                  <button type="submit" className="flex items-center gap-2">
+                  <input
+                    name="studentId"
+                    type="hidden"
+                    value={row.original.id}
+                  />
+                  <button className="flex items-center gap-2" type="submit">
                     <ArchiveIcon />
                     Archive
                   </button>

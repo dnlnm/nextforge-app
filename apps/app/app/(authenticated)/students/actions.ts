@@ -1,7 +1,12 @@
 "use server";
 
 import { requireTenant, requireTenantRole } from "@repo/auth/authorization";
-import { database, type GuardianRelationship, type Prisma, type StudentStatus } from "@repo/database";
+import {
+  database,
+  type GuardianRelationship,
+  type Prisma,
+  type StudentStatus,
+} from "@repo/database";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { assertWithinPlanLimit } from "../billing/limits";
@@ -20,6 +25,18 @@ const relationships = new Set<GuardianRelationship>([
 ]);
 
 const csvLineRegex = /\r?\n/;
+
+const formatCode = (prefix: string, sequence: number) =>
+  `${prefix}${String(sequence).padStart(4, "0")}`;
+
+export const getNextStudentCode = async () => {
+  const tenant = await requireTenant();
+  const count = await database.student.count({
+    where: { organizationId: tenant.organizationId },
+  });
+
+  return formatCode("STU", count + 1);
+};
 
 const resolveLevel = async (levelId: string | undefined) => {
   const tenant = await requireTenant();
@@ -65,10 +82,15 @@ export const createStudent = async (formData: FormData) => {
   const levelId = await resolveLevel(getString(formData, "levelId"));
 
   await database.$transaction(async (tx) => {
+    const sequence =
+      (await tx.student.count({
+        where: { organizationId: tenant.organizationId },
+      })) + 1;
     const student = await tx.student.create({
       data: {
         organizationId: tenant.organizationId,
         fullName,
+        code: formatCode("STU", sequence),
         levelId,
         preferredName: getString(formData, "preferredName"),
         schoolName: getString(formData, "schoolName"),
@@ -236,7 +258,13 @@ export const importStudents = async (formData: FormData) => {
   const levelByName = new Map(levels.map((level) => [level.name, level.id]));
 
   await database.$transaction(async (tx) => {
-    for (const row of importableRows) {
+    const startSequence =
+      (await tx.student.count({
+        where: { organizationId: tenant.organizationId },
+      })) + 1;
+
+    for (let index = 0; index < importableRows.length; index += 1) {
+      const row = importableRows[index];
       const fullName = row.fullname;
       const guardianName = row.guardianname;
 
@@ -244,6 +272,7 @@ export const importStudents = async (formData: FormData) => {
         data: {
           organizationId: tenant.organizationId,
           fullName,
+          code: formatCode("STU", startSequence + index),
           levelId: levelByName.get(row.academiclevel),
           preferredName: row.preferredname,
           schoolName: row.schoolname,
@@ -307,9 +336,13 @@ export async function getStudentsForTable(params: StudentsQueryParams) {
     for (const filter of params.filters) {
       switch (filter.id) {
         case "status": {
-          const values = Array.isArray(filter.value) ? filter.value : [filter.value];
-          const validStatuses = values.filter((v): v is StudentStatus => 
-            typeof v === "string" && ["ACTIVE", "INACTIVE", "GRADUATED", "ARCHIVED"].includes(v)
+          const values = Array.isArray(filter.value)
+            ? filter.value
+            : [filter.value];
+          const validStatuses = values.filter(
+            (v): v is StudentStatus =>
+              typeof v === "string" &&
+              ["ACTIVE", "INACTIVE", "GRADUATED", "ARCHIVED"].includes(v)
           );
           if (validStatuses.length > 0) {
             where.status = { in: validStatuses };
@@ -317,7 +350,9 @@ export async function getStudentsForTable(params: StudentsQueryParams) {
           break;
         }
         case "class": {
-          const values = Array.isArray(filter.value) ? filter.value : [filter.value];
+          const values = Array.isArray(filter.value)
+            ? filter.value
+            : [filter.value];
           where.enrollments = {
             some: {
               classId: { in: values as string[] },
@@ -328,7 +363,9 @@ export async function getStudentsForTable(params: StudentsQueryParams) {
           break;
         }
         case "tutor": {
-          const values = Array.isArray(filter.value) ? filter.value : [filter.value];
+          const values = Array.isArray(filter.value)
+            ? filter.value
+            : [filter.value];
           where.enrollments = {
             some: {
               class: {
@@ -341,7 +378,9 @@ export async function getStudentsForTable(params: StudentsQueryParams) {
           break;
         }
         case "academicLevel": {
-          const values = Array.isArray(filter.value) ? filter.value : [filter.value];
+          const values = Array.isArray(filter.value)
+            ? filter.value
+            : [filter.value];
           if (values.length > 0) {
             where.level = {
               name: { in: values as string[] },

@@ -38,6 +38,7 @@ interface Teacher {
     };
     enrollments: Array<{ id: string }>;
   }>;
+  code: string;
   createdAt: Date;
   email: string | null;
   fullName: string;
@@ -63,6 +64,7 @@ interface TeachersPageClientProps {
     email: string | null;
     phone: string | null;
     branchName: string | null;
+    code: string;
     subjects: string[];
     classCount: number;
     status: string;
@@ -72,9 +74,6 @@ interface TeachersPageClientProps {
   totalTeachers: number;
   unassignedTeachers: number;
 }
-
-const teacherCode = (index: number) =>
-  `TCH-${String(index + 1).padStart(3, "0")}`;
 
 const formatDate = (date: Date) =>
   new Intl.DateTimeFormat("en-MY", {
@@ -103,9 +102,6 @@ export function TeachersPageClient({
   const selectedTeacher = allTeachers.find(
     (teacher) => teacher.id === selectedTeacherId
   );
-  const selectedTeacherIndex = selectedTeacher
-    ? allTeachers.findIndex((teacher) => teacher.id === selectedTeacher.id)
-    : -1;
   const selectedSubjects = selectedTeacher
     ? Array.from(
         new Set(
@@ -196,11 +192,7 @@ export function TeachersPageClient({
                     {selectedTeacher.fullName}
                   </CardTitle>
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-muted-foreground text-sm">
-                    <span>
-                      {selectedTeacherIndex >= 0
-                        ? teacherCode(selectedTeacherIndex)
-                        : "TCH-000"}
-                    </span>
+                    <span>{selectedTeacher.code}</span>
                     <span>+</span>
                     <span>{selectedTeacher.branch?.name ?? "No branch"}</span>
                     <Badge variant="outline">Active</Badge>

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
@@ -28,6 +27,7 @@ import {
   UsersRoundIcon,
 } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import Balancer from "react-wrap-balancer";
 import { StudentsTable } from "./students-table";
 
@@ -35,6 +35,7 @@ type Student = {
   id: string;
   fullName: string;
   status: string;
+  code: string;
   level: {
     name: string;
   } | null;
@@ -91,9 +92,6 @@ const formatDate = (date: Date) =>
     year: "numeric",
   }).format(date);
 
-const studentCode = (index: number) =>
-  `STU${String(index + 145).padStart(5, "0")}`;
-
 export function StudentsPageClient({
   activeStudents,
   allStudents,
@@ -125,10 +123,7 @@ export function StudentsPageClient({
       )
     : 0;
   const selectedBilledSen = selectedStudent
-    ? selectedInvoices.reduce(
-        (total, invoice) => total + invoice.totalSen,
-        0
-      )
+    ? selectedInvoices.reduce((total, invoice) => total + invoice.totalSen, 0)
     : 0;
   const selectedPaidSen = selectedStudent
     ? selectedInvoices.reduce(
@@ -191,13 +186,13 @@ export function StudentsPageClient({
         </section>
 
         <StudentsTable
+          classOptions={classOptions}
           initialData={initialData}
           initialTotalCount={initialTotalCount}
-          classOptions={classOptions}
-          tutorOptions={tutorOptions}
-          statusOptions={statusOptions}
           levelOptions={levelOptions}
           onRowClick={(studentId) => setSelectedStudentId(studentId)}
+          statusOptions={statusOptions}
+          tutorOptions={tutorOptions}
         />
       </section>
 
@@ -219,7 +214,7 @@ export function StudentsPageClient({
                     <Balancer>{selectedStudent.fullName}</Balancer>
                   </CardTitle>
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-muted-foreground text-sm">
-                    <span>{studentCode(0)}</span>
+                    <span>{selectedStudent.code}</span>
                     <Badge variant="outline">
                       {selectedStudent.status === "ACTIVE"
                         ? "Active"
@@ -245,9 +240,7 @@ export function StudentsPageClient({
               </CardHeader>
               <CardContent className="grid gap-5 p-0">
                 <section className="grid gap-3 border-b p-4">
-                  <h2 className="font-semibold text-sm">
-                    Student Information
-                  </h2>
+                  <h2 className="font-semibold text-sm">Student Information</h2>
                   {[
                     [
                       "Registration Date",
@@ -267,9 +260,7 @@ export function StudentsPageClient({
                   ))}
                 </section>
                 <section className="grid gap-3 border-b p-4">
-                  <h2 className="font-semibold text-sm">
-                    Parent / Guardian
-                  </h2>
+                  <h2 className="font-semibold text-sm">Parent / Guardian</h2>
                   {[
                     ["Name", selectedGuardian?.fullName ?? "-"],
                     ["Phone", selectedGuardian?.phone ?? "-"],
