@@ -133,7 +133,7 @@ export function StudentsPageClient({
     : 0;
 
   return (
-    <div className="grid items-start gap-5 xl:grid-cols-[1fr_300px] 2xl:grid-cols-[1fr_360px]">
+    <div className="grid items-start gap-5 xl:grid-cols-[1fr_320px] 2xl:grid-cols-[1fr_380px]">
       <section className="grid content-start gap-5">
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <Stat>
