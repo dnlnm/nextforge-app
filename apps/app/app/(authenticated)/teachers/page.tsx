@@ -17,6 +17,13 @@ import {
   SelectValue,
 } from "@repo/design-system/components/ui/select";
 import {
+  Stat,
+  StatDescription,
+  StatIndicator,
+  StatLabel,
+  StatValue,
+} from "@repo/design-system/components/ui/stat";
+import {
   Table,
   TableBody,
   TableCell,
@@ -30,7 +37,10 @@ import {
   FilterIcon,
   MoreHorizontalIcon,
   SearchIcon,
+  UserRoundCheckIcon,
   UserRoundIcon,
+  UserRoundXIcon,
+  UsersRoundIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { Header } from "../components/header";
@@ -126,43 +136,43 @@ const TeachersPage = async ({ searchParams }: TeachersPageProperties) => {
           <section className="grid content-start gap-5">
             <section className="grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
               {[
-                [
-                  "Total Teachers",
-                  totalTeachers.toLocaleString(),
-                  `${teachers.length} active profiles`,
-                ],
-                [
-                  "Active Teachers",
-                  teachers.length.toLocaleString(),
-                  `${totalTeachers > 0 ? Math.round((teachers.length / totalTeachers) * 100) : 0}% of total`,
-                ],
-                [
-                  "Assigned Teachers",
-                  assignedTeachers.length.toLocaleString(),
-                  `${teachers.length > 0 ? Math.round((assignedTeachers.length / teachers.length) * 100) : 0}% with classes`,
-                ],
-                [
-                  "Inactive Teachers",
-                  archivedTeachers.toLocaleString(),
-                  `${unassignedTeachers.length} active unassigned`,
-                ],
-              ].map(([label, value, detail]) => (
-                <Card key={label}>
-                  <CardContent className="flex items-center gap-4 p-4">
-                    <div className="flex size-14 shrink-0 items-center justify-center border bg-muted text-muted-foreground">
-                      <UserRoundIcon className="size-7" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-muted-foreground text-xs">{label}</p>
-                      <p className="mt-1 truncate font-semibold text-2xl tracking-tight">
-                        {value}
-                      </p>
-                      <p className="mt-1 text-muted-foreground text-xs">
-                        {detail}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                {
+                  color: "info" as const,
+                  detail: `${teachers.length} active profiles`,
+                  icon: UsersRoundIcon,
+                  label: "Total Teachers",
+                  value: totalTeachers.toLocaleString(),
+                },
+                {
+                  color: "success" as const,
+                  detail: `${totalTeachers > 0 ? Math.round((teachers.length / totalTeachers) * 100) : 0}% of total`,
+                  icon: UserRoundCheckIcon,
+                  label: "Active Teachers",
+                  value: teachers.length.toLocaleString(),
+                },
+                {
+                  color: "default" as const,
+                  detail: `${teachers.length > 0 ? Math.round((assignedTeachers.length / teachers.length) * 100) : 0}% with classes`,
+                  icon: UserRoundIcon,
+                  label: "Assigned Teachers",
+                  value: assignedTeachers.length.toLocaleString(),
+                },
+                {
+                  color: "warning" as const,
+                  detail: `${unassignedTeachers.length} active unassigned`,
+                  icon: UserRoundXIcon,
+                  label: "Inactive Teachers",
+                  value: archivedTeachers.toLocaleString(),
+                },
+              ].map(({ color, detail, icon: Icon, label, value }) => (
+                <Stat className="h-full" key={label}>
+                  <StatLabel>{label}</StatLabel>
+                  <StatIndicator color={color} variant="icon">
+                    <Icon />
+                  </StatIndicator>
+                  <StatValue>{value}</StatValue>
+                  <StatDescription>{detail}</StatDescription>
+                </Stat>
               ))}
             </section>
 

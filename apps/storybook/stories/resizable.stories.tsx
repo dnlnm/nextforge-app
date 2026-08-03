@@ -13,7 +13,7 @@ const meta: Meta<typeof ResizablePanelGroup> = {
   component: ResizablePanelGroup,
   tags: ["autodocs"],
   argTypes: {
-    onLayout: {
+    onLayoutChange: {
       control: false,
     },
   },
