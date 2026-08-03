@@ -51,13 +51,13 @@ const navigationSections = [
     items: [
       { title: "Students", url: "/students", icon: UsersIcon },
       { title: "Teachers", url: "/teachers", icon: UsersIcon },
-      { title: "Subjects", url: "/subjects", icon: BookOpenIcon },
-{
-      title: "Academic Levels",
-      url: "/academic-levels",
-      icon: GraduationCapIcon,
-    },
       { title: "Classes", url: "/classes", icon: CalendarDaysIcon },
+      { title: "Subjects", url: "/subjects", icon: BookOpenIcon },
+      {
+        title: "Academic Levels",
+        url: "/academic-levels",
+        icon: GraduationCapIcon,
+      },
     ],
     title: "Centre Setup",
   },

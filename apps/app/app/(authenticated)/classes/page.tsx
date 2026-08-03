@@ -12,6 +12,13 @@ import {
   SelectValue,
 } from "@repo/design-system/components/ui/select";
 import {
+  Stat,
+  StatDescription,
+  StatIndicator,
+  StatLabel,
+  StatValue,
+} from "@repo/design-system/components/ui/stat";
+import {
   Table,
   TableBody,
   TableCell,
@@ -122,30 +129,35 @@ const ClassesPage = async () => {
     .sort((first, second) => first.startsAt.localeCompare(second.startsAt))
     .slice(0, 3);
   const metrics: {
+    color: "default" | "info" | "success" | "warning";
     detail: string;
     Icon: LucideIcon;
     label: string;
     value: string;
   }[] = [
     {
+      color: "info",
       detail: "+ 5 this month",
       Icon: BookOpenIcon,
       label: "Total Classes",
       value: classes.length.toLocaleString(),
     },
     {
+      color: "success",
       detail: `${classes.length > 0 ? Math.round((activeClasses.length / classes.length) * 100) : 0}% of total`,
       Icon: CheckCircle2Icon,
       label: "Active Classes",
       value: activeClasses.length.toLocaleString(),
     },
     {
+      color: "default",
       detail: "+ 24 this month",
       Icon: UsersRoundIcon,
       label: "Total Enrolled Students",
       value: totalEnrollments.toLocaleString(),
     },
     {
+      color: "warning",
       detail: "Target: 15 - 20",
       Icon: BarChart3Icon,
       label: "Average Class Size",
@@ -169,23 +181,15 @@ const ClassesPage = async () => {
         <div className="grid items-start gap-5 xl:grid-cols-[1fr_300px] 2xl:grid-cols-[1fr_360px]">
           <section className="grid content-start gap-5">
             <section className="grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
-              {metrics.map(({ detail, Icon, label, value }) => (
-                <Card key={label}>
-                  <CardContent className="flex items-center gap-4 p-4">
-                    <div className="flex size-14 shrink-0 items-center justify-center border bg-muted text-muted-foreground">
-                      <Icon className="size-7" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-muted-foreground text-xs">{label}</p>
-                      <p className="mt-1 truncate font-semibold text-2xl tracking-tight">
-                        {value}
-                      </p>
-                      <p className="mt-1 text-muted-foreground text-xs">
-                        {detail}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+              {metrics.map(({ color, detail, Icon, label, value }) => (
+                <Stat className="h-full" key={label}>
+                  <StatLabel>{label}</StatLabel>
+                  <StatIndicator color={color} variant="icon">
+                    <Icon />
+                  </StatIndicator>
+                  <StatValue>{value}</StatValue>
+                  <StatDescription>{detail}</StatDescription>
+                </Stat>
               ))}
             </section>
 

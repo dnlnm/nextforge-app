@@ -11,6 +11,7 @@ import {
 import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
 import { Textarea } from "@repo/design-system/components/ui/textarea";
+import { PlusIcon } from "lucide-react";
 import { Header } from "../components/header";
 import { createSubject } from "./actions";
 import SubjectsList from "./subjects-list";
@@ -60,34 +61,51 @@ const SubjectsPage = async () => {
   return (
     <>
       <Header page="Subjects" pages={["TLAS.MY"]} />
-      <main className="grid gap-4 p-4 pt-0 lg:grid-cols-[360px_1fr]">
-        <Card>
-          <CardHeader>
-            <CardTitle>Add subject</CardTitle>
-            <CardDescription>
-              Subjects become the basis for monthly-per-subject fees.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form action={createSubject} className="grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="name">Subject name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  placeholder="Mathematics"
-                  required
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea id="description" name="description" />
-              </div>
-              <Button type="submit">Save subject</Button>
-            </form>
-          </CardContent>
-        </Card>
-        <SubjectsList subjects={subjects} />
+      <main className="grid gap-5 p-4 pt-4">
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+          <div>
+            <h1 className="font-semibold text-2xl tracking-tight">Subjects</h1>
+            <p className="text-muted-foreground text-sm">
+              Manage subjects and their monthly fees.
+            </p>
+          </div>
+          <Button asChild className="flex-1 md:flex-none">
+            <a href="#add-subject">
+              <PlusIcon className="size-4" />
+              Add Subject
+            </a>
+          </Button>
+        </div>
+
+        <div className="grid items-start gap-5 lg:grid-cols-[360px_1fr]">
+          <Card id="add-subject">
+            <CardHeader>
+              <CardTitle>Add subject</CardTitle>
+              <CardDescription>
+                Subjects become the basis for monthly-per-subject fees.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form action={createSubject} className="grid gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="name">Subject name</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    placeholder="Mathematics"
+                    required
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea id="description" name="description" />
+                </div>
+                <Button type="submit">Save subject</Button>
+              </form>
+            </CardContent>
+          </Card>
+          <SubjectsList subjects={subjects} />
+        </div>
       </main>
     </>
   );

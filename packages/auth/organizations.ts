@@ -61,15 +61,24 @@ export const createOrganization = async (name: string, imageUrl?: string) => {
     throw new Error("You must be signed in to create an organization");
   }
 
-  const defaultLevels = [
-    "General",
-    "Year 1",
-    "Year 2",
-    "Form 1",
-    "Form 2",
-    "Form 3",
-    "Form 4",
-    "Form 5",
+  const defaultLevels: Array<{
+    name: string;
+    order: number;
+    stage: import("@repo/database").LevelStage;
+  }> = [
+    { name: "Year 1", order: 0, stage: "PRIMARY" },
+    { name: "Year 2", order: 1, stage: "PRIMARY" },
+    { name: "Year 3", order: 2, stage: "PRIMARY" },
+    { name: "Year 4", order: 3, stage: "PRIMARY" },
+    { name: "Year 5", order: 4, stage: "PRIMARY" },
+    { name: "Year 6", order: 5, stage: "PRIMARY" },
+    { name: "Form 1", order: 6, stage: "LOWER_SECONDARY" },
+    { name: "Form 2", order: 7, stage: "LOWER_SECONDARY" },
+    { name: "Form 3", order: 8, stage: "LOWER_SECONDARY" },
+    { name: "Form 4", order: 9, stage: "UPPER_SECONDARY" },
+    { name: "Form 5", order: 10, stage: "UPPER_SECONDARY" },
+    { name: "Form 6", order: 11, stage: "PRE_UNIVERSITY" },
+    { name: "General", order: 12, stage: "GENERAL" },
   ];
 
   const organization = await database.organization.create({
@@ -80,9 +89,10 @@ export const createOrganization = async (name: string, imageUrl?: string) => {
       settings: { create: {} },
       branch: { create: { name: "Main Branch", isDefault: true } },
       levels: {
-        create: defaultLevels.map((levelName, index) => ({
-          name: levelName,
-          order: index,
+        create: defaultLevels.map(({ name, order, stage }) => ({
+          name,
+          order,
+          stage,
         })),
       },
       memberships: {

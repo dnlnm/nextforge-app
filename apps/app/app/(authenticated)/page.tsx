@@ -315,7 +315,7 @@ const App = async () => {
         <section className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
           {stats.map((stat) => (
             <Link className="block h-full" href={stat.href} key={stat.label}>
-              <Stat className="h-full">
+              <Stat className="h-full transition-shadow duration-200 hover:shadow-xl">
                 <StatLabel>{stat.label}</StatLabel>
                 <StatIndicator color={stat.color} variant="icon">
                   <stat.icon />

@@ -1,6 +1,7 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated"
+  provider        = "prisma-client"
+  output          = "../generated"
+  previewFeatures = ["partialIndexes"]
 }
 
 datasource db {
@@ -254,6 +255,7 @@ model Level {
   id             String         @id @default(cuid())
   organizationId String
   name           String
+  stage          LevelStage     @default(GENERAL)
   order          Int            @default(0)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
@@ -262,7 +264,7 @@ model Level {
   students       Student[]      @relation("StudentLevel")
   organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  @@unique([organizationId, name])
+  @@unique([organizationId, name], where: { archivedAt: null })
   @@index([organizationId, archivedAt])
 }
 
@@ -554,6 +556,14 @@ enum GuardianRelationship {
 enum SubjectStatus {
   ACTIVE
   ARCHIVED
+}
+
+enum LevelStage {
+  PRIMARY
+  LOWER_SECONDARY
+  UPPER_SECONDARY
+  PRE_UNIVERSITY
+  GENERAL
 }
 
 enum DayOfWeek {
