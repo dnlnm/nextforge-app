@@ -21,7 +21,9 @@ export type Student = {
   id: string;
   fullName: string;
   status: string;
-  academicLevel: string | null;
+  level: {
+    name: string;
+  } | null;
   class?: never;
   tutor?: never;
   guardians: Array<{
@@ -96,7 +98,7 @@ export const columns: DataTableColumnDef<Student>[] = [
         <DataTableColumnTitle />
       </DataTableColumnHeader>
     ),
-    cell: ({ row }) => row.original.academicLevel ?? "-",
+    cell: ({ row }) => row.original.level?.name ?? "-",
     meta: {
       label: "Level/Year",
     },

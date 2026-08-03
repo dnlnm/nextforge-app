@@ -80,10 +80,22 @@ export const createClass = async (formData: FormData) => {
   });
 
   const teacherId = getString(formData, "teacherId");
+  const levelId = getString(formData, "levelId");
   const teacher = teacherId
     ? await database.teacherProfile.findFirst({
         where: {
           id: teacherId,
+          organizationId: tenant.organizationId,
+          archivedAt: null,
+        },
+        select: { id: true },
+      })
+    : null;
+
+  const level = levelId
+    ? await database.level.findFirst({
+        where: {
+          id: levelId,
           organizationId: tenant.organizationId,
           archivedAt: null,
         },
@@ -97,6 +109,7 @@ export const createClass = async (formData: FormData) => {
       capacity: getInt(formData, "capacity"),
       dayOfWeek,
       endsAt,
+      levelId: level?.id,
       monthlyFeeSen: getMoneySen(formData, "monthlyFee") ?? 0,
       name,
       room: getString(formData, "room"),
@@ -188,6 +201,7 @@ export const updateClass = async (formData: FormData) => {
   }
 
   const teacherId = getString(formData, "teacherId");
+  const levelId = getString(formData, "levelId");
 
   await database.learningClass.updateMany({
     where: { id: classId, organizationId: tenant.organizationId },
@@ -195,6 +209,7 @@ export const updateClass = async (formData: FormData) => {
       capacity: getInt(formData, "capacity"),
       dayOfWeek,
       endsAt,
+      levelId: levelId === "none" ? null : levelId,
       monthlyFeeSen: getMoneySen(formData, "monthlyFee") ?? 0,
       name,
       room: getString(formData, "room"),

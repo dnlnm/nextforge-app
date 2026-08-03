@@ -35,7 +35,9 @@ type Student = {
   id: string;
   fullName: string;
   status: string;
-  academicLevel: string | null;
+  level: {
+    name: string;
+  } | null;
   enrolledAt: Date;
   guardians: Array<{
     guardian: {
@@ -65,6 +67,7 @@ type StudentsPageClientProps = {
   classOptions: FilterOption[];
   initialData: Student[];
   initialTotalCount: number;
+  levelOptions: FilterOption[];
   monthLabel: string;
   newStudentsThisMonth: number;
   outstandingSen: number;
@@ -97,6 +100,7 @@ export function StudentsPageClient({
   classOptions,
   initialData,
   initialTotalCount,
+  levelOptions,
   monthLabel,
   newStudentsThisMonth,
   outstandingSen,
@@ -192,6 +196,7 @@ export function StudentsPageClient({
           classOptions={classOptions}
           tutorOptions={tutorOptions}
           statusOptions={statusOptions}
+          levelOptions={levelOptions}
           onRowClick={(studentId) => setSelectedStudentId(studentId)}
         />
       </section>
@@ -249,7 +254,7 @@ export function StudentsPageClient({
                       formatDate(selectedStudent.enrolledAt),
                     ],
                     ["Gender", "-"],
-                    ["Level", selectedStudent.academicLevel ?? "-"],
+                    ["Level", selectedStudent.level?.name ?? "-"],
                     ["Phone", "-"],
                   ].map(([label, value]) => (
                     <div

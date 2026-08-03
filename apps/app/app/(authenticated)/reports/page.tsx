@@ -41,6 +41,7 @@ const ReportsPage = async () => {
         where: { organizationId: tenant.organizationId, status: "ACTIVE" },
         orderBy: { fullName: "asc" },
         take: 50,
+        include: { level: true },
       }),
       database.learningClass.findMany({
         where: { organizationId: tenant.organizationId, status: "ACTIVE" },
@@ -207,7 +208,7 @@ const ReportsPage = async () => {
                         {student.fullName}
                       </TableCell>
                       <TableCell>{student.schoolName ?? "-"}</TableCell>
-                      <TableCell>{student.academicLevel ?? "-"}</TableCell>
+                      <TableCell>{student.level?.name ?? "-"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

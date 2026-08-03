@@ -95,6 +95,7 @@ const ClassesPage = async () => {
       },
       subject: true,
       teacher: true,
+      level: true,
     },
   });
 
@@ -269,7 +270,7 @@ const ClassesPage = async () => {
                           </TableCell>
                           <TableCell>
                             <Badge variant="secondary">
-                              {item.subject.academicLevel ?? "General"}
+                              {item.level?.name ?? "General"}
                             </Badge>
                           </TableCell>
                           <TableCell>

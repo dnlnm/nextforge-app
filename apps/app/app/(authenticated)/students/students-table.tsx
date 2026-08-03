@@ -37,6 +37,7 @@ type StudentsTableProps = {
   classOptions: FilterOption[];
   tutorOptions: FilterOption[];
   statusOptions: FilterOption[];
+  levelOptions: FilterOption[];
   onRowClick?: (studentId: string) => void;
 };
 
@@ -46,6 +47,7 @@ export function StudentsTable({
   classOptions,
   tutorOptions,
   statusOptions,
+  levelOptions,
   onRowClick,
 }: StudentsTableProps) {
   const [data, setData] = useState(initialData);
@@ -190,6 +192,12 @@ export function StudentsTable({
                 accessorKey="status"
                 title="Status"
                 options={statusOptions}
+                multiple
+              />
+              <DataTableFacetedFilter
+                accessorKey="academicLevel"
+                title="Level"
+                options={levelOptions}
                 multiple
               />
               <DataTableFilterMenu />

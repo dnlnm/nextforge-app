@@ -1,5 +1,6 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { database } from "@repo/database";
+import { Button } from "@repo/design-system/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import Link from "next/link";
 import { Header } from "../components/header";
 import { SettingsForm } from "./settings-form";
 
@@ -48,6 +50,19 @@ const SettingsPage = async () => {
           </CardHeader>
           <CardContent>
             <SettingsForm organization={organization} />
+          </CardContent>
+        </Card>
+        <Card className="max-w-3xl">
+          <CardHeader>
+            <CardTitle>Academic levels</CardTitle>
+            <CardDescription>
+              Manage the class levels and student years used across your centre.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="secondary">
+              <Link href="/academic-levels">Manage academic levels</Link>
+            </Button>
           </CardContent>
         </Card>
       </main>

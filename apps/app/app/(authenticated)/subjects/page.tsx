@@ -10,23 +10,51 @@ import {
 } from "@repo/design-system/components/ui/card";
 import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@repo/design-system/components/ui/table";
 import { Textarea } from "@repo/design-system/components/ui/textarea";
 import { Header } from "../components/header";
-import { archiveSubject, createSubject } from "./actions";
+import { createSubject } from "./actions";
+import SubjectsList from "./subjects-list";
 
 const SubjectsPage = async () => {
   const tenant = await requireTenant();
-  const subjects = await database.subject.findMany({
+  const rawSubjects = await database.subject.findMany({
     where: { organizationId: tenant.organizationId, status: "ACTIVE" },
-    orderBy: [{ academicLevel: "asc" }, { name: "asc" }],
+    orderBy: [{ name: "asc" }],
+    include: {
+      classes: {
+        where: { archivedAt: null },
+        include: {
+          enrollments: {
+            where: { archivedAt: null, status: "ACTIVE" },
+            select: { studentId: true },
+          },
+          teacher: { select: { id: true } },
+        },
+      },
+    },
+  });
+
+  const subjects = rawSubjects.map((subject) => {
+    const students = new Set(
+      subject.classes.flatMap((cls) =>
+        cls.enrollments.map((enrollment) => enrollment.studentId)
+      )
+    );
+    const teachers = new Set(
+      subject.classes
+        .map((cls) => cls.teacher?.id)
+        .filter((id): id is string => Boolean(id))
+    );
+
+    return {
+      classes: subject.classes.length,
+      description: subject.description,
+      id: subject.id,
+      name: subject.name,
+      status: subject.status,
+      students: students.size,
+      teachers: teachers.size,
+    };
   });
 
   return (
@@ -52,14 +80,6 @@ const SubjectsPage = async () => {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="academicLevel">Academic level</Label>
-                <Input
-                  id="academicLevel"
-                  name="academicLevel"
-                  placeholder="Form 3"
-                />
-              </div>
-              <div className="grid gap-2">
                 <Label htmlFor="description">Description</Label>
                 <Textarea id="description" name="description" />
               </div>
@@ -67,47 +87,7 @@ const SubjectsPage = async () => {
             </form>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Subjects</CardTitle>
-            <CardDescription>{subjects.length} active subjects</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Level</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {subjects.map((subject) => (
-                  <TableRow key={subject.id}>
-                    <TableCell className="font-medium">
-                      {subject.name}
-                    </TableCell>
-                    <TableCell>{subject.academicLevel ?? "-"}</TableCell>
-                    <TableCell>{subject.description ?? "-"}</TableCell>
-                    <TableCell className="text-right">
-                      <form action={archiveSubject}>
-                        <input
-                          name="subjectId"
-                          type="hidden"
-                          value={subject.id}
-                        />
-                        <Button size="sm" type="submit" variant="outline">
-                          Archive
-                        </Button>
-                      </form>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+        <SubjectsList subjects={subjects} />
       </main>
     </>
   );

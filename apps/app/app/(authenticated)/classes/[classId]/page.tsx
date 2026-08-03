@@ -49,7 +49,7 @@ const formatMoney = (amountSen: number) => (amountSen / 100).toFixed(2);
 const ClassPage = async ({ params }: ClassPageProperties) => {
   const tenant = await requireTenantRole(["ADMIN"]);
   const { classId } = await params;
-  const [learningClass, subjects, teachers] = await Promise.all([
+  const [learningClass, subjects, teachers, levels] = await Promise.all([
     database.learningClass.findFirst({
       where: { id: classId, organizationId: tenant.organizationId },
       include: {
@@ -62,11 +62,15 @@ const ClassPage = async ({ params }: ClassPageProperties) => {
     }),
     database.subject.findMany({
       where: { organizationId: tenant.organizationId, status: "ACTIVE" },
-      orderBy: [{ academicLevel: "asc" }, { name: "asc" }],
+      orderBy: [{ name: "asc" }],
     }),
     database.teacherProfile.findMany({
       where: { organizationId: tenant.organizationId, archivedAt: null },
       orderBy: { fullName: "asc" },
+    }),
+    database.level.findMany({
+      where: { organizationId: tenant.organizationId, archivedAt: null },
+      orderBy: { order: "asc" },
     }),
   ]);
 
@@ -110,9 +114,26 @@ const ClassPage = async ({ params }: ClassPageProperties) => {
                   <SelectContent>
                     {subjects.map((subject) => (
                       <SelectItem key={subject.id} value={subject.id}>
-                        {subject.academicLevel
-                          ? `${subject.academicLevel} ${subject.name}`
-                          : subject.name}
+                        {subject.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="levelId">Level</Label>
+                <Select
+                  defaultValue={learningClass.levelId ?? "none"}
+                  name="levelId"
+                >
+                  <SelectTrigger id="levelId">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No level</SelectItem>
+                    {levels.map((level) => (
+                      <SelectItem key={level.id} value={level.id}>
+                        {level.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

@@ -19,6 +19,7 @@ const exportStudents = async (organizationId: string) => {
         include: { guardian: true },
         take: 1,
       },
+      level: true,
     },
   });
 
@@ -40,7 +41,7 @@ const exportStudents = async (organizationId: string) => {
         student.fullName,
         student.preferredName,
         student.schoolName,
-        student.academicLevel,
+        student.level?.name ?? "",
         student.status,
         guardian?.fullName,
         guardian?.phone,

@@ -3,6 +3,7 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { database } from "@repo/database";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);
@@ -21,13 +22,34 @@ export const createSubject = async (formData: FormData) => {
   await database.subject.create({
     data: {
       organizationId: tenant.organizationId,
-      academicLevel: getString(formData, "academicLevel"),
       description: getString(formData, "description"),
       name,
     },
   });
 
   revalidatePath("/subjects");
+};
+
+export const updateSubject = async (formData: FormData) => {
+  const tenant = await requireTenantRole(["ADMIN"]);
+  const subjectId = getString(formData, "subjectId");
+  const name = getString(formData, "name");
+
+  if (!(subjectId && name)) {
+    throw new Error("Subject is required.");
+  }
+
+  await database.subject.updateMany({
+    where: { id: subjectId, organizationId: tenant.organizationId },
+    data: {
+      description: getString(formData, "description"),
+      name,
+    },
+  });
+
+  revalidatePath("/subjects");
+  revalidatePath("/subjects/[subjectId]", "page");
+  redirect(`/subjects/${subjectId}`);
 };
 
 export const archiveSubject = async (formData: FormData) => {
@@ -44,4 +66,6 @@ export const archiveSubject = async (formData: FormData) => {
   });
 
   revalidatePath("/subjects");
+  revalidatePath("/subjects/[subjectId]", "page");
+  redirect("/subjects");
 };

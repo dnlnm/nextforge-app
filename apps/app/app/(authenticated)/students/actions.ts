@@ -21,6 +21,29 @@ const relationships = new Set<GuardianRelationship>([
 
 const csvLineRegex = /\r?\n/;
 
+const resolveLevel = async (levelId: string | undefined) => {
+  const tenant = await requireTenant();
+
+  if (!levelId) {
+    return undefined;
+  }
+
+  if (levelId === "none") {
+    return null;
+  }
+
+  const level = await database.level.findFirst({
+    where: {
+      id: levelId,
+      organizationId: tenant.organizationId,
+      archivedAt: null,
+    },
+    select: { id: true },
+  });
+
+  return level?.id ?? null;
+};
+
 export const createStudent = async (formData: FormData) => {
   const tenant = await requireTenantRole(["ADMIN"]);
   const fullName = getString(formData, "fullName");
@@ -39,13 +62,14 @@ export const createStudent = async (formData: FormData) => {
   const relationship = getString(formData, "relationship") as
     | GuardianRelationship
     | undefined;
+  const levelId = await resolveLevel(getString(formData, "levelId"));
 
   await database.$transaction(async (tx) => {
     const student = await tx.student.create({
       data: {
         organizationId: tenant.organizationId,
-        academicLevel: getString(formData, "academicLevel"),
         fullName,
+        levelId,
         preferredName: getString(formData, "preferredName"),
         schoolName: getString(formData, "schoolName"),
       },
@@ -115,12 +139,14 @@ export const updateStudent = async (formData: FormData) => {
     throw new Error("Student and guardian details are required.");
   }
 
+  const levelId = await resolveLevel(getString(formData, "levelId"));
+
   await database.$transaction(async (tx) => {
     await tx.student.updateMany({
       where: { id: studentId, organizationId: tenant.organizationId },
       data: {
-        academicLevel: getString(formData, "academicLevel"),
         fullName,
+        levelId,
         preferredName: getString(formData, "preferredName"),
         schoolName: getString(formData, "schoolName"),
       },
@@ -203,6 +229,12 @@ export const importStudents = async (formData: FormData) => {
     userId: tenant.authUserId,
   });
 
+  const levels = await database.level.findMany({
+    where: { organizationId: tenant.organizationId, archivedAt: null },
+    select: { id: true, name: true },
+  });
+  const levelByName = new Map(levels.map((level) => [level.name, level.id]));
+
   await database.$transaction(async (tx) => {
     for (const row of importableRows) {
       const fullName = row.fullname;
@@ -211,8 +243,8 @@ export const importStudents = async (formData: FormData) => {
       const student = await tx.student.create({
         data: {
           organizationId: tenant.organizationId,
-          academicLevel: row.academiclevel,
           fullName,
+          levelId: levelByName.get(row.academiclevel),
           preferredName: row.preferredname,
           schoolName: row.schoolname,
         },
@@ -310,7 +342,11 @@ export async function getStudentsForTable(params: StudentsQueryParams) {
         }
         case "academicLevel": {
           const values = Array.isArray(filter.value) ? filter.value : [filter.value];
-          where.academicLevel = { in: values as string[] };
+          if (values.length > 0) {
+            where.level = {
+              name: { in: values as string[] },
+            };
+          }
           break;
         }
       }
@@ -329,7 +365,9 @@ export async function getStudentsForTable(params: StudentsQueryParams) {
           orderBy.push({ status: sort.desc ? "desc" : "asc" });
           break;
         case "academicLevel":
-          orderBy.push({ academicLevel: sort.desc ? "desc" : "asc" });
+          orderBy.push({
+            level: { name: sort.desc ? "desc" : "asc" },
+          });
           break;
       }
     }
@@ -347,6 +385,7 @@ export async function getStudentsForTable(params: StudentsQueryParams) {
       take: params.pageSize,
       include: {
         branch: true,
+        level: true,
         enrollments: {
           where: { status: "ACTIVE", archivedAt: null },
           include: {
@@ -378,7 +417,7 @@ export async function getStudentsForTable(params: StudentsQueryParams) {
 export async function getStudentFilterOptions() {
   const tenant = await requireTenant();
 
-  const [classes, teachers] = await Promise.all([
+  const [classes, teachers, levels] = await Promise.all([
     database.learningClass.findMany({
       where: { organizationId: tenant.organizationId, archivedAt: null },
       select: { id: true, name: true },
@@ -389,10 +428,16 @@ export async function getStudentFilterOptions() {
       select: { id: true, fullName: true },
       orderBy: { fullName: "asc" },
     }),
+    database.level.findMany({
+      where: { organizationId: tenant.organizationId, archivedAt: null },
+      select: { id: true, name: true, order: true },
+      orderBy: { order: "asc" },
+    }),
   ]);
 
   return {
     classes: classes.map((c) => ({ label: c.name, value: c.id })),
+    levels: levels.map((l) => ({ label: l.name, value: l.name })),
     tutors: teachers.map((t) => ({ label: t.fullName, value: t.id })),
     statuses: [
       { label: "Active", value: "ACTIVE" },

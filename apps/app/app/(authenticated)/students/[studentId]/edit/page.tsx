@@ -9,6 +9,13 @@ import {
 } from "@repo/design-system/components/ui/card";
 import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@repo/design-system/components/ui/select";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Header } from "../../../components/header";
@@ -21,16 +28,24 @@ interface StudentEditPageProperties {
 const StudentEditPage = async ({ params }: StudentEditPageProperties) => {
   const tenant = await requireTenantRole(["ADMIN"]);
   const { studentId } = await params;
-  const student = await database.student.findFirst({
-    where: { id: studentId, organizationId: tenant.organizationId },
-    include: {
-      guardians: {
-        where: { isPrimary: true },
-        include: { guardian: true },
-        take: 1,
+  const [student, levels] = await Promise.all([
+    database.student.findFirst({
+      where: { id: studentId, organizationId: tenant.organizationId },
+      include: {
+        guardians: {
+          where: { isPrimary: true },
+          include: { guardian: true },
+          take: 1,
+        },
+        level: true,
       },
-    },
-  });
+    }),
+    database.level.findMany({
+      where: { organizationId: tenant.organizationId, archivedAt: null },
+      orderBy: { order: "asc" },
+      select: { id: true, name: true },
+    }),
+  ]);
 
   if (!student) {
     notFound();
@@ -81,12 +96,23 @@ const StudentEditPage = async ({ params }: StudentEditPageProperties) => {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="academicLevel">Academic level</Label>
-                  <Input
-                    defaultValue={student.academicLevel ?? ""}
-                    id="academicLevel"
-                    name="academicLevel"
-                  />
+                  <Label htmlFor="levelId">Academic level</Label>
+                  <Select
+                    defaultValue={student.levelId ?? "none"}
+                    name="levelId"
+                  >
+                    <SelectTrigger id="levelId">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No level</SelectItem>
+                      {levels.map((level) => (
+                        <SelectItem key={level.id} value={level.id}>
+                          {level.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div className="border-t pt-4">

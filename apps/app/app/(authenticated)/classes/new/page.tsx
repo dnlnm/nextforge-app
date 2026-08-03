@@ -6,13 +6,12 @@ import { CreateClassForm } from "./create-class-form";
 const CreateClassPage = async () => {
   const tenant = await requireTenantRole(["ADMIN"]);
 
-  const [subjects, teachers] = await Promise.all([
+  const [subjects, teachers, levels] = await Promise.all([
     database.subject.findMany({
       where: { organizationId: tenant.organizationId, status: "ACTIVE" },
-      orderBy: [{ academicLevel: "asc" }, { name: "asc" }],
+      orderBy: [{ name: "asc" }],
       select: {
         id: true,
-        academicLevel: true,
         name: true,
       },
     }),
@@ -22,6 +21,14 @@ const CreateClassPage = async () => {
       select: {
         id: true,
         fullName: true,
+      },
+    }),
+    database.level.findMany({
+      where: { organizationId: tenant.organizationId, archivedAt: null },
+      orderBy: { order: "asc" },
+      select: {
+        id: true,
+        name: true,
       },
     }),
   ]);
@@ -43,7 +50,11 @@ const CreateClassPage = async () => {
             </p>
           </div>
         </div>
-        <CreateClassForm subjects={subjects} teachers={teachers} />
+        <CreateClassForm
+          levels={levels}
+          subjects={subjects}
+          teachers={teachers}
+        />
       </main>
     </>
   );

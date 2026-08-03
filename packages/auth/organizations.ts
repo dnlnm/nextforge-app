@@ -61,6 +61,17 @@ export const createOrganization = async (name: string, imageUrl?: string) => {
     throw new Error("You must be signed in to create an organization");
   }
 
+  const defaultLevels = [
+    "General",
+    "Year 1",
+    "Year 2",
+    "Form 1",
+    "Form 2",
+    "Form 3",
+    "Form 4",
+    "Form 5",
+  ];
+
   const organization = await database.organization.create({
     data: {
       name,
@@ -68,6 +79,12 @@ export const createOrganization = async (name: string, imageUrl?: string) => {
       createdByUserId: user.id,
       settings: { create: {} },
       branch: { create: { name: "Main Branch", isDefault: true } },
+      levels: {
+        create: defaultLevels.map((levelName, index) => ({
+          name: levelName,
+          order: index,
+        })),
+      },
       memberships: {
         create: { userId: user.id, role: "OWNER", status: "ACTIVE" },
       },

@@ -26,6 +26,7 @@ const StudentsPage = async () => {
           include: { guardian: true },
           take: 1,
         },
+        level: true,
       },
     }),
     getStudentsForTable({
@@ -93,6 +94,7 @@ const StudentsPage = async () => {
           classOptions={filterOptions.classes}
           initialData={initialTableData.data}
           initialTotalCount={initialTableData.totalCount}
+          levelOptions={filterOptions.levels}
           monthLabel={today.toLocaleString("en-MY", { month: "short" })}
           newStudentsThisMonth={newStudentsThisMonth.length}
           outstandingSen={totalOutstandingSen}

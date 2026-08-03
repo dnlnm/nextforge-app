@@ -77,6 +77,7 @@ const getStudentData = async (studentId: string, organizationId: string) => {
       where: { id: studentId, organizationId },
       include: {
         branch: true,
+        level: true,
         guardians: {
           include: { guardian: true },
           orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }],
@@ -150,7 +151,7 @@ const StudentHeader = ({
             <span>•</span>
             <span>{student.branch?.name ?? "No branch assigned"}</span>
             <span>•</span>
-            <span>{student.academicLevel ?? "No academic level"}</span>
+            <span>{student.level?.name ?? "No academic level"}</span>
           </div>
           <div className="mt-3 flex flex-wrap gap-2 text-sm">
             <Badge variant="secondary">
@@ -251,7 +252,7 @@ const StudentOverviewTab = ({ student }: { readonly student: StudentData }) => (
         ["Full name", student.fullName],
         ["Preferred name", student.preferredName ?? "-"],
         ["School", student.schoolName ?? "-"],
-        ["Academic level", student.academicLevel ?? "-"],
+        ["Academic level", student.level?.name ?? "-"],
         ["Branch", student.branch?.name ?? "-"],
         ["Enrolled", formatDate(student.enrolledAt)],
       ].map(([label, value]) => (
@@ -587,7 +588,7 @@ const StudentSidebar = ({
           </div>
           <div className="flex items-center gap-2">
             <BookOpenIcon className="size-4 text-muted-foreground" />
-            <span>{student.academicLevel ?? "No academic level"}</span>
+            <span>{student.level?.name ?? "No academic level"}</span>
           </div>
           <div className="flex items-center gap-2">
             <CalendarDaysIcon className="size-4 text-muted-foreground" />

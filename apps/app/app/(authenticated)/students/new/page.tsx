@@ -1,3 +1,5 @@
+import { requireTenant } from "@repo/auth/authorization";
+import { database } from "@repo/database";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
   Card,
@@ -29,23 +31,31 @@ import { createStudent } from "../actions";
 
 const Required = () => <span className="text-destructive">*</span>;
 
-const AddStudentPage = () => (
-  <>
-    <Header
-      page="Add Student"
-      pages={["TLAS.MY", { href: "/students", label: "Students" }]}
-    />
-    <main className="grid gap-5 p-4 pt-4">
-      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-        <div>
-          <h1 className="font-semibold text-2xl tracking-tight">Add Student</h1>
-          <p className="text-muted-foreground text-sm">
-            Capture student and guardian details in one place.
-          </p>
-        </div>
-      </div>
+const AddStudentPage = async () => {
+  const tenant = await requireTenant();
+  const levels = await database.level.findMany({
+    where: { organizationId: tenant.organizationId, archivedAt: null },
+    orderBy: { order: "asc" },
+    select: { id: true, name: true },
+  });
 
-      <form
+  return (
+    <>
+      <Header
+        page="Add Student"
+        pages={["TLAS.MY", { href: "/students", label: "Students" }]}
+      />
+      <main className="grid gap-5 p-4 pt-4">
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+          <div>
+            <h1 className="font-semibold text-2xl tracking-tight">Add Student</h1>
+            <p className="text-muted-foreground text-sm">
+              Capture student and guardian details in one place.
+            </p>
+          </div>
+        </div>
+
+        <form
         action={createStudent}
         className="grid items-start gap-5 xl:grid-cols-[1fr_300px] 2xl:grid-cols-[1fr_360px]"
       >
@@ -180,21 +190,21 @@ const AddStudentPage = () => (
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="academicLevel">
+                  <Label htmlFor="levelId">
                     Current Grade / Form <Required />
                   </Label>
-                  <Select name="academicLevel">
-                    <SelectTrigger id="academicLevel">
+                  <Select name="levelId">
+                    <SelectTrigger id="levelId">
                       <SelectValue placeholder="Select current grade or form" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Year 1">Year 1</SelectItem>
-                      <SelectItem value="Year 2">Year 2</SelectItem>
-                      <SelectItem value="Form 1">Form 1</SelectItem>
-                      <SelectItem value="Form 2">Form 2</SelectItem>
-                      <SelectItem value="Form 3">Form 3</SelectItem>
-                      <SelectItem value="Form 4">Form 4</SelectItem>
-                      <SelectItem value="Form 5">Form 5</SelectItem>
+                      {levels
+                        .filter((level) => level.name !== "General")
+                        .map((level) => (
+                          <SelectItem key={level.id} value={level.id}>
+                            {level.name}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -321,9 +331,10 @@ const AddStudentPage = () => (
             </Button>
           </div>
         </aside>
-      </form>
+        </form>
     </main>
-  </>
-);
+    </>
+  );
+};
 
 export default AddStudentPage;

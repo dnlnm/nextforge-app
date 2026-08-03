@@ -31,8 +31,11 @@ import { useMemo, useState } from "react";
 import { createClass } from "../actions";
 
 interface CreateClassFormProps {
+  readonly levels: Array<{
+    readonly id: string;
+    readonly name: string;
+  }>;
   readonly subjects: Array<{
-    readonly academicLevel: string | null;
     readonly id: string;
     readonly name: string;
   }>;
@@ -72,9 +75,14 @@ const formatClassCode = (name: string) => {
 
 const defaultSelectedDays = ["TUESDAY", "THURSDAY"];
 
-export const CreateClassForm = ({ subjects, teachers }: CreateClassFormProps) => {
+export const CreateClassForm = ({
+  levels,
+  subjects,
+  teachers,
+}: CreateClassFormProps) => {
   const [name, setName] = useState("SPM Physics (2025)");
   const [subjectId, setSubjectId] = useState(subjects.at(0)?.id ?? "");
+  const [levelId, setLevelId] = useState(levels.at(0)?.id ?? "");
   const [teacherId, setTeacherId] = useState(teachers.at(0)?.id ?? "");
   const [academicYear, setAcademicYear] = useState("2025");
   const [medium, setMedium] = useState("Bahasa Malaysia");
@@ -84,7 +92,8 @@ export const CreateClassForm = ({ subjects, teachers }: CreateClassFormProps) =>
   const [minimumStudents, setMinimumStudents] = useState("5");
   const [description, setDescription] = useState("");
   const [remarks, setRemarks] = useState("");
-  const [selectedDays, setSelectedDays] = useState<string[]>(defaultSelectedDays);
+  const [selectedDays, setSelectedDays] =
+    useState<string[]>(defaultSelectedDays);
   const [startTime, setStartTime] = useState("07:30 PM");
   const [endTime, setEndTime] = useState("09:30 PM");
   const [startDate, setStartDate] = useState("22/05/2025");
@@ -92,14 +101,16 @@ export const CreateClassForm = ({ subjects, teachers }: CreateClassFormProps) =>
 
   const selectedSubject = subjects.find((subject) => subject.id === subjectId);
   const selectedTeacher = teachers.find((teacher) => teacher.id === teacherId);
+  const selectedLevel = levels.find((level) => level.id === levelId);
 
-  const selectedLevel = selectedSubject?.academicLevel ?? "Select level";
   const selectedTags = useMemo(
-    () => [selectedSubject?.academicLevel, selectedSubject?.name].filter(Boolean) as string[],
-    [selectedSubject]
+    () => [selectedLevel?.name, selectedSubject?.name].filter(Boolean) as string[],
+    [selectedLevel, selectedSubject]
   );
   const scheduleSummary = [
-    selectedDays.map((day) => dayOptions.find(([value]) => value === day)?.[1] ?? day).join(", ") || "Select days",
+    selectedDays
+      .map((day) => dayOptions.find(([value]) => value === day)?.[1] ?? day)
+      .join(", ") || "Select days",
     `${startTime} - ${endTime}`,
     room || "Select classroom",
   ];
@@ -114,7 +125,9 @@ export const CreateClassForm = ({ subjects, teachers }: CreateClassFormProps) =>
               <BookOpenIcon className="size-5" />
               Class Information
             </CardTitle>
-            <CardDescription>Create the core class details first.</CardDescription>
+            <CardDescription>
+              Create the core class details first.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form action={createClass} className="grid gap-4">
@@ -122,6 +135,7 @@ export const CreateClassForm = ({ subjects, teachers }: CreateClassFormProps) =>
               <input name="endsAt" type="hidden" value={endTime} />
               <input name="startsAt" type="hidden" value={startTime} />
               <input name="teacherId" type="hidden" value={teacherId} />
+              <input name="levelId" type="hidden" value={levelId} />
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="grid gap-2 md:col-span-1">
                   <Label htmlFor="name">Class Name *</Label>
@@ -145,9 +159,7 @@ export const CreateClassForm = ({ subjects, teachers }: CreateClassFormProps) =>
                     <SelectContent>
                       {subjects.map((subject) => (
                         <SelectItem key={subject.id} value={subject.id}>
-                          {subject.academicLevel
-                            ? `${subject.academicLevel} ${subject.name}`
-                            : subject.name}
+                          {subject.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -155,12 +167,18 @@ export const CreateClassForm = ({ subjects, teachers }: CreateClassFormProps) =>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="level">Level *</Label>
-                  <Input
-                    id="level"
-                    placeholder="Select level"
-                    readOnly
-                    value={selectedLevel}
-                  />
+                  <Select onValueChange={setLevelId} value={levelId}>
+                    <SelectTrigger id="level">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {levels.map((level) => (
+                        <SelectItem key={level.id} value={level.id}>
+                          {level.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -210,9 +228,9 @@ export const CreateClassForm = ({ subjects, teachers }: CreateClassFormProps) =>
                 <Label htmlFor="description">Description (optional)</Label>
                 <Textarea
                   id="description"
+                  onChange={(event) => setDescription(event.target.value)}
                   placeholder="Enter class description, focus areas, or notes..."
                   value={description}
-                  onChange={(event) => setDescription(event.target.value)}
                 />
               </div>
 
@@ -229,7 +247,6 @@ export const CreateClassForm = ({ subjects, teachers }: CreateClassFormProps) =>
                             aria-pressed={checked}
                             className="flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm transition hover:bg-muted/50"
                             key={value}
-                            type="button"
                             onClick={() => {
                               setSelectedDays((current) =>
                                 checked
@@ -237,6 +254,7 @@ export const CreateClassForm = ({ subjects, teachers }: CreateClassFormProps) =>
                                   : [...new Set([...current, value])]
                               );
                             }}
+                            type="button"
                           >
                             <Checkbox
                               checked={checked}
@@ -286,8 +304,8 @@ export const CreateClassForm = ({ subjects, teachers }: CreateClassFormProps) =>
                   <Label htmlFor="endDate">End Date (optional)</Label>
                   <Input
                     id="endDate"
-                    placeholder="Select end date"
                     onChange={(event) => setEndDate(event.target.value)}
+                    placeholder="Select end date"
                     value={endDate}
                   />
                 </div>
@@ -298,16 +316,13 @@ export const CreateClassForm = ({ subjects, teachers }: CreateClassFormProps) =>
                       <SelectValue placeholder="Select classroom" />
                     </SelectTrigger>
                     <SelectContent>
-                      {[
-                        "Room 2A",
-                        "Room 2B",
-                        "Room 3A",
-                        "Online",
-                      ].map((option) => (
-                        <SelectItem key={option} value={option}>
-                          {option}
-                        </SelectItem>
-                      ))}
+                      {["Room 2A", "Room 2B", "Room 3A", "Online"].map(
+                        (option) => (
+                          <SelectItem key={option} value={option}>
+                            {option}
+                          </SelectItem>
+                        )
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -334,12 +349,16 @@ export const CreateClassForm = ({ subjects, teachers }: CreateClassFormProps) =>
                       />
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="minimumStudents">Minimum Students (optional)</Label>
+                      <Label htmlFor="minimumStudents">
+                        Minimum Students (optional)
+                      </Label>
                       <Input
                         id="minimumStudents"
                         min="1"
+                        onChange={(event) =>
+                          setMinimumStudents(event.target.value)
+                        }
                         type="number"
-                        onChange={(event) => setMinimumStudents(event.target.value)}
                         value={minimumStudents}
                       />
                     </div>
@@ -347,9 +366,9 @@ export const CreateClassForm = ({ subjects, teachers }: CreateClassFormProps) =>
                       <Label htmlFor="monthlyFee">Class Fee (RM)</Label>
                       <Input
                         id="monthlyFee"
-                        placeholder="e.g. 200.00"
                         name="monthlyFee"
                         onChange={(event) => setMonthlyFee(event.target.value)}
+                        placeholder="e.g. 200.00"
                         value={monthlyFee}
                       />
                     </div>
@@ -358,8 +377,8 @@ export const CreateClassForm = ({ subjects, teachers }: CreateClassFormProps) =>
                     <Label htmlFor="remarks">Remarks (optional)</Label>
                     <Textarea
                       id="remarks"
-                      placeholder="Any additional notes for this class..."
                       onChange={(event) => setRemarks(event.target.value)}
+                      placeholder="Any additional notes for this class..."
                       value={remarks}
                     />
                   </div>

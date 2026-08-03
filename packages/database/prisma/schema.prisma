@@ -55,6 +55,7 @@ model Organization {
   payments          Payment[]
   students          Student[]
   subjects          Subject[]
+  levels            Level[]
   TeacherInvitation TeacherInvitation[]
   teachers          TeacherProfile[]
 
@@ -151,7 +152,6 @@ model Student {
   fullName          String
   preferredName     String?
   schoolName        String?
-  academicLevel     String?
   enrolledAt        DateTime           @default(now())
   status            StudentStatus      @default(ACTIVE)
   notes             String?
@@ -165,6 +165,8 @@ model Student {
   branch            Branch?            @relation(fields: [branchId], references: [id])
   organization      Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   guardians         StudentGuardian[]
+  level             Level?             @relation("StudentLevel", fields: [levelId], references: [id])
+  levelId           String?
 
   @@index([organizationId, status])
   @@index([organizationId, fullName])
@@ -236,7 +238,6 @@ model Subject {
   id             String          @id @default(cuid())
   organizationId String
   name           String
-  academicLevel  String?
   description    String?
   status         SubjectStatus   @default(ACTIVE)
   createdAt      DateTime        @default(now())
@@ -245,8 +246,24 @@ model Subject {
   classes        LearningClass[]
   organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  @@unique([organizationId, name, academicLevel])
+  @@unique([organizationId, name])
   @@index([organizationId, status])
+}
+
+model Level {
+  id             String         @id @default(cuid())
+  organizationId String
+  name           String
+  order          Int            @default(0)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  archivedAt     DateTime?
+  classes        LearningClass[] @relation("ClassLevel")
+  students       Student[]      @relation("StudentLevel")
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, name])
+  @@index([organizationId, archivedAt])
 }
 
 model LearningClass {
@@ -273,6 +290,8 @@ model LearningClass {
   organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   subject        Subject           @relation(fields: [subjectId], references: [id])
   teacher        TeacherProfile?   @relation(fields: [teacherId], references: [id])
+  level          Level?            @relation("ClassLevel", fields: [levelId], references: [id])
+  levelId        String?
 
   @@unique([organizationId, name])
   @@index([organizationId, status])
