@@ -1,5 +1,6 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { database } from "@repo/database";
+import { getAcademicYearOptions } from "@/lib/codes";
 import { Header } from "../../components/header";
 import { CreateClassForm } from "./create-class-form";
 
@@ -11,6 +12,7 @@ const CreateClassPage = async () => {
       where: { organizationId: tenant.organizationId, status: "ACTIVE" },
       orderBy: [{ name: "asc" }],
       select: {
+        code: true,
         id: true,
         name: true,
       },
@@ -27,6 +29,7 @@ const CreateClassPage = async () => {
       where: { organizationId: tenant.organizationId, archivedAt: null },
       orderBy: { order: "asc" },
       select: {
+        code: true,
         id: true,
         name: true,
       },
@@ -51,6 +54,7 @@ const CreateClassPage = async () => {
           </div>
         </div>
         <CreateClassForm
+          academicYearOptions={getAcademicYearOptions()}
           levels={levels}
           subjects={subjects}
           teachers={teachers}

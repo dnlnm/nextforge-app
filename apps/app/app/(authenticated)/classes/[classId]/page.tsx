@@ -1,5 +1,6 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { database } from "@repo/database";
+import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
   Card,
@@ -82,6 +83,10 @@ const ClassPage = async ({ params }: ClassPageProperties) => {
     <>
       <Header page={learningClass.name} pages={["Classes"]} />
       <main className="grid gap-4 p-4 pt-0 xl:grid-cols-[420px_1fr]">
+        <div className="flex flex-wrap items-center gap-2 xl:col-span-full">
+          <Badge variant="outline">{learningClass.code}</Badge>
+          <Badge variant="secondary">{learningClass.academicYear}</Badge>
+        </div>
         <Card>
           <CardHeader>
             <CardTitle>Edit class</CardTitle>
@@ -100,6 +105,28 @@ const ClassPage = async ({ params }: ClassPageProperties) => {
                   name="name"
                   required
                 />
+              </div>
+              <div className="grid gap-2 md:grid-cols-2">
+                <div className="grid gap-2">
+                  <Label htmlFor="code">Class code</Label>
+                  <Input
+                    defaultValue={learningClass.code}
+                    id="code"
+                    name="code"
+                    required
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="academicYear">Academic year</Label>
+                  <Input
+                    defaultValue={learningClass.academicYear}
+                    id="academicYear"
+                    min="2000"
+                    name="academicYear"
+                    required
+                    type="number"
+                  />
+                </div>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="subjectId">Subject</Label>

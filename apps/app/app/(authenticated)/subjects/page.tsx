@@ -49,6 +49,7 @@ const SubjectsPage = async () => {
 
     return {
       classes: subject.classes.length,
+      code: subject.code,
       description: subject.description,
       id: subject.id,
       name: subject.name,
@@ -95,6 +96,19 @@ const SubjectsPage = async () => {
                     placeholder="Mathematics"
                     required
                   />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="code">Code</Label>
+                  <Input
+                    id="code"
+                    maxLength={4}
+                    name="code"
+                    placeholder="MATH"
+                    required
+                  />
+                  <p className="text-muted-foreground text-xs">
+                    Max 4 alphanumeric characters. Used to build class codes.
+                  </p>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="description">Description</Label>

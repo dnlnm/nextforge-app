@@ -54,7 +54,6 @@ const dayLabel: Record<string, string> = {
 };
 
 const whitespaceRegex = /\s+/;
-const nonAlphanumericRegex = /[^a-zA-Z0-9]/g;
 
 const formatTime = (time: string) => {
   const [hour = "0", minute = "0"] = time.split(":");
@@ -65,19 +64,6 @@ const formatTime = (time: string) => {
     hour: "numeric",
     minute: "2-digit",
   }).format(date);
-};
-
-const classCode = (name: string, index: number) => {
-  const prefix = name
-    .split(whitespaceRegex)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.replace(nonAlphanumericRegex, "").slice(0, 4))
-    .filter(Boolean)
-    .join("-")
-    .toUpperCase();
-
-  return `${prefix || "CLS"}-${String(index + 1).padStart(2, "0")}`;
 };
 
 const teacherInitials = (name?: string | null) =>
@@ -263,7 +249,7 @@ const ClassesPage = async () => {
                                 {item.name}
                               </Link>
                               <span className="text-muted-foreground text-xs">
-                                {classCode(item.name, index)}
+                                {item.code}
                               </span>
                             </div>
                           </TableCell>

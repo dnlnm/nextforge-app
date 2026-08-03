@@ -37,7 +37,7 @@ export const AddLevelDialog = () => {
   const [stage, setStage] = useState("PRIMARY");
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog onOpenChange={setOpen} open={open}>
       <DialogTrigger asChild>
         <Button className="flex-1 md:flex-none">
           <PlusIcon className="size-4" />
@@ -85,6 +85,19 @@ export const AddLevelDialog = () => {
               required
               value={name}
             />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="code">Code</Label>
+            <Input
+              id="code"
+              maxLength={4}
+              name="code"
+              placeholder="e.g. Y3"
+              required
+            />
+            <p className="text-muted-foreground text-xs">
+              Max 4 alphanumeric characters. Used to build class codes.
+            </p>
           </div>
           <DialogFooter>
             <Button type="submit">

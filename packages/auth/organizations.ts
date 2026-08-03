@@ -62,23 +62,24 @@ export const createOrganization = async (name: string, imageUrl?: string) => {
   }
 
   const defaultLevels: Array<{
+    code: string;
     name: string;
     order: number;
     stage: import("@repo/database").LevelStage;
   }> = [
-    { name: "Year 1", order: 0, stage: "PRIMARY" },
-    { name: "Year 2", order: 1, stage: "PRIMARY" },
-    { name: "Year 3", order: 2, stage: "PRIMARY" },
-    { name: "Year 4", order: 3, stage: "PRIMARY" },
-    { name: "Year 5", order: 4, stage: "PRIMARY" },
-    { name: "Year 6", order: 5, stage: "PRIMARY" },
-    { name: "Form 1", order: 6, stage: "LOWER_SECONDARY" },
-    { name: "Form 2", order: 7, stage: "LOWER_SECONDARY" },
-    { name: "Form 3", order: 8, stage: "LOWER_SECONDARY" },
-    { name: "Form 4", order: 9, stage: "UPPER_SECONDARY" },
-    { name: "Form 5", order: 10, stage: "UPPER_SECONDARY" },
-    { name: "Form 6", order: 11, stage: "PRE_UNIVERSITY" },
-    { name: "General", order: 12, stage: "GENERAL" },
+    { code: "Y1", name: "Year 1", order: 0, stage: "PRIMARY" },
+    { code: "Y2", name: "Year 2", order: 1, stage: "PRIMARY" },
+    { code: "Y3", name: "Year 3", order: 2, stage: "PRIMARY" },
+    { code: "Y4", name: "Year 4", order: 3, stage: "PRIMARY" },
+    { code: "Y5", name: "Year 5", order: 4, stage: "PRIMARY" },
+    { code: "Y6", name: "Year 6", order: 5, stage: "PRIMARY" },
+    { code: "F1", name: "Form 1", order: 6, stage: "LOWER_SECONDARY" },
+    { code: "F2", name: "Form 2", order: 7, stage: "LOWER_SECONDARY" },
+    { code: "F3", name: "Form 3", order: 8, stage: "LOWER_SECONDARY" },
+    { code: "F4", name: "Form 4", order: 9, stage: "UPPER_SECONDARY" },
+    { code: "F5", name: "Form 5", order: 10, stage: "UPPER_SECONDARY" },
+    { code: "F6", name: "Form 6", order: 11, stage: "PRE_UNIVERSITY" },
+    { code: "GEN", name: "General", order: 12, stage: "GENERAL" },
   ];
 
   const organization = await database.organization.create({
@@ -89,7 +90,8 @@ export const createOrganization = async (name: string, imageUrl?: string) => {
       settings: { create: {} },
       branch: { create: { name: "Main Branch", isDefault: true } },
       levels: {
-        create: defaultLevels.map(({ name, order, stage }) => ({
+        create: defaultLevels.map(({ code, name, order, stage }) => ({
+          code,
           name,
           order,
           stage,

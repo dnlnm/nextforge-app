@@ -51,6 +51,19 @@ const SubjectEditPage = async ({ params }: SubjectEditPageProperties) => {
                 />
               </div>
               <div className="grid gap-2">
+                <Label htmlFor="code">Code</Label>
+                <Input
+                  defaultValue={subject.code}
+                  id="code"
+                  maxLength={4}
+                  name="code"
+                  required
+                />
+                <p className="text-muted-foreground text-xs">
+                  Max 4 alphanumeric characters. Used to build class codes.
+                </p>
+              </div>
+              <div className="grid gap-2">
                 <Label htmlFor="description">Description</Label>
                 <Textarea
                   defaultValue={subject.description ?? ""}

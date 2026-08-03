@@ -19,6 +19,7 @@ const AcademicLevelsPage = async () => {
     where: { organizationId: tenant.organizationId, archivedAt: null },
     orderBy: { order: "asc" },
     select: {
+      code: true,
       id: true,
       name: true,
       order: true,
@@ -37,11 +38,12 @@ const AcademicLevelsPage = async () => {
     levels: levels
       .filter((level) => level.stage === stage)
       .map((level) => ({
+        classCount: level._count.classes,
+        code: level.code,
         id: level.id,
         name: level.name,
         order: level.order,
         stage: level.stage,
-        classCount: level._count.classes,
         studentCount: level._count.students,
       })),
   }));
@@ -50,6 +52,7 @@ const AcademicLevelsPage = async () => {
     where: { organizationId: tenant.organizationId, archivedAt: { not: null } },
     orderBy: { archivedAt: "desc" },
     select: {
+      code: true,
       id: true,
       name: true,
       order: true,
@@ -64,11 +67,12 @@ const AcademicLevelsPage = async () => {
   });
 
   const archivedLevels = archived.map((level) => ({
+    classCount: level._count.classes,
+    code: level.code,
     id: level.id,
     name: level.name,
     order: level.order,
     stage: level.stage,
-    classCount: level._count.classes,
     studentCount: level._count.students,
   }));
 

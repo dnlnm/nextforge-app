@@ -242,6 +242,7 @@ model TeacherProfile {
 model Subject {
   id             String          @id @default(cuid())
   organizationId String
+  code           String
   name           String
   description    String?
   status         SubjectStatus   @default(ACTIVE)
@@ -252,23 +253,26 @@ model Subject {
   organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, name])
+  @@unique([organizationId, code])
   @@index([organizationId, status])
 }
 
 model Level {
-  id             String         @id @default(cuid())
+  id             String          @id @default(cuid())
   organizationId String
+  code           String
   name           String
-  stage          LevelStage     @default(GENERAL)
-  order          Int            @default(0)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  stage          LevelStage      @default(GENERAL)
+  order          Int             @default(0)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
   archivedAt     DateTime?
   classes        LearningClass[] @relation("ClassLevel")
-  students       Student[]      @relation("StudentLevel")
-  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  students       Student[]       @relation("StudentLevel")
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, name], where: { archivedAt: null })
+  @@unique([organizationId, code], where: { archivedAt: null })
   @@index([organizationId, archivedAt])
 }
 
@@ -278,7 +282,9 @@ model LearningClass {
   branchId       String?
   subjectId      String
   teacherId      String?
+  code           String
   name           String
+  academicYear   Int
   dayOfWeek      DayOfWeek
   startsAt       String
   endsAt         String
@@ -300,6 +306,7 @@ model LearningClass {
   levelId        String?
 
   @@unique([organizationId, name])
+  @@unique([organizationId, code])
   @@index([organizationId, status])
   @@index([organizationId, dayOfWeek])
   @@index([subjectId])

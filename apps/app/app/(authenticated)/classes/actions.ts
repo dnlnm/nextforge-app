@@ -4,6 +4,11 @@ import { requireTenantRole } from "@repo/auth/authorization";
 import { type DayOfWeek, database } from "@repo/database";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import {
+  buildClassCode,
+  isValidClassCode,
+  normalizeClassCode,
+} from "@/lib/codes";
 import { assertWithinPlanLimit } from "../billing/limits";
 
 const days = new Set<DayOfWeek>([
@@ -46,17 +51,92 @@ const getMoneySen = (formData: FormData, key: string) => {
   return Number.isNaN(parsed) ? undefined : Math.round(parsed * 100);
 };
 
+const getAcademicYear = (formData: FormData) => {
+  const value = getInt(formData, "academicYear");
+
+  if (!value || value < 2000 || value > 2100) {
+    throw new Error("A valid academic year is required.");
+  }
+
+  return value;
+};
+
+// Resolve a unique class code for an organization. Prefers a user-supplied
+// code; otherwise builds one from subject/level/year and appends a numeric
+// suffix (e.g. PHY-SPM-26-2) until it is unique.
+const resolveClassCode = async (
+  organizationId: string,
+  {
+    academicYear,
+    levelCode,
+    submittedCode,
+    subjectCode,
+  }: {
+    academicYear: number;
+    levelCode: string;
+    submittedCode?: string;
+    subjectCode: string;
+  }
+) => {
+  if (submittedCode) {
+    const code = normalizeClassCode(submittedCode);
+
+    if (!isValidClassCode(code)) {
+      throw new Error(
+        "Class code can only contain letters, numbers, and dashes."
+      );
+    }
+
+    const clash = await database.learningClass.findFirst({
+      where: { organizationId, code },
+      select: { id: true },
+    });
+
+    if (clash) {
+      throw new Error("A class with this code already exists.");
+    }
+
+    return code;
+  }
+
+  const base = buildClassCode({ academicYear, levelCode, subjectCode });
+  let suffix = 1;
+  let code = base;
+
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const clash = await database.learningClass.findFirst({
+      where: { organizationId, code },
+      select: { id: true },
+    });
+
+    if (!clash) {
+      return code;
+    }
+
+    suffix += 1;
+    code = buildClassCode({
+      academicYear,
+      levelCode,
+      subjectCode,
+      suffix,
+    });
+  }
+};
+
 export const createClass = async (formData: FormData) => {
   const tenant = await requireTenantRole(["ADMIN"]);
   const name = getString(formData, "name");
   const subjectId = getString(formData, "subjectId");
+  const levelId = getString(formData, "levelId");
   const dayOfWeek = getString(formData, "dayOfWeek") as DayOfWeek | undefined;
   const startsAt = getString(formData, "startsAt");
   const endsAt = getString(formData, "endsAt");
+  const academicYear = getAcademicYear(formData);
 
-  if (!(name && subjectId && dayOfWeek && startsAt && endsAt)) {
+  if (!(name && subjectId && levelId && dayOfWeek && startsAt && endsAt)) {
     throw new Error(
-      "Class name, subject, day, start time, and end time are required."
+      "Class name, subject, level, day, start time, and end time are required."
     );
   }
 
@@ -64,13 +144,27 @@ export const createClass = async (formData: FormData) => {
     throw new Error("Invalid class day.");
   }
 
-  const subject = await database.subject.findFirst({
-    where: { id: subjectId, organizationId: tenant.organizationId },
-    select: { id: true },
-  });
+  const [subject, level] = await Promise.all([
+    database.subject.findFirst({
+      where: { id: subjectId, organizationId: tenant.organizationId },
+      select: { code: true, id: true },
+    }),
+    database.level.findFirst({
+      where: {
+        id: levelId,
+        organizationId: tenant.organizationId,
+        archivedAt: null,
+      },
+      select: { code: true, id: true },
+    }),
+  ]);
 
   if (!subject) {
     throw new Error("Subject not found.");
+  }
+
+  if (!level) {
+    throw new Error("Level not found.");
   }
 
   await assertWithinPlanLimit({
@@ -80,7 +174,6 @@ export const createClass = async (formData: FormData) => {
   });
 
   const teacherId = getString(formData, "teacherId");
-  const levelId = getString(formData, "levelId");
   const teacher = teacherId
     ? await database.teacherProfile.findFirst({
         where: {
@@ -92,26 +185,24 @@ export const createClass = async (formData: FormData) => {
       })
     : null;
 
-  const level = levelId
-    ? await database.level.findFirst({
-        where: {
-          id: levelId,
-          organizationId: tenant.organizationId,
-          archivedAt: null,
-        },
-        select: { id: true },
-      })
-    : null;
+  const code = await resolveClassCode(tenant.organizationId, {
+    academicYear,
+    levelCode: level.code,
+    subjectCode: subject.code,
+    submittedCode: getString(formData, "code"),
+  });
 
   await database.learningClass.create({
     data: {
-      organizationId: tenant.organizationId,
+      academicYear,
       capacity: getInt(formData, "capacity"),
+      code,
       dayOfWeek,
       endsAt,
-      levelId: level?.id,
+      levelId: level.id,
       monthlyFeeSen: getMoneySen(formData, "monthlyFee") ?? 0,
       name,
+      organizationId: tenant.organizationId,
       room: getString(formData, "room"),
       startsAt,
       subjectId: subject.id,
@@ -202,11 +293,38 @@ export const updateClass = async (formData: FormData) => {
 
   const teacherId = getString(formData, "teacherId");
   const levelId = getString(formData, "levelId");
+  const submittedCode = getString(formData, "code");
+  const academicYear = getAcademicYear(formData);
+
+  if (submittedCode) {
+    const code = normalizeClassCode(submittedCode);
+
+    if (!isValidClassCode(code)) {
+      throw new Error(
+        "Class code can only contain letters, numbers, and dashes."
+      );
+    }
+
+    const clash = await database.learningClass.findFirst({
+      where: {
+        organizationId: tenant.organizationId,
+        code,
+        NOT: { id: classId },
+      },
+      select: { id: true },
+    });
+
+    if (clash) {
+      throw new Error("A class with this code already exists.");
+    }
+  }
 
   await database.learningClass.updateMany({
     where: { id: classId, organizationId: tenant.organizationId },
     data: {
+      academicYear,
       capacity: getInt(formData, "capacity"),
+      code: submittedCode ? normalizeClassCode(submittedCode) : undefined,
       dayOfWeek,
       endsAt,
       levelId: levelId === "none" ? null : levelId,

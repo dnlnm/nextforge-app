@@ -94,26 +94,26 @@ const getSubjectData = async (subjectId: string, organizationId: string) =>
     include: {
       classes: {
         where: { archivedAt: null },
-          include: {
-            branch: true,
-            level: true,
-            enrollments: {
-              where: { archivedAt: null, status: "ACTIVE" },
-              include: {
-                student: {
-                  select: {
-                    fullName: true,
-                    id: true,
-                    level: { select: { name: true } },
-                    status: true,
-                  },
+        include: {
+          branch: true,
+          level: true,
+          enrollments: {
+            where: { archivedAt: null, status: "ACTIVE" },
+            include: {
+              student: {
+                select: {
+                  fullName: true,
+                  id: true,
+                  level: { select: { name: true } },
+                  status: true,
                 },
               },
             },
-            teacher: {
-              select: { fullName: true, id: true },
-            },
           },
+          teacher: {
+            select: { fullName: true, id: true },
+          },
+        },
         orderBy: [{ dayOfWeek: "asc" }, { startsAt: "asc" }],
       },
     },
@@ -133,6 +133,7 @@ const SubjectHeader = ({ subject }: { readonly subject: SubjectData }) => (
             <h1 className="font-semibold text-2xl tracking-tight md:text-3xl">
               <Balancer>{subject.name}</Balancer>
             </h1>
+            <Badge variant="outline">{subject.code}</Badge>
             <Badge variant="outline">
               {subject.status === "ACTIVE" ? "Active" : "Archived"}
             </Badge>
@@ -214,6 +215,7 @@ const SubjectOverviewTab = ({ subject }: { readonly subject: SubjectData }) => (
     <CardContent className="grid gap-4 md:grid-cols-2">
       {[
         ["Name", subject.name],
+        ["Code", subject.code],
         ["Status", subject.status === "ACTIVE" ? "Active" : "Archived"],
         ["Created", formatDate(subject.createdAt)],
       ].map(([label, value]) => (
@@ -266,9 +268,7 @@ const SubjectClassesTab = ({ subject }: { readonly subject: SubjectData }) => (
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-sm">
-              <Badge variant="secondary">
-                {cls.level?.name ?? "General"}
-              </Badge>
+              <Badge variant="secondary">{cls.level?.name ?? "General"}</Badge>
               <Badge variant="outline">
                 {cls.branch?.name ?? "Main branch"}
               </Badge>

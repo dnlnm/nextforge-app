@@ -11,6 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@repo/design-system/components/ui/alert-dialog";
+import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
   Card,
@@ -58,6 +59,7 @@ import { archiveLevel, restoreLevel, updateLevel } from "./actions";
 
 interface LevelSummary {
   readonly classCount: number;
+  readonly code: string;
   readonly id: string;
   readonly name: string;
   readonly order: number;
@@ -121,12 +123,14 @@ export const AcademicLevelsList = ({
   const [view, setView] = useState<LevelView>("active");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [editingCode, setEditingCode] = useState("");
   const [query, setQuery] = useState("");
   const [archiveTarget, setArchiveTarget] = useState<LevelSummary | null>(null);
 
   const startEdit = (level: LevelSummary) => {
     setEditingId(level.id);
     setEditingName(level.name);
+    setEditingCode(level.code);
   };
 
   const nonEmptyGroups = grouped.filter((group) => group.levels.length > 0);
@@ -262,6 +266,7 @@ export const AcademicLevelsList = ({
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
+                  <TableHead>Code</TableHead>
                   <TableHead>Classes</TableHead>
                   <TableHead>Students</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -282,6 +287,7 @@ export const AcademicLevelsList = ({
                               setEditingId(null);
                             }}
                             className="flex items-center gap-2"
+                            id={`level-edit-form-${level.id}`}
                           >
                             <input
                               name="levelId"
@@ -312,6 +318,22 @@ export const AcademicLevelsList = ({
                           </form>
                         ) : (
                           <span className="font-medium">{level.name}</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {isEditing ? (
+                          <Input
+                            className="max-w-20"
+                            form={`level-edit-form-${level.id}`}
+                            maxLength={4}
+                            name="code"
+                            onChange={(event) =>
+                              setEditingCode(event.target.value)
+                            }
+                            value={editingCode}
+                          />
+                        ) : (
+                          <Badge variant="outline">{level.code}</Badge>
                         )}
                       </TableCell>
                       <TableCell>{level.classCount}</TableCell>

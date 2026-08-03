@@ -34,6 +34,7 @@ import { archiveSubject } from "./actions";
 
 export interface SubjectSummary {
   classes: number;
+  code: string;
   description: string | null;
   id: string;
   name: string;
@@ -100,7 +101,10 @@ const SubjectsList = ({
                   onClick={() => setSelectedSubjectId(subject.id)}
                 >
                   <TableCell className="font-medium">
-                    <Balancer>{subject.name}</Balancer>
+                    <div className="flex items-center gap-2">
+                      <Balancer>{subject.name}</Balancer>
+                      <Badge variant="outline">{subject.code}</Badge>
+                    </div>
                   </TableCell>
                   <TableCell>{subject.classes}</TableCell>
                   <TableCell>{subject.students}</TableCell>
@@ -146,6 +150,7 @@ const SubjectsList = ({
                     <Balancer>{selectedSubject.name}</Balancer>
                   </CardTitle>
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-muted-foreground text-sm">
+                    <Badge variant="outline">{selectedSubject.code}</Badge>
                     <Badge variant="outline">
                       {selectedSubject.status === "ACTIVE"
                         ? "Active"

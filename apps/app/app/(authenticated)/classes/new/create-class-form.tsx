@@ -27,15 +27,19 @@ import {
   MapPinIcon,
   Settings2Icon,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { buildClassCode } from "@/lib/codes";
 import { createClass } from "../actions";
 
 interface CreateClassFormProps {
+  readonly academicYearOptions: string[];
   readonly levels: Array<{
+    readonly code: string;
     readonly id: string;
     readonly name: string;
   }>;
   readonly subjects: Array<{
+    readonly code: string;
     readonly id: string;
     readonly name: string;
   }>;
@@ -44,9 +48,6 @@ interface CreateClassFormProps {
     readonly id: string;
   }>;
 }
-
-const whitespaceRegex = /\s+/;
-const nonAlphanumericRegex = /[^a-zA-Z0-9]/g;
 
 const dayOptions = [
   ["MONDAY", "Mon"],
@@ -60,22 +61,10 @@ const dayOptions = [
 
 const mediumOptions = ["English", "Bahasa Malaysia", "Chinese", "Tamil"];
 
-const formatClassCode = (name: string) => {
-  const prefix = name
-    .split(whitespaceRegex)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.replace(nonAlphanumericRegex, "").slice(0, 4))
-    .filter(Boolean)
-    .join("-")
-    .toUpperCase();
-
-  return `${prefix || "CLS"}-01`;
-};
-
 const defaultSelectedDays = ["TUESDAY", "THURSDAY"];
 
 export const CreateClassForm = ({
+  academicYearOptions,
   levels,
   subjects,
   teachers,
@@ -84,7 +73,9 @@ export const CreateClassForm = ({
   const [subjectId, setSubjectId] = useState(subjects.at(0)?.id ?? "");
   const [levelId, setLevelId] = useState(levels.at(0)?.id ?? "");
   const [teacherId, setTeacherId] = useState(teachers.at(0)?.id ?? "");
-  const [academicYear, setAcademicYear] = useState("2025");
+  const [academicYear, setAcademicYear] = useState(
+    academicYearOptions.at(0) ?? ""
+  );
   const [medium, setMedium] = useState("Bahasa Malaysia");
   const [room, setRoom] = useState("Room 2A");
   const [monthlyFee, setMonthlyFee] = useState("200.00");
@@ -103,8 +94,20 @@ export const CreateClassForm = ({
   const selectedTeacher = teachers.find((teacher) => teacher.id === teacherId);
   const selectedLevel = levels.find((level) => level.id === levelId);
 
+  const autoClassCode = buildClassCode({
+    academicYear,
+    levelCode: selectedLevel?.code,
+    subjectCode: selectedSubject?.code,
+  });
+  const [classCode, setClassCode] = useState(autoClassCode);
+
+  useEffect(() => {
+    setClassCode(autoClassCode);
+  }, [autoClassCode]);
+
   const selectedTags = useMemo(
-    () => [selectedLevel?.name, selectedSubject?.name].filter(Boolean) as string[],
+    () =>
+      [selectedLevel?.name, selectedSubject?.name].filter(Boolean) as string[],
     [selectedLevel, selectedSubject]
   );
   const scheduleSummary = [
@@ -136,6 +139,7 @@ export const CreateClassForm = ({
               <input name="startsAt" type="hidden" value={startTime} />
               <input name="teacherId" type="hidden" value={teacherId} />
               <input name="levelId" type="hidden" value={levelId} />
+              <input name="academicYear" type="hidden" value={academicYear} />
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="grid gap-2 md:col-span-1">
                   <Label htmlFor="name">Class Name *</Label>
@@ -187,10 +191,15 @@ export const CreateClassForm = ({
                   <Label htmlFor="code">Class Code *</Label>
                   <Input
                     id="code"
-                    placeholder="e.g. PHY-SPM-01"
-                    readOnly
-                    value={formatClassCode(name)}
+                    name="code"
+                    onChange={(event) => setClassCode(event.target.value)}
+                    placeholder="e.g. PHY-SPM-26"
+                    value={classCode}
                   />
+                  <p className="text-muted-foreground text-xs">
+                    Auto-generated from subject, level, and year. Editable if
+                    needed.
+                  </p>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="academicYear">Academic Year *</Label>
@@ -199,7 +208,7 @@ export const CreateClassForm = ({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {["2025", "2026", "2027"].map((year) => (
+                      {academicYearOptions.map((year) => (
                         <SelectItem key={year} value={year}>
                           {year}
                         </SelectItem>
@@ -423,7 +432,7 @@ export const CreateClassForm = ({
                 </div>
                 <div>
                   <p className="text-muted-foreground text-xs">Class Code</p>
-                  <p className="font-medium">{formatClassCode(name)}</p>
+                  <p className="font-medium">{classCode}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground text-xs">Academic Year</p>

@@ -3,11 +3,23 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { database, type LevelStage } from "@repo/database";
 import { revalidatePath } from "next/cache";
+import { isValidCode, normalizeCode } from "@/lib/codes";
 
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);
 
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
+};
+
+const getCode = (formData: FormData) => {
+  const value = getString(formData, "code");
+  const code = value ? normalizeCode(value) : undefined;
+
+  if (!(code && isValidCode(code))) {
+    throw new Error("Level code must be 1-4 alphanumeric characters.");
+  }
+
+  return code;
 };
 
 const LEVEL_STAGES: LevelStage[] = [
@@ -32,7 +44,7 @@ export const getLevels = async () => {
   return database.level.findMany({
     where: { organizationId: tenant.organizationId, archivedAt: null },
     orderBy: { order: "asc" },
-    select: { id: true, name: true, order: true, stage: true },
+    select: { code: true, id: true, name: true, order: true, stage: true },
   });
 };
 
@@ -40,6 +52,7 @@ export const createLevel = async (formData: FormData) => {
   const tenant = await requireTenantRole(["ADMIN"]);
   const name = getString(formData, "name");
   const stage = getStage(formData);
+  const code = getCode(formData);
 
   if (!name) {
     throw new Error("Level name is required.");
@@ -48,14 +61,14 @@ export const createLevel = async (formData: FormData) => {
   const existing = await database.level.findFirst({
     where: {
       organizationId: tenant.organizationId,
-      name,
+      OR: [{ code }, { name }],
       archivedAt: null,
     },
     select: { id: true },
   });
 
   if (existing) {
-    throw new Error("A level with this name already exists.");
+    throw new Error("A level with this name or code already exists.");
   }
 
   const counts = await database.level.aggregate({
@@ -65,6 +78,7 @@ export const createLevel = async (formData: FormData) => {
 
   await database.level.create({
     data: {
+      code,
       organizationId: tenant.organizationId,
       name,
       stage,
@@ -80,6 +94,7 @@ export const updateLevel = async (formData: FormData) => {
   const levelId = getString(formData, "levelId");
   const name = getString(formData, "name");
   const stage = getStage(formData);
+  const code = getCode(formData);
 
   if (!(levelId && name)) {
     throw new Error("Level is required.");
@@ -88,20 +103,20 @@ export const updateLevel = async (formData: FormData) => {
   const duplicate = await database.level.findFirst({
     where: {
       organizationId: tenant.organizationId,
-      name,
       archivedAt: null,
       NOT: { id: levelId },
+      OR: [{ code }, { name }],
     },
     select: { id: true },
   });
 
   if (duplicate) {
-    throw new Error("A level with this name already exists.");
+    throw new Error("A level with this name or code already exists.");
   }
 
   await database.level.updateMany({
     where: { id: levelId, organizationId: tenant.organizationId },
-    data: { name, stage },
+    data: { code, name, stage },
   });
 
   revalidatePath("/academic-levels");
@@ -117,7 +132,7 @@ export const restoreLevel = async (formData: FormData) => {
 
   const archived = await database.level.findFirst({
     where: { id: levelId, organizationId: tenant.organizationId },
-    select: { name: true, archivedAt: true },
+    select: { archivedAt: true, code: true, name: true },
   });
 
   if (!archived?.archivedAt) {
@@ -127,14 +142,14 @@ export const restoreLevel = async (formData: FormData) => {
   const active = await database.level.findFirst({
     where: {
       organizationId: tenant.organizationId,
-      name: archived.name,
       archivedAt: null,
+      OR: [{ code: archived.code }, { name: archived.name }],
     },
     select: { id: true },
   });
 
   if (active) {
-    throw new Error("A level with this name already exists.");
+    throw new Error("A level with this name or code already exists.");
   }
 
   await database.level.updateMany({
