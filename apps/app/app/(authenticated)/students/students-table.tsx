@@ -1,30 +1,32 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
-import { useQueryStates, parseAsInteger, parseAsString, parseAsJson } from "nuqs";
-import type { ColumnFiltersState } from "@tanstack/react-table";
-import type { GlobalFilter } from "@repo/design-system/components/niko-table/types";
-import { z } from "zod";
-
-import { DataTableRoot } from "@repo/design-system/components/niko-table/core/data-table-root";
-import { DataTable } from "@repo/design-system/components/niko-table/core/data-table";
-import {
-  DataTableHeader,
-  DataTableBody,
-  DataTableSkeleton,
-  DataTableEmptyBody,
-} from "@repo/design-system/components/niko-table/core/data-table-structure";
-import { DataTableToolbarSection } from "@repo/design-system/components/niko-table/components/data-table-toolbar-section";
-import { DataTableSearchFilter } from "@repo/design-system/components/niko-table/components/data-table-search-filter";
+import { DataTableClearFilter } from "@repo/design-system/components/niko-table/components/data-table-clear-filter";
 import { DataTableFacetedFilter } from "@repo/design-system/components/niko-table/components/data-table-faceted-filter";
 import { DataTableFilterMenu } from "@repo/design-system/components/niko-table/components/data-table-filter-menu";
-import { DataTableClearFilter } from "@repo/design-system/components/niko-table/components/data-table-clear-filter";
 import { DataTablePagination } from "@repo/design-system/components/niko-table/components/data-table-pagination";
+import { DataTableSearchFilter } from "@repo/design-system/components/niko-table/components/data-table-search-filter";
+import { DataTableToolbarSection } from "@repo/design-system/components/niko-table/components/data-table-toolbar-section";
+import { DataTable } from "@repo/design-system/components/niko-table/core/data-table";
+import { DataTableRoot } from "@repo/design-system/components/niko-table/core/data-table-root";
+import {
+  DataTableBody,
+  DataTableEmptyBody,
+  DataTableHeader,
+  DataTableSkeleton,
+} from "@repo/design-system/components/niko-table/core/data-table-structure";
+import type { GlobalFilter } from "@repo/design-system/components/niko-table/types";
 import { Card, CardContent } from "@repo/design-system/components/ui/card";
-
-import { columns, type Student } from "./columns";
-import { getStudentsForTable } from "./actions";
+import {
+  parseAsInteger,
+  parseAsJson,
+  parseAsString,
+  useQueryStates,
+} from "nuqs";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { z } from "zod";
 import type { StudentsQueryParams } from "./actions";
+import { getStudentsForTable } from "./actions";
+import { columns, type Student } from "./columns";
 
 type FilterOption = {
   label: string;
@@ -86,29 +88,40 @@ export function StudentsTable({
   );
 
   // Fetch data when URL params change
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const params: StudentsQueryParams = {
-          page: urlParams.page,
-          pageSize: urlParams.pageSize,
-          search: urlParams.search || undefined,
-          filters: urlParams.filters.length > 0 ? urlParams.filters : undefined,
-        };
+  const fetchStudents = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const params: StudentsQueryParams = {
+        page: urlParams.page,
+        pageSize: urlParams.pageSize,
+        search: urlParams.search || undefined,
+        filters: urlParams.filters.length > 0 ? urlParams.filters : undefined,
+      };
 
-        const result = await getStudentsForTable(params);
-        setData(result.data);
-        setTotalCount(result.totalCount);
-      } catch (error) {
-        console.error("Failed to fetch students:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
+      const result = await getStudentsForTable(params);
+      setData(result.data);
+      setTotalCount(result.totalCount);
+    } catch (error) {
+      console.error("Failed to fetch students:", error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [urlParams]);
+
+  useEffect(() => {
+    fetchStudents();
+  }, [fetchStudents]);
+
+  // Re-fetch when the server-side data changes (e.g. a student was archived
+  // or deleted and the page was refreshed via revalidatePath).
+  const prevTotalCount = useRef(initialTotalCount);
+
+  useEffect(() => {
+    if (prevTotalCount.current !== initialTotalCount) {
+      prevTotalCount.current = initialTotalCount;
+      fetchStudents();
+    }
+  }, [fetchStudents, initialTotalCount]);
 
   // State update handlers
   const handlePaginationChange = useCallback(
@@ -157,48 +170,48 @@ export function StudentsTable({
   return (
     <Card>
       <CardContent className="p-0">
-          <DataTableRoot
-            data={data}
-            columns={columns}
-            isLoading={isLoading}
-            getRowId={(row) => row.id}
-            config={{
-              manualPagination: true,
-              enableSorting: false,
-              manualFiltering: true,
-              pageCount: Math.ceil(totalCount / urlParams.pageSize),
-            }}
-            state={tableState}
-            onPaginationChange={handlePaginationChange}
-            onColumnFiltersChange={handleColumnFiltersChange}
-            onGlobalFilterChange={handleGlobalFilterChange}
-          >
+        <DataTableRoot
+          columns={columns}
+          config={{
+            manualPagination: true,
+            enableSorting: false,
+            manualFiltering: true,
+            pageCount: Math.ceil(totalCount / urlParams.pageSize),
+          }}
+          data={data}
+          getRowId={(row) => row.id}
+          isLoading={isLoading}
+          onColumnFiltersChange={handleColumnFiltersChange}
+          onGlobalFilterChange={handleGlobalFilterChange}
+          onPaginationChange={handlePaginationChange}
+          state={tableState}
+        >
           <div className="grid gap-4 p-4">
             <DataTableToolbarSection>
               <DataTableSearchFilter placeholder="Search students..." />
               <DataTableFacetedFilter
                 accessorKey="class"
-                title="Class"
-                options={classOptions}
                 multiple
+                options={classOptions}
+                title="Class"
               />
               <DataTableFacetedFilter
                 accessorKey="tutor"
-                title="Tutor"
-                options={tutorOptions}
                 multiple
+                options={tutorOptions}
+                title="Tutor"
               />
               <DataTableFacetedFilter
                 accessorKey="status"
-                title="Status"
-                options={statusOptions}
                 multiple
+                options={statusOptions}
+                title="Status"
               />
               <DataTableFacetedFilter
                 accessorKey="academicLevel"
-                title="Level"
-                options={levelOptions}
                 multiple
+                options={levelOptions}
+                title="Level"
               />
               <DataTableFilterMenu />
               <DataTableClearFilter />

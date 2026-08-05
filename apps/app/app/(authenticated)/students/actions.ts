@@ -3,6 +3,7 @@
 import { requireTenant, requireTenantRole } from "@repo/auth/authorization";
 import {
   database,
+  type Gender,
   type GuardianRelationship,
   type Prisma,
   type StudentStatus,
@@ -17,6 +18,37 @@ const getString = (formData: FormData, key: string) => {
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 };
 
+const genders = new Set<Gender>(["MALE", "FEMALE", "OTHER"]);
+
+const getGender = (formData: FormData, key: string) => {
+  const value = getString(formData, key);
+
+  return value && genders.has(value as Gender) ? (value as Gender) : undefined;
+};
+
+const getDate = (formData: FormData, key: string) => {
+  const value = getString(formData, key);
+
+  if (!value) {
+    return undefined;
+  }
+
+  const date = new Date(`${value}T00:00:00.000Z`);
+
+  return Number.isNaN(date.getTime()) ? undefined : date;
+};
+
+const getAddressLines = (formData: FormData, key: string) => {
+  const [line1, line2] = (getString(formData, key) ?? "")
+    .split(csvLineRegex)
+    .map((line) => line.trim());
+
+  return {
+    addressLine1: line1 || undefined,
+    addressLine2: line2 || undefined,
+  };
+};
+
 const relationships = new Set<GuardianRelationship>([
   "FATHER",
   "MOTHER",
@@ -29,13 +61,38 @@ const csvLineRegex = /\r?\n/;
 const formatCode = (prefix: string, sequence: number) =>
   `${prefix}${String(sequence).padStart(4, "0")}`;
 
-export const getNextStudentCode = async () => {
-  const tenant = await requireTenant();
-  const count = await database.student.count({
-    where: { organizationId: tenant.organizationId },
+// Next sequential student code is derived from the highest existing code
+// (e.g. STU0007 -> 8) rather than the row count, so codes are never reused
+// when students are archived or deleted, keeping them permanent.
+const getNextStudentSequence = async (
+  tx: Prisma.TransactionClient,
+  organizationId: string
+) => {
+  const students = await tx.student.findMany({
+    where: { organizationId },
+    select: { code: true },
   });
 
-  return formatCode("STU", count + 1);
+  const maxSequence = students.reduce((max, student) => {
+    const sequence = Number.parseInt(student.code.replace("STU", ""), 10);
+
+    return Number.isNaN(sequence) ? max : Math.max(max, sequence);
+  }, 0);
+
+  return maxSequence + 1;
+};
+
+export const getNextStudentCode = async () => {
+  const tenant = await requireTenant();
+
+  return database.$transaction(async (tx) => {
+    const sequence = await getNextStudentSequence(
+      tx,
+      tenant.organizationId
+    );
+
+    return formatCode("STU", sequence);
+  });
 };
 
 const resolveLevel = async (levelId: string | undefined) => {
@@ -80,29 +137,52 @@ export const createStudent = async (formData: FormData) => {
     | GuardianRelationship
     | undefined;
   const levelId = await resolveLevel(getString(formData, "levelId"));
+  const address = getAddressLines(formData, "studentAddress");
+  const sameAsStudentAddress =
+    getString(formData, "sameAsStudentAddress") === "on";
 
   await database.$transaction(async (tx) => {
-    const sequence =
-      (await tx.student.count({
-        where: { organizationId: tenant.organizationId },
-      })) + 1;
+    const sequence = await getNextStudentSequence(
+      tx,
+      tenant.organizationId
+    );
     const student = await tx.student.create({
       data: {
         organizationId: tenant.organizationId,
         fullName,
         code: formatCode("STU", sequence),
         levelId,
+        dateOfBirth: getDate(formData, "dateOfBirth"),
+        gender: getGender(formData, "gender"),
+        phone: getString(formData, "studentPhone"),
+        email: getString(formData, "studentEmail"),
+        ...address,
+        city: getString(formData, "city"),
+        state: getString(formData, "state"),
+        postcode: getString(formData, "postcode"),
         preferredName: getString(formData, "preferredName"),
         schoolName: getString(formData, "schoolName"),
+        photoUrl: getString(formData, "photoUrl"),
+        notes: getString(formData, "notes"),
       },
       select: { id: true },
     });
+
+    const guardianAddress = sameAsStudentAddress
+      ? address
+      : getAddressLines(formData, "guardianAddress");
     const guardian = await tx.guardian.create({
       data: {
         organizationId: tenant.organizationId,
         email: getString(formData, "guardianEmail"),
         fullName: guardianName,
         phone: getString(formData, "guardianPhone"),
+        ...guardianAddress,
+        city: sameAsStudentAddress ? getString(formData, "city") : undefined,
+        state: sameAsStudentAddress ? getString(formData, "state") : undefined,
+        postcode: sameAsStudentAddress
+          ? getString(formData, "postcode")
+          : undefined,
       },
       select: { id: true },
     });
@@ -150,6 +230,109 @@ export const archiveStudent = async (formData: FormData) => {
   revalidatePath("/attendance");
 };
 
+export const restoreStudent = async (formData: FormData) => {
+  const tenant = await requireTenantRole(["ADMIN"]);
+  const studentId = getString(formData, "studentId");
+
+  if (!studentId) {
+    throw new Error("Student is required.");
+  }
+
+  await database.$transaction(async (tx) => {
+    const student = await tx.student.findFirst({
+      where: { id: studentId, organizationId: tenant.organizationId },
+      select: { id: true },
+    });
+
+    if (!student) {
+      throw new Error("Student not found.");
+    }
+
+    await tx.student.update({
+      where: { id: student.id },
+      data: { archivedAt: null, status: "ACTIVE" },
+    });
+
+    // Restore enrollments archived with the student, skipping any class that
+    // already has an active enrollment (unique per student/class/status).
+    const archivedEnrollments = await tx.enrollment.findMany({
+      where: {
+        studentId: student.id,
+        organizationId: tenant.organizationId,
+        status: "ARCHIVED",
+      },
+      select: { id: true, classId: true },
+    });
+    const activeClassIds = new Set(
+      (
+        await tx.enrollment.findMany({
+          where: {
+            studentId: student.id,
+            organizationId: tenant.organizationId,
+            status: "ACTIVE",
+          },
+          select: { classId: true },
+        })
+      ).map((enrollment) => enrollment.classId)
+    );
+
+    await tx.enrollment.updateMany({
+      where: {
+        id: {
+          in: archivedEnrollments
+            .filter((enrollment) => !activeClassIds.has(enrollment.classId))
+            .map((enrollment) => enrollment.id),
+        },
+        organizationId: tenant.organizationId,
+      },
+      data: { archivedAt: null, status: "ACTIVE" },
+    });
+  });
+
+  revalidatePath("/students");
+  revalidatePath("/classes");
+  revalidatePath("/attendance");
+};
+
+export const deleteStudent = async (formData: FormData) => {
+  const tenant = await requireTenantRole(["ADMIN"]);
+  const studentId = getString(formData, "studentId");
+
+  if (!studentId) {
+    throw new Error("Student is required.");
+  }
+
+  await database.$transaction(async (tx) => {
+    const student = await tx.student.findFirst({
+      where: { id: studentId, organizationId: tenant.organizationId },
+      select: {
+        id: true,
+        _count: {
+          select: { invoices: true, payments: true },
+        },
+      },
+    });
+
+    if (!student) {
+      throw new Error("Student not found.");
+    }
+
+    if (student._count.invoices > 0 || student._count.payments > 0) {
+      throw new Error(
+        "This student has billing records and cannot be deleted. Archive instead."
+      );
+    }
+
+    await tx.student.delete({
+      where: { id: student.id },
+    });
+  });
+
+  revalidatePath("/students");
+  revalidatePath("/classes");
+  revalidatePath("/attendance");
+};
+
 export const updateStudent = async (formData: FormData) => {
   const tenant = await requireTenantRole(["ADMIN"]);
   const studentId = getString(formData, "studentId");
@@ -162,6 +345,9 @@ export const updateStudent = async (formData: FormData) => {
   }
 
   const levelId = await resolveLevel(getString(formData, "levelId"));
+  const address = getAddressLines(formData, "studentAddress");
+  const sameAsStudentAddress =
+    getString(formData, "sameAsStudentAddress") === "on";
 
   await database.$transaction(async (tx) => {
     await tx.student.updateMany({
@@ -169,16 +355,35 @@ export const updateStudent = async (formData: FormData) => {
       data: {
         fullName,
         levelId,
+        dateOfBirth: getDate(formData, "dateOfBirth"),
+        gender: getGender(formData, "gender"),
+        phone: getString(formData, "studentPhone"),
+        email: getString(formData, "studentEmail"),
+        ...address,
+        city: getString(formData, "city"),
+        state: getString(formData, "state"),
+        postcode: getString(formData, "postcode"),
         preferredName: getString(formData, "preferredName"),
         schoolName: getString(formData, "schoolName"),
+        photoUrl: getString(formData, "photoUrl"),
+        notes: getString(formData, "notes"),
       },
     });
+    const guardianAddress = sameAsStudentAddress
+      ? address
+      : getAddressLines(formData, "guardianAddress");
     await tx.guardian.updateMany({
       where: { id: guardianId, organizationId: tenant.organizationId },
       data: {
         email: getString(formData, "guardianEmail"),
         fullName: guardianName,
         phone: getString(formData, "guardianPhone"),
+        ...guardianAddress,
+        city: sameAsStudentAddress ? getString(formData, "city") : undefined,
+        state: sameAsStudentAddress ? getString(formData, "state") : undefined,
+        postcode: sameAsStudentAddress
+          ? getString(formData, "postcode")
+          : undefined,
       },
     });
   });
@@ -258,10 +463,10 @@ export const importStudents = async (formData: FormData) => {
   const levelByName = new Map(levels.map((level) => [level.name, level.id]));
 
   await database.$transaction(async (tx) => {
-    const startSequence =
-      (await tx.student.count({
-        where: { organizationId: tenant.organizationId },
-      })) + 1;
+    const startSequence = await getNextStudentSequence(
+      tx,
+      tenant.organizationId
+    );
 
     for (let index = 0; index < importableRows.length; index += 1) {
       const row = importableRows[index];
@@ -342,10 +547,22 @@ export async function getStudentsForTable(params: StudentsQueryParams) {
           const validStatuses = values.filter(
             (v): v is StudentStatus =>
               typeof v === "string" &&
-              ["ACTIVE", "INACTIVE", "GRADUATED", "ARCHIVED"].includes(v)
+              ["ACTIVE", "ARCHIVED"].includes(v)
           );
           if (validStatuses.length > 0) {
             where.status = { in: validStatuses };
+            // Toggle the archivedAt filter based on the selected statuses.
+            // Selecting both Active and Archived shows all students.
+            const hasArchived = validStatuses.includes("ARCHIVED");
+            const hasActive = validStatuses.includes("ACTIVE");
+
+            if (hasArchived && hasActive) {
+              where.archivedAt = undefined;
+            } else if (hasArchived) {
+              where.archivedAt = { not: null };
+            } else {
+              where.archivedAt = null;
+            }
           }
           break;
         }
@@ -480,7 +697,7 @@ export async function getStudentFilterOptions() {
     tutors: teachers.map((t) => ({ label: t.fullName, value: t.id })),
     statuses: [
       { label: "Active", value: "ACTIVE" },
-      { label: "Inactive", value: "INACTIVE" },
+      { label: "Archived", value: "ARCHIVED" },
     ],
   };
 }

@@ -23,12 +23,12 @@ import {
   MoreHorizontalIcon,
   UserCheckIcon,
   UserPlusIcon,
-  UserRoundIcon,
   UsersRoundIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import Balancer from "react-wrap-balancer";
+import { StudentAvatar } from "../components/student-avatar";
 import { StudentsTable } from "./students-table";
 
 type Student = {
@@ -36,6 +36,11 @@ type Student = {
   fullName: string;
   status: string;
   code: string;
+  dateOfBirth: Date | null;
+  gender: string | null;
+  phone: string | null;
+  email: string | null;
+  photoUrl: string | null;
   level: {
     name: string;
   } | null;
@@ -202,9 +207,12 @@ export function StudentsPageClient({
             <>
               <CardHeader className="border-b">
                 <div className="flex items-start justify-between gap-4">
-                  <div className="flex size-20 items-center justify-center rounded-full border bg-muted text-muted-foreground">
-                    <UserRoundIcon className="size-10" />
-                  </div>
+                  <StudentAvatar
+                    className="size-20"
+                    gender={selectedStudent.gender}
+                    name={selectedStudent.fullName}
+                    photoUrl={selectedStudent.photoUrl}
+                  />
                   <Button size="icon" variant="ghost">
                     <MoreHorizontalIcon className="size-4" />
                   </Button>
@@ -218,7 +226,7 @@ export function StudentsPageClient({
                     <Badge variant="outline">
                       {selectedStudent.status === "ACTIVE"
                         ? "Active"
-                        : "Inactive"}
+                        : "Archived"}
                     </Badge>
                   </div>
                 </div>
@@ -246,9 +254,22 @@ export function StudentsPageClient({
                       "Registration Date",
                       formatDate(selectedStudent.enrolledAt),
                     ],
-                    ["Gender", "-"],
+                    [
+                      "Date of Birth",
+                      selectedStudent.dateOfBirth
+                        ? formatDate(selectedStudent.dateOfBirth)
+                        : "-",
+                    ],
+                    [
+                      "Gender",
+                      selectedStudent.gender
+                        ? selectedStudent.gender.charAt(0) +
+                          selectedStudent.gender.slice(1).toLowerCase()
+                        : "-",
+                    ],
                     ["Level", selectedStudent.level?.name ?? "-"],
-                    ["Phone", "-"],
+                    ["Phone", selectedStudent.phone ?? "-"],
+                    ["Email", selectedStudent.email ?? "-"],
                   ].map(([label, value]) => (
                     <div
                       className="grid grid-cols-[6rem_1fr] gap-3 text-sm"

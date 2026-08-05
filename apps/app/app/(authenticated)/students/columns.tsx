@@ -18,17 +18,24 @@ import {
   EyeIcon,
   MessageCircleIcon,
   MoreHorizontalIcon,
-  UserRoundIcon,
+  RotateCcwIcon,
+  Trash2Icon,
 } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
-import { archiveStudent } from "./actions";
+import { ArchiveStudentDialog } from "../components/archive-student-dialog";
+import { DeleteStudentDialog } from "../components/delete-student-dialog";
+import { RestoreStudentDialog } from "../components/restore-student-dialog";
+import { StudentAvatar } from "../components/student-avatar";
 
 export type Student = {
   id: string;
   fullName: string;
   status: string;
   code: string;
+  gender: string | null;
+  photoUrl: string | null;
   level: {
     name: string;
   } | null;
@@ -39,6 +46,95 @@ export type Student = {
       phone: string | null;
     };
   }>;
+};
+
+export const StudentRowActions = ({ student }: { student: Student }) => {
+  const [isArchiveOpen, setIsArchiveOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isRestoreOpen, setIsRestoreOpen] = useState(false);
+  const isArchived = student.status === "ARCHIVED";
+  const guardian = student.guardians[0]?.guardian;
+
+  return (
+    <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button aria-label="Row actions" size="icon" variant="ghost">
+            <MoreHorizontalIcon className="size-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-44">
+          <DropdownMenuItem asChild>
+            <Link href={`/students/${student.id}`}>
+              <EyeIcon />
+              View profile
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href={`/students/${student.id}/edit`}>
+              <Edit3Icon />
+              Edit
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link
+              href={guardian?.phone ? `https://wa.me/${guardian.phone}` : "#"}
+            >
+              <MessageCircleIcon />
+              WhatsApp
+            </Link>
+          </DropdownMenuItem>
+          {isArchived ? (
+            <DropdownMenuItem
+              onSelect={(event) => {
+                event.preventDefault();
+                setIsRestoreOpen(true);
+              }}
+            >
+              <RotateCcwIcon />
+              Restore
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onSelect={(event) => {
+                event.preventDefault();
+                setIsArchiveOpen(true);
+              }}
+            >
+              <ArchiveIcon />
+              Archive
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuItem
+            className="text-destructive focus:text-destructive"
+            onSelect={(event) => {
+              event.preventDefault();
+              setIsDeleteOpen(true);
+            }}
+          >
+            <Trash2Icon />
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <ArchiveStudentDialog
+        onOpenChange={setIsArchiveOpen}
+        open={isArchiveOpen}
+        studentId={student.id}
+      />
+      <RestoreStudentDialog
+        onOpenChange={setIsRestoreOpen}
+        open={isRestoreOpen}
+        studentId={student.id}
+      />
+      <DeleteStudentDialog
+        onOpenChange={setIsDeleteOpen}
+        open={isDeleteOpen}
+        studentId={student.id}
+      />
+    </div>
+  );
 };
 
 export const columns: DataTableColumnDef<Student>[] = [
@@ -73,9 +169,12 @@ export const columns: DataTableColumnDef<Student>[] = [
     cell: ({ row }) => {
       return (
         <div className="flex max-w-full items-center gap-3">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-full border bg-muted text-muted-foreground">
-            <UserRoundIcon className="size-5" />
-          </div>
+          <StudentAvatar
+            className="size-10"
+            gender={row.original.gender}
+            name={row.original.fullName}
+            photoUrl={row.original.photoUrl}
+          />
           <div className="min-w-0 flex-1">
             <Link
               className="block truncate font-medium hover:underline"
@@ -117,14 +216,14 @@ export const columns: DataTableColumnDef<Student>[] = [
     ),
     cell: ({ row }) => (
       <Badge variant="outline">
-        {row.original.status === "ACTIVE" ? "Active" : "Inactive"}
+        {row.original.status === "ACTIVE" ? "Active" : "Archived"}
       </Badge>
     ),
     meta: {
       label: "Status",
       options: [
         { label: "Active", value: "ACTIVE" },
-        { label: "Inactive", value: "INACTIVE" },
+        { label: "Archived", value: "ARCHIVED" },
       ],
       variant: "select",
     },
@@ -134,64 +233,7 @@ export const columns: DataTableColumnDef<Student>[] = [
   {
     id: "actions",
     header: () => <div className="text-right">Actions</div>,
-    cell: ({ row }) => {
-      const guardian = row.original.guardians[0]?.guardian;
-      return (
-        <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button aria-label="Row actions" size="icon" variant="ghost">
-                <MoreHorizontalIcon className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuItem asChild>
-                <Link href={`/students/${row.original.id}`}>
-                  <EyeIcon />
-                  View profile
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href={`/students/${row.original.id}/edit`}>
-                  <Edit3Icon />
-                  Edit
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link
-                  href={
-                    guardian?.phone ? `https://wa.me/${guardian.phone}` : "#"
-                  }
-                >
-                  <MessageCircleIcon />
-                  WhatsApp
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive focus:text-destructive">
-                <form
-                  action={archiveStudent}
-                  onSubmit={(e) => {
-                    if (!window.confirm("Archive this student?")) {
-                      e.preventDefault();
-                    }
-                  }}
-                >
-                  <input
-                    name="studentId"
-                    type="hidden"
-                    value={row.original.id}
-                  />
-                  <button className="flex items-center gap-2" type="submit">
-                    <ArchiveIcon />
-                    Archive
-                  </button>
-                </form>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      );
-    },
+    cell: ({ row }) => <StudentRowActions student={row.original} />,
     enableSorting: false,
     enableHiding: false,
   },

@@ -25,17 +25,17 @@ import {
   LandmarkIcon,
   MailIcon,
   MapPinIcon,
-  MoreHorizontalIcon,
   PhoneIcon,
   SchoolIcon,
   ShieldCheckIcon,
-  UserRoundIcon,
   UsersRoundIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Balancer from "react-wrap-balancer";
 import { Header } from "../../components/header";
+import { StudentAvatar } from "../../components/student-avatar";
+import { StudentProfileActions } from "../../components/student-profile-actions";
 
 interface StudentPageProperties {
   readonly params: Promise<{ studentId: string }>;
@@ -67,6 +67,12 @@ const formatTime = (value: string) =>
     hour: "numeric",
     minute: "2-digit",
   }).format(new Date(`1970-01-01T${value}:00`));
+
+const genderLabels: Record<string, string> = {
+  MALE: "Male",
+  FEMALE: "Female",
+  OTHER: "Other",
+};
 
 const getStudentData = async (studentId: string, organizationId: string) => {
   const student = await database.student.findFirst({
@@ -122,16 +128,19 @@ const StudentHeader = ({
   <Card>
     <CardContent className="flex flex-col gap-5 p-5 md:flex-row md:items-start md:justify-between">
       <div className="flex items-start gap-4">
-        <div className="flex size-20 shrink-0 items-center justify-center rounded-full border bg-muted text-muted-foreground">
-          <UserRoundIcon className="size-10" />
-        </div>
+        <StudentAvatar
+          className="size-20 shrink-0"
+          gender={student.gender}
+          name={student.fullName}
+          photoUrl={student.photoUrl}
+        />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="font-semibold text-2xl tracking-tight md:text-3xl">
               <Balancer>{student.fullName}</Balancer>
             </h1>
             <Badge variant="outline">
-              {student.status === "ACTIVE" ? "Active" : "Inactive"}
+              {student.status === "ACTIVE" ? "Active" : "Archived"}
             </Badge>
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-muted-foreground text-sm">
@@ -170,10 +179,10 @@ const StudentHeader = ({
           <CreditCardIcon className="size-4" />
           Create invoice
         </Button>
-        <Button variant="outline">
-          <MoreHorizontalIcon className="size-4" />
-          More
-        </Button>
+        <StudentProfileActions
+          status={student.status}
+          studentId={student.id}
+        />
       </div>
     </CardContent>
   </Card>
@@ -239,10 +248,32 @@ const StudentOverviewTab = ({ student }: { readonly student: StudentData }) => (
       {[
         ["Full name", student.fullName],
         ["Preferred name", student.preferredName ?? "-"],
+        [
+          "Date of birth",
+          student.dateOfBirth ? formatDate(student.dateOfBirth) : "-",
+        ],
+        [
+          "Gender",
+          student.gender ? (genderLabels[student.gender] ?? "-") : "-",
+        ],
         ["School", student.schoolName ?? "-"],
         ["Academic level", student.level?.name ?? "-"],
         ["Branch", student.branch?.name ?? "-"],
+        ["Phone", student.phone ?? "-"],
+        ["Email", student.email ?? "-"],
         ["Enrolled", formatDate(student.enrolledAt)],
+        [
+          "Address",
+          [
+            student.addressLine1,
+            student.addressLine2,
+            student.city,
+            student.state,
+            student.postcode,
+          ]
+            .filter(Boolean)
+            .join(", ") || "-",
+        ],
       ].map(([label, value]) => (
         <div className="grid gap-1" key={label}>
           <span className="text-muted-foreground text-xs">{label}</span>
@@ -676,8 +707,8 @@ const StudentProfilePage = async ({ params }: StudentPageProperties) => {
               Student Information
             </h1>
             <p className="text-muted-foreground text-sm">
-              View student profile details, guardian contacts, class enrollments,
-              billing, and attendance.
+              View student profile details, guardian contacts, class
+              enrollments, billing, and attendance.
             </p>
           </div>
         </div>

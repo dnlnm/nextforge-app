@@ -153,7 +153,17 @@ model Student {
   code              String
   fullName          String
   preferredName     String?
+  dateOfBirth       DateTime?
+  gender            Gender?
+  phone             String?
+  email             String?
+  addressLine1      String?
+  addressLine2      String?
+  city              String?
+  state             String?
+  postcode          String?
   schoolName        String?
+  photoUrl          String?
   enrolledAt        DateTime           @default(now())
   status            StudentStatus      @default(ACTIVE)
   notes             String?
@@ -552,9 +562,13 @@ enum AuditAction {
 
 enum StudentStatus {
   ACTIVE
-  INACTIVE
-  GRADUATED
   ARCHIVED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
 }
 
 enum GuardianRelationship {

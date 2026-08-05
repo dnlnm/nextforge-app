@@ -341,7 +341,7 @@ const SubjectStudentsTab = ({ subject }: { readonly subject: SubjectData }) => {
                   {student.level?.name ?? "General"}
                 </Badge>
                 <Badge variant="outline">
-                  {student.status === "ACTIVE" ? "Active" : "Inactive"}
+                  {student.status === "ACTIVE" ? "Active" : "Archived"}
                 </Badge>
               </div>
             </div>

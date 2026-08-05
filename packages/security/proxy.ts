@@ -6,6 +6,10 @@ export { createMiddleware as securityMiddleware } from "@nosecone/next";
 // https://docs.arcjet.com/nosecone/quick-start
 export const noseconeOptions: Options = {
   ...defaults,
+  // Cross-Origin-Embedder-Policy is disabled because it blocks cross-origin
+  // resources that don't send a `Cross-Origin-Resource-Policy: cross-origin`
+  // header, such as images served from Vercel Blob storage.
+  crossOriginEmbedderPolicy: false,
   // Content Security Policy (CSP) is disabled by default because the values
   // depend on which Next Forge features are enabled. See
   // https://www.next-forge.com/packages/security/headers for guidance on how

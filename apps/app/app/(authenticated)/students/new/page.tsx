@@ -4,10 +4,12 @@ import { Button } from "@repo/design-system/components/ui/button";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
 import { Checkbox } from "@repo/design-system/components/ui/checkbox";
+import { DatePicker } from "@repo/design-system/components/ui/date-picker";
 import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
 import {
@@ -18,15 +20,17 @@ import {
   SelectValue,
 } from "@repo/design-system/components/ui/select";
 import { Separator } from "@repo/design-system/components/ui/separator";
-import { Textarea } from "@repo/design-system/components/ui/textarea";
 import {
-  CalendarIcon,
-  CloudUploadIcon,
-  UserRoundIcon,
-  UsersRoundIcon,
-} from "lucide-react";
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@repo/design-system/components/ui/tabs";
+import { Textarea } from "@repo/design-system/components/ui/textarea";
+import { BookOpenIcon, UserRoundIcon, UsersRoundIcon } from "lucide-react";
 import Link from "next/link";
 import { Header } from "../../components/header";
+import { StudentPhotoUpload } from "../../components/student-photo-upload";
 import { createStudent, getNextStudentCode } from "../actions";
 
 const Required = () => <span className="text-destructive">*</span>;
@@ -84,73 +88,79 @@ const AddStudentPage = async () => {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="dateOfBirth">
-                      Date of Birth <Required />
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        id="dateOfBirth"
-                        placeholder="Select date of birth"
-                      />
-                      <CalendarIcon className="absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                    </div>
+                    <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                    <DatePicker
+                      className="!justify-center !text-center w-40"
+                      id="dateOfBirth"
+                      name="dateOfBirth"
+                      placeholder="Select date of birth"
+                    />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="gender">
-                      Gender <Required />
-                    </Label>
-                    <Select>
+                    <Label htmlFor="gender">Gender</Label>
+                    <Select name="gender">
                       <SelectTrigger id="gender">
                         <SelectValue placeholder="Select gender" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="male">Male</SelectItem>
-                        <SelectItem value="female">Female</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
+                        <SelectItem value="MALE">Male</SelectItem>
+                        <SelectItem value="FEMALE">Female</SelectItem>
+                        <SelectItem value="OTHER">Other</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="studentAddress">
-                    Address <Required />
-                  </Label>
+                  <Label htmlFor="studentAddress">Address</Label>
                   <Textarea
                     className="min-h-20"
                     id="studentAddress"
+                    name="studentAddress"
                     placeholder="Enter full address"
                   />
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-3">
                   <div className="grid gap-2">
-                    <Label htmlFor="postcode">
-                      Postcode <Required />
-                    </Label>
-                    <Input id="postcode" placeholder="Enter postcode" />
+                    <Label htmlFor="postcode">Postcode</Label>
+                    <Input
+                      id="postcode"
+                      name="postcode"
+                      placeholder="Enter postcode"
+                    />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="city">
-                      City <Required />
-                    </Label>
-                    <Input id="city" placeholder="Enter city" />
+                    <Label htmlFor="city">City</Label>
+                    <Input id="city" name="city" placeholder="Enter city" />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="state">
-                      State <Required />
-                    </Label>
-                    <Select>
+                    <Label htmlFor="state">State</Label>
+                    <Select name="state">
                       <SelectTrigger id="state">
                         <SelectValue placeholder="Select state" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="selangor">Selangor</SelectItem>
-                        <SelectItem value="kuala-lumpur">
+                        <SelectItem value="Johor">Johor</SelectItem>
+                        <SelectItem value="Kedah">Kedah</SelectItem>
+                        <SelectItem value="Kelantan">Kelantan</SelectItem>
+                        <SelectItem value="Kuala Lumpur">
                           Kuala Lumpur
                         </SelectItem>
-                        <SelectItem value="johor">Johor</SelectItem>
-                        <SelectItem value="penang">Penang</SelectItem>
+                        <SelectItem value="Labuan">Labuan</SelectItem>
+                        <SelectItem value="Melaka">Melaka</SelectItem>
+                        <SelectItem value="Negeri Sembilan">
+                          Negeri Sembilan
+                        </SelectItem>
+                        <SelectItem value="Pahang">Pahang</SelectItem>
+                        <SelectItem value="Penang">Penang</SelectItem>
+                        <SelectItem value="Perak">Perak</SelectItem>
+                        <SelectItem value="Perlis">Perlis</SelectItem>
+                        <SelectItem value="Putrajaya">Putrajaya</SelectItem>
+                        <SelectItem value="Sabah">Sabah</SelectItem>
+                        <SelectItem value="Sarawak">Sarawak</SelectItem>
+                        <SelectItem value="Selangor">Selangor</SelectItem>
+                        <SelectItem value="Terengganu">Terengganu</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -158,9 +168,7 @@ const AddStudentPage = async () => {
 
                 <div className="grid gap-4 md:grid-cols-[1fr_1.5fr]">
                   <div className="grid gap-2">
-                    <Label htmlFor="studentPhone">
-                      Phone Number <Required />
-                    </Label>
+                    <Label htmlFor="studentPhone">Phone Number</Label>
                     <div className="grid grid-cols-[96px_1fr] gap-2">
                       <Select defaultValue="60">
                         <SelectTrigger id="studentPhoneCode">
@@ -172,6 +180,7 @@ const AddStudentPage = async () => {
                       </Select>
                       <Input
                         id="studentPhone"
+                        name="studentPhone"
                         placeholder="Enter phone number"
                       />
                     </div>
@@ -182,6 +191,7 @@ const AddStudentPage = async () => {
                     </Label>
                     <Input
                       id="studentEmail"
+                      name="studentEmail"
                       placeholder="Enter email address"
                       type="email"
                     />
@@ -222,11 +232,141 @@ const AddStudentPage = async () => {
                     <Label htmlFor="notes">Notes (optional)</Label>
                     <Textarea
                       id="notes"
+                      name="notes"
                       placeholder="Additional notes (optional)"
                     />
                   </div>
                 </div>
               </CardContent>
+            </Card>
+
+            <Card>
+              <Tabs className="gap-0" defaultValue="guardian">
+                <CardHeader>
+                  <TabsList className="grid h-auto w-full grid-cols-2">
+                    <TabsTrigger value="guardian">
+                      <UsersRoundIcon />
+                      Guardian
+                    </TabsTrigger>
+                    <TabsTrigger value="classes">
+                      <BookOpenIcon />
+                      Classes
+                    </TabsTrigger>
+                  </TabsList>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <TabsContent
+                    className="p-4 data-[state=inactive]:hidden"
+                    forceMount
+                    value="guardian"
+                  >
+                    <div className="grid gap-4">
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="grid gap-2">
+                          <Label htmlFor="guardianName">
+                            Guardian Name <Required />
+                          </Label>
+                          <Input
+                            id="guardianName"
+                            name="guardianName"
+                            placeholder="Enter guardian full name"
+                            required
+                          />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="relationship">
+                            Relationship <Required />
+                          </Label>
+                          <Select name="relationship">
+                            <SelectTrigger id="relationship">
+                              <SelectValue placeholder="Select relationship" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="FATHER">Father</SelectItem>
+                              <SelectItem value="MOTHER">Mother</SelectItem>
+                              <SelectItem value="GUARDIAN">Guardian</SelectItem>
+                              <SelectItem value="OTHER">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="grid gap-2">
+                          <Label htmlFor="guardianPhone">
+                            Phone Number <Required />
+                          </Label>
+                          <div className="grid grid-cols-[82px_1fr] gap-2">
+                            <Select defaultValue="60">
+                              <SelectTrigger id="guardianPhoneCode">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="60">+60</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Input
+                              id="guardianPhone"
+                              name="guardianPhone"
+                              placeholder="Enter phone number"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="guardianEmail">
+                            Email Address (optional)
+                          </Label>
+                          <Input
+                            id="guardianEmail"
+                            name="guardianEmail"
+                            placeholder="Enter email address (optional)"
+                            type="email"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="guardianAddress">Address</Label>
+                        <Textarea
+                          id="guardianAddress"
+                          name="guardianAddress"
+                          placeholder="Enter guardian address"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Checkbox defaultChecked name="sameAsStudentAddress" />
+                        <span>Same as student address</span>
+                      </div>
+                    </div>
+                  </TabsContent>
+                  <TabsContent
+                    className="p-4 data-[state=inactive]:hidden"
+                    forceMount
+                    value="classes"
+                  >
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base">
+                          Class Enrollment
+                        </CardTitle>
+                        <CardDescription>
+                          Assign this student to their classes.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex min-h-40 flex-col items-center justify-center rounded-lg border border-dashed bg-muted/20 p-6 text-center">
+                          <BookOpenIcon className="size-8 text-muted-foreground" />
+                          <p className="mt-3 font-medium text-sm">
+                            Class enrollment coming soon
+                          </p>
+                          <p className="mt-1 max-w-sm text-muted-foreground text-xs">
+                            You&apos;ll be able to assign this student to
+                            classes right after creating their profile.
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                </CardContent>
+              </Tabs>
             </Card>
           </section>
 
@@ -236,23 +376,7 @@ const AddStudentPage = async () => {
                 <CardTitle className="text-base">Profile Photo</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex min-h-56 flex-col items-center justify-center rounded-lg border bg-muted/20 p-6 text-center">
-                  <div className="relative flex size-24 items-center justify-center rounded-full border bg-background text-muted-foreground">
-                    <UserRoundIcon className="size-10" />
-                    <div className="absolute right-1 bottom-2 flex size-8 items-center justify-center rounded-full border bg-background">
-                      <CloudUploadIcon className="size-4" />
-                    </div>
-                  </div>
-                  <p className="mt-5 font-medium text-sm">
-                    Upload student photo
-                  </p>
-                  <p className="mt-1 text-muted-foreground text-xs">
-                    JPG, PNG or up to 2MB
-                  </p>
-                  <Button className="mt-5" type="button" variant="outline">
-                    Choose File
-                  </Button>
-                </div>
+                <StudentPhotoUpload name="photoUrl" />
               </CardContent>
             </Card>
 
@@ -274,86 +398,6 @@ const AddStudentPage = async () => {
                     <span>{value}</span>
                   </div>
                 ))}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-base">
-                  <UsersRoundIcon className="size-5 text-muted-foreground" />
-                  Guardian Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="guardianName">
-                    Guardian Name <Required />
-                  </Label>
-                  <Input
-                    id="guardianName"
-                    name="guardianName"
-                    placeholder="Enter guardian full name"
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="relationship">
-                    Relationship <Required />
-                  </Label>
-                  <Select name="relationship">
-                    <SelectTrigger id="relationship">
-                      <SelectValue placeholder="Select relationship" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="FATHER">Father</SelectItem>
-                      <SelectItem value="MOTHER">Mother</SelectItem>
-                      <SelectItem value="GUARDIAN">Guardian</SelectItem>
-                      <SelectItem value="OTHER">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="guardianPhone">
-                    Phone Number <Required />
-                  </Label>
-                  <div className="grid grid-cols-[82px_1fr] gap-2">
-                    <Select defaultValue="60">
-                      <SelectTrigger id="guardianPhoneCode">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="60">+60</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Input
-                      id="guardianPhone"
-                      name="guardianPhone"
-                      placeholder="Enter phone number"
-                    />
-                  </div>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="guardianEmail">
-                    Email Address (optional)
-                  </Label>
-                  <Input
-                    id="guardianEmail"
-                    name="guardianEmail"
-                    placeholder="Enter email address (optional)"
-                    type="email"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="guardianAddress">Address</Label>
-                  <Textarea
-                    id="guardianAddress"
-                    placeholder="Same as student address"
-                  />
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Checkbox defaultChecked />
-                  <span>Same as student address</span>
-                </div>
               </CardContent>
             </Card>
 
