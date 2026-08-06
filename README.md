@@ -93,25 +93,22 @@ For detailed setup instructions, read the [documentation](https://www.next-forge
 
 ### Local subdomain development
 
-TLAS.MY uses per-centre subdomains (e.g. `brightmind.tlas.local`). To develop
-locally, map the main domain and wildcard subdomains to localhost in your hosts
-file:
+TLAS.MY uses per-centre subdomains (e.g. `brightmind.klio.my`). Local dev runs
+through a [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/)
+that exposes `localhost:3000` as `klio.my` with wildcard subdomains
+(`*.klio.my`). The tunnel ingress and credentials are not committed to the repo
+(see `.gitignore`).
 
-```
-127.0.0.1  tlas.local
-127.0.0.1  *.tlas.local
-```
+The tunnel config maps both `*.klio.my` and `klio.my` to `http://localhost:3000`.
 
-> Note: `*.tlas.local` may not redirect in all browsers. If it doesn't resolve,
-> add explicit entries per centre you test, e.g. `127.0.0.1 brightmind.tlas.local`.
-
-- Main domain (`tlas.local`) hosts the SaaS management UI: centres list, centre
+- Main domain (`klio.my`) hosts the SaaS management UI: centres list, centre
   settings, billing, account, and centre setup.
-- Subdomains (`<slug>.tlas.local`) host each centre's tuition workspace.
+- Subdomains (`<slug>.klio.my`) host each centre's tuition workspace.
 
-Set `NEXT_PUBLIC_APP_URL="http://tlas.local:3000"` in `apps/app/.env.local` to
-match. Signing in on the main domain lands on your centres list; signing in on a
-centre subdomain lands directly in that workspace.
+Set `NEXT_PUBLIC_APP_URL="https://klio.my"` and
+`NEXT_PUBLIC_MAIN_DOMAIN="klio.my"` in `apps/app/.env.local`. Signing in on the
+main domain lands on your centres list; signing in on a centre subdomain lands
+directly in that workspace.
 
 ## Structure
 
