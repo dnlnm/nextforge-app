@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { DatePicker } from "@repo/design-system/components/ui/date-picker";
 import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
 import {
@@ -289,13 +290,25 @@ const ClassPage = async ({ params }: ClassPageProperties) => {
                       {enrollment.student.fullName}
                     </TableCell>
                     <TableCell>
-                      <form action={updateEnrollment} className="flex gap-2">
+                      <form
+                        action={updateEnrollment}
+                        className="flex flex-wrap items-center gap-2"
+                      >
                         <input
                           name="enrollmentId"
                           type="hidden"
                           value={enrollment.id}
                         />
+                        <DatePicker
+                          className="!w-32"
+                          defaultValue={enrollment.startsOn
+                            .toISOString()
+                            .slice(0, 10)}
+                          name="startsOn"
+                          placeholder="Start date"
+                        />
                         <Input
+                          className="w-28"
                           defaultValue={
                             enrollment.customFeeSen === null
                               ? ""

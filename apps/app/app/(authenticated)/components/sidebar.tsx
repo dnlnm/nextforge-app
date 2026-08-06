@@ -1,8 +1,5 @@
 "use client";
 
-import { UserButton } from "@repo/auth/client";
-import { ModeToggle } from "@repo/design-system/components/mode-toggle";
-import { Button } from "@repo/design-system/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -15,7 +12,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@repo/design-system/components/ui/sidebar";
-import { NotificationsTrigger } from "@repo/notifications/components/trigger";
 import {
   BarChart3Icon,
   BookOpenIcon,
@@ -34,6 +30,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Brand } from "@/components/brand";
+import { SidebarUserMenu } from "./sidebar-user-menu";
 
 interface GlobalSidebarProperties {
   readonly children: ReactNode;
@@ -122,21 +119,8 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
         </SidebarContent>
         <SidebarFooter>
           <SidebarMenu>
-            <SidebarMenuItem className="flex items-center gap-2">
-              <UserButton showName />
-              <div className="flex shrink-0 items-center gap-px">
-                <ModeToggle />
-                <Button
-                  asChild
-                  className="shrink-0"
-                  size="icon"
-                  variant="ghost"
-                >
-                  <div className="h-4 w-4">
-                    <NotificationsTrigger />
-                  </div>
-                </Button>
-              </div>
+            <SidebarMenuItem>
+              <SidebarUserMenu />
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarFooter>

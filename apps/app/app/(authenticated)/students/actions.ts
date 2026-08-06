@@ -57,6 +57,17 @@ const relationships = new Set<GuardianRelationship>([
 ]);
 
 const csvLineRegex = /\r?\n/;
+const csvDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+
+const parseCsvDate = (value: string | undefined) => {
+  if (!(value && csvDateRegex.test(value))) {
+    return undefined;
+  }
+
+  const date = new Date(`${value}T00:00:00.000Z`);
+
+  return Number.isNaN(date.getTime()) ? undefined : date;
+};
 
 const formatCode = (prefix: string, sequence: number) =>
   `${prefix}${String(sequence).padStart(4, "0")}`;
@@ -153,6 +164,7 @@ export const createStudent = async (formData: FormData) => {
         code: formatCode("STU", sequence),
         levelId,
         dateOfBirth: getDate(formData, "dateOfBirth"),
+        enrolledAt: getDate(formData, "enrolledAt") ?? new Date(),
         gender: getGender(formData, "gender"),
         phone: getString(formData, "studentPhone"),
         email: getString(formData, "studentEmail"),
@@ -356,6 +368,7 @@ export const updateStudent = async (formData: FormData) => {
         fullName,
         levelId,
         dateOfBirth: getDate(formData, "dateOfBirth"),
+        enrolledAt: getDate(formData, "enrolledAt"),
         gender: getGender(formData, "gender"),
         phone: getString(formData, "studentPhone"),
         email: getString(formData, "studentEmail"),
@@ -479,6 +492,7 @@ export const importStudents = async (formData: FormData) => {
           fullName,
           code: formatCode("STU", startSequence + index),
           levelId: levelByName.get(row.academiclevel),
+          enrolledAt: parseCsvDate(row.enrolledat),
           preferredName: row.preferredname,
           schoolName: row.schoolname,
         },

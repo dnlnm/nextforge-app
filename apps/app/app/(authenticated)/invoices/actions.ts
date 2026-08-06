@@ -48,11 +48,17 @@ export const generateMonthlyInvoices = async (formData: FormData) => {
   const settings = await database.organizationSettings.findUnique({
     where: { organizationId: tenant.organizationId },
   });
+  // Only bill students whose enrollment date and class start date are in or
+  // before the billing month, so students who register early but start later
+  // are not invoiced before they actually begin.
+  const [year, month] = billingMonth.split("-").map(Number);
+  const endOfBillingMonth = new Date(Date.UTC(year, month, 1));
   const enrollments = await database.enrollment.findMany({
     where: {
       organizationId: tenant.organizationId,
       status: "ACTIVE",
-      student: { status: "ACTIVE" },
+      startsOn: { lte: endOfBillingMonth },
+      student: { status: "ACTIVE", enrolledAt: { lte: endOfBillingMonth } },
       class: { status: "ACTIVE" },
     },
     include: {

@@ -97,6 +97,18 @@ const AddStudentPage = async () => {
                     />
                   </div>
                   <div className="grid gap-2">
+                    <Label htmlFor="enrolledAt">
+                      Enrollment Date <Required />
+                    </Label>
+                    <DatePicker
+                      className="!justify-center !text-center w-40"
+                      defaultValue={new Date().toISOString().slice(0, 10)}
+                      id="enrolledAt"
+                      name="enrolledAt"
+                      placeholder="Select enrollment date"
+                    />
+                  </div>
+                  <div className="grid gap-2">
                     <Label htmlFor="gender">Gender</Label>
                     <Select name="gender">
                       <SelectTrigger id="gender">
@@ -388,7 +400,7 @@ const AddStudentPage = async () => {
                 {[
                   ["Status", "Active"],
                   ["Student ID", nextCode],
-                  ["Date Added", "Will be set after saving"],
+                  ["Enrollment Date", "Set in personal information"],
                 ].map(([label, value]) => (
                   <div
                     className="grid grid-cols-[6rem_1fr] gap-3 text-sm"

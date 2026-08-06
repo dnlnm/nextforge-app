@@ -52,7 +52,9 @@ const InvoicesPage = async () => {
             <CardTitle>Generate monthly invoices</CardTitle>
             <CardDescription>
               Creates one invoice per active student based on active class
-              enrolments. Existing invoices for the same month are skipped.
+              enrolments that have started. Students whose enrollment date is
+              after the billing month are skipped. Existing invoices for the
+              same month are not recreated.
             </CardDescription>
           </CardHeader>
           <CardContent>

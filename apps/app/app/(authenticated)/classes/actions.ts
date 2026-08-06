@@ -39,6 +39,18 @@ const getInt = (formData: FormData, key: string) => {
   return Number.isNaN(parsed) ? undefined : parsed;
 };
 
+const getDate = (formData: FormData, key: string) => {
+  const value = getString(formData, key);
+
+  if (!value) {
+    return undefined;
+  }
+
+  const date = new Date(`${value}T00:00:00.000Z`);
+
+  return Number.isNaN(date.getTime()) ? undefined : date;
+};
+
 const getMoneySen = (formData: FormData, key: string) => {
   const value = getString(formData, key);
 
@@ -242,6 +254,7 @@ export const enrollStudent = async (formData: FormData) => {
       organizationId: tenant.organizationId,
       classId: learningClass.id,
       customFeeSen: getMoneySen(formData, "customFee"),
+      startsOn: getDate(formData, "startsOn") ?? new Date(),
       studentId: student.id,
     },
   });
@@ -351,7 +364,10 @@ export const updateEnrollment = async (formData: FormData) => {
 
   await database.enrollment.updateMany({
     where: { id: enrollmentId, organizationId: tenant.organizationId },
-    data: { customFeeSen: getMoneySen(formData, "customFee") },
+    data: {
+      customFeeSen: getMoneySen(formData, "customFee"),
+      startsOn: getDate(formData, "startsOn"),
+    },
   });
 
   revalidatePath("/classes");

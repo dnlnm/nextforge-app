@@ -136,6 +136,18 @@ const StudentEditPage = async ({ params }: StudentEditPageProperties) => {
                   />
                 </div>
                 <div className="grid gap-2">
+                  <Label htmlFor="enrolledAt">Enrollment date</Label>
+                  <DatePicker
+                    className="!justify-center !text-center w-40"
+                    defaultValue={student.enrolledAt.toISOString().slice(0, 10)}
+                    id="enrolledAt"
+                    name="enrolledAt"
+                    placeholder="Select enrollment date"
+                  />
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-2">
                   <Label htmlFor="gender">Gender</Label>
                   <Select defaultValue={student.gender ?? "none"} name="gender">
                     <SelectTrigger id="gender">
