@@ -10,10 +10,18 @@ import {
 import { createBrowserClient } from "@supabase/ssr";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { getMainDomain } from "./domain";
 
 const browserClient = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? ""
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "",
+  {
+    cookieOptions: {
+      domain: `.${getMainDomain()}`,
+      path: "/",
+      sameSite: "lax",
+    },
+  }
 );
 
 export const createClient = () => browserClient;

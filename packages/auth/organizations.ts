@@ -2,10 +2,11 @@ import "server-only";
 
 import { database } from "@repo/database";
 import { createClient, currentUser } from "./server";
+import { generateSlug, isSlugAvailable } from "./slug-utils";
 
 const whitespace = /\s+/;
 
-const ensureLocalUser = async () => {
+export const ensureLocalUser = async () => {
   const user = await currentUser();
 
   if (!user) {
@@ -54,11 +55,42 @@ export const getOrganizations = async () => {
   });
 };
 
-export const createOrganization = async (name: string, imageUrl?: string) => {
+export const createOrganization = async (
+  name: string,
+  imageUrl?: string,
+  slugOverride?: string
+) => {
   const user = await ensureLocalUser();
 
   if (!user) {
     throw new Error("You must be signed in to create an organization");
+  }
+
+  const ownedOrganizations = await database.organizationMembership.count({
+    where: {
+      userId: user.id,
+      role: "OWNER",
+      status: "ACTIVE",
+      organization: { status: "ACTIVE" },
+    },
+  });
+
+  if (ownedOrganizations >= 1) {
+    throw new Error(
+      "You can only create one tuition centre. Contact support if you need additional centres."
+    );
+  }
+
+  const slug = slugOverride ? generateSlug(slugOverride) : generateSlug(name);
+
+  if (!slug || slug.length < 3) {
+    throw new Error("Please choose a valid centre URL.");
+  }
+
+  const availability = await isSlugAvailable(slug);
+
+  if (!availability.available) {
+    throw new Error(availability.reason ?? "That centre URL is not available.");
   }
 
   const defaultLevels: Array<{
@@ -85,6 +117,7 @@ export const createOrganization = async (name: string, imageUrl?: string) => {
   const organization = await database.organization.create({
     data: {
       name,
+      slug,
       imageUrl,
       createdByUserId: user.id,
       settings: { create: {} },

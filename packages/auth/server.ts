@@ -3,6 +3,7 @@ import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import type { User } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { getMainDomain } from "./domain";
 import { keys } from "./keys";
 
 export const createClient = async () => {
@@ -18,12 +19,22 @@ export const createClient = async () => {
         setAll: (cookiesToSet) => {
           try {
             for (const { name, value, options } of cookiesToSet) {
-              cookieStore.set(name, value, options);
+              cookieStore.set(name, value, {
+                ...options,
+                domain: `.${getMainDomain()}`,
+                path: "/",
+                sameSite: "lax",
+              });
             }
           } catch {
             // Server Components cannot write cookies; proxy refreshes sessions.
           }
         },
+      },
+      cookieOptions: {
+        domain: `.${getMainDomain()}`,
+        path: "/",
+        sameSite: "lax",
       },
     }
   );

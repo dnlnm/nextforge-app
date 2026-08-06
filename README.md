@@ -91,6 +91,28 @@ npx next-forge@latest init
 
 For detailed setup instructions, read the [documentation](https://www.next-forge.com/docs).
 
+### Local subdomain development
+
+TLAS.MY uses per-centre subdomains (e.g. `brightmind.tlas.local`). To develop
+locally, map the main domain and wildcard subdomains to localhost in your hosts
+file:
+
+```
+127.0.0.1  tlas.local
+127.0.0.1  *.tlas.local
+```
+
+> Note: `*.tlas.local` may not redirect in all browsers. If it doesn't resolve,
+> add explicit entries per centre you test, e.g. `127.0.0.1 brightmind.tlas.local`.
+
+- Main domain (`tlas.local`) hosts the SaaS management UI: centres list, centre
+  settings, billing, account, and centre setup.
+- Subdomains (`<slug>.tlas.local`) host each centre's tuition workspace.
+
+Set `NEXT_PUBLIC_APP_URL="http://tlas.local:3000"` in `apps/app/.env.local` to
+match. Signing in on the main domain lands on your centres list; signing in on a
+centre subdomain lands directly in that workspace.
+
 ## Structure
 
 next-forge uses a monorepo structure managed by Turborepo:

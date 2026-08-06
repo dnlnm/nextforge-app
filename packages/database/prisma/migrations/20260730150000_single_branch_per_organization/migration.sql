@@ -83,4 +83,4 @@ SET "isDefault" = true;
 
 DROP INDEX IF EXISTS "Branch_organizationId_name_key";
 
-CREATE UNIQUE INDEX "Branch_organizationId_key" ON "Branch"("organizationId");
+CREATE UNIQUE INDEX IF NOT EXISTS "Branch_organizationId_key" ON "Branch"("organizationId");
