@@ -59,6 +59,7 @@ model Organization {
   students          Student[]
   subjects          Subject[]
   levels            Level[]
+  rooms             Room[]
   AdminInvitation   AdminInvitation[]
   TeacherInvitation TeacherInvitation[]
   teachers          TeacherProfile[]
@@ -306,16 +307,15 @@ model LearningClass {
   code           String
   name           String
   academicYear   Int
-  dayOfWeek      DayOfWeek
-  startsAt       String
-  endsAt         String
-  room           String?
+  startsOn       DateTime
+  endsOn         DateTime?
   capacity       Int?
   monthlyFeeSen  Int               @default(0)
   status         ClassStatus       @default(ACTIVE)
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
   archivedAt     DateTime?
+  schedules      ClassSchedule[]
   sessions       ClassSession[]
   enrollments    Enrollment[]
   invoiceLines   InvoiceLineItem[]
@@ -329,9 +329,43 @@ model LearningClass {
   @@unique([organizationId, name])
   @@unique([organizationId, code])
   @@index([organizationId, status])
-  @@index([organizationId, dayOfWeek])
   @@index([subjectId])
   @@index([teacherId])
+}
+
+model ClassSchedule {
+  id        String        @id @default(cuid())
+  classId   String
+  dayOfWeek DayOfWeek
+  startsAt  String
+  endsAt    String
+  roomId    String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  class     LearningClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+  room      Room?         @relation(fields: [roomId], references: [id])
+
+  @@unique([classId, dayOfWeek])
+  @@index([classId])
+  @@index([roomId])
+  @@index([dayOfWeek])
+}
+
+model Room {
+  id             String          @id @default(cuid())
+  organizationId String
+  name           String
+  capacity       Int?
+  location       String?
+  status         RoomStatus      @default(ACTIVE)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  archivedAt     DateTime?
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  schedules      ClassSchedule[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId, status])
 }
 
 model Enrollment {
@@ -540,22 +574,22 @@ model TeacherInvitation {
 }
 
 model AdminInvitation {
-  id                                        String           @id @default(cuid())
-  organizationId                            String
-  email                                     String
-  fullName                                  String
-  token                                     String           @unique
-  status                                    InvitationStatus @default(PENDING)
-  invitedByUserId                           String?
-  acceptedByUserId                          String?
-  expiresAt                                 DateTime
-  acceptedAt                                DateTime?
-  createdAt                                 DateTime         @default(now())
-  updatedAt                                 DateTime         @updatedAt
-  revokedAt                                 DateTime?
-  User_AdminInvitation_acceptedByUserIdToUser User?          @relation("AdminInvitation_acceptedByUserIdToUser", fields: [acceptedByUserId], references: [id])
-  User_AdminInvitation_invitedByUserIdToUser  User?          @relation("AdminInvitation_invitedByUserIdToUser", fields: [invitedByUserId], references: [id])
-  Organization                              Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  id                                          String           @id @default(cuid())
+  organizationId                              String
+  email                                       String
+  fullName                                    String
+  token                                       String           @unique
+  status                                      InvitationStatus @default(PENDING)
+  invitedByUserId                             String?
+  acceptedByUserId                            String?
+  expiresAt                                   DateTime
+  acceptedAt                                  DateTime?
+  createdAt                                   DateTime         @default(now())
+  updatedAt                                   DateTime         @updatedAt
+  revokedAt                                   DateTime?
+  User_AdminInvitation_acceptedByUserIdToUser User?            @relation("AdminInvitation_acceptedByUserIdToUser", fields: [acceptedByUserId], references: [id])
+  User_AdminInvitation_invitedByUserIdToUser  User?            @relation("AdminInvitation_invitedByUserIdToUser", fields: [invitedByUserId], references: [id])
+  Organization                                Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, email, status])
   @@index([email, status])
@@ -636,6 +670,11 @@ enum DayOfWeek {
   FRIDAY
   SATURDAY
   SUNDAY
+}
+
+enum RoomStatus {
+  ACTIVE
+  ARCHIVED
 }
 
 enum ClassStatus {

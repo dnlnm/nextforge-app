@@ -39,34 +39,40 @@ export const createTodaySessions = async () => {
   const tenant = await requireTenantRole(["TEACHER"]);
   const today = getMalaysiaDateParts();
   const teacherProfileId = await getTeacherProfileId(tenant);
-  const classes = await database.learningClass.findMany({
+  const schedules = await database.classSchedule.findMany({
     where: {
-      organizationId: tenant.organizationId,
       dayOfWeek: today.dayOfWeek,
-      status: "ACTIVE",
-      ...(teacherProfileId ? { teacherId: teacherProfileId } : {}),
+      class: {
+        organizationId: tenant.organizationId,
+        status: "ACTIVE",
+        ...(teacherProfileId ? { teacherId: teacherProfileId } : {}),
+      },
     },
-    select: { endsAt: true, id: true, startsAt: true },
+    select: {
+      classId: true,
+      endsAt: true,
+      startsAt: true,
+    },
   });
 
-  for (const learningClass of classes) {
+  for (const schedule of schedules) {
     await database.classSession.upsert({
       where: {
         classId_sessionDate: {
-          classId: learningClass.id,
+          classId: schedule.classId,
           sessionDate: today.date,
         },
       },
       create: {
         organizationId: tenant.organizationId,
-        classId: learningClass.id,
-        endsAt: learningClass.endsAt,
+        classId: schedule.classId,
+        endsAt: schedule.endsAt,
         sessionDate: today.date,
-        startsAt: learningClass.startsAt,
+        startsAt: schedule.startsAt,
       },
       update: {
-        endsAt: learningClass.endsAt,
-        startsAt: learningClass.startsAt,
+        endsAt: schedule.endsAt,
+        startsAt: schedule.startsAt,
       },
     });
   }

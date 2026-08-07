@@ -11,14 +11,6 @@ import {
 } from "@repo/design-system/components/ui/card";
 import { DatePicker } from "@repo/design-system/components/ui/date-picker";
 import { Input } from "@repo/design-system/components/ui/input";
-import { Label } from "@repo/design-system/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@repo/design-system/components/ui/select";
 import {
   Table,
   TableBody,
@@ -27,31 +19,21 @@ import {
   TableHeader,
   TableRow,
 } from "@repo/design-system/components/ui/table";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Header } from "../../components/header";
-import { endEnrollment, updateClass, updateEnrollment } from "../actions";
+import { endEnrollment, updateEnrollment } from "../actions";
+import { ClassEditForm } from "../components/class-edit-form";
 
 interface ClassPageProperties {
   readonly params: Promise<{ classId: string }>;
 }
-
-const dayLabels = [
-  ["MONDAY", "Monday"],
-  ["TUESDAY", "Tuesday"],
-  ["WEDNESDAY", "Wednesday"],
-  ["THURSDAY", "Thursday"],
-  ["FRIDAY", "Friday"],
-  ["SATURDAY", "Saturday"],
-  ["SUNDAY", "Sunday"],
-] as const;
 
 const formatMoney = (amountSen: number) => (amountSen / 100).toFixed(2);
 
 const ClassPage = async ({ params }: ClassPageProperties) => {
   const tenant = await requireTenantRole(["ADMIN"]);
   const { classId } = await params;
-  const [learningClass, subjects, teachers, levels] = await Promise.all([
+  const [learningClass, subjects, teachers, levels, rooms] = await Promise.all([
     database.learningClass.findFirst({
       where: { id: classId, organizationId: tenant.organizationId },
       include: {
@@ -59,6 +41,10 @@ const ClassPage = async ({ params }: ClassPageProperties) => {
           where: { status: "ACTIVE" },
           include: { student: true },
           orderBy: { student: { fullName: "asc" } },
+        },
+        schedules: {
+          orderBy: { dayOfWeek: "asc" },
+          include: { room: true },
         },
       },
     }),
@@ -74,6 +60,14 @@ const ClassPage = async ({ params }: ClassPageProperties) => {
       where: { organizationId: tenant.organizationId, archivedAt: null },
       orderBy: { order: "asc" },
     }),
+    database.room.findMany({
+      where: {
+        archivedAt: null,
+        organizationId: tenant.organizationId,
+        status: "ACTIVE",
+      },
+      orderBy: { name: "asc" },
+    }),
   ]);
 
   if (!learningClass) {
@@ -87,184 +81,38 @@ const ClassPage = async ({ params }: ClassPageProperties) => {
         <div className="flex flex-wrap items-center gap-2 xl:col-span-full">
           <Badge variant="outline">{learningClass.code}</Badge>
           <Badge variant="secondary">{learningClass.academicYear}</Badge>
+          <Badge variant="secondary">
+            Starts {formatMoney(learningClass.monthlyFeeSen)}/mo
+          </Badge>
         </div>
         <Card>
           <CardHeader>
             <CardTitle>Edit class</CardTitle>
             <CardDescription>
-              Update schedule, teacher, room, and fee.
+              Update schedule, teacher, rooms, and fee.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form action={updateClass} className="grid gap-4">
-              <input name="classId" type="hidden" value={learningClass.id} />
-              <div className="grid gap-2">
-                <Label htmlFor="name">Class name</Label>
-                <Input
-                  defaultValue={learningClass.name}
-                  id="name"
-                  name="name"
-                  required
-                />
-              </div>
-              <div className="grid gap-2 md:grid-cols-2">
-                <div className="grid gap-2">
-                  <Label htmlFor="code">Class code</Label>
-                  <Input
-                    defaultValue={learningClass.code}
-                    id="code"
-                    name="code"
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="academicYear">Academic year</Label>
-                  <Input
-                    defaultValue={learningClass.academicYear}
-                    id="academicYear"
-                    min="2000"
-                    name="academicYear"
-                    required
-                    type="number"
-                  />
-                </div>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="subjectId">Subject</Label>
-                <Select
-                  defaultValue={learningClass.subjectId}
-                  name="subjectId"
-                  required
-                >
-                  <SelectTrigger id="subjectId">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {subjects.map((subject) => (
-                      <SelectItem key={subject.id} value={subject.id}>
-                        {subject.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="levelId">Level</Label>
-                <Select
-                  defaultValue={learningClass.levelId ?? "none"}
-                  name="levelId"
-                >
-                  <SelectTrigger id="levelId">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No level</SelectItem>
-                    {levels.map((level) => (
-                      <SelectItem key={level.id} value={level.id}>
-                        {level.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="teacherId">Teacher</Label>
-                <Select
-                  defaultValue={learningClass.teacherId ?? "none"}
-                  name="teacherId"
-                >
-                  <SelectTrigger id="teacherId">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No teacher yet</SelectItem>
-                    {teachers.map((teacher) => (
-                      <SelectItem key={teacher.id} value={teacher.id}>
-                        {teacher.fullName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2 md:grid-cols-3">
-                <div className="grid gap-2">
-                  <Label htmlFor="dayOfWeek">Day</Label>
-                  <Select
-                    defaultValue={learningClass.dayOfWeek}
-                    name="dayOfWeek"
-                    required
-                  >
-                    <SelectTrigger id="dayOfWeek">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {dayLabels.map(([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="startsAt">Starts</Label>
-                  <Input
-                    defaultValue={learningClass.startsAt}
-                    id="startsAt"
-                    name="startsAt"
-                    required
-                    type="time"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="endsAt">Ends</Label>
-                  <Input
-                    defaultValue={learningClass.endsAt}
-                    id="endsAt"
-                    name="endsAt"
-                    required
-                    type="time"
-                  />
-                </div>
-              </div>
-              <div className="grid gap-2 md:grid-cols-3">
-                <div className="grid gap-2">
-                  <Label htmlFor="monthlyFee">Monthly fee</Label>
-                  <Input
-                    defaultValue={formatMoney(learningClass.monthlyFeeSen)}
-                    id="monthlyFee"
-                    min="0"
-                    name="monthlyFee"
-                    step="0.01"
-                    type="number"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="capacity">Capacity</Label>
-                  <Input
-                    defaultValue={learningClass.capacity ?? ""}
-                    id="capacity"
-                    min="1"
-                    name="capacity"
-                    type="number"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="room">Room</Label>
-                  <Input
-                    defaultValue={learningClass.room ?? ""}
-                    id="room"
-                    name="room"
-                  />
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button type="submit">Save changes</Button>
-                <Button asChild variant="outline">
-                  <Link href="/classes">Cancel</Link>
-                </Button>
-              </div>
-            </form>
+            <ClassEditForm
+              classId={learningClass.id}
+              initialSchedules={learningClass.schedules}
+              initialValues={{
+                academicYear: learningClass.academicYear,
+                capacity: learningClass.capacity,
+                code: learningClass.code,
+                endsOn: learningClass.endsOn,
+                levelId: learningClass.levelId,
+                monthlyFeeSen: learningClass.monthlyFeeSen,
+                name: learningClass.name,
+                startsOn: learningClass.startsOn,
+                subjectId: learningClass.subjectId,
+                teacherId: learningClass.teacherId,
+              }}
+              levels={levels}
+              rooms={rooms}
+              subjects={subjects}
+              teachers={teachers}
+            />
           </CardContent>
         </Card>
         <Card>

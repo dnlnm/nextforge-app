@@ -50,7 +50,7 @@ const ReportsPage = async () => {
           subject: true,
           teacher: true,
         },
-        orderBy: [{ dayOfWeek: "asc" }, { startsAt: "asc" }],
+        orderBy: { name: "asc" },
         take: 50,
       }),
       database.attendanceRecord.groupBy({

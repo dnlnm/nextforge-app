@@ -38,16 +38,14 @@ const getDate = (formData: FormData, key: string) => {
   return Number.isNaN(date.getTime()) ? undefined : date;
 };
 
-const getAddressLines = (formData: FormData, key: string) => {
-  const [line1, line2] = (getString(formData, key) ?? "")
-    .split(csvLineRegex)
-    .map((line) => line.trim());
+const phoneStripRegex = /[-\s]/g;
+const phoneRegex = /^01\d{8,10}$/;
+const postcodeRegex = /^\d{5}$/;
 
-  return {
-    addressLine1: line1 || undefined,
-    addressLine2: line2 || undefined,
-  };
-};
+const isValidPhone = (phone: string) =>
+  phoneRegex.test(phone.replace(phoneStripRegex, ""));
+
+const isValidPostcode = (postcode: string) => postcodeRegex.test(postcode);
 
 const relationships = new Set<GuardianRelationship>([
   "FATHER",
@@ -126,32 +124,82 @@ const resolveLevel = async (levelId: string | undefined) => {
   return level?.id ?? null;
 };
 
-export const createStudent = async (formData: FormData) => {
+export const createStudent = async (
+  formData: FormData
+): Promise<{ error?: string }> => {
   const tenant = await requireTenantRole(["ADMIN"]);
   const fullName = getString(formData, "fullName");
   const guardianName = getString(formData, "guardianName");
 
   if (!(fullName && guardianName)) {
-    throw new Error("Student and guardian names are required.");
+    return { error: "Student and guardian names are required." };
   }
 
-  await assertWithinPlanLimit({
-    organizationId: tenant.organizationId,
-    resource: "students",
-    userId: tenant.authUserId,
-  });
+  const gender = getGender(formData, "gender");
+
+  if (!gender) {
+    return { error: "Gender is required." };
+  }
+
+  const studentEmail = getString(formData, "studentEmail");
+  const guardianEmail = getString(formData, "guardianEmail");
+
+  if (!(studentEmail || guardianEmail)) {
+    return {
+      error:
+        "At least one email address is required for the student or guardian.",
+    };
+  }
+
+  const phone = getString(formData, "studentPhone");
+  const guardianPhone = getString(formData, "guardianPhone");
+
+  if (phone && !isValidPhone(phone)) {
+    return {
+      error: "Enter a valid student phone number (e.g. 012-3456789).",
+    };
+  }
+
+  if (!guardianPhone) {
+    return { error: "Guardian phone number is required." };
+  }
+
+  if (!isValidPhone(guardianPhone)) {
+    return {
+      error: "Enter a valid guardian phone number (e.g. 012-3456789).",
+    };
+  }
+
+  const postcode = getString(formData, "postcode");
+
+  if (postcode && !isValidPostcode(postcode)) {
+    return { error: "Enter a 5-digit postcode." };
+  }
+
+  try {
+    await assertWithinPlanLimit({
+      organizationId: tenant.organizationId,
+      resource: "students",
+      userId: tenant.authUserId,
+    });
+  } catch {
+    return { error: "Student limit reached for your plan." };
+  }
 
   const relationship = getString(formData, "relationship") as
     | GuardianRelationship
     | undefined;
   const levelId = await resolveLevel(getString(formData, "levelId"));
-  const address = getAddressLines(formData, "studentAddress");
   const sameAsStudentAddress =
     getString(formData, "sameAsStudentAddress") === "on";
+  const address = {
+    addressLine1: getString(formData, "addressLine1"),
+    addressLine2: getString(formData, "addressLine2"),
+  };
 
-  await database.$transaction(async (tx) => {
+  const student = await database.$transaction(async (tx) => {
     const sequence = await getNextStudentSequence(tx, tenant.organizationId);
-    const student = await tx.student.create({
+    const created = await tx.student.create({
       data: {
         organizationId: tenant.organizationId,
         fullName,
@@ -159,14 +207,13 @@ export const createStudent = async (formData: FormData) => {
         levelId,
         dateOfBirth: getDate(formData, "dateOfBirth"),
         enrolledAt: getDate(formData, "enrolledAt") ?? new Date(),
-        gender: getGender(formData, "gender"),
-        phone: getString(formData, "studentPhone"),
-        email: getString(formData, "studentEmail"),
+        gender,
+        phone,
+        email: studentEmail,
         ...address,
         city: getString(formData, "city"),
         state: getString(formData, "state"),
-        postcode: getString(formData, "postcode"),
-        preferredName: getString(formData, "preferredName"),
+        postcode,
         schoolName: getString(formData, "schoolName"),
         photoUrl: getString(formData, "photoUrl"),
         notes: getString(formData, "notes"),
@@ -176,19 +223,20 @@ export const createStudent = async (formData: FormData) => {
 
     const guardianAddress = sameAsStudentAddress
       ? address
-      : getAddressLines(formData, "guardianAddress");
+      : {
+          addressLine1: getString(formData, "guardianAddressLine1"),
+          addressLine2: getString(formData, "guardianAddressLine2"),
+        };
     const guardian = await tx.guardian.create({
       data: {
         organizationId: tenant.organizationId,
-        email: getString(formData, "guardianEmail"),
+        email: guardianEmail,
         fullName: guardianName,
-        phone: getString(formData, "guardianPhone"),
+        phone: guardianPhone,
         ...guardianAddress,
         city: sameAsStudentAddress ? getString(formData, "city") : undefined,
         state: sameAsStudentAddress ? getString(formData, "state") : undefined,
-        postcode: sameAsStudentAddress
-          ? getString(formData, "postcode")
-          : undefined,
+        postcode: sameAsStudentAddress ? postcode : undefined,
       },
       select: { id: true },
     });
@@ -202,12 +250,15 @@ export const createStudent = async (formData: FormData) => {
           relationship && relationships.has(relationship)
             ? relationship
             : "GUARDIAN",
-        studentId: student.id,
+        studentId: created.id,
       },
     });
+
+    return created;
   });
 
   revalidatePath("/students");
+  redirect(`/students/${student.id}`);
 };
 
 export const archiveStudent = async (formData: FormData) => {
@@ -351,9 +402,12 @@ export const updateStudent = async (formData: FormData) => {
   }
 
   const levelId = await resolveLevel(getString(formData, "levelId"));
-  const address = getAddressLines(formData, "studentAddress");
   const sameAsStudentAddress =
     getString(formData, "sameAsStudentAddress") === "on";
+  const address = {
+    addressLine1: getString(formData, "addressLine1"),
+    addressLine2: getString(formData, "addressLine2"),
+  };
 
   await database.$transaction(async (tx) => {
     await tx.student.updateMany({
@@ -378,7 +432,10 @@ export const updateStudent = async (formData: FormData) => {
     });
     const guardianAddress = sameAsStudentAddress
       ? address
-      : getAddressLines(formData, "guardianAddress");
+      : {
+          addressLine1: getString(formData, "guardianAddressLine1"),
+          addressLine2: getString(formData, "guardianAddressLine2"),
+        };
     await tx.guardian.updateMany({
       where: { id: guardianId, organizationId: tenant.organizationId },
       data: {

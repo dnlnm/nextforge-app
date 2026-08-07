@@ -50,7 +50,6 @@ const getDate = (formData: FormData, key: string) => {
 
   return Number.isNaN(date.getTime()) ? undefined : date;
 };
-
 const getMoneySen = (formData: FormData, key: string) => {
   const value = getString(formData, key);
 
@@ -136,27 +135,185 @@ const resolveClassCode = async (
   }
 };
 
+interface ScheduleInput {
+  readonly dayOfWeek: DayOfWeek;
+  readonly endsAt: string;
+  readonly roomId: string;
+  readonly startsAt: string;
+}
+
+const parseSchedules = (formData: FormData): ScheduleInput[] => {
+  const schedules: ScheduleInput[] = [];
+  let index = 0;
+
+  while (formData.has(`schedules[${index}].dayOfWeek`)) {
+    const dayOfWeek = getString(formData, `schedules[${index}].dayOfWeek`) as
+      | DayOfWeek
+      | undefined;
+    const startsAt = getString(formData, `schedules[${index}].startsAt`);
+    const endsAt = getString(formData, `schedules[${index}].endsAt`);
+    const roomId = getString(formData, `schedules[${index}].roomId`);
+
+    if (dayOfWeek && startsAt && endsAt && roomId) {
+      schedules.push({ dayOfWeek, endsAt, roomId, startsAt });
+    }
+
+    index += 1;
+  }
+
+  return schedules;
+};
+
+const timeToMinutes = (time: string) => {
+  const [hour = "0", minute = "0"] = time.split(":");
+  const hours = Number.parseInt(hour, 10);
+  const minutes = Number.parseInt(minute, 10);
+
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+    return null;
+  }
+
+  return hours * 60 + minutes;
+};
+
+const timesOverlap = (
+  start1: string,
+  end1: string,
+  start2: string,
+  end2: string
+) => {
+  const s1 = timeToMinutes(start1);
+  const e1 = timeToMinutes(end1);
+  const s2 = timeToMinutes(start2);
+  const e2 = timeToMinutes(end2);
+
+  if (s1 === null || e1 === null || s2 === null || e2 === null) {
+    return false;
+  }
+
+  return s1 < e2 && s2 < e1;
+};
+
+const assertSchedulesValid = async (
+  organizationId: string,
+  schedules: ScheduleInput[]
+) => {
+  if (schedules.length === 0) {
+    throw new Error("At least one schedule is required.");
+  }
+
+  const seenDays = new Set<DayOfWeek>();
+
+  for (const schedule of schedules) {
+    if (!days.has(schedule.dayOfWeek)) {
+      throw new Error(`Invalid class day: ${schedule.dayOfWeek}`);
+    }
+
+    if (seenDays.has(schedule.dayOfWeek)) {
+      throw new Error("Each schedule must use a different day of the week.");
+    }
+
+    seenDays.add(schedule.dayOfWeek);
+
+    const start = timeToMinutes(schedule.startsAt);
+    const end = timeToMinutes(schedule.endsAt);
+
+    if (start === null || end === null) {
+      throw new Error("Schedule times must use the HH:MM format.");
+    }
+
+    if (end <= start) {
+      throw new Error("Schedule end time must be after the start time.");
+    }
+
+    const room = await database.room.findFirst({
+      where: {
+        id: schedule.roomId,
+        organizationId,
+        status: "ACTIVE",
+        archivedAt: null,
+      },
+      select: { id: true },
+    });
+
+    if (!room) {
+      throw new Error("A selected room could not be found.");
+    }
+  }
+};
+
+const assertNoTeacherConflicts = async (
+  organizationId: string,
+  teacherId: string,
+  schedules: ScheduleInput[],
+  excludedClassId?: string
+) => {
+  const conflictingClasses = await database.learningClass.findMany({
+    where: {
+      organizationId,
+      teacherId,
+      status: "ACTIVE",
+      archivedAt: null,
+      ...(excludedClassId ? { NOT: { id: excludedClassId } } : {}),
+    },
+    select: {
+      name: true,
+      schedules: {
+        select: { dayOfWeek: true, endsAt: true, startsAt: true },
+      },
+    },
+  });
+
+  const conflicts: string[] = [];
+
+  for (const schedule of schedules) {
+    for (const existingClass of conflictingClasses) {
+      for (const existingSchedule of existingClass.schedules) {
+        if (
+          existingSchedule.dayOfWeek === schedule.dayOfWeek &&
+          timesOverlap(
+            schedule.startsAt,
+            schedule.endsAt,
+            existingSchedule.startsAt,
+            existingSchedule.endsAt
+          )
+        ) {
+          conflicts.push(
+            `${existingClass.name} (${existingSchedule.dayOfWeek} ${existingSchedule.startsAt}-${existingSchedule.endsAt})`
+          );
+        }
+      }
+    }
+  }
+
+  if (conflicts.length > 0) {
+    throw new Error(
+      `Teacher has a scheduling conflict with: ${conflicts.join(", ")}`
+    );
+  }
+};
+
 export const createClass = async (formData: FormData) => {
   const tenant = await requireTenantRole(["ADMIN"]);
   const name = getString(formData, "name");
   const subjectId = getString(formData, "subjectId");
   const levelId = getString(formData, "levelId");
-  const dayOfWeek = getString(formData, "dayOfWeek") as DayOfWeek | undefined;
-  const startsAt = getString(formData, "startsAt");
-  const endsAt = getString(formData, "endsAt");
+  const teacherId = getString(formData, "teacherId");
   const academicYear = getAcademicYear(formData);
+  const startsOn = getDate(formData, "startDate");
+  const endsOn = getDate(formData, "endDate");
+  const schedules = parseSchedules(formData);
 
-  if (!(name && subjectId && levelId && dayOfWeek && startsAt && endsAt)) {
+  if (!(name && subjectId && levelId && teacherId && startsOn)) {
     throw new Error(
-      "Class name, subject, level, day, start time, and end time are required."
+      "Class name, subject, level, teacher, and start date are required."
     );
   }
 
-  if (!days.has(dayOfWeek)) {
-    throw new Error("Invalid class day.");
-  }
+  await assertSchedulesValid(tenant.organizationId, schedules);
+  await assertNoTeacherConflicts(tenant.organizationId, teacherId, schedules);
 
-  const [subject, level] = await Promise.all([
+  const [subject, level, teacher] = await Promise.all([
     database.subject.findFirst({
       where: { id: subjectId, organizationId: tenant.organizationId },
       select: { code: true, id: true },
@@ -169,6 +326,14 @@ export const createClass = async (formData: FormData) => {
       },
       select: { code: true, id: true },
     }),
+    database.teacherProfile.findFirst({
+      where: {
+        id: teacherId,
+        organizationId: tenant.organizationId,
+        archivedAt: null,
+      },
+      select: { id: true },
+    }),
   ]);
 
   if (!subject) {
@@ -179,23 +344,15 @@ export const createClass = async (formData: FormData) => {
     throw new Error("Level not found.");
   }
 
+  if (!teacher) {
+    throw new Error("Teacher not found.");
+  }
+
   await assertWithinPlanLimit({
     organizationId: tenant.organizationId,
     resource: "classes",
     userId: tenant.authUserId,
   });
-
-  const teacherId = getString(formData, "teacherId");
-  const teacher = teacherId
-    ? await database.teacherProfile.findFirst({
-        where: {
-          id: teacherId,
-          organizationId: tenant.organizationId,
-          archivedAt: null,
-        },
-        select: { id: true },
-      })
-    : null;
 
   const code = await resolveClassCode(tenant.organizationId, {
     academicYear,
@@ -204,25 +361,40 @@ export const createClass = async (formData: FormData) => {
     submittedCode: getString(formData, "code"),
   });
 
-  await database.learningClass.create({
-    data: {
-      academicYear,
-      capacity: getInt(formData, "capacity"),
-      code,
-      dayOfWeek,
-      endsAt,
-      levelId: level.id,
-      monthlyFeeSen: getMoneySen(formData, "monthlyFee") ?? 0,
-      name,
-      organizationId: tenant.organizationId,
-      room: getString(formData, "room"),
-      startsAt,
-      subjectId: subject.id,
-      teacherId: teacher?.id,
-    },
+  const created = await database.$transaction(async (tx) => {
+    const learningClass = await tx.learningClass.create({
+      data: {
+        academicYear,
+        capacity: getInt(formData, "capacity"),
+        code,
+        endsOn,
+        levelId: level.id,
+        monthlyFeeSen: getMoneySen(formData, "monthlyFee") ?? 0,
+        name,
+        organizationId: tenant.organizationId,
+        startsOn,
+        subjectId: subject.id,
+        teacherId: teacher.id,
+      },
+      select: { id: true },
+    });
+
+    await tx.classSchedule.createMany({
+      data: schedules.map((schedule) => ({
+        classId: learningClass.id,
+        dayOfWeek: schedule.dayOfWeek,
+        endsAt: schedule.endsAt,
+        roomId: schedule.roomId,
+        startsAt: schedule.startsAt,
+      })),
+    });
+
+    return learningClass;
   });
 
   revalidatePath("/classes");
+  revalidatePath("/");
+  redirect(`/classes/${created.id}`);
 };
 
 export const enrollStudent = async (formData: FormData) => {
@@ -292,22 +464,29 @@ export const updateClass = async (formData: FormData) => {
   const classId = getString(formData, "classId");
   const name = getString(formData, "name");
   const subjectId = getString(formData, "subjectId");
-  const dayOfWeek = getString(formData, "dayOfWeek") as DayOfWeek | undefined;
-  const startsAt = getString(formData, "startsAt");
-  const endsAt = getString(formData, "endsAt");
+  const startsOn = getDate(formData, "startDate");
+  const endsOn = getDate(formData, "endDate");
+  const schedules = parseSchedules(formData);
 
-  if (!(classId && name && subjectId && dayOfWeek && startsAt && endsAt)) {
+  if (!(classId && name && subjectId && startsOn)) {
     throw new Error("Class details are required.");
   }
 
-  if (!days.has(dayOfWeek)) {
-    throw new Error("Invalid class day.");
-  }
+  await assertSchedulesValid(tenant.organizationId, schedules);
 
   const teacherId = getString(formData, "teacherId");
   const levelId = getString(formData, "levelId");
   const submittedCode = getString(formData, "code");
   const academicYear = getAcademicYear(formData);
+
+  if (teacherId) {
+    await assertNoTeacherConflicts(
+      tenant.organizationId,
+      teacherId,
+      schedules,
+      classId
+    );
+  }
 
   if (submittedCode) {
     const code = normalizeClassCode(submittedCode);
@@ -332,22 +511,33 @@ export const updateClass = async (formData: FormData) => {
     }
   }
 
-  await database.learningClass.updateMany({
-    where: { id: classId, organizationId: tenant.organizationId },
-    data: {
-      academicYear,
-      capacity: getInt(formData, "capacity"),
-      code: submittedCode ? normalizeClassCode(submittedCode) : undefined,
-      dayOfWeek,
-      endsAt,
-      levelId: levelId === "none" ? null : levelId,
-      monthlyFeeSen: getMoneySen(formData, "monthlyFee") ?? 0,
-      name,
-      room: getString(formData, "room"),
-      startsAt,
-      subjectId,
-      teacherId: teacherId === "none" ? null : teacherId,
-    },
+  await database.$transaction(async (tx) => {
+    await tx.learningClass.updateMany({
+      where: { id: classId, organizationId: tenant.organizationId },
+      data: {
+        academicYear,
+        capacity: getInt(formData, "capacity"),
+        code: submittedCode ? normalizeClassCode(submittedCode) : undefined,
+        endsOn,
+        levelId: levelId === "none" ? null : levelId,
+        monthlyFeeSen: getMoneySen(formData, "monthlyFee") ?? 0,
+        name,
+        startsOn,
+        subjectId,
+        teacherId: teacherId === "none" ? null : teacherId,
+      },
+    });
+
+    await tx.classSchedule.deleteMany({ where: { classId } });
+    await tx.classSchedule.createMany({
+      data: schedules.map((schedule) => ({
+        classId,
+        dayOfWeek: schedule.dayOfWeek,
+        endsAt: schedule.endsAt,
+        roomId: schedule.roomId,
+        startsAt: schedule.startsAt,
+      })),
+    });
   });
 
   revalidatePath("/classes");

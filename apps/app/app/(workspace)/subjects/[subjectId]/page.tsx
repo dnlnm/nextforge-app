@@ -113,8 +113,12 @@ const getSubjectData = async (subjectId: string, organizationId: string) =>
           teacher: {
             select: { fullName: true, id: true },
           },
+          schedules: {
+            orderBy: { dayOfWeek: "asc" },
+            include: { room: { select: { name: true } } },
+          },
         },
-        orderBy: [{ dayOfWeek: "asc" }, { startsAt: "asc" }],
+        orderBy: { name: "asc" },
       },
     },
   });
@@ -262,9 +266,15 @@ const SubjectClassesTab = ({ subject }: { readonly subject: SubjectData }) => (
                 {cls.name}
               </Link>
               <p className="text-muted-foreground text-sm">
-                {dayLabel[cls.dayOfWeek]} · {formatTime(cls.startsAt)} to{" "}
-                {formatTime(cls.endsAt)} ·{" "}
-                {cls.teacher?.fullName ?? "No teacher"}
+                {cls.schedules.length > 0
+                  ? cls.schedules
+                      .map(
+                        (schedule) =>
+                          `${dayLabel[schedule.dayOfWeek]} ${formatTime(schedule.startsAt)}-${formatTime(schedule.endsAt)}`
+                      )
+                      .join(", ")
+                  : "No schedule"}
+                {cls.teacher?.fullName ? ` · ${cls.teacher.fullName}` : ""}
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-sm">

@@ -50,7 +50,7 @@ const AttendancePage = async () => {
   const [classes, sessions] = await Promise.all([
     database.learningClass.findMany({
       where: { organizationId: tenant.organizationId, status: "ACTIVE" },
-      orderBy: [{ dayOfWeek: "asc" }, { startsAt: "asc" }],
+      orderBy: { name: "asc" },
       include: { subject: true },
     }),
     database.classSession.findMany({

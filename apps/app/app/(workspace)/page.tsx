@@ -167,7 +167,16 @@ const App = async () => {
     database.classSession.findMany({
       include: {
         attendance: true,
-        class: { include: { subject: true, teacher: true } },
+        class: {
+          include: {
+            schedules: {
+              orderBy: { dayOfWeek: "asc" },
+              include: { room: { select: { name: true } } },
+            },
+            subject: true,
+            teacher: true,
+          },
+        },
       },
       orderBy: { startsAt: "asc" },
       take: 5,
@@ -452,7 +461,9 @@ const App = async () => {
                         </span>
                         <span className="block text-muted-foreground">
                           {session.class.subject.name}
-                          {session.class.room ? ` - ${session.class.room}` : ""}
+                          {session.class.schedules.at(0)?.room?.name
+                            ? ` - ${session.class.schedules.at(0)?.room?.name}`
+                            : ""}
                         </span>
                       </span>
                       <Badge variant="outline">{session.status}</Badge>

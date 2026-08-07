@@ -88,7 +88,15 @@ const getStudentData = async (studentId: string, organizationId: string) => {
         where: { archivedAt: null, status: "ACTIVE" },
         include: {
           class: {
-            include: { branch: true, subject: true, teacher: true },
+            include: {
+              branch: true,
+              schedules: {
+                orderBy: { dayOfWeek: "asc" },
+                include: { room: { select: { name: true } } },
+              },
+              subject: true,
+              teacher: true,
+            },
           },
         },
         orderBy: { createdAt: "desc" },
@@ -321,10 +329,17 @@ const StudentAcademicsTab = ({
                 </Badge>
               </div>
               <p className="text-muted-foreground text-sm">
-                {enrollment.class.dayOfWeek} ·{" "}
-                {formatTime(enrollment.class.startsAt)} to{" "}
-                {formatTime(enrollment.class.endsAt)} ·{" "}
-                {enrollment.class.teacher?.fullName ?? "No teacher"}
+                {enrollment.class.schedules.length > 0
+                  ? enrollment.class.schedules
+                      .map(
+                        (schedule) =>
+                          `${schedule.dayOfWeek} ${formatTime(schedule.startsAt)}-${formatTime(schedule.endsAt)}`
+                      )
+                      .join(", ")
+                  : "No schedule"}
+                {enrollment.class.teacher?.fullName
+                  ? ` · ${enrollment.class.teacher.fullName}`
+                  : ""}
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-sm">

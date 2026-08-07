@@ -75,16 +75,51 @@ const teacherInitials = (name?: string | null) =>
     .join("")
     .toUpperCase() || "--";
 
+interface ScheduleSummaryItem {
+  readonly dayOfWeek: string;
+  readonly endsAt: string;
+  readonly room: { readonly name: string } | null;
+  readonly startsAt: string;
+}
+
+const ScheduleSummary = ({
+  schedules,
+  className = "",
+}: {
+  schedules: ScheduleSummaryItem[];
+  className?: string;
+}) => {
+  if (schedules.length === 0) {
+    return <span className={className}>No schedule</span>;
+  }
+
+  return (
+    <div className={className}>
+      {schedules.map((schedule) => (
+        <span className="block" key={schedule.dayOfWeek}>
+          {dayLabel[schedule.dayOfWeek]}, {formatTime(schedule.startsAt)} -{" "}
+          {formatTime(schedule.endsAt)}
+          {schedule.room ? ` (${schedule.room.name})` : ""}
+        </span>
+      ))}
+    </div>
+  );
+};
+
 const ClassesPage = async () => {
   const tenant = await requireTenantRole(["ADMIN"]);
   const classes = await database.learningClass.findMany({
     where: { organizationId: tenant.organizationId, archivedAt: null },
-    orderBy: [{ dayOfWeek: "asc" }, { startsAt: "asc" }],
+    orderBy: { name: "asc" },
     include: {
       branch: true,
       enrollments: {
         where: { archivedAt: null, status: "ACTIVE" },
         select: { id: true },
+      },
+      schedules: {
+        orderBy: { dayOfWeek: "asc" },
+        include: { room: true },
       },
       subject: true,
       teacher: true,
@@ -112,7 +147,11 @@ const ClassesPage = async () => {
     .slice(0, 6);
   const upcomingClasses = classes
     .slice()
-    .sort((first, second) => first.startsAt.localeCompare(second.startsAt))
+    .sort((first, second) =>
+      (first.schedules.at(0)?.startsAt ?? "").localeCompare(
+        second.schedules.at(0)?.startsAt ?? ""
+      )
+    )
     .slice(0, 3);
   const metrics: {
     color: "default" | "info" | "success" | "warning";
@@ -272,13 +311,10 @@ const ClassesPage = async () => {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <div className="grid gap-1">
-                              <span>{dayLabel[item.dayOfWeek]}</span>
-                              <span className="text-muted-foreground text-xs">
-                                {formatTime(item.startsAt)} -{" "}
-                                {formatTime(item.endsAt)}
-                              </span>
-                            </div>
+                            <ScheduleSummary
+                              className="grid gap-1 text-xs"
+                              schedules={item.schedules}
+                            />
                           </TableCell>
                           <TableCell>
                             {item.enrollments.length} / {item.capacity ?? "-"}
@@ -394,13 +430,14 @@ const ClassesPage = async () => {
                       </div>
                       <div className="grid gap-1 text-sm">
                         <p className="font-medium">{item.name}</p>
+                        <ScheduleSummary
+                          className="text-muted-foreground"
+                          schedules={item.schedules}
+                        />
                         <p className="text-muted-foreground">
-                          {dayLabel[item.dayOfWeek]},{" "}
-                          {formatTime(item.startsAt)} -{" "}
-                          {formatTime(item.endsAt)}
-                        </p>
-                        <p className="text-muted-foreground">
-                          {item.room ?? item.branch?.name ?? "No room assigned"}
+                          {item.schedules.at(0)?.room?.name ??
+                            item.branch?.name ??
+                            "No room assigned"}
                         </p>
                       </div>
                     </div>

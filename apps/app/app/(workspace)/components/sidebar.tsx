@@ -20,6 +20,7 @@ import {
   CalendarDaysIcon,
   ClipboardCheckIcon,
   CreditCardIcon,
+  DoorOpenIcon,
   GraduationCapIcon,
   HomeIcon,
   ReceiptTextIcon,
@@ -53,6 +54,7 @@ const navigationSections = [
       { title: "Students", url: "/students", icon: UsersIcon },
       { title: "Teachers", url: "/teachers", icon: UsersIcon },
       { title: "Classes", url: "/classes", icon: CalendarDaysIcon },
+      { title: "Rooms", url: "/rooms", icon: DoorOpenIcon },
       { title: "Subjects", url: "/subjects", icon: BookOpenIcon },
       {
         title: "Academic Levels",

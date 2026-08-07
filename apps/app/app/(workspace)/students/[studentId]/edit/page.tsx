@@ -7,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
-import { Checkbox } from "@repo/design-system/components/ui/checkbox";
 import { DatePicker } from "@repo/design-system/components/ui/date-picker";
 import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
@@ -24,6 +23,7 @@ import { notFound } from "next/navigation";
 import { Header } from "../../../components/header";
 import { StudentPhotoUpload } from "../../../components/student-photo-upload";
 import { updateStudent } from "../../actions";
+import { GuardianFields } from "../../components/guardian-fields";
 
 interface StudentEditPageProperties {
   readonly params: Promise<{ studentId: string }>;
@@ -227,16 +227,23 @@ const StudentEditPage = async ({ params }: StudentEditPageProperties) => {
                     </Select>
                   </div>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="studentAddress">Address</Label>
-                  <Textarea
-                    className="min-h-20"
-                    defaultValue={[student.addressLine1, student.addressLine2]
-                      .filter(Boolean)
-                      .join("\n")}
-                    id="studentAddress"
-                    name="studentAddress"
-                  />
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="grid gap-2">
+                    <Label htmlFor="addressLine1">Address Line 1</Label>
+                    <Input
+                      defaultValue={student.addressLine1 ?? ""}
+                      id="addressLine1"
+                      name="addressLine1"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="addressLine2">Address Line 2</Label>
+                    <Input
+                      defaultValue={student.addressLine2 ?? ""}
+                      id="addressLine2"
+                      name="addressLine2"
+                    />
+                  </div>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="postcode">Postcode</Label>
@@ -256,65 +263,10 @@ const StudentEditPage = async ({ params }: StudentEditPageProperties) => {
                 </div>
                 <div className="border-t pt-4">
                   <h2 className="mb-3 font-medium">Primary guardian</h2>
-                  <div className="grid gap-3">
-                    <div className="grid gap-2">
-                      <Label htmlFor="guardianName">Guardian name</Label>
-                      <Input
-                        defaultValue={guardian.fullName}
-                        id="guardianName"
-                        name="guardianName"
-                        required
-                      />
-                    </div>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="grid gap-2">
-                        <Label htmlFor="guardianPhone">Phone</Label>
-                        <Input
-                          defaultValue={guardian.phone ?? ""}
-                          id="guardianPhone"
-                          name="guardianPhone"
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label htmlFor="guardianEmail">Email</Label>
-                        <Input
-                          defaultValue={guardian.email ?? ""}
-                          id="guardianEmail"
-                          name="guardianEmail"
-                          type="email"
-                        />
-                      </div>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="guardianAddress">Address</Label>
-                      <Textarea
-                        className="min-h-20"
-                        defaultValue={[
-                          guardian.addressLine1,
-                          guardian.addressLine2,
-                        ]
-                          .filter(Boolean)
-                          .join("\n")}
-                        id="guardianAddress"
-                        name="guardianAddress"
-                      />
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Checkbox
-                        defaultChecked={
-                          !(
-                            guardian.addressLine1 ||
-                            guardian.addressLine2 ||
-                            guardian.city ||
-                            guardian.state ||
-                            guardian.postcode
-                          )
-                        }
-                        name="sameAsStudentAddress"
-                      />
-                      <span>Same as student address</span>
-                    </div>
-                  </div>
+                  <GuardianFields
+                    guardian={guardian}
+                    guardianId={guardian.id}
+                  />
                 </div>
                 <div className="flex gap-2">
                   <Button type="submit">Save changes</Button>

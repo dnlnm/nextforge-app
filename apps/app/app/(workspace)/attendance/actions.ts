@@ -1,7 +1,11 @@
 "use server";
 
 import { requireTenantRole } from "@repo/auth/authorization";
-import { type AttendanceStatus, database } from "@repo/database";
+import {
+  type AttendanceStatus,
+  type DayOfWeek,
+  database,
+} from "@repo/database";
 import { revalidatePath } from "next/cache";
 
 const statuses = new Set<AttendanceStatus>([
@@ -57,6 +61,33 @@ const parseSessionDate = (value?: string) => {
   return Number.isNaN(date.getTime()) ? null : date;
 };
 
+const getMalaysiaDayOfWeek = (date: Date): DayOfWeek => {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kuala_Lumpur",
+    weekday: "long",
+  }).formatToParts(date);
+
+  return (parts.find((part) => part.type === "weekday")?.value.toUpperCase() ??
+    "MONDAY") as DayOfWeek;
+};
+
+const getScheduleForDate = async (
+  tenant: { readonly organizationId: string },
+  classId: string,
+  sessionDate: Date
+) => {
+  const schedule = await database.classSchedule.findFirst({
+    where: {
+      classId,
+      dayOfWeek: getMalaysiaDayOfWeek(sessionDate),
+      class: { organizationId: tenant.organizationId },
+    },
+    select: { endsAt: true, startsAt: true },
+  });
+
+  return schedule;
+};
+
 export const createClassSession = async (formData: FormData) => {
   const tenant = await requireTenantRole(["ADMIN"]);
   const classId = getString(formData, "classId");
@@ -68,11 +99,23 @@ export const createClassSession = async (formData: FormData) => {
 
   const learningClass = await database.learningClass.findFirst({
     where: { id: classId, organizationId: tenant.organizationId },
-    select: { endsAt: true, id: true, startsAt: true },
+    select: { id: true },
   });
 
   if (!learningClass) {
     throw new Error("Class not found.");
+  }
+
+  const schedule = await getScheduleForDate(
+    tenant,
+    learningClass.id,
+    sessionDate
+  );
+
+  if (!schedule) {
+    throw new Error(
+      "No class schedule found for the selected date. Create a session for a day this class is scheduled."
+    );
   }
 
   await database.classSession.upsert({
@@ -80,13 +123,13 @@ export const createClassSession = async (formData: FormData) => {
     create: {
       organizationId: tenant.organizationId,
       classId: learningClass.id,
-      endsAt: learningClass.endsAt,
+      endsAt: schedule.endsAt,
       sessionDate,
-      startsAt: learningClass.startsAt,
+      startsAt: schedule.startsAt,
     },
     update: {
-      endsAt: learningClass.endsAt,
-      startsAt: learningClass.startsAt,
+      endsAt: schedule.endsAt,
+      startsAt: schedule.startsAt,
     },
   });
 

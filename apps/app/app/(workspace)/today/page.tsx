@@ -60,12 +60,14 @@ const TodayPage = async () => {
   const teacherClassFilter =
     tenant.role === "TEACHER" ? { teacherId: teacher?.id ?? "__none__" } : {};
   const [todayClassCount, sessions] = await Promise.all([
-    database.learningClass.count({
+    database.classSchedule.count({
       where: {
-        organizationId: tenant.organizationId,
         dayOfWeek: today.dayOfWeek,
-        status: "ACTIVE",
-        ...teacherClassFilter,
+        class: {
+          organizationId: tenant.organizationId,
+          status: "ACTIVE",
+          ...teacherClassFilter,
+        },
       },
     }),
     database.classSession.findMany({
