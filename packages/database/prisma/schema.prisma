@@ -24,6 +24,8 @@ model User {
   createdOrganizations                                       Organization[]           @relation("CreatedOrganizations")
   memberships                                                OrganizationMembership[]
   recordedPayments                                           Payment[]
+  AdminInvitation_AdminInvitation_acceptedByUserIdToUser     AdminInvitation[]        @relation("AdminInvitation_acceptedByUserIdToUser")
+  AdminInvitation_AdminInvitation_invitedByUserIdToUser      AdminInvitation[]        @relation("AdminInvitation_invitedByUserIdToUser")
   TeacherInvitation_TeacherInvitation_acceptedByUserIdToUser TeacherInvitation[]      @relation("TeacherInvitation_acceptedByUserIdToUser")
   TeacherInvitation_TeacherInvitation_invitedByUserIdToUser  TeacherInvitation[]      @relation("TeacherInvitation_invitedByUserIdToUser")
   TeacherProfile                                             TeacherProfile[]
@@ -57,6 +59,7 @@ model Organization {
   students          Student[]
   subjects          Subject[]
   levels            Level[]
+  AdminInvitation   AdminInvitation[]
   TeacherInvitation TeacherInvitation[]
   teachers          TeacherProfile[]
 
@@ -528,6 +531,31 @@ model TeacherInvitation {
   User_TeacherInvitation_acceptedByUserIdToUser User?            @relation("TeacherInvitation_acceptedByUserIdToUser", fields: [acceptedByUserId], references: [id])
   User_TeacherInvitation_invitedByUserIdToUser  User?            @relation("TeacherInvitation_invitedByUserIdToUser", fields: [invitedByUserId], references: [id])
   Organization                                  Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, email, status])
+  @@index([email, status])
+  @@index([expiresAt])
+  @@index([organizationId, status])
+  @@index([token, status])
+}
+
+model AdminInvitation {
+  id                                        String           @id @default(cuid())
+  organizationId                            String
+  email                                     String
+  fullName                                  String
+  token                                     String           @unique
+  status                                    InvitationStatus @default(PENDING)
+  invitedByUserId                           String?
+  acceptedByUserId                          String?
+  expiresAt                                 DateTime
+  acceptedAt                                DateTime?
+  createdAt                                 DateTime         @default(now())
+  updatedAt                                 DateTime         @updatedAt
+  revokedAt                                 DateTime?
+  User_AdminInvitation_acceptedByUserIdToUser User?          @relation("AdminInvitation_acceptedByUserIdToUser", fields: [acceptedByUserId], references: [id])
+  User_AdminInvitation_invitedByUserIdToUser  User?          @relation("AdminInvitation_invitedByUserIdToUser", fields: [invitedByUserId], references: [id])
+  Organization                              Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, email, status])
   @@index([email, status])

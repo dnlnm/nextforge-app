@@ -1,4 +1,4 @@
-import { requirePlatformAdmin } from "@repo/auth/authorization";
+import { requireSuperadmin } from "@repo/auth/authorization";
 import { SidebarProvider } from "@repo/design-system/components/ui/sidebar";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
@@ -9,10 +9,10 @@ interface AdminLayoutProperties {
 }
 
 const AdminLayout = async ({ children }: AdminLayoutProperties) => {
-  const admin = await requirePlatformAdmin();
+  const admin = await requireSuperadmin();
 
   if (!admin) {
-    redirect("/admin/forbidden");
+    redirect("/superadmin/forbidden");
   }
 
   return (

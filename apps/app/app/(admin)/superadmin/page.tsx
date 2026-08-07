@@ -1,4 +1,4 @@
-import { requirePlatformAdmin } from "@repo/auth/authorization";
+import { requireSuperadmin } from "@repo/auth/authorization";
 import { database } from "@repo/database";
 import {
   Card,
@@ -17,11 +17,11 @@ import {
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Founder Dashboard - TLAS.MY",
+  title: "Superadmin Dashboard - TLAS.MY",
 };
 
 const AdminPage = async () => {
-  await requirePlatformAdmin();
+  await requireSuperadmin();
   const [centres, activeCentres, users, memberships, subscriptions] =
     await Promise.all([
       database.organization.count(),
@@ -51,7 +51,7 @@ const AdminPage = async () => {
   return (
     <main className="flex flex-1 flex-col gap-4 p-4">
       <div>
-        <h1 className="font-semibold text-2xl">Founder dashboard</h1>
+        <h1 className="font-semibold text-2xl">Superadmin dashboard</h1>
         <p className="text-muted-foreground">
           Platform metadata only. Tenant operational records stay out of the
           default superadmin view.

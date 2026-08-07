@@ -59,6 +59,7 @@ const navigationSections = [
         url: "/academic-levels",
         icon: GraduationCapIcon,
       },
+      { title: "Members", url: "/members", icon: UsersIcon },
     ],
     title: "Centre Setup",
   },
@@ -94,6 +95,13 @@ const getNavigationForRole = (role: SidebarRole): typeof navigationSections => {
         title: "Operations",
       },
     ];
+  }
+
+  if (role === "ADMIN") {
+    return navigationSections.map((section) => ({
+      ...section,
+      items: section.items.filter((item) => item.title !== "Members"),
+    }));
   }
 
   return navigationSections;

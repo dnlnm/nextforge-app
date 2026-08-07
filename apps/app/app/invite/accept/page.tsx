@@ -1,5 +1,6 @@
 import { currentUser } from "@repo/auth/server";
 import { database } from "@repo/database";
+import type { InvitationKind } from "../actions";
 import { InviteAcceptClient } from "./invite-accept-client";
 
 interface InviteAcceptPageProps {
@@ -14,24 +15,48 @@ const InviteAcceptPage = async ({ searchParams }: InviteAcceptPageProps) => {
     return <InviteAcceptClient state="invalid" />;
   }
 
-  const invitation = await database.teacherInvitation.findFirst({
-    where: { token, status: "PENDING" },
-    select: {
-      email: true,
-      expiresAt: true,
-      fullName: true,
-      Organization: { select: { name: true, status: true } },
-    },
-  });
+  const [teacherInvitation, adminInvitation] = await Promise.all([
+    database.teacherInvitation.findFirst({
+      where: { token, status: "PENDING" },
+      select: {
+        email: true,
+        expiresAt: true,
+        fullName: true,
+        Organization: { select: { name: true, status: true } },
+      },
+    }),
+    database.adminInvitation.findFirst({
+      where: { token, status: "PENDING" },
+      select: {
+        email: true,
+        expiresAt: true,
+        fullName: true,
+        Organization: { select: { name: true, status: true } },
+      },
+    }),
+  ]);
+
+  const invitation = teacherInvitation ?? adminInvitation;
+  let invitationKind: InvitationKind | null = null;
+
+  if (teacherInvitation) {
+    invitationKind = "TEACHER";
+  } else if (adminInvitation) {
+    invitationKind = "ADMIN";
+  }
 
   if (invitation && invitation.expiresAt <= new Date()) {
     await database.teacherInvitation.updateMany({
       where: { token },
       data: { status: "EXPIRED" },
     });
+    await database.adminInvitation.updateMany({
+      where: { token },
+      data: { status: "EXPIRED" },
+    });
   }
 
-  if (!invitation) {
+  if (!(invitation && invitationKind)) {
     return <InviteAcceptClient state="invalid" />;
   }
 
@@ -46,6 +71,7 @@ const InviteAcceptPage = async ({ searchParams }: InviteAcceptPageProps) => {
     <InviteAcceptClient
       email={invitation.email}
       fullName={invitation.fullName}
+      invitationKind={invitationKind}
       organizationName={invitation.Organization.name}
       signedInEmail={signedInEmail}
       token={token}

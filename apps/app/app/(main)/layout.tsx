@@ -1,4 +1,4 @@
-import { isPlatformAdminUserId } from "@repo/auth/authorization";
+import { isSuperadminUserId } from "@repo/auth/authorization";
 import { currentUser } from "@repo/auth/server";
 import { database } from "@repo/database";
 import { secure } from "@repo/security";
@@ -24,8 +24,8 @@ const MainLayout = async ({ children }: MainLayoutProperties) => {
     redirect("/sign-in");
   }
 
-  if (isPlatformAdminUserId(user.id)) {
-    redirect("/admin");
+  if (isSuperadminUserId(user.id)) {
+    redirect("/superadmin");
   }
 
   const [adminCount, teacherCount] = await Promise.all([

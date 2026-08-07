@@ -1,6 +1,6 @@
-import { isPlatformAdminUserId } from "@repo/auth/platform-admin";
 import { currentUser } from "@repo/auth/server";
 import { requireSubdomainTenant } from "@repo/auth/subdomain";
+import { isSuperadminUserId } from "@repo/auth/superadmin";
 import { database } from "@repo/database";
 import { SidebarProvider } from "@repo/design-system/components/ui/sidebar";
 import { showBetaFeature } from "@repo/feature-flags";
@@ -28,8 +28,8 @@ const WorkspaceLayout = async ({ children }: WorkspaceLayoutProperties) => {
     redirect("/sign-in");
   }
 
-  if (isPlatformAdminUserId(user.id)) {
-    redirect("/admin");
+  if (isSuperadminUserId(user.id)) {
+    redirect("/superadmin");
   }
 
   const tenant = await requireSubdomainTenant();

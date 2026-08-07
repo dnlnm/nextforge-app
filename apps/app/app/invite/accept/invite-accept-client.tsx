@@ -12,11 +12,12 @@ import { Separator } from "@repo/design-system/components/ui/separator";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { acceptInvitation } from "../actions";
+import { acceptInvitation, type InvitationKind } from "../actions";
 
 interface InviteAcceptClientProps {
   readonly email?: string;
   readonly fullName?: string;
+  readonly invitationKind?: InvitationKind;
   readonly organizationName?: string;
   readonly signedInEmail?: string;
   readonly state?: "error" | "invalid";
@@ -28,9 +29,13 @@ type InviteState =
   | { kind: "no-session" }
   | { kind: "ready" };
 
+const roleLabel = (kind: InvitationKind | undefined) =>
+  kind === "ADMIN" ? "an Admin" : "a Teacher";
+
 export const InviteAcceptClient = ({
   email,
   fullName,
+  invitationKind,
   organizationName,
   signedInEmail,
   state,
@@ -42,7 +47,7 @@ export const InviteAcceptClient = ({
 
   if (state === "invalid") {
     return (
-      <Shell>
+      <Shell kind={invitationKind}>
         <p className="text-muted-foreground">This invite link is not valid.</p>
         <Button asChild className="mt-6">
           <Link href="/">Go to TLAS.MY</Link>
@@ -53,7 +58,7 @@ export const InviteAcceptClient = ({
 
   if (state === "error") {
     return (
-      <Shell>
+      <Shell kind={invitationKind}>
         <p className="text-muted-foreground">
           This centre is no longer active.
         </p>
@@ -65,12 +70,12 @@ export const InviteAcceptClient = ({
   }
 
   const accept = async () => {
-    if (!token) {
+    if (!(token && invitationKind)) {
       return;
     }
 
     setBusy(true);
-    const result = await acceptInvitation(token);
+    const result = await acceptInvitation(token, invitationKind);
     setBusy(false);
 
     if (result.status === "success") {
@@ -100,7 +105,7 @@ export const InviteAcceptClient = ({
 
   if (invite.kind === "no-session") {
     return (
-      <Shell>
+      <Shell kind={invitationKind}>
         <p className="text-muted-foreground">
           You need to sign in to accept this invitation.
         </p>
@@ -117,7 +122,7 @@ export const InviteAcceptClient = ({
   }
 
   return (
-    <Shell>
+    <Shell kind={invitationKind}>
       {invite.kind === "error" ? (
         <p className="rounded-md bg-destructive/10 p-3 text-destructive text-sm">
           {invite.error}
@@ -126,8 +131,8 @@ export const InviteAcceptClient = ({
 
       {signedInEmail ? null : (
         <p className="text-muted-foreground">
-          {fullName}, {organizationName} has invited you to teach with TLAS.MY.
-          Sign in with {email} to accept.
+          {fullName}, {organizationName} has invited you to join TLAS.MY as{" "}
+          {roleLabel(invitationKind)}. Sign in with {email} to accept.
         </p>
       )}
       {signedInEmail && !emailMatches ? (
@@ -143,8 +148,8 @@ export const InviteAcceptClient = ({
       ) : null}
       {signedInEmail && emailMatches ? (
         <p className="text-muted-foreground">
-          {fullName}, you&apos;ve been invited to join {organizationName} as a
-          teacher on TLAS.MY.
+          {fullName}, you&apos;ve been invited to join {organizationName} as{" "}
+          {roleLabel(invitationKind)} on TLAS.MY.
         </p>
       ) : null}
 
@@ -159,14 +164,15 @@ export const InviteAcceptClient = ({
 
 interface ShellProps {
   readonly children: React.ReactNode;
+  readonly kind?: InvitationKind;
 }
 
-const Shell = ({ children }: ShellProps) => (
+const Shell = ({ children, kind }: ShellProps) => (
   <div className="flex min-h-svh flex-col items-center justify-center bg-background p-6">
     <Card className="w-full max-w-md">
       <CardHeader className="border-b text-center">
         <CardTitle className="font-semibold text-xl tracking-tight">
-          Teacher invitation
+          {kind === "ADMIN" ? "Admin invitation" : "Teacher invitation"}
         </CardTitle>
       </CardHeader>
       <Separator />

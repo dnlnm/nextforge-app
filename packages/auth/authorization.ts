@@ -1,3 +1,3 @@
-export * from "./platform-admin";
 export * from "./roles";
+export * from "./superadmin";
 export * from "./tenant";

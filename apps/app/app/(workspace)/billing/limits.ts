@@ -1,5 +1,5 @@
-import { isPlatformAdminUserId } from "@repo/auth/authorization";
-import { database } from "@repo/database";
+import { isSuperadminUserId } from "@repo/auth/authorization";
+import { database, type SubscriptionPlan } from "@repo/database";
 import {
   activeSubscriptionStatuses,
   type PlanDefinition,
@@ -80,7 +80,7 @@ export const assertWithinPlanLimit = async ({
   readonly resource: LimitResource;
   readonly userId: string;
 }) => {
-  if (isPlatformAdminUserId(userId)) {
+  if (isSuperadminUserId(userId)) {
     return;
   }
 
@@ -115,3 +115,61 @@ export const getPlanUsageRows = (
     value: usage.invoicesPerMonth,
   },
 ];
+
+const adminPlanLimits: Record<SubscriptionPlan, number | null> = {
+  TRIAL: 0,
+  STARTER: 1,
+  PRO: 5,
+};
+
+export const assertAdminWithinPlanLimit = async ({
+  organizationId,
+  userId,
+}: {
+  readonly organizationId: string;
+  readonly userId: string;
+}) => {
+  if (isSuperadminUserId(userId)) {
+    return;
+  }
+
+  const state = await getBillingState(organizationId);
+
+  if (!state.canUsePaidFeatures) {
+    throw new Error(
+      "Your TLAS.MY trial or subscription is not active. Open Billing to upgrade or manage your plan."
+    );
+  }
+
+  const limit = adminPlanLimits[state.subscription.plan];
+
+  if (limit === null) {
+    return;
+  }
+
+  const now = new Date();
+  const [activeAdmins, pendingInvitations] = await Promise.all([
+    database.organizationMembership.count({
+      where: {
+        organizationId,
+        role: "ADMIN",
+        status: "ACTIVE",
+      },
+    }),
+    database.adminInvitation.count({
+      where: {
+        organizationId,
+        status: "PENDING",
+        expiresAt: { gt: now },
+      },
+    }),
+  ]);
+
+  const total = activeAdmins + pendingInvitations;
+
+  if (total >= limit) {
+    throw new Error(
+      `${state.plan.name} allows ${limit} admin${limit === 1 ? "" : "s"}. Open Billing to upgrade your plan.`
+    );
+  }
+};

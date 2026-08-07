@@ -32,7 +32,7 @@ const content = {
       ],
       [
         "Access control",
-        "The MVP is for centre owners, admins, and teachers. There is no parent or student portal yet. Founder/admin access is restricted and defaults to metadata views unless operational support is explicitly required.",
+        "The MVP is for centre owners, admins, and teachers. There is no parent or student portal yet. Superadmin access is restricted and defaults to metadata views unless operational support is explicitly required.",
       ],
       [
         "Retention and exports",
@@ -64,7 +64,7 @@ const content = {
       ],
       [
         "Kawalan akses",
-        "MVP ini untuk pemilik pusat, admin dan guru. Portal ibu bapa atau pelajar belum tersedia. Akses founder/admin adalah terhad dan secara lalai memaparkan metadata kecuali sokongan operasi diperlukan secara jelas.",
+        "MVP ini untuk pemilik pusat, admin dan guru. Portal ibu bapa atau pelajar belum tersedia. Akses superadmin adalah terhad dan secara lalai memaparkan metadata kecuali sokongan operasi diperlukan secara jelas.",
       ],
       [
         "Penyimpanan dan eksport",

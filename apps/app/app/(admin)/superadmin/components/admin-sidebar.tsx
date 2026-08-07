@@ -24,21 +24,21 @@ interface AdminSidebarProperties {
 }
 
 const adminNavigation = [
-  { title: "Overview", url: "/admin", icon: GaugeIcon },
-  { title: "Centres", url: "/admin", icon: Building2Icon },
+  { title: "Overview", url: "/superadmin", icon: GaugeIcon },
+  { title: "Centres", url: "/superadmin", icon: Building2Icon },
 ];
 
 export const AdminSidebar = ({ children }: AdminSidebarProperties) => (
   <>
     <Sidebar variant="inset">
       <SidebarHeader>
-        <Link className="px-2" href="/admin">
+        <Link className="px-2" href="/superadmin">
           <Brand />
         </Link>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Founder</SidebarGroupLabel>
+          <SidebarGroupLabel>Superadmin</SidebarGroupLabel>
           <SidebarMenu>
             {adminNavigation.map((item) => (
               <SidebarMenuItem key={item.title}>
