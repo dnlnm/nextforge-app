@@ -2,8 +2,13 @@
 
 import { ensureLocalUser } from "@repo/auth/organizations";
 import { database, type SubscriptionPlan } from "@repo/database";
+import type { InvoiceItem } from "@repo/design-system/components/billingsdk/invoice-history";
 import { stripe } from "@repo/payments";
-import { getStripePriceId } from "@repo/payments/plans";
+import {
+  getPlanFromStripePriceId,
+  getStripePriceId,
+  planDefinitions,
+} from "@repo/payments/plans";
 import { redirect } from "next/navigation";
 import { env } from "@/env";
 import { getOrCreateSubscription } from "../../../../(workspace)/billing/limits";
@@ -128,4 +133,70 @@ export const openBillingPortal = async (organizationId: string) => {
   });
 
   redirect(session.url);
+};
+
+type InvoiceStatus = "paid" | "refunded" | "open" | "void";
+
+const mapStripeStatus = (status: string | null | undefined): InvoiceStatus => {
+  switch (status) {
+    case "paid":
+    case "open":
+    case "void":
+      return status;
+    case "uncollectible":
+      return "open";
+    case "refunded":
+      return "refunded";
+    default:
+      return "open";
+  }
+};
+
+const formatRM = (amountCents: number): string => `RM${(amountCents / 100).toFixed(2)}`;
+
+export const getStripeInvoices = async (
+  organizationId: string
+): Promise<InvoiceItem[]> => {
+  await requireOwner(organizationId);
+
+  const subscription = await getOrCreateSubscription(organizationId);
+
+  if (!subscription.stripeCustomerId) {
+    return [];
+  }
+
+  if (!stripe) {
+    throw new Error("Stripe is not configured.");
+  }
+
+  try {
+    const invoices = await stripe.invoices.list({
+      customer: subscription.stripeCustomerId,
+      limit: 12,
+    });
+
+    return invoices.data.map((invoice) => {
+      const date = new Date(invoice.created * 1000);
+      const formattedDate = date.toISOString().split("T")[0];
+      const priceDetail = invoice.lines?.data[0]?.pricing?.price_details?.price;
+      const priceId =
+        typeof priceDetail === "string" ? priceDetail : priceDetail?.id;
+      const planName =
+        planDefinitions[getPlanFromStripePriceId(priceId ?? subscription.stripePriceId)].name;
+
+      return {
+        id: invoice.id,
+        date: formattedDate,
+        amount: formatRM(invoice.total),
+        status: mapStripeStatus(invoice.status),
+        description:
+          invoice.description ??
+          `${planName} plan - ${date.toLocaleDateString("en-MY", { month: "long", year: "numeric" })}`,
+        invoiceUrl: invoice.invoice_pdf ?? undefined,
+      };
+    });
+  } catch (error) {
+    console.error("Failed to fetch Stripe invoices:", error);
+    return [];
+  }
 };

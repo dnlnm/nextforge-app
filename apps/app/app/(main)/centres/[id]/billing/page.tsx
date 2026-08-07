@@ -1,5 +1,6 @@
 import { ensureLocalUser } from "@repo/auth/organizations";
 import { database } from "@repo/database";
+import { InvoiceHistory } from "@repo/design-system/components/billingsdk/invoice-history";
 import {
   Card,
   CardContent,
@@ -17,6 +18,7 @@ import {
   getPlanUsageRows,
 } from "../../../../(workspace)/billing/limits";
 import { BillingActions } from "./billing-actions-client";
+import { getStripeInvoices } from "./actions";
 
 interface CentreBillingPageProps {
   params: Promise<{ id: string }>;
@@ -60,6 +62,7 @@ const CentreBillingPage = async ({
   const organization = membership.organization;
   const state = await getBillingState(organization.id);
   const usageRows = getPlanUsageRows(state.plan, state.usage);
+  const invoices = await getStripeInvoices(organization.id);
   const checkoutStatus =
     checkout === "success" || checkout === "cancelled" ? checkout : undefined;
 
@@ -156,6 +159,31 @@ const CentreBillingPage = async ({
             })}
           </CardContent>
         </Card>
+      </div>
+
+      <div className="mt-6">
+        {invoices.length > 0 ? (
+          <InvoiceHistory
+            invoices={invoices}
+            title="Invoice History"
+            description="View and download your past subscription invoices"
+          />
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle>Invoice History</CardTitle>
+              <CardDescription>
+                View and download your past subscription invoices
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground py-8 text-center text-sm">
+                No invoices yet. Subscribe to a plan to see your invoice
+                history.
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
