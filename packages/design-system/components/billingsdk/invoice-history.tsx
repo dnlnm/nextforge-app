@@ -1,6 +1,7 @@
 "use client";
 
-import { cn } from "@repo/design-system/lib/utils";
+import { Badge } from "@repo/design-system/components/ui/badge";
+import { Button } from "@repo/design-system/components/ui/button";
 import {
   Card,
   CardContent,
@@ -11,31 +12,30 @@ import {
 import {
   Table,
   TableBody,
-  TableCell,
   TableCaption,
+  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@repo/design-system/components/ui/table";
-import { Badge } from "@repo/design-system/components/ui/badge";
+import { cn } from "@repo/design-system/lib/utils";
 import { CalendarDays, Download, ReceiptText } from "lucide-react";
-import { Button } from "@repo/design-system/components/ui/button";
 
 export interface InvoiceItem {
-  id: string;
-  date: string;
   amount: string;
-  status: "paid" | "refunded" | "open" | "void";
-  invoiceUrl?: string;
+  date: string;
   description?: string;
+  id: string;
+  invoiceUrl?: string;
+  status: "paid" | "refunded" | "open" | "void";
 }
 
 interface InvoiceHistoryProps {
   className?: string;
-  title?: string;
   description?: string;
   invoices: InvoiceItem[];
   onDownload?: (invoiceId: string) => void;
+  title?: string;
 }
 
 export function InvoiceHistory({
@@ -45,7 +45,9 @@ export function InvoiceHistory({
   invoices,
   onDownload,
 }: InvoiceHistoryProps) {
-  if (!invoices) return null;
+  if (!invoices) {
+    return null;
+  }
 
   const statusBadge = (status: InvoiceItem["status"]) => {
     switch (status) {
@@ -61,6 +63,8 @@ export function InvoiceHistory({
         return <Badge variant="outline">Open</Badge>;
       case "void":
         return <Badge variant="outline">Void</Badge>;
+      default:
+        return null;
     }
   };
 
@@ -69,8 +73,8 @@ export function InvoiceHistory({
       {(title || description) && (
         <CardHeader className="space-y-1">
           {title && (
-            <CardTitle className="flex items-center gap-2 truncate text-base text-lg leading-tight font-medium sm:gap-3 sm:text-xl">
-              <ReceiptText className="text-primary h-4 w-4" />
+            <CardTitle className="flex items-center gap-2 truncate font-medium text-base text-lg leading-tight sm:gap-3 sm:text-xl">
+              <ReceiptText className="h-4 w-4 text-primary" />
               {title}
             </CardTitle>
           )}
@@ -100,15 +104,15 @@ export function InvoiceHistory({
             {invoices.length === 0 && (
               <TableRow>
                 <TableCell
+                  className="h-24 text-center text-muted-foreground"
                   colSpan={5}
-                  className="text-muted-foreground h-24 text-center"
                 >
                   No invoices yet
                 </TableCell>
               </TableRow>
             )}
             {invoices.map((inv) => (
-              <TableRow key={inv.id} className="group">
+              <TableRow className="group" key={inv.id}>
                 <TableCell className="text-muted-foreground">
                   <div className="inline-flex items-center gap-2">
                     <CalendarDays className="h-3.5 w-3.5" />
@@ -131,19 +135,19 @@ export function InvoiceHistory({
                 </TableCell>
                 <TableCell className="text-right">
                   <Button
-                    variant="outline"
-                    size="sm"
+                    aria-label={`Download invoice ${inv.id}`}
                     className="h-8 text-xs"
                     onClick={() =>
                       inv.invoiceUrl
                         ? window.open(
                             inv.invoiceUrl,
                             "_blank",
-                            "noopener,noreferrer",
+                            "noopener,noreferrer"
                           )
                         : onDownload?.(inv.id)
                     }
-                    aria-label={`Download invoice ${inv.id}`}
+                    size="sm"
+                    variant="outline"
                   >
                     <Download className="h-3.5 w-3.5" />
                     Download

@@ -17,8 +17,9 @@ import {
   getBillingState,
   getPlanUsageRows,
 } from "../../../../(workspace)/billing/limits";
-import { BillingActions } from "./billing-actions-client";
-import { getStripeInvoices } from "./actions";
+import { getPaymentMethod, getStripeInvoices } from "./actions";
+import { SubscriptionManagementWrapper } from "./subscription-management-wrapper";
+import { mapToCurrentPlan } from "./utils";
 
 interface CentreBillingPageProps {
   params: Promise<{ id: string }>;
@@ -63,6 +64,9 @@ const CentreBillingPage = async ({
   const state = await getBillingState(organization.id);
   const usageRows = getPlanUsageRows(state.plan, state.usage);
   const invoices = await getStripeInvoices(organization.id);
+  const paymentMethod = await getPaymentMethod(organization.id);
+  const currentPlan = mapToCurrentPlan(state, paymentMethod);
+  const isTrial = state.subscription.stripeSubscriptionId === null;
   const checkoutStatus =
     checkout === "success" || checkout === "cancelled" ? checkout : undefined;
 
@@ -107,59 +111,39 @@ const CentreBillingPage = async ({
         </Card>
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardTitle>Current Plan</CardTitle>
-            <CardDescription>Your centre&apos;s subscription</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <p className="font-semibold text-2xl">{state.plan.name}</p>
-              <p className="text-muted-foreground">
-                {state.plan.monthlyPrice}/month
-              </p>
-            </div>
-            <div>
-              <p className="mb-1 text-muted-foreground text-sm">Status</p>
-              <p className="font-medium">{state.subscription.status}</p>
-            </div>
-            <BillingActions
-              alreadySubscribed={
-                state.subscription.stripeSubscriptionId !== null
-              }
-              organizationId={organization.id}
-            />
-          </CardContent>
-        </Card>
+      <SubscriptionManagementWrapper
+        currentPlan={currentPlan}
+        organizationId={organization.id}
+        isTrial={isTrial}
+        isCancelled={state.subscription.cancelAtPeriodEnd}
+      />
 
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Plan Usage</CardTitle>
-            <CardDescription>
-              Your current usage against this plan&apos;s limits
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {usageRows.map((row) => {
-              const percentage =
-                row.limit > 0 ? Math.round((row.value / row.limit) * 100) : 0;
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Plan Usage</CardTitle>
+          <CardDescription>
+            Your current usage against this plan&apos;s limits
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {usageRows.map((row) => {
+            const percentage =
+              row.limit > 0 ? Math.round((row.value / row.limit) * 100) : 0;
 
-              return (
-                <div key={row.label}>
-                  <div className="mb-1 flex items-center justify-between text-sm">
-                    <span>{row.label}</span>
-                    <span className="text-muted-foreground">
-                      {row.value} / {row.limit}
-                    </span>
-                  </div>
-                  <Progress value={Math.min(percentage, 100)} />
+            return (
+              <div key={row.label}>
+                <div className="mb-1 flex items-center justify-between text-sm">
+                  <span>{row.label}</span>
+                  <span className="text-muted-foreground">
+                    {row.value} / {row.limit}
+                  </span>
                 </div>
-              );
-            })}
-          </CardContent>
-        </Card>
-      </div>
+                <Progress value={Math.min(percentage, 100)} />
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
 
       <div className="mt-6">
         {invoices.length > 0 ? (

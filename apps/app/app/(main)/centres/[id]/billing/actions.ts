@@ -8,7 +8,9 @@ import {
   getPlanFromStripePriceId,
   getStripePriceId,
   planDefinitions,
+  type BillablePlan,
 } from "@repo/payments/plans";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { env } from "@/env";
 import { getOrCreateSubscription } from "../../../../(workspace)/billing/limits";
@@ -199,4 +201,158 @@ export const getStripeInvoices = async (
     console.error("Failed to fetch Stripe invoices:", error);
     return [];
   }
+};
+
+const getSubscription = async (organizationId: string) => {
+  const user = await ensureLocalUser();
+
+  if (!user) {
+    redirect("/sign-in");
+  }
+
+  const subscription = await getOrCreateSubscription(organizationId);
+
+  if (!stripe) {
+    throw new Error("Stripe is not configured.");
+  }
+
+  return { subscription, stripeInstance: stripe };
+};
+
+export const getPaymentMethod = async (
+  organizationId: string
+): Promise<string> => {
+  await requireOwner(organizationId);
+
+  const subscription = await getOrCreateSubscription(organizationId);
+
+  if (!subscription.stripeCustomerId) {
+    return "No payment method";
+  }
+
+  if (!stripe) {
+    throw new Error("Stripe is not configured.");
+  }
+
+  try {
+    const paymentMethods = await stripe.paymentMethods.list({
+      customer: subscription.stripeCustomerId,
+      type: "card",
+      limit: 1,
+    });
+
+    const card = paymentMethods.data[0]?.card;
+
+    if (!card) {
+      return "No payment method";
+    }
+
+    const brand = card.brand.toUpperCase();
+
+    return `${brand} •••• ${card.last4}`;
+  } catch (error) {
+    console.error("Failed to fetch payment method:", error);
+    return "Unknown";
+  }
+};
+
+export const updateSubscriptionPlan = async (
+  organizationId: string,
+  newPlan: SubscriptionPlan
+) => {
+  await requireOwner(organizationId);
+
+  if (newPlan === "TRIAL") {
+    throw new Error("You cannot switch to the trial plan.");
+  }
+
+  const { subscription, stripeInstance } = await getSubscription(organizationId);
+
+  if (!subscription.stripeCustomerId) {
+    throw new Error("Please subscribe to a plan first.");
+  }
+
+  if (!subscription.stripeSubscriptionId) {
+    throw new Error("Please subscribe to a plan first.");
+  }
+
+  const priceId = getStripePriceId(newPlan as BillablePlan);
+
+  if (!priceId) {
+    throw new Error("Stripe price is not configured for this plan.");
+  }
+
+  const stripeSubscription = await stripeInstance.subscriptions.retrieve(
+    subscription.stripeSubscriptionId
+  );
+
+  const itemId = stripeSubscription.items.data[0]?.id;
+
+  if (!itemId) {
+    throw new Error("Unable to find the subscription item to update.");
+  }
+
+  await stripeInstance.subscriptions.update(
+    subscription.stripeSubscriptionId,
+    {
+      items: [{ id: itemId, price: priceId }],
+      proration_behavior: "always_invoice",
+    }
+  );
+
+  revalidatePath(`/centres/${organizationId}/billing`);
+};
+
+export const cancelSubscriptionAtPeriodEnd = async (
+  organizationId: string
+) => {
+  await requireOwner(organizationId);
+
+  const { subscription, stripeInstance } = await getSubscription(
+    organizationId
+  );
+
+  if (!subscription.stripeSubscriptionId) {
+    throw new Error("No active subscription to cancel.");
+  }
+
+  if (subscription.cancelAtPeriodEnd) {
+    throw new Error(
+      "Your subscription is already scheduled to cancel at the end of the billing period."
+    );
+  }
+
+  await stripeInstance.subscriptions.update(
+    subscription.stripeSubscriptionId,
+    {
+      cancel_at_period_end: true,
+    }
+  );
+
+  revalidatePath(`/centres/${organizationId}/billing`);
+};
+
+export const reactivateSubscription = async (organizationId: string) => {
+  await requireOwner(organizationId);
+
+  const { subscription, stripeInstance } = await getSubscription(
+    organizationId
+  );
+
+  if (!subscription.stripeSubscriptionId) {
+    throw new Error("No subscription to reactivate.");
+  }
+
+  if (!subscription.cancelAtPeriodEnd) {
+    throw new Error("Your subscription is not scheduled for cancellation.");
+  }
+
+  await stripeInstance.subscriptions.update(
+    subscription.stripeSubscriptionId,
+    {
+      cancel_at_period_end: false,
+    }
+  );
+
+  revalidatePath(`/centres/${organizationId}/billing`);
 };
