@@ -107,11 +107,43 @@ const syncSubscription = async (
     return;
   }
 
+  // Verify the organization exists before attempting to upsert
+  const organizationExists = await database.organization.findUnique({
+    where: { id: organizationId },
+    select: { id: true },
+  });
+
+  if (!organizationExists) {
+    log.error(
+      `Organization ${organizationId} does not exist. Cannot create subscription for Stripe subscription ${subscription.id}`
+    );
+    return;
+  }
+
   const customerId =
     typeof subscription.customer === "string"
       ? subscription.customer
       : subscription.customer.id;
   const priceId = subscription.items.data.at(0)?.price.id;
+
+  // Prioritize plan from metadata (set during checkout), fallback to priceId mapping
+  const metadataPlan = subscription.metadata.plan as SubscriptionPlan | undefined;
+  const planFromPriceId = getPlanFromStripePriceId(priceId);
+  const plan = metadataPlan && ["STARTER", "PRO", "TRIAL"].includes(metadataPlan)
+    ? metadataPlan
+    : planFromPriceId;
+
+  // Log for debugging
+  log.info(
+    `Syncing subscription ${subscription.id}: priceId=${priceId}, metadataPlan=${metadataPlan}, planFromPriceId=${planFromPriceId}, finalPlan=${plan}`
+  );
+
+  // Warn if there's a mismatch between metadata and priceId mapping
+  if (metadataPlan && metadataPlan !== planFromPriceId && planFromPriceId !== "TRIAL") {
+    log.warn(
+      `Plan mismatch for subscription ${subscription.id}: metadata=${metadataPlan}, priceId mapping=${planFromPriceId}`
+    );
+  }
 
   await database.organizationSubscription.upsert({
     where: { organizationId },
@@ -119,7 +151,7 @@ const syncSubscription = async (
       organizationId,
       cancelAtPeriodEnd: subscription.cancel_at_period_end,
       currentPeriodEndsAt: getDateFromUnix(getCurrentPeriodEnd(subscription)),
-      plan: getPlanFromStripePriceId(priceId),
+      plan,
       status: statusMap[subscription.status] ?? "INCOMPLETE",
       stripeCustomerId: customerId,
       stripePriceId: priceId,
@@ -129,7 +161,7 @@ const syncSubscription = async (
     update: {
       cancelAtPeriodEnd: subscription.cancel_at_period_end,
       currentPeriodEndsAt: getDateFromUnix(getCurrentPeriodEnd(subscription)),
-      plan: getPlanFromStripePriceId(priceId),
+      plan,
       status: statusMap[subscription.status] ?? "INCOMPLETE",
       stripeCustomerId: customerId,
       stripePriceId: priceId,
