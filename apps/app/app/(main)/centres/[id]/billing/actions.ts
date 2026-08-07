@@ -296,6 +296,7 @@ export const updateSubscriptionPlan = async (
     subscription.stripeSubscriptionId,
     {
       items: [{ id: itemId, price: priceId }],
+      metadata: { organizationId, plan: newPlan },
       proration_behavior: "always_invoice",
     }
   );

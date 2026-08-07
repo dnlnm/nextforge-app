@@ -1,5 +1,9 @@
 import { analytics } from "@repo/analytics/server";
-import { database, type SubscriptionStatus } from "@repo/database";
+import {
+  database,
+  type SubscriptionPlan,
+  type SubscriptionStatus,
+} from "@repo/database";
 import { parseError } from "@repo/observability/error";
 import { log } from "@repo/observability/log";
 import type { Stripe } from "@repo/payments";
@@ -126,12 +130,14 @@ const syncSubscription = async (
       : subscription.customer.id;
   const priceId = subscription.items.data.at(0)?.price.id;
 
-  // Prioritize plan from metadata (set during checkout), fallback to priceId mapping
-  const metadataPlan = subscription.metadata.plan as SubscriptionPlan | undefined;
+  // Price mapping is the source of truth for the plan; metadata (set during
+  // checkout) can go stale when a plan is changed, so only fall back to it when
+  // the price is unknown (mapped to TRIAL).
+  const metadataPlan = subscription.metadata.plan as
+    | SubscriptionPlan
+    | undefined;
   const planFromPriceId = getPlanFromStripePriceId(priceId);
-  const plan = metadataPlan && ["STARTER", "PRO", "TRIAL"].includes(metadataPlan)
-    ? metadataPlan
-    : planFromPriceId;
+  const plan = planFromPriceId !== "TRIAL" ? planFromPriceId : metadataPlan;
 
   // Log for debugging
   log.info(
@@ -139,7 +145,11 @@ const syncSubscription = async (
   );
 
   // Warn if there's a mismatch between metadata and priceId mapping
-  if (metadataPlan && metadataPlan !== planFromPriceId && planFromPriceId !== "TRIAL") {
+  if (
+    metadataPlan &&
+    metadataPlan !== planFromPriceId &&
+    planFromPriceId !== "TRIAL"
+  ) {
     log.warn(
       `Plan mismatch for subscription ${subscription.id}: metadata=${metadataPlan}, priceId mapping=${planFromPriceId}`
     );
