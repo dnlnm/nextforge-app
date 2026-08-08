@@ -180,6 +180,7 @@ export const SubscriptionManagementWrapper = ({
 
       <SubscriptionManagement
         currentPlan={currentPlan}
+        isCancelled={isCancelled}
         updatePlan={{
           currentPlan: currentPlan.plan,
           plans: paidPlans,

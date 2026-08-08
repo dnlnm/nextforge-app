@@ -25,6 +25,7 @@ export interface SubscriptionManagementProps {
   cancelSubscription: CancelSubscriptionDialogProps;
   className?: string;
   currentPlan: CurrentPlan;
+  isCancelled?: boolean;
   updatePlan: UpdatePlanDialogProps;
 }
 
@@ -32,6 +33,7 @@ export function SubscriptionManagement({
   className,
   currentPlan,
   cancelSubscription,
+  isCancelled = false,
   updatePlan,
 }: SubscriptionManagementProps) {
   const priceLabel = (() => {
@@ -134,15 +136,19 @@ export function SubscriptionManagement({
           <Separator className="my-4 bg-gradient-to-r from-transparent via-border to-transparent sm:my-6" />
 
           <div className="flex flex-col gap-3 sm:flex-row">
-            <UpdatePlanDialog
-              className="mx-0 shadow-lg transition-all duration-200 hover:shadow-xl"
-              {...updatePlan}
-            />
+            {!isCancelled ? (
+              <>
+                <UpdatePlanDialog
+                  className="mx-0 shadow-lg transition-all duration-200 hover:shadow-xl"
+                  {...updatePlan}
+                />
 
-            <CancelSubscriptionDialog
-              className="mx-0 shadow-lg transition-all duration-200 hover:shadow-xl"
-              {...cancelSubscription}
-            />
+                <CancelSubscriptionDialog
+                  className="mx-0 shadow-lg transition-all duration-200 hover:shadow-xl"
+                  {...cancelSubscription}
+                />
+              </>
+            ) : null}
           </div>
 
           <div className="pt-4 sm:pt-6">
