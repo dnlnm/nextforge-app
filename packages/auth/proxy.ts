@@ -1,9 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
+import type { User } from "@supabase/supabase-js";
 import { type NextRequest, NextResponse } from "next/server";
 import { getMainDomain } from "./domain";
 
 type MiddlewareHandler = (
-  auth: undefined,
+  auth: User | null,
   request: NextRequest,
   event: unknown
 ) => Response | Promise<Response | undefined> | undefined;
@@ -47,9 +48,9 @@ export const authMiddleware =
       }
     );
 
-    await supabase.auth.getUser();
+    const { data } = await supabase.auth.getUser();
 
-    const handlerResponse = await handler?.(undefined, request, event);
+    const handlerResponse = await handler?.(data.user, request, event);
 
     return handlerResponse ?? response;
   };

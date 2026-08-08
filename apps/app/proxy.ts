@@ -48,7 +48,7 @@ const isRouteMatch = (pathname: string, routes: string[]) =>
   );
 
 export default authMiddleware(
-  async (_auth, request: NextRequest): Promise<Response | undefined> => {
+  async (auth, request: NextRequest): Promise<Response | undefined> => {
     const url = request.nextUrl.clone();
     const hostname = request.headers.get("host") ?? "";
     const subdomain = parseSubdomain(hostname);
@@ -75,7 +75,9 @@ export default authMiddleware(
     }
 
     // Block old workspace routes on the main domain; route users to /centres.
-    if (isRouteMatch(url.pathname, workspaceRoutes)) {
+    // Authenticated users are allowed through (their client-side navigation
+    // after creating a student/class must not be bounced to /centres).
+    if (isRouteMatch(url.pathname, workspaceRoutes) && !auth) {
       url.pathname = "/centres";
       url.search = "";
       return NextResponse.redirect(url);

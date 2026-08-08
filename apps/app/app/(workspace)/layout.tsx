@@ -1,5 +1,5 @@
 import { currentUser } from "@repo/auth/server";
-import { requireSubdomainTenant } from "@repo/auth/subdomain";
+import { requireTenant } from "@repo/auth/tenant";
 import { isSuperadminUserId } from "@repo/auth/superadmin";
 import { database } from "@repo/database";
 import { SidebarProvider } from "@repo/design-system/components/ui/sidebar";
@@ -32,7 +32,10 @@ const WorkspaceLayout = async ({ children }: WorkspaceLayoutProperties) => {
     redirect("/superadmin");
   }
 
-  const tenant = await requireSubdomainTenant();
+  // Resolve the tenant from the subdomain when present, otherwise fall back to
+  // the session's active organization (e.g. when following a redirect to a
+  // workspace route on the main domain after creating a student/class).
+  const tenant = await requireTenant();
 
   const organization = await database.organization.findFirst({
     where: { id: tenant.organizationId, status: "ACTIVE" },

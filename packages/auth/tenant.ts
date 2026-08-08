@@ -2,6 +2,7 @@ import "server-only";
 
 import { database, type MembershipRole } from "@repo/database";
 import { notFound, redirect } from "next/navigation";
+import { TENANT_ACCESS_DENIED_MESSAGE } from "./errors";
 import { hasTenantRole } from "./roles";
 import { auth } from "./server";
 import { getCurrentSlug } from "./subdomain";
@@ -24,7 +25,9 @@ export const requireTenant = async (): Promise<TenantContext> => {
     redirect("/sign-in");
   }
 
-  // Resolve the organization from the subdomain when present.
+  // Resolve the organization from the subdomain when present. When a subdomain
+  // is present, the tenant is strictly enforced: the user must be a member of
+  // the organization behind the subdomain, otherwise access is denied.
   const subdomainSlug = await getCurrentSlug();
 
   if (subdomainSlug) {
@@ -33,32 +36,36 @@ export const requireTenant = async (): Promise<TenantContext> => {
       select: { id: true },
     });
 
-    if (organization) {
-      const membership = await database.organizationMembership.findFirst({
-        where: {
-          status: "ACTIVE",
-          organization: { id: organization.id, status: "ACTIVE" },
-          user: { authUserId: session.userId, archivedAt: null },
-        },
-        select: { id: true, role: true, organizationId: true, userId: true },
-      });
-
-      if (membership) {
-        return {
-          authOrganizationId: organization.id,
-          authUserId: session.userId,
-          userId: membership.userId,
-          organizationId: membership.organizationId,
-          membershipId: membership.id,
-          role: membership.role,
-          slug: subdomainSlug,
-          source: "subdomain",
-        };
-      }
+    if (!organization) {
+      throw new Error("Centre not found");
     }
+
+    const membership = await database.organizationMembership.findFirst({
+      where: {
+        status: "ACTIVE",
+        organization: { id: organization.id, status: "ACTIVE" },
+        user: { authUserId: session.userId, archivedAt: null },
+      },
+      select: { id: true, role: true, organizationId: true, userId: true },
+    });
+
+    if (!membership) {
+      throw new Error(TENANT_ACCESS_DENIED_MESSAGE);
+    }
+
+    return {
+      authOrganizationId: organization.id,
+      authUserId: session.userId,
+      userId: membership.userId,
+      organizationId: membership.organizationId,
+      membershipId: membership.id,
+      role: membership.role,
+      slug: subdomainSlug,
+      source: "subdomain",
+    };
   }
 
-  // Fall back to the session's active organization.
+  // On the main domain, fall back to the session's active organization.
   if (!session.orgId) {
     redirect("/center-setup");
     throw new Error("Missing active organization");
