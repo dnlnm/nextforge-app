@@ -6,6 +6,8 @@ export const Brand = () => (
     <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
       <GraduationCapIcon className="size-4" />
     </div>
-    <span className="font-semibold leading-none">{appName}</span>
+    <span className="font-brand font-semibold leading-none tracking-tight">
+      {appName}
+    </span>
   </div>
 );
