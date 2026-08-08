@@ -175,7 +175,7 @@ model Student {
   state             String?
   postcode          String?
   schoolName        String?
-  photoUrl          String?
+  photoKey          String?
   enrolledAt        DateTime           @default(now())
   status            StudentStatus      @default(ACTIVE)
   notes             String?

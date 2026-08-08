@@ -215,7 +215,7 @@ export const createStudent = async (
         state: getString(formData, "state"),
         postcode,
         schoolName: getString(formData, "schoolName"),
-        photoUrl: getString(formData, "photoUrl"),
+        photoKey: getString(formData, "photoKey"),
         notes: getString(formData, "notes"),
       },
       select: { id: true },
@@ -426,7 +426,7 @@ export const updateStudent = async (formData: FormData) => {
         postcode: getString(formData, "postcode"),
         preferredName: getString(formData, "preferredName"),
         schoolName: getString(formData, "schoolName"),
-        photoUrl: getString(formData, "photoUrl"),
+        photoKey: getString(formData, "photoKey"),
         notes: getString(formData, "notes"),
       },
     });
@@ -453,6 +453,8 @@ export const updateStudent = async (formData: FormData) => {
   });
 
   revalidatePath("/students");
+  revalidatePath(`/students/${studentId}`);
+  revalidatePath(`/students/${studentId}/edit`);
   redirect(`/students/${studentId}`);
 };
 

@@ -71,7 +71,11 @@ const StudentEditPage = async ({ params }: StudentEditPageProperties) => {
               <CardTitle>Edit student</CardTitle>
             </CardHeader>
             <CardContent>
-              <form action={updateStudent} className="grid gap-4">
+              <form
+                action={updateStudent}
+                className="grid gap-4"
+                id="edit-student-form"
+              >
                 <input name="studentId" type="hidden" value={student.id} />
                 <input name="guardianId" type="hidden" value={guardian.id} />
                 <div className="grid gap-2">
@@ -284,9 +288,10 @@ const StudentEditPage = async ({ params }: StudentEditPageProperties) => {
               </CardHeader>
               <CardContent>
                 <StudentPhotoUpload
-                  defaultValue={student.photoUrl ?? ""}
+                  defaultValue={student.photoKey ?? ""}
+                  formId="edit-student-form"
                   gender={student.gender}
-                  name="photoUrl"
+                  name="photoKey"
                 />
               </CardContent>
             </Card>

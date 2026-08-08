@@ -6,7 +6,8 @@ export const config: NextConfig = {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {
-        hostname: "*.public.blob.vercel-storage.com",
+        // Cloudflare R2 custom domain attached to the bucket.
+        hostname: "cdn.klio.my",
         protocol: "https",
       },
     ],

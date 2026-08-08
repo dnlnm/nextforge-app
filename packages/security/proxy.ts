@@ -8,7 +8,7 @@ export const noseconeOptions: Options = {
   ...defaults,
   // Cross-Origin-Embedder-Policy is disabled because it blocks cross-origin
   // resources that don't send a `Cross-Origin-Resource-Policy: cross-origin`
-  // header, such as images served from Vercel Blob storage.
+  // header, such as images served from Cloudflare R2 object storage.
   crossOriginEmbedderPolicy: false,
   // Content Security Policy (CSP) is disabled by default because the values
   // depend on which Next Forge features are enabled. See

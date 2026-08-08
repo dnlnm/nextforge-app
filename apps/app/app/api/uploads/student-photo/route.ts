@@ -1,5 +1,5 @@
 import { requireTenantRole } from "@repo/auth/authorization";
-import { put } from "@repo/storage";
+import { createPresignedUploadUrl } from "@repo/storage";
 import { NextResponse } from "next/server";
 
 const maxPhotoSizeBytes = 2 * 1024 * 1024;
@@ -11,34 +11,41 @@ export const POST = async (request: Request) => {
   try {
     await requireTenantRole(["ADMIN"]);
 
-    const formData = await request.formData();
-    const photo = formData.get("photo");
+    const { fileName, fileType, fileSize } = (await request.json()) as {
+      fileName?: string;
+      fileType?: string;
+      fileSize?: number;
+    };
 
-    if (!(photo instanceof File) || photo.size === 0) {
-      return NextResponse.json({ error: "Photo is required" }, { status: 400 });
+    if (!(fileName && fileType) || typeof fileSize !== "number") {
+      return NextResponse.json(
+        { error: "Photo details are required" },
+        { status: 400 }
+      );
     }
 
-    if (!photo.type.startsWith("image/")) {
+    if (!fileType.startsWith("image/")) {
       return NextResponse.json(
         { error: "Photo must be an image." },
         { status: 400 }
       );
     }
 
-    if (photo.size > maxPhotoSizeBytes) {
+    if (fileSize > maxPhotoSizeBytes) {
       return NextResponse.json(
         { error: "Photo must be 2MB or smaller." },
         { status: 400 }
       );
     }
 
-    const pathname = `student-photos/${crypto.randomUUID()}-${sanitizeFileName(photo.name)}`;
-    const { url } = await put(pathname, photo, {
-      access: "public",
-      contentType: photo.type,
+    const key = `student-photos/${crypto.randomUUID()}-${sanitizeFileName(fileName)}`;
+    const upload = await createPresignedUploadUrl({
+      bucket: "private",
+      key,
+      contentType: fileType,
     });
 
-    return NextResponse.json({ url });
+    return NextResponse.json(upload);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Upload failed";
 

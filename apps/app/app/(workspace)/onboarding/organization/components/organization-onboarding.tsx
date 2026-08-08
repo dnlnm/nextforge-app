@@ -3,6 +3,7 @@
 import { Button } from "@repo/design-system/components/ui/button";
 import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
+import { uploadToR2 } from "@repo/storage/client";
 import { ImageUpIcon, Loader2Icon } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -18,18 +19,6 @@ const SubmitButton = () => {
       Create centre
     </Button>
   );
-};
-
-const parseUploadResponse = async (response: Response) => {
-  const contentType = response.headers.get("content-type") ?? "";
-
-  if (contentType.includes("application/json")) {
-    return (await response.json()) as { error?: string; url?: string };
-  }
-
-  const text = await response.text();
-
-  return text ? { error: text } : {};
 };
 
 export const OrganizationOnboarding = () => {
@@ -63,21 +52,8 @@ export const OrganizationOnboarding = () => {
       let imageUrl: string | undefined;
 
       if (logo) {
-        const uploadFormData = new FormData();
-        uploadFormData.append("logo", logo);
-
-        const response = await fetch("/api/uploads/centre-logo", {
-          method: "POST",
-          body: uploadFormData,
-        });
-
-        const payload = await parseUploadResponse(response);
-
-        if (!response.ok) {
-          throw new Error(payload.error ?? "Failed to upload logo.");
-        }
-
-        imageUrl = payload.url;
+        const { url } = await uploadToR2(logo, "/api/uploads/centre-logo");
+        imageUrl = url;
       }
 
       await createOrganization(name, imageUrl);

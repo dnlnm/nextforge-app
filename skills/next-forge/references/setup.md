@@ -120,10 +120,21 @@ BETTERSTACK_URL="..."
 ARCJET_KEY="ajkey_..."
 ```
 
-### Storage (Vercel Blob)
+### Storage (Cloudflare R2)
+
+Create two R2 buckets — a **public** one (e.g. `klio-public`, attach the custom
+domain `cdn.klio.my` with public access on) and a **private** one (e.g.
+`klio-private`, no public access). Generate one R2 API token (S3 credentials)
+with Object Read & Write on both buckets, and add a CORS policy allowing `PUT`
+from the app origins to both buckets. Then set:
 
 ```bash
-BLOB_READ_WRITE_TOKEN="vercel_blob_..."
+R2_ACCOUNT_ID="..."
+R2_ACCESS_KEY_ID="..."
+R2_SECRET_ACCESS_KEY="..."
+R2_PUBLIC_BUCKET_NAME="klio-public"
+R2_PUBLIC_URL="https://cdn.klio.my"  # custom domain on the public bucket
+R2_PRIVATE_BUCKET_NAME="klio-private"
 ```
 
 ### Feature Flags

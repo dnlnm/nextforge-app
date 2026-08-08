@@ -33,7 +33,7 @@ next-forge/
 │   ├── rate-limit/            # Rate limiting utilities
 │   ├── security/              # Arcjet WAF + bot detection
 │   ├── seo/                   # Metadata, sitemap, JSON-LD
-│   ├── storage/               # Vercel Blob
+│   ├── storage/               # Cloudflare R2
 │   ├── typescript-config/     # Shared TS configs
 │   └── webhooks/              # Svix outbound + Stripe/Clerk inbound
 ├── turbo.json
@@ -77,7 +77,7 @@ Import from specific subpaths when needed:
 
 ```typescript
 import { analytics } from '@repo/analytics/server';
-import { upload } from '@repo/storage/client';
+import { uploadToR2 } from '@repo/storage/client';
 import { log } from '@repo/observability/log';
 ```
 

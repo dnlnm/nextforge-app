@@ -647,7 +647,7 @@ export const StudentCreateForm = ({
             <CardTitle className="text-base">Profile Photo</CardTitle>
           </CardHeader>
           <CardContent>
-            <StudentPhotoUpload name="photoUrl" />
+            <StudentPhotoUpload name="photoKey" />
           </CardContent>
         </Card>
 

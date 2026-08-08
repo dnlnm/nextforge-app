@@ -63,7 +63,7 @@ next-forge comes with batteries included:
 - **Collaboration** — Real-time features with avatars and live cursors
 - **Feature Flags** — Feature flag management
 - **Cron** — Scheduled job management
-- **Storage** — File upload and management
+- **Storage** — Cloudflare R2 via presigned URLs (public bucket for centre logos, private bucket + authenticated proxy for student photos/documents)
 - **Internationalization** — Multi-language support
 - **Notifications** — In-app notification system
 

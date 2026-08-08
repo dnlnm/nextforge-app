@@ -139,13 +139,21 @@ analytics?.capture({ event: 'user_signed_up', distinctId: userId });
 
 ## Storage (`@repo/storage`)
 
-**Provider**: Vercel Blob
+**Provider**: Cloudflare R2 (S3-compatible object storage), split into two buckets.
+
+**Buckets**:
+- **Public** (`R2_PUBLIC_BUCKET_NAME`) — e.g. centre logos. Public access via the custom domain `R2_PUBLIC_URL` (`https://cdn.klio.my`); the stored value is a full public URL.
+- **Private** (`R2_PRIVATE_BUCKET_NAME`) — e.g. student photos, documents. No public access; the stored value is an object **key** (e.g. `Student.photoKey`), read through the authenticated proxy `GET /api/files/[...key]`.
+
+**Flow**: Direct browser → R2 uploads via presigned PUT URLs. The server only authenticates, validates, and signs; the browser PUTs bytes straight to R2.
 
 **Key exports**:
-- `put` from `@repo/storage` — server-side upload
-- `upload` from `@repo/storage/client` — client-side upload
+- `createPresignedUploadUrl({ bucket, key, contentType })` from `@repo/storage` — server-side signing; returns `{ uploadUrl, key, url? }` (`url` only for the public bucket)
+- `createSignedDownloadUrl({ key })` / `getPrivateObject(key)` from `@repo/storage` — private reads
+- `uploadToR2(file, endpoint)` from `@repo/storage/client` — browser two-step upload; returns `{ key, url? }`
+- `privateFileUrl(key)` from `@repo/storage/client` — builds the `/api/files/<key>` proxy src for rendering private objects
 
-**Note**: Server uploads are limited to 4.5MB. Use client uploads for larger files.
+**Env**: `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_PUBLIC_BUCKET_NAME`, `R2_PUBLIC_URL`, `R2_PRIVATE_BUCKET_NAME`. Both buckets need a CORS policy allowing `PUT` from the app origins.
 
 ## Security (`@repo/security`)
 

@@ -2,8 +2,9 @@
 
 import { Button } from "@repo/design-system/components/ui/button";
 import { cn } from "@repo/design-system/lib/utils";
+import { privateFileUrl, uploadToR2 } from "@repo/storage/client";
 import { CloudUploadIcon, ImageIcon, Loader2Icon, XIcon } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { StudentAvatar } from "./student-avatar";
 
 const maxPhotoSizeBytes = 2 * 1024 * 1024;
@@ -11,18 +12,35 @@ const maxPhotoSizeBytes = 2 * 1024 * 1024;
 export const StudentPhotoUpload = ({
   className,
   defaultValue,
+  formId,
   gender,
   name,
 }: {
   className?: string;
   defaultValue?: string;
+  // Associates the hidden input with a <form id> rendered elsewhere (e.g. when
+  // this component sits outside the <form> element, like the edit-page sidebar).
+  formId?: string;
   gender?: string | null;
   name: string;
 }) => {
-  const [photoUrl, setPhotoUrl] = useState(defaultValue ?? "");
+  // `photoKey` is the R2 object key persisted in the hidden form input.
+  const [photoKey, setPhotoKey] = useState(defaultValue ?? "");
+  // `preview` is a local object URL for the just-selected file (instant
+  // preview without a round-trip), falling back to the proxy for stored keys.
+  const [preview, setPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(
+    () => () => {
+      if (preview) {
+        URL.revokeObjectURL(preview);
+      }
+    },
+    [preview]
+  );
 
   const handleFileChange = async (file: File | undefined) => {
     if (!file) {
@@ -42,33 +60,38 @@ export const StudentPhotoUpload = ({
     setError(null);
     setIsUploading(true);
 
+    // Show an immediate local preview while the upload completes.
+    if (preview) {
+      URL.revokeObjectURL(preview);
+    }
+    const localPreview = URL.createObjectURL(file);
+    setPreview(localPreview);
+
     try {
-      const formData = new FormData();
-      formData.append("photo", file);
-
-      const response = await fetch("/api/uploads/student-photo", {
-        method: "POST",
-        body: formData,
-      });
-      const result = (await response.json()) as {
-        error?: string;
-        url?: string;
-      };
-
-      if (!response.ok) {
-        throw new Error(result.error ?? "Upload failed");
-      }
-
-      setPhotoUrl(result.url ?? "");
+      const { key } = await uploadToR2(file, "/api/uploads/student-photo");
+      setPhotoKey(key);
     } catch (uploadError) {
       const message =
         uploadError instanceof Error ? uploadError.message : "Upload failed";
 
       setError(message);
+      setPreview(null);
     } finally {
       setIsUploading(false);
     }
   };
+
+  const clear = () => {
+    setPhotoKey("");
+    if (preview) {
+      URL.revokeObjectURL(preview);
+    }
+    setPreview(null);
+  };
+
+  // Prefer the local preview; otherwise render the stored key via the proxy.
+  const displaySrc = preview ?? privateFileUrl(photoKey);
+  const hasPhoto = Boolean(photoKey || preview);
 
   const getAction = () => {
     if (isUploading) {
@@ -78,7 +101,7 @@ export const StudentPhotoUpload = ({
       };
     }
 
-    if (photoUrl) {
+    if (hasPhoto) {
       return { icon: <ImageIcon className="size-4" />, label: "Change" };
     }
 
@@ -97,12 +120,12 @@ export const StudentPhotoUpload = ({
           className="size-24"
           gender={gender}
           name="Student photo"
-          photoUrl={photoUrl || null}
+          photoUrl={displaySrc}
         />
-        {photoUrl ? (
+        {hasPhoto ? (
           <Button
             className="absolute -right-1 -bottom-1 size-7 rounded-full"
-            onClick={() => setPhotoUrl("")}
+            onClick={clear}
             size="icon"
             type="button"
             variant="outline"
@@ -113,7 +136,7 @@ export const StudentPhotoUpload = ({
       </div>
       <div className="text-center">
         <p className="font-medium text-sm">
-          {photoUrl ? "Student photo uploaded" : "Upload student photo"}
+          {hasPhoto ? "Student photo uploaded" : "Upload student photo"}
         </p>
         <p className="mt-1 text-muted-foreground text-xs">
           JPG, PNG or up to 2MB
@@ -127,7 +150,7 @@ export const StudentPhotoUpload = ({
         ref={inputRef}
         type="file"
       />
-      <input name={name} type="hidden" value={photoUrl} />
+      <input form={formId} name={name} type="hidden" value={photoKey} />
       {error ? <p className="text-destructive text-xs">{error}</p> : null}
       <div className="flex gap-2">
         <Button

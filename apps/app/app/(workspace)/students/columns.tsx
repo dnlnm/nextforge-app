@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@repo/design-system/components/ui/dropdown-menu";
+import { privateFileUrl } from "@repo/storage/client";
 import {
   ArchiveIcon,
   Edit3Icon,
@@ -35,7 +36,7 @@ export type Student = {
   status: string;
   code: string;
   gender: string | null;
-  photoUrl: string | null;
+  photoKey: string | null;
   level: {
     name: string;
   } | null;
@@ -173,7 +174,7 @@ export const columns: DataTableColumnDef<Student>[] = [
             className="size-10"
             gender={row.original.gender}
             name={row.original.fullName}
-            photoUrl={row.original.photoUrl}
+            photoUrl={privateFileUrl(row.original.photoKey)}
           />
           <div className="min-w-0 flex-1">
             <Link

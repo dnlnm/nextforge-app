@@ -17,6 +17,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@repo/design-system/components/ui/tabs";
+import { privateFileUrl } from "@repo/storage/client";
 import {
   BookOpenIcon,
   CalendarDaysIcon,
@@ -141,7 +142,7 @@ const StudentHeader = ({
           className="size-20 shrink-0"
           gender={student.gender}
           name={student.fullName}
-          photoUrl={student.photoUrl}
+          photoUrl={privateFileUrl(student.photoKey)}
         />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">

@@ -16,6 +16,7 @@ import {
   StatTrend,
   StatValue,
 } from "@repo/design-system/components/ui/stat";
+import { privateFileUrl } from "@repo/storage/client";
 import {
   ArrowUp,
   ChevronRightIcon,
@@ -40,7 +41,7 @@ type Student = {
   gender: string | null;
   phone: string | null;
   email: string | null;
-  photoUrl: string | null;
+  photoKey: string | null;
   level: {
     name: string;
   } | null;
@@ -211,7 +212,7 @@ export function StudentsPageClient({
                     className="size-20"
                     gender={selectedStudent.gender}
                     name={selectedStudent.fullName}
-                    photoUrl={selectedStudent.photoUrl}
+                    photoUrl={privateFileUrl(selectedStudent.photoKey)}
                   />
                   <Button size="icon" variant="ghost">
                     <MoreHorizontalIcon className="size-4" />

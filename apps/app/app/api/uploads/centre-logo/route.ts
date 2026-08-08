@@ -1,5 +1,5 @@
 import { currentUser } from "@repo/auth/server";
-import { put } from "@repo/storage";
+import { createPresignedUploadUrl } from "@repo/storage";
 import { NextResponse } from "next/server";
 
 const maxLogoSizeBytes = 2 * 1024 * 1024;
@@ -15,27 +15,34 @@ export const POST = async (request: Request) => {
       return NextResponse.json({ error: "Not authorized" }, { status: 401 });
     }
 
-    const formData = await request.formData();
-    const logo = formData.get("logo");
+    const { fileName, fileType, fileSize } = (await request.json()) as {
+      fileName?: string;
+      fileType?: string;
+      fileSize?: number;
+    };
 
-    if (!(logo instanceof File) || logo.size === 0) {
-      return NextResponse.json({ error: "Logo is required" }, { status: 400 });
+    if (!(fileName && fileType) || typeof fileSize !== "number") {
+      return NextResponse.json(
+        { error: "Logo details are required" },
+        { status: 400 }
+      );
     }
 
-    if (logo.size > maxLogoSizeBytes) {
+    if (fileSize > maxLogoSizeBytes) {
       return NextResponse.json(
         { error: "Logo must be 2MB or smaller." },
         { status: 400 }
       );
     }
 
-    const pathname = `centre-logos/${crypto.randomUUID()}-${sanitizeFileName(logo.name)}`;
-    const { url } = await put(pathname, logo, {
-      access: "public",
-      contentType: logo.type,
+    const key = `centre-logos/${crypto.randomUUID()}-${sanitizeFileName(fileName)}`;
+    const upload = await createPresignedUploadUrl({
+      bucket: "public",
+      key,
+      contentType: fileType,
     });
 
-    return NextResponse.json({ url });
+    return NextResponse.json(upload);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Upload failed";
 
