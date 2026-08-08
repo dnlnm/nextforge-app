@@ -1,4 +1,5 @@
 import { ensureLocalUser } from "@repo/auth/organizations";
+import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { BriefcaseIcon } from "lucide-react";
 import type { Metadata } from "next";
@@ -8,7 +9,7 @@ import { WorkspaceCard } from "../components/workspace-card";
 import { EmptyState, WorkspaceGrid } from "../components/workspace-grid";
 
 export const metadata: Metadata = {
-  title: "Admin Centres - TLAS.MY",
+  title: `Admin Centres - ${appName}`,
   description: "Centres where you have admin access",
 };
 

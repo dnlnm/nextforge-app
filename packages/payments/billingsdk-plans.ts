@@ -1,3 +1,4 @@
+import { appName } from "@repo/config/brand";
 export interface PlanFeature {
   icon: string;
   iconColor?: string;
@@ -47,8 +48,7 @@ export const billingSDKPlans: Plan[] = [
   {
     id: "TRIAL",
     title: "Trial",
-    description:
-      "Free 14-day trial to explore everything TLAS.MY has to offer.",
+    description: `Free 14-day trial to explore everything ${appName} has to offer.`,
     currency: "RM",
     monthlyPrice: "0",
     yearlyPrice: "0",

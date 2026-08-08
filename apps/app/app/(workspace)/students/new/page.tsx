@@ -1,4 +1,5 @@
 import { requireTenantRole } from "@repo/auth/authorization";
+import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { Header } from "../../components/header";
 import { getNextStudentCode } from "../actions";
@@ -19,7 +20,7 @@ const AddStudentPage = async () => {
     <>
       <Header
         page="Add Student"
-        pages={["TLAS.MY", { href: "/students", label: "Students" }]}
+        pages={[`${appName}`, { href: "/students", label: "Students" }]}
       />
       <main className="grid gap-5 p-4 pt-4">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">

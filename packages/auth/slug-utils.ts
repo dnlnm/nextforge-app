@@ -23,6 +23,7 @@ export const RESERVED_SLUGS = [
   "assets",
   "images",
   "uploads",
+  "klio",
   "tlas",
   "my",
   "sign-in",

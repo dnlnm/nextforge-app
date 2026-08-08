@@ -1,4 +1,5 @@
 import { requireTenantRole } from "@repo/auth/authorization";
+import { appName } from "@repo/config/brand";
 import {
   Avatar,
   AvatarFallback,
@@ -47,7 +48,7 @@ const MembersPage = async () => {
 
   return (
     <>
-      <Header page="Members" pages={["TLAS.MY"]} />
+      <Header page="Members" pages={[`${appName}`]} />
       <main className="grid gap-5 p-4 pt-4">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>

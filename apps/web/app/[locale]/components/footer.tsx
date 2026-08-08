@@ -1,4 +1,5 @@
 import { legal } from "@repo/cms";
+import { appName } from "@repo/config/brand";
 import { localizePath } from "@repo/internationalization";
 import { Status } from "@repo/observability/status";
 import Link from "next/link";
@@ -29,7 +30,7 @@ export const Footer = async ({ locale }: FooterProps) => {
     },
     {
       title: "Legal",
-      description: "Terms for TLAS.MY subscription and data handling.",
+      description: `Terms for ${appName} subscription and data handling.`,
       items: [
         { title: "Privacy", href: localizePath(locale, "/privacy") },
         { title: "Terms", href: localizePath(locale, "/terms") },
@@ -56,7 +57,7 @@ export const Footer = async ({ locale }: FooterProps) => {
             <div className="flex flex-col items-start gap-8">
               <div className="flex flex-col gap-2">
                 <h2 className="max-w-xl text-left font-regular text-3xl tracking-tighter md:text-5xl">
-                  TLAS.MY
+                  {appName}
                 </h2>
                 <p className="max-w-lg text-left text-foreground/75 text-lg leading-relaxed tracking-tight">
                   Tuition centre management for Malaysian owners, admins, and

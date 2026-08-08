@@ -20,6 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@repo/design-system/components/ui/dropdown-menu";
+import { appName } from "@repo/config/brand";
 import { ChevronDownIcon } from "lucide-react";
 import Link from "next/link";
 import { useOrganization } from "./organization-context";
@@ -40,7 +41,7 @@ const getInitials = (value?: string) => {
 
 export const OrganizationMenu = () => {
   const organization = useOrganization();
-  const centreName = organization?.name ?? "TLAS.MY";
+  const centreName = organization?.name ?? appName;
   const logoSrc = organization?.imageUrl
     ? `/api/organization-logo?version=${encodeURIComponent(organization.imageUrl)}`
     : null;

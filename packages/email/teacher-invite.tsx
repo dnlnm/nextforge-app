@@ -1,3 +1,4 @@
+import { appName } from "@repo/config/brand";
 import "server-only";
 
 import { resend } from "./index";
@@ -30,7 +31,7 @@ export const sendTeacherInvitation = async ({
   await resend.emails.send({
     from: RESEND_FROM,
     to: inviteeEmail,
-    subject: `You've been invited to join ${organizationName} on TLAS.MY`,
+    subject: `You've been invited to join ${organizationName} on ${appName}`,
     react: (
       <TeacherInviteTemplate
         actionUrl={actionUrl}

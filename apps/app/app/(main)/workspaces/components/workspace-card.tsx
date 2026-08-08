@@ -1,4 +1,5 @@
 import { buildWorkspaceUrl } from "@repo/auth/domain";
+import { formatWorkspaceHostname } from "@repo/config/brand";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
@@ -60,7 +61,7 @@ export const WorkspaceCard = ({
             <div className="min-w-0 flex-1">
               <CardTitle className="truncate text-lg">{name}</CardTitle>
               <p className="truncate text-muted-foreground text-sm">
-                {slug}.tlas.my
+                {formatWorkspaceHostname(slug)}
               </p>
             </div>
           </div>

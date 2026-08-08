@@ -1,5 +1,6 @@
-export const getMainDomain = (): string =>
-  process.env.NEXT_PUBLIC_MAIN_DOMAIN ?? "tlas.my";
+import { buildWorkspaceUrl, mainDomain } from "@repo/config/brand";
+
+export const getMainDomain = (): string => mainDomain;
 
 /**
  * Extract the subdomain from a hostname.
@@ -33,9 +34,4 @@ export const isMainDomain = (hostname: string): boolean =>
 /**
  * Build the subdomain workspace URL for a given centre slug.
  */
-export const buildWorkspaceUrl = (slug: string, path = ""): string => {
-  const mainDomain = getMainDomain();
-  const base = `https://${slug}.${mainDomain}`;
-
-  return path ? `${base}${path.startsWith("/") ? path : `/${path}`}` : base;
-};
+export { buildWorkspaceUrl };

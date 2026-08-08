@@ -1,5 +1,6 @@
 "use client";
 
+import { appName } from "@repo/config/brand";
 import { ModeToggle } from "@repo/design-system/components/mode-toggle";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
@@ -13,7 +14,7 @@ import { localizePath } from "@repo/internationalization/path";
 import { Menu, MoveRight, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, type MouseEvent } from "react";
+import { type MouseEvent, useState } from "react";
 import { env } from "@/env";
 import { LanguageSwitcher } from "./language-switcher";
 
@@ -108,9 +109,9 @@ export const Header = ({ dictionary, locale }: HeaderProps) => {
         </div>
         <div className="flex items-center gap-2 lg:absolute lg:left-1/2 lg:-translate-x-1/2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary font-bold text-primary-foreground text-sm">
-            T
+            {appName.charAt(0)}
           </div>
-          <p className="whitespace-nowrap font-semibold">TLAS.MY</p>
+          <p className="whitespace-nowrap font-semibold">{appName}</p>
         </div>
         <div className="flex w-full items-center justify-end gap-3 lg:w-auto lg:gap-2">
           <Button asChild className="hidden lg:inline-flex" variant="ghost">
@@ -132,11 +133,7 @@ export const Header = ({ dictionary, locale }: HeaderProps) => {
             <LanguageSwitcher />
             <ModeToggle />
           </div>
-          <Button
-            asChild
-            className="hidden lg:inline-flex"
-            variant="outline"
-          >
+          <Button asChild className="hidden lg:inline-flex" variant="outline">
             <Link href={`${env.NEXT_PUBLIC_APP_URL}/sign-in`}>
               {dictionary.web.header.signIn}
             </Link>
@@ -164,9 +161,7 @@ export const Header = ({ dictionary, locale }: HeaderProps) => {
                       ? "noopener noreferrer"
                       : undefined
                   }
-                  target={
-                    item.href.startsWith("http") ? "_blank" : undefined
-                  }
+                  target={item.href.startsWith("http") ? "_blank" : undefined}
                 >
                   <span className="text-lg">{item.title}</span>
                   <MoveRight className="h-4 w-4 stroke-1 text-muted-foreground" />

@@ -1,4 +1,5 @@
 import { auth } from "@repo/auth/server";
+import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
@@ -44,7 +45,8 @@ const SynchronizingPage = async () => {
           <CardHeader>
             <CardTitle>Preparing your centre workspace</CardTitle>
             <CardDescription>
-              TLAS.MY is preparing the local workspace records for this centre.
+              {appName} is preparing the local workspace records for this
+              centre.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex gap-3">

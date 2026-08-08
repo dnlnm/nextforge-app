@@ -1,6 +1,7 @@
 "use server";
 
 import { requireTenantRole } from "@repo/auth/authorization";
+import { appName } from "@repo/config/brand";
 import { database, type SubscriptionPlan } from "@repo/database";
 import { stripe } from "@repo/payments";
 import { getStripePriceId } from "@repo/payments/plans";
@@ -35,7 +36,7 @@ const getOrganizationCustomer = async (organizationId: string) => {
 
   const customer = await stripe.customers.create({
     metadata: { organizationId },
-    name: organization?.name ?? "TLAS.MY centre",
+    name: organization?.name ?? `${appName} centre`,
   });
 
   await database.organizationSubscription.update({

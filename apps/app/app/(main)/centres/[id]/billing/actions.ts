@@ -1,6 +1,7 @@
 "use server";
 
 import { ensureLocalUser } from "@repo/auth/organizations";
+import { appName } from "@repo/config/brand";
 import { database, type SubscriptionPlan } from "@repo/database";
 import type { InvoiceItem } from "@repo/design-system/components/billingsdk/invoice-history";
 import { stripe } from "@repo/payments";
@@ -63,7 +64,7 @@ const getOrganizationCustomer = async (organizationId: string) => {
 
   const customer = await stripe.customers.create({
     metadata: { organizationId },
-    name: organization?.name ?? "TLAS.MY centre",
+    name: organization?.name ?? `${appName} centre`,
   });
 
   await database.organizationSubscription.update({

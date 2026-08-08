@@ -1,5 +1,6 @@
 "use client";
 
+import { appName } from "@repo/config/brand";
 import { SubscriptionManagement } from "@repo/design-system/components/billingsdk/subscription-management";
 import {
   Card,
@@ -192,7 +193,7 @@ export const SubscriptionManagementWrapper = ({
           description:
             "We're sorry to see you go. Are you sure you want to cancel your subscription?",
           plan: currentPlan.plan,
-          warningTitle: "You will lose access to these TLAS.MY features",
+          warningTitle: `You will lose access to these ${appName} features`,
           warningText:
             "Once cancelled, you will lose access to student and class management, automated invoicing, payment tracking, attendance monitoring, and reports. Your subscription will remain active until the end of your billing period, and you can reactivate anytime before then.",
           keepButtonText: "Keep My Subscription",

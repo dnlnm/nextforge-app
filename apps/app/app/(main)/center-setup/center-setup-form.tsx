@@ -1,6 +1,7 @@
 "use client";
 
 import { buildWorkspaceUrl } from "@repo/auth/domain";
+import { formatWorkspaceHostname } from "@repo/config/brand";
 import { Button } from "@repo/design-system/components/ui/button";
 import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
@@ -144,7 +145,7 @@ export const CenterSetupForm = () => {
         </div>
         {slug ? (
           <p className="text-muted-foreground text-xs">
-            Your centre will be at: {slug}.tlas.my
+            Your centre will be at: {formatWorkspaceHostname(slug)}
           </p>
         ) : null}
         {slugError ? (

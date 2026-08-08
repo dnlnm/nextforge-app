@@ -1,4 +1,5 @@
 import "server-only";
+import { injectBrand } from "@repo/config/brand";
 import type en from "./dictionaries/en.json";
 import languine from "./languine.json" with { type: "json" };
 
@@ -10,6 +11,9 @@ export const locales = [
 ] as const;
 
 export type Dictionary = typeof en;
+
+const injectDictionaryBrand = (dictionary: Dictionary): Dictionary =>
+  JSON.parse(injectBrand(JSON.stringify(dictionary))) as Dictionary;
 
 const dictionaries: Record<string, () => Promise<Dictionary>> =
   Object.fromEntries(
@@ -28,12 +32,12 @@ export const getDictionary = async (locale: string): Promise<Dictionary> => {
   const normalizedLocale = locale.split("-")[0];
 
   if (!locales.includes(normalizedLocale as (typeof locales)[number])) {
-    return dictionaries.en();
+    return injectDictionaryBrand(await dictionaries.en());
   }
 
   try {
-    return await dictionaries[normalizedLocale]();
+    return injectDictionaryBrand(await dictionaries[normalizedLocale]());
   } catch (_error) {
-    return dictionaries.en();
+    return injectDictionaryBrand(await dictionaries.en());
   }
 };

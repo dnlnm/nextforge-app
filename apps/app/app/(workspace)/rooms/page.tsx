@@ -1,4 +1,5 @@
 import { requireTenantRole } from "@repo/auth/authorization";
+import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
@@ -50,7 +51,7 @@ const RoomsPage = async () => {
 
   return (
     <>
-      <Header page="Rooms" pages={["TLAS.MY"]} />
+      <Header page="Rooms" pages={[`${appName}`]} />
       <main className="grid gap-5 p-4 pt-4">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>

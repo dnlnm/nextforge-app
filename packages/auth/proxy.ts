@@ -14,7 +14,7 @@ export const authMiddleware =
   async (request: NextRequest, event: unknown) => {
     let response = NextResponse.next({ request });
 
-    // Share auth cookies across all subdomains (e.g. brightmind.tlas.my).
+    // Share auth cookies across all subdomains (e.g. brightmind.klio.my).
     const cookieDomain = `.${getMainDomain()}`;
 
     const supabase = createServerClient(

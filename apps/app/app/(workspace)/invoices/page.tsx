@@ -1,4 +1,5 @@
 import { requireTenantRole } from "@repo/auth/authorization";
+import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
@@ -45,7 +46,7 @@ const InvoicesPage = async () => {
 
   return (
     <>
-      <Header page="Invoices" pages={["TLAS.MY"]} />
+      <Header page="Invoices" pages={[`${appName}`]} />
       <main className="grid gap-4 p-4 pt-0 xl:grid-cols-[360px_1fr]">
         <Card className="h-fit">
           <CardHeader>

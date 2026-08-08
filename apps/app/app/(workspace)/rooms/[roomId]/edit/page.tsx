@@ -1,4 +1,5 @@
 import { requireTenantRole } from "@repo/auth/authorization";
+import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
@@ -35,7 +36,7 @@ const EditRoomPage = async ({ params }: EditRoomPageProperties) => {
     <>
       <Header
         page="Edit Room"
-        pages={["TLAS.MY", { href: "/rooms", label: "Rooms" }]}
+        pages={[`${appName}`, { href: "/rooms", label: "Rooms" }]}
       />
       <main className="mx-auto grid w-full max-w-lg gap-5 p-4 pt-4">
         <div>

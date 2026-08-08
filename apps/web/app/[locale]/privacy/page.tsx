@@ -1,3 +1,4 @@
+import { appName } from "@repo/config/brand";
 import { createMetadata } from "@repo/seo/metadata";
 import type { Metadata } from "next";
 
@@ -6,21 +7,19 @@ interface PrivacyPageProps {
 }
 
 export const metadata: Metadata = createMetadata({
-  description:
-    "How TLAS.MY handles centre, student, guardian, teacher, billing, and operational data.",
-  title: "Privacy Policy - TLAS.MY",
+  description: `How ${appName} handles centre, student, guardian, teacher, billing, and operational data.`,
+  title: `Privacy Policy - ${appName}`,
 });
 
 const content = {
   en: {
     title: "Privacy Policy",
     updated: "Last updated: July 2026",
-    intro:
-      "This starter privacy policy explains how TLAS.MY handles information for tuition centres using the service. It should be reviewed by legal counsel before production launch.",
+    intro: `This starter privacy policy explains how ${appName} handles information for tuition centres using the service. It should be reviewed by legal counsel before production launch.`,
     sections: [
       [
         "Information we process",
-        "TLAS.MY stores centre operating data such as organization details, users, teachers, students, guardians, subjects, classes, enrolments, attendance, invoices, manual payment records, exports, and subscription metadata.",
+        `${appName} stores centre operating data such as organization details, users, teachers, students, guardians, subjects, classes, enrolments, attendance, invoices, manual payment records, exports, and subscription metadata.`,
       ],
       [
         "How the information is used",
@@ -28,7 +27,7 @@ const content = {
       ],
       [
         "Payments",
-        "Stripe processes TLAS.MY SaaS subscription payments. TLAS.MY does not process tuition payments from parents in the MVP; those payments are recorded manually by centre staff.",
+        `Stripe processes ${appName} SaaS subscription payments. ${appName} does not process tuition payments from parents in the MVP; those payments are recorded manually by centre staff.`,
       ],
       [
         "Access control",
@@ -40,19 +39,18 @@ const content = {
       ],
       [
         "Contact",
-        "For privacy questions, contact the TLAS.MY operator through the contact page.",
+        `For privacy questions, contact the ${appName} operator through the contact page.`,
       ],
     ],
   },
   ms: {
     title: "Polisi Privasi",
     updated: "Dikemas kini: Julai 2026",
-    intro:
-      "Polisi privasi permulaan ini menerangkan bagaimana TLAS.MY mengendalikan maklumat untuk pusat tuisyen yang menggunakan perkhidmatan ini. Ia perlu disemak oleh penasihat undang-undang sebelum pelancaran produksi.",
+    intro: `Polisi privasi permulaan ini menerangkan bagaimana ${appName} mengendalikan maklumat untuk pusat tuisyen yang menggunakan perkhidmatan ini. Ia perlu disemak oleh penasihat undang-undang sebelum pelancaran produksi.`,
     sections: [
       [
         "Maklumat yang diproses",
-        "TLAS.MY menyimpan data operasi pusat seperti butiran organisasi, pengguna, guru, pelajar, penjaga, subjek, kelas, enrolmen, kehadiran, invois, rekod bayaran manual, eksport dan metadata langganan.",
+        `${appName} menyimpan data operasi pusat seperti butiran organisasi, pengguna, guru, pelajar, penjaga, subjek, kelas, enrolmen, kehadiran, invois, rekod bayaran manual, eksport dan metadata langganan.`,
       ],
       [
         "Cara maklumat digunakan",
@@ -60,7 +58,7 @@ const content = {
       ],
       [
         "Bayaran",
-        "Stripe memproses bayaran langganan SaaS TLAS.MY. TLAS.MY tidak memproses bayaran tuisyen daripada ibu bapa dalam MVP; bayaran tersebut direkod secara manual oleh staf pusat.",
+        `Stripe memproses bayaran langganan SaaS ${appName}. ${appName} tidak memproses bayaran tuisyen daripada ibu bapa dalam MVP; bayaran tersebut direkod secara manual oleh staf pusat.`,
       ],
       [
         "Kawalan akses",
@@ -72,7 +70,7 @@ const content = {
       ],
       [
         "Hubungi",
-        "Untuk soalan privasi, hubungi operator TLAS.MY melalui halaman hubungi kami.",
+        `Untuk soalan privasi, hubungi operator ${appName} melalui halaman hubungi kami.`,
       ],
     ],
   },

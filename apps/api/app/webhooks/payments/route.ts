@@ -1,4 +1,5 @@
 import { analytics } from "@repo/analytics/server";
+import { appName } from "@repo/config/brand";
 import {
   database,
   type SubscriptionPlan,
@@ -105,7 +106,7 @@ const syncSubscription = async (
 
   if (!organizationId) {
     log.warn(
-      `No TLAS organization found for Stripe subscription ${subscription.id}`
+      `No ${appName} organization found for Stripe subscription ${subscription.id}`
     );
     return;
   }

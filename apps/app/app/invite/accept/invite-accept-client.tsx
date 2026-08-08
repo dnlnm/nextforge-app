@@ -1,6 +1,7 @@
 "use client";
 
 import { createClient } from "@repo/auth/client";
+import { appName } from "@repo/config/brand";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
   Card,
@@ -50,7 +51,7 @@ export const InviteAcceptClient = ({
       <Shell kind={invitationKind}>
         <p className="text-muted-foreground">This invite link is not valid.</p>
         <Button asChild className="mt-6">
-          <Link href="/">Go to TLAS.MY</Link>
+          <Link href="/">Go to {appName}</Link>
         </Button>
       </Shell>
     );
@@ -63,7 +64,7 @@ export const InviteAcceptClient = ({
           This centre is no longer active.
         </p>
         <Button asChild className="mt-6">
-          <Link href="/">Go to TLAS.MY</Link>
+          <Link href="/">Go to {appName}</Link>
         </Button>
       </Shell>
     );
@@ -131,7 +132,7 @@ export const InviteAcceptClient = ({
 
       {signedInEmail ? null : (
         <p className="text-muted-foreground">
-          {fullName}, {organizationName} has invited you to join TLAS.MY as{" "}
+          {fullName}, {organizationName} has invited you to join {appName} as{" "}
           {roleLabel(invitationKind)}. Sign in with {email} to accept.
         </p>
       )}
@@ -149,7 +150,7 @@ export const InviteAcceptClient = ({
       {signedInEmail && emailMatches ? (
         <p className="text-muted-foreground">
           {fullName}, you&apos;ve been invited to join {organizationName} as{" "}
-          {roleLabel(invitationKind)} on TLAS.MY.
+          {roleLabel(invitationKind)} on {appName}.
         </p>
       ) : null}
 

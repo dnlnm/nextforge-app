@@ -1,4 +1,5 @@
 import { ensureLocalUser } from "@repo/auth/organizations";
+import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { GraduationCapIcon } from "lucide-react";
 import type { Metadata } from "next";
@@ -8,7 +9,7 @@ import { WorkspaceCard } from "../components/workspace-card";
 import { EmptyState, WorkspaceGrid } from "../components/workspace-grid";
 
 export const metadata: Metadata = {
-  title: "Teacher Centres - TLAS.MY",
+  title: `Teacher Centres - ${appName}`,
   description: "Centres where you teach",
 };
 

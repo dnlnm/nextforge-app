@@ -1,5 +1,6 @@
 "use client";
 
+import { appName } from "@repo/config/brand";
 import { Button } from "@repo/design-system/components/ui/button";
 import { Card, CardContent } from "@repo/design-system/components/ui/card";
 import { Input } from "@repo/design-system/components/ui/input";
@@ -58,7 +59,7 @@ export const SignUp = () => {
                 Create your account
               </h1>
               <p className="text-balance text-muted-foreground text-sm">
-                Start managing your tuition centre with TLAS.MY
+                Start managing your tuition centre with {appName}
               </p>
             </div>
 

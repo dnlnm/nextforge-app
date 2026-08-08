@@ -1,3 +1,4 @@
+import { appName } from "@repo/config/brand";
 import { getDictionary } from "@repo/internationalization";
 import { createMetadata } from "@repo/seo/metadata";
 import type { Metadata } from "next";
@@ -15,7 +16,7 @@ export const generateMetadata = async ({
 
   return createMetadata({
     description: dictionary.web.home.pricing.description,
-    title: `${dictionary.web.home.pricing.title} - TLAS.MY`,
+    title: `${dictionary.web.home.pricing.title} - ${appName}`,
   });
 };
 

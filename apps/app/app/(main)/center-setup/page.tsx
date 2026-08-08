@@ -1,4 +1,5 @@
 import { ensureLocalUser } from "@repo/auth/organizations";
+import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
@@ -15,7 +16,7 @@ import { redirect } from "next/navigation";
 import { CenterSetupForm } from "./center-setup-form";
 
 export const metadata: Metadata = {
-  title: "Create Your Centre - TLAS.MY",
+  title: `Create Your Centre - ${appName}`,
 };
 
 const CenterSetupPage = async () => {
@@ -50,7 +51,7 @@ const CenterSetupPage = async () => {
               T
             </div>
             <div>
-              <p className="font-semibold text-primary">TLAS.MY</p>
+              <p className="font-semibold text-primary">{appName}</p>
               <p className="text-muted-foreground text-sm">
                 Tuition administration
               </p>

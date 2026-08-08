@@ -54,7 +54,7 @@ export default authMiddleware(
     const subdomain = parseSubdomain(hostname);
 
     // ============================================================
-    // SUBDOMAIN ROUTING (brightmind.tlas.my)
+    // SUBDOMAIN ROUTING (brightmind.klio.my)
     // ============================================================
     if (subdomain) {
       // Allow trusted subdomain paths through. Authenticated access is
@@ -63,7 +63,7 @@ export default authMiddleware(
     }
 
     // ============================================================
-    // MAIN DOMAIN ROUTING (tlas.my)
+    // MAIN DOMAIN ROUTING (klio.my)
     // ============================================================
     if (!isMainDomain(hostname)) {
       return undefined;

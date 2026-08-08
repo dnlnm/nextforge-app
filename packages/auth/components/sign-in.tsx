@@ -1,5 +1,6 @@
 "use client";
 
+import { appName } from "@repo/config/brand";
 import { Button } from "@repo/design-system/components/ui/button";
 import { Card, CardContent } from "@repo/design-system/components/ui/card";
 import { Input } from "@repo/design-system/components/ui/input";
@@ -51,7 +52,7 @@ export const SignIn = () => {
                 Welcome back
               </h1>
               <p className="text-balance text-muted-foreground text-sm">
-                Sign in to your TLAS.MY account
+                Sign in to your {appName} account
               </p>
             </div>
 

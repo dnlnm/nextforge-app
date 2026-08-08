@@ -1,3 +1,4 @@
+import { appName } from "@repo/config/brand";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
   Card,
@@ -14,8 +15,8 @@ const AdminForbiddenPage = () => (
       <CardHeader>
         <CardTitle>Superadmin access required</CardTitle>
         <CardDescription>
-          This dashboard is restricted to TLAS.MY superadmins. Centre owners and
-          admins cannot access it by default.
+          This dashboard is restricted to {appName} superadmins. Centre owners
+          and admins cannot access it by default.
         </CardDescription>
       </CardHeader>
       <CardContent>

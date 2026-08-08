@@ -22,7 +22,7 @@
     "home": {
       "meta": {
         "title": "Sistem pengurusan pusat tuisyen untuk Malaysia",
-        "description": "TLAS.MY membantu pusat tuisyen kecil mengurus pelajar, penjaga, guru, kelas, kehadiran, invois, bayaran manual dan laporan tanpa fail spreadsheet yang berselerak."
+        "description": "{appName} membantu pusat tuisyen kecil mengurus pelajar, penjaga, guru, kelas, kehadiran, invois, bayaran manual dan laporan tanpa fail spreadsheet yang berselerak."
       },
       "hero": {
         "announcement": "Dibina untuk pusat tuisyen Malaysia",
@@ -86,7 +86,7 @@
       "pricing": {
         "badge": "Harga",
         "title": "Pelan bulanan mudah untuk pusat tuisyen",
-        "description": "Mula secara percuma, kemudian pilih pelan mengikut saiz pusat anda. Stripe hanya digunakan untuk langganan TLAS.MY; bayaran tuisyen direkod secara manual.",
+        "description": "Mula secara percuma, kemudian pilih pelan mengikut saiz pusat anda. Stripe hanya digunakan untuk langganan {appName}; bayaran tuisyen direkod secara manual.",
         "fullComparison": "Perbandingan penuh",
         "plans": [
           {
@@ -164,7 +164,7 @@
             "title": "Senarai pelajar tidak lagi berselerak",
             "description": "Pemilik boleh simpan pelajar, penjaga, kelas dan enrolmen dalam satu aliran kerja.",
             "author": {
-              "name": "Insight pilot TLAS.MY",
+              "name": "Insight pilot {appName}",
               "image": "https://github.com/dnlnm.png"
             }
           },
@@ -196,16 +196,16 @@
       },
       "faq": {
         "title": "Soalan lazim",
-        "description": "Jawapan ringkas untuk pemilik pusat tuisyen yang menilai TLAS.MY.",
+        "description": "Jawapan ringkas untuk pemilik pusat tuisyen yang menilai {appName}.",
         "cta": "Masih ada soalan? Hubungi kami",
         "items": [
           {
-            "question": "Adakah TLAS.MY untuk ibu bapa dan pelajar juga?",
+            "question": "Adakah {appName} untuk ibu bapa dan pelajar juga?",
             "answer": "Belum lagi. MVP ini untuk pemilik, admin dan guru. Portal ibu bapa/pelajar boleh dibina kemudian."
           },
           {
-            "question": "Bolehkah ibu bapa bayar tuisyen melalui TLAS.MY?",
-            "answer": "Untuk MVP, bayaran tuisyen direkod secara manual. Stripe hanya digunakan untuk langganan TLAS.MY oleh pusat."
+            "question": "Bolehkah ibu bapa bayar tuisyen melalui {appName}?",
+            "answer": "Untuk MVP, bayaran tuisyen direkod secara manual. Stripe hanya digunakan untuk langganan {appName} oleh pusat."
           },
           {
             "question": "Adakah ia menyokong Bahasa Malaysia?",
@@ -229,13 +229,13 @@
     "blog": {
       "meta": {
         "title": "Blog",
-        "description": "Kemas kini dan nota daripada TLAS.MY."
+        "description": "Kemas kini dan nota daripada {appName}."
       }
     },
     "contact": {
       "meta": {
-        "title": "Bercakap dengan TLAS.MY",
-        "description": "Tempah demo dan lihat bagaimana TLAS.MY boleh sesuai dengan aliran kerja pusat tuisyen anda."
+        "title": "Bercakap dengan {appName}",
+        "description": "Tempah demo dan lihat bagaimana {appName} boleh sesuai dengan aliran kerja pusat tuisyen anda."
       },
       "hero": {
         "benefits": [

@@ -1,4 +1,5 @@
 import { requireTenantRole } from "@repo/auth/authorization";
+import { appName } from "@repo/config/brand";
 import { type AttendanceStatus, database } from "@repo/database";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
@@ -710,7 +711,7 @@ const StudentProfilePage = async ({ params }: StudentPageProperties) => {
     <>
       <Header
         page="Student Information"
-        pages={["TLAS.MY", { href: "/students", label: "Students" }]}
+        pages={[`${appName}`, { href: "/students", label: "Students" }]}
       />
       <main className="grid gap-5 p-4 pt-4">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">

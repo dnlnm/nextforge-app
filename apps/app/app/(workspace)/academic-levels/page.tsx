@@ -1,4 +1,5 @@
 import { requireTenantRole } from "@repo/auth/authorization";
+import { appName } from "@repo/config/brand";
 import { database, type LevelStage } from "@repo/database";
 import { Header } from "../components/header";
 import { AcademicLevelsList } from "./academic-levels-list";
@@ -78,7 +79,7 @@ const AcademicLevelsPage = async () => {
 
   return (
     <>
-      <Header page="Academic Levels" pages={["TLAS.MY"]} />
+      <Header page="Academic Levels" pages={[`${appName}`]} />
       <main className="grid gap-5 p-4 pt-4">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>

@@ -1,3 +1,4 @@
+import { appName } from "@repo/config/brand";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
   Card,
@@ -17,7 +18,7 @@ const InviteAdminPage = () => (
   <>
     <Header
       page="Invite Admin"
-      pages={["TLAS.MY", { href: "/members", label: "Members" }]}
+      pages={[`${appName}`, { href: "/members", label: "Members" }]}
     />
     <main className="grid gap-5 p-4 pt-4">
       <div>

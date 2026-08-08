@@ -1,4 +1,5 @@
 import { requireTenantRole } from "@repo/auth/authorization";
+import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { getAcademicYearOptions } from "@/lib/codes";
 import { Header } from "../../components/header";
@@ -53,7 +54,7 @@ const CreateClassPage = async () => {
     <>
       <Header
         page="Add New Class"
-        pages={["TLAS.MY", { href: "/classes", label: "Classes" }]}
+        pages={[`${appName}`, { href: "/classes", label: "Classes" }]}
       />
       <main className="grid gap-5 p-4 pt-4 xl:grid-cols-[1fr_360px]">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end xl:col-span-full">

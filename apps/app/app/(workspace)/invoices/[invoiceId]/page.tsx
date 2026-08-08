@@ -1,4 +1,5 @@
 import { requireTenantRole } from "@repo/auth/authorization";
+import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
@@ -44,7 +45,7 @@ export const generateMetadata = async ({
 }: InvoicePageProperties): Promise<Metadata> => {
   const { invoiceId } = await params;
 
-  return { title: `Invoice ${invoiceId} - TLAS.MY` };
+  return { title: `Invoice ${invoiceId} - ${appName}` };
 };
 
 const InvoicePage = async ({ params }: InvoicePageProperties) => {

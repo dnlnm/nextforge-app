@@ -22,7 +22,7 @@
     "home": {
       "meta": {
         "title": "Tuition centre management for Malaysia",
-        "description": "TLAS.MY helps small tuition centres manage students, guardians, teachers, classes, attendance, invoices, manual payments, and reports without messy spreadsheets."
+        "description": "{appName} helps small tuition centres manage students, guardians, teachers, classes, attendance, invoices, manual payments, and reports without messy spreadsheets."
       },
       "hero": {
         "announcement": "Built for Malaysian tuition centres",
@@ -86,7 +86,7 @@
       "pricing": {
         "badge": "Pricing",
         "title": "Simple monthly plans for tuition centres",
-        "description": "Start free, then choose the plan that matches your centre size. Stripe is used only for your TLAS.MY subscription; tuition payments are recorded manually.",
+        "description": "Start free, then choose the plan that matches your centre size. Stripe is used only for your {appName} subscription; tuition payments are recorded manually.",
         "fullComparison": "Full comparison",
         "plans": [
           {
@@ -164,7 +164,7 @@
             "title": "No more scattered student lists",
             "description": "Owners can keep students, guardians, classes, and enrolments in one workflow instead of separate sheets.",
             "author": {
-              "name": "TLAS.MY pilot insight",
+              "name": "{appName} pilot insight",
               "image": "https://github.com/dnlnm.png"
             }
           },
@@ -196,16 +196,16 @@
       },
       "faq": {
         "title": "Common questions",
-        "description": "Short answers for tuition centre owners evaluating TLAS.MY.",
+        "description": "Short answers for tuition centre owners evaluating {appName}.",
         "cta": "Still have questions? Contact us",
         "items": [
           {
-            "question": "Is TLAS.MY for parents and students too?",
+            "question": "Is {appName} for parents and students too?",
             "answer": "Not yet. The MVP is for owners, admins, and teachers. Parent/student portals can come later."
           },
           {
-            "question": "Can parents pay tuition through TLAS.MY?",
-            "answer": "For MVP, tuition payments are recorded manually. Stripe is used only for the centre's TLAS.MY subscription."
+            "question": "Can parents pay tuition through {appName}?",
+            "answer": "For MVP, tuition payments are recorded manually. Stripe is used only for the centre's {appName} subscription."
           },
           {
             "question": "Does it support Bahasa Malaysia?",
@@ -229,13 +229,13 @@
     "blog": {
       "meta": {
         "title": "Blog",
-        "description": "Updates and notes from TLAS.MY."
+        "description": "Updates and notes from {appName}."
       }
     },
     "contact": {
       "meta": {
-        "title": "Talk to TLAS.MY",
-        "description": "Book a walkthrough and see how TLAS.MY can fit your tuition centre workflow."
+        "title": "Talk to {appName}",
+        "description": "Book a walkthrough and see how {appName} can fit your tuition centre workflow."
       },
       "hero": {
         "benefits": [

@@ -1,5 +1,6 @@
 import { buildWorkspaceUrl } from "@repo/auth/domain";
 import { ensureLocalUser } from "@repo/auth/organizations";
+import { appName, formatWorkspaceHostname } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
@@ -21,7 +22,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
-  title: "Your Centres - TLAS.MY",
+  title: `Your Centres - ${appName}`,
   description: "Manage your tuition centres and workspaces",
 };
 
@@ -139,7 +140,7 @@ const CentresPage = async () => {
                           {organization.name}
                         </CardTitle>
                         <p className="truncate text-muted-foreground text-sm">
-                          {organization.slug}.tlas.my
+                          {formatWorkspaceHostname(organization.slug)}
                         </p>
                       </div>
                     </div>

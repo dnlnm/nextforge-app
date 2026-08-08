@@ -1,4 +1,5 @@
 import { requireTenantRole } from "@repo/auth/authorization";
+import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
@@ -39,7 +40,7 @@ import { Header } from "./components/header";
 
 export const metadata: Metadata = {
   description: "Tuition centre administration dashboard.",
-  title: "Dashboard - TLAS.MY",
+  title: `Dashboard - ${appName}`,
 };
 
 const formatMoney = (amountSen: number) =>
@@ -319,7 +320,7 @@ const App = async () => {
 
   return (
     <>
-      <Header page="Dashboard" pages={["TLAS.MY"]} />
+      <Header page="Dashboard" pages={[`${appName}`]} />
       <main className="grid gap-5 p-4 pt-4">
         <section className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
           {stats.map((stat) => (

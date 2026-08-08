@@ -50,18 +50,23 @@ export const getStripePriceId = (plan: BillablePlan) => {
   const env = keys();
 
   return plan === "STARTER"
-    ? env.TLAS_STRIPE_STARTER_PRICE_ID
-    : env.TLAS_STRIPE_PRO_PRICE_ID;
+    ? (env.KLIO_STRIPE_STARTER_PRICE_ID ?? env.TLAS_STRIPE_STARTER_PRICE_ID)
+    : (env.KLIO_STRIPE_PRO_PRICE_ID ?? env.TLAS_STRIPE_PRO_PRICE_ID);
 };
 
 export const getPlanFromStripePriceId = (priceId?: string | null) => {
   const env = keys();
 
-  if (priceId && priceId === env.TLAS_STRIPE_STARTER_PRICE_ID) {
+  const starterPriceId =
+    env.KLIO_STRIPE_STARTER_PRICE_ID ?? env.TLAS_STRIPE_STARTER_PRICE_ID;
+  const proPriceId =
+    env.KLIO_STRIPE_PRO_PRICE_ID ?? env.TLAS_STRIPE_PRO_PRICE_ID;
+
+  if (priceId && priceId === starterPriceId) {
     return "STARTER";
   }
 
-  if (priceId && priceId === env.TLAS_STRIPE_PRO_PRICE_ID) {
+  if (priceId && priceId === proPriceId) {
     return "PRO";
   }
 

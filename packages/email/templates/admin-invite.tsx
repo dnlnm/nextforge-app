@@ -9,6 +9,7 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
+import { appName, buildAppUrl } from "@repo/config/brand";
 
 interface AdminInviteTemplateProps {
   readonly actionUrl: string;
@@ -27,7 +28,7 @@ export const AdminInviteTemplate = ({
     <Html>
       <Head />
       <Preview>
-        You&apos;ve been invited as an Admin to {organizationName} on TLAS.MY
+        You&apos;ve been invited as an Admin to {organizationName} on {appName}
       </Preview>
       <Body className="bg-zinc-50 font-sans">
         <Container className="mx-auto py-12">
@@ -38,8 +39,8 @@ export const AdminInviteTemplate = ({
               </Text>
               <Text className="m-0 text-zinc-500">Hi {inviteeName},</Text>
               <Text className="m-0 text-zinc-500">
-                {organizationName} has invited you to be an Admin on TLAS.MY. As
-                an Admin you&apos;ll help manage students, teachers, classes,
+                {organizationName} has invited you to be an Admin on {appName}.
+                As an Admin you&apos;ll help manage students, teachers, classes,
                 and invoicing for the centre. Follow the link below to accept
                 the invitation and sign in.
               </Text>
@@ -53,7 +54,7 @@ export const AdminInviteTemplate = ({
               </Section>
               <Text className="m-0 text-zinc-500">
                 This invitation expires in {expiresInDays} days. If you
-                don&apos;t have a TLAS.MY account yet, you can create one with
+                don&apos;t have a {appName} account yet, you can create one with
                 the same email address, then follow the link.
               </Text>
               <Text className="mt-8 mb-0 text-xs text-zinc-400">
@@ -69,7 +70,7 @@ export const AdminInviteTemplate = ({
 );
 
 AdminInviteTemplate.PreviewProps = {
-  actionUrl: "https://app.tlas.my/invite/accept?token=example",
+  actionUrl: buildAppUrl("/invite/accept?token=example"),
   expiresInDays: 7,
   inviteeName: "Ahmad Hakimi",
   organizationName: "Terengganu Tuition Centre",

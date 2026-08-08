@@ -1,4 +1,5 @@
 import { requireTenantRole } from "@repo/auth/authorization";
+import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { Button } from "@repo/design-system/components/ui/button";
 import { ChevronDownIcon, PlusIcon, SendIcon } from "lucide-react";
@@ -54,7 +55,7 @@ const TeachersPage = async () => {
 
   return (
     <>
-      <Header page="Teachers" pages={["TLAS.MY"]} />
+      <Header page="Teachers" pages={[`${appName}`]} />
       <main className="grid gap-5 p-4 pt-4">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>

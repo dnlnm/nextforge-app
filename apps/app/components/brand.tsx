@@ -1,3 +1,4 @@
+import { appName } from "@repo/config/brand";
 import { GraduationCapIcon } from "lucide-react";
 
 export const Brand = () => (
@@ -5,6 +6,6 @@ export const Brand = () => (
     <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
       <GraduationCapIcon className="size-4" />
     </div>
-    <span className="font-semibold leading-none">TLAS.MY</span>
+    <span className="font-semibold leading-none">{appName}</span>
   </div>
 );

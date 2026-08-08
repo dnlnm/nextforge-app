@@ -9,6 +9,7 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
+import { appName, buildAppUrl } from "@repo/config/brand";
 
 interface TeacherInviteTemplateProps {
   readonly actionUrl: string;
@@ -27,7 +28,7 @@ export const TeacherInviteTemplate = ({
     <Html>
       <Head />
       <Preview>
-        You&apos;ve been invited to join {organizationName} on TLAS.MY
+        You&apos;ve been invited to join {organizationName} on {appName}
       </Preview>
       <Body className="bg-zinc-50 font-sans">
         <Container className="mx-auto py-12">
@@ -38,7 +39,7 @@ export const TeacherInviteTemplate = ({
               </Text>
               <Text className="m-0 text-zinc-500">Hi {inviteeName},</Text>
               <Text className="m-0 text-zinc-500">
-                {organizationName} has invited you to be a teacher on TLAS.MY.
+                {organizationName} has invited you to be a teacher on {appName}.
                 Follow the link below to accept the invitation and sign in.
               </Text>
               <Section className="my-8 text-center">
@@ -51,7 +52,7 @@ export const TeacherInviteTemplate = ({
               </Section>
               <Text className="m-0 text-zinc-500">
                 This invitation expires in {expiresInDays} days. If you
-                don&apos;t have a TLAS.MY account yet, you can create one with
+                don&apos;t have a {appName} account yet, you can create one with
                 the same email address, then follow the link.
               </Text>
               <Text className="mt-8 mb-0 text-xs text-zinc-400">
@@ -67,7 +68,7 @@ export const TeacherInviteTemplate = ({
 );
 
 TeacherInviteTemplate.PreviewProps = {
-  actionUrl: "https://app.tlas.my/invite/accept?token=example",
+  actionUrl: buildAppUrl("/invite/accept?token=example"),
   expiresInDays: 7,
   inviteeName: "Ahmad Hakimi",
   organizationName: "Terengganu Tuition Centre",

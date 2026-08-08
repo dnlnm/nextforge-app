@@ -1,4 +1,5 @@
 import { requireSuperadmin } from "@repo/auth/authorization";
+import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
 import {
   Card,
@@ -17,7 +18,7 @@ import {
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Superadmin Dashboard - TLAS.MY",
+  title: `Superadmin Dashboard - ${appName}`,
 };
 
 const AdminPage = async () => {

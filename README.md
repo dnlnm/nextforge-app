@@ -93,7 +93,11 @@ For detailed setup instructions, read the [documentation](https://www.next-forge
 
 ### Local subdomain development
 
-TLAS.MY uses per-centre subdomains (e.g. `brightmind.klio.my`). Local dev runs
+Public branding is centralized in `@repo/config/brand`. Set
+`NEXT_PUBLIC_APP_NAME` and `NEXT_PUBLIC_MAIN_DOMAIN` in each deployed app; these
+values are embedded at build time, so rebuild after changing them.
+
+The app uses per-centre subdomains (e.g. `brightmind.klio.my`). Local dev runs
 through a [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/)
 that exposes `localhost:3000` as `klio.my` with wildcard subdomains
 (`*.klio.my`). The tunnel ingress and credentials are not committed to the repo
@@ -105,7 +109,7 @@ The tunnel config maps both `*.klio.my` and `klio.my` to `http://localhost:3000`
   settings, billing, account, and centre setup.
 - Subdomains (`<slug>.klio.my`) host each centre's tuition workspace.
 
-Set `NEXT_PUBLIC_APP_URL="https://klio.my"` and
+Set `NEXT_PUBLIC_APP_NAME="KLIO.MY"`, `NEXT_PUBLIC_APP_URL="https://klio.my"`, and
 `NEXT_PUBLIC_MAIN_DOMAIN="klio.my"` in `apps/app/.env.local`. Signing in on the
 main domain lands on your centres list; signing in on a centre subdomain lands
 directly in that workspace.

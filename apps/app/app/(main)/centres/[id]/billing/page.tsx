@@ -1,4 +1,5 @@
 import { ensureLocalUser } from "@repo/auth/organizations";
+import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { InvoiceHistory } from "@repo/design-system/components/billingsdk/invoice-history";
 import {
@@ -27,7 +28,7 @@ interface CentreBillingPageProps {
 }
 
 export const metadata: Metadata = {
-  title: "Billing - TLAS.MY",
+  title: `Billing - ${appName}`,
 };
 
 const CentreBillingPage = async ({
@@ -113,9 +114,9 @@ const CentreBillingPage = async ({
 
       <SubscriptionManagementWrapper
         currentPlan={currentPlan}
-        organizationId={organization.id}
-        isTrial={isTrial}
         isCancelled={state.subscription.cancelAtPeriodEnd}
+        isTrial={isTrial}
+        organizationId={organization.id}
       />
 
       <Card className="mb-6">
@@ -148,9 +149,9 @@ const CentreBillingPage = async ({
       <div className="mt-6">
         {invoices.length > 0 ? (
           <InvoiceHistory
+            description="View and download your past subscription invoices"
             invoices={invoices}
             title="Invoice History"
-            description="View and download your past subscription invoices"
           />
         ) : (
           <Card>
@@ -161,7 +162,7 @@ const CentreBillingPage = async ({
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground py-8 text-center text-sm">
+              <p className="py-8 text-center text-muted-foreground text-sm">
                 No invoices yet. Subscribe to a plan to see your invoice
                 history.
               </p>

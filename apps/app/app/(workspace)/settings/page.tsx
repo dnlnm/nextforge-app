@@ -1,5 +1,6 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { getMainDomain } from "@repo/auth/domain";
+import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
@@ -46,7 +47,7 @@ const SettingsPage = async () => {
 
   return (
     <>
-      <Header page="Settings" pages={["TLAS.MY"]} />
+      <Header page="Settings" pages={[`${appName}`]} />
       <main className="grid gap-5 p-4 pt-0">
         {tenant.role === "OWNER" ? (
           <Card className="max-w-3xl border-blue-200 bg-blue-50/50">
@@ -55,7 +56,7 @@ const SettingsPage = async () => {
                 <h3 className="font-medium">Centre profile & billing</h3>
                 <p className="text-muted-foreground text-sm">
                   Manage your centre name, URL, subscription, and billing on the
-                  TLAS.MY portal.
+                  {appName} portal.
                 </p>
               </div>
               <Button asChild variant="secondary">

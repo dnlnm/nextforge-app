@@ -1,4 +1,5 @@
 import { isSuperadminUserId } from "@repo/auth/authorization";
+import { appName } from "@repo/config/brand";
 import { database, type SubscriptionPlan } from "@repo/database";
 import {
   activeSubscriptionStatuses,
@@ -88,7 +89,7 @@ export const assertWithinPlanLimit = async ({
 
   if (!state.canUsePaidFeatures) {
     throw new Error(
-      "Your TLAS.MY trial or subscription is not active. Open Billing to upgrade or manage your plan."
+      `Your ${appName} trial or subscription is not active. Open Billing to upgrade or manage your plan.`
     );
   }
 
@@ -137,7 +138,7 @@ export const assertAdminWithinPlanLimit = async ({
 
   if (!state.canUsePaidFeatures) {
     throw new Error(
-      "Your TLAS.MY trial or subscription is not active. Open Billing to upgrade or manage your plan."
+      `Your ${appName} trial or subscription is not active. Open Billing to upgrade or manage your plan.`
     );
   }
 

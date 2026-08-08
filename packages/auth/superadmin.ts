@@ -3,7 +3,11 @@ import "server-only";
 import { auth } from "./server";
 
 const getSuperadminUserIds = () =>
-  (process.env.TLAS_SUPERADMIN_USER_IDS ?? "")
+  (
+    process.env.KLIO_SUPERADMIN_USER_IDS ??
+    process.env.TLAS_SUPERADMIN_USER_IDS ??
+    ""
+  )
     .split(",")
     .map((userId) => userId.trim())
     .filter(Boolean);

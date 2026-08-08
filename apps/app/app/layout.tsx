@@ -1,3 +1,4 @@
+import { appName } from "@repo/config/brand";
 import "./styles.css";
 import { AnalyticsProvider } from "@repo/analytics/provider";
 import { AuthProvider } from "@repo/auth/provider";
@@ -13,7 +14,7 @@ interface RootLayoutProperties {
 }
 
 export const metadata: Metadata = {
-  title: "TLAS.MY",
+  title: `${appName}`,
   description: "Bilingual tuition centre administration for Malaysia.",
 };
 

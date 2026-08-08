@@ -1,3 +1,4 @@
+import { appName } from "@repo/config/brand";
 import { createMetadata } from "@repo/seo/metadata";
 import type { Metadata } from "next";
 
@@ -6,73 +7,70 @@ interface TermsPageProps {
 }
 
 export const metadata: Metadata = createMetadata({
-  description:
-    "Starter terms for TLAS.MY tuition centre management subscriptions.",
-  title: "Terms of Service - TLAS.MY",
+  description: `Starter terms for ${appName} tuition centre management subscriptions.`,
+  title: `Terms of Service - ${appName}`,
 });
 
 const content = {
   en: {
     title: "Terms of Service",
     updated: "Last updated: July 2026",
-    intro:
-      "These starter terms describe the intended use of TLAS.MY during launch and pilot rollout. They should be reviewed by legal counsel before production launch.",
+    intro: `These starter terms describe the intended use of ${appName} during launch and pilot rollout. They should be reviewed by legal counsel before production launch.`,
     sections: [
       [
         "Service",
-        "TLAS.MY provides tuition centre management software for owners, admins, and teachers, including students, classes, attendance, invoices, manual payment records, reports, and subscription billing.",
+        `${appName} provides tuition centre management software for owners, admins, and teachers, including students, classes, attendance, invoices, manual payment records, reports, and subscription billing.`,
       ],
       [
         "Subscriptions and trials",
-        "Centres may start with a trial and then subscribe to Starter or Pro. Plan limits may apply to students, teachers, classes, and monthly invoices. Stripe handles TLAS.MY subscription payments.",
+        `Centres may start with a trial and then subscribe to Starter or Pro. Plan limits may apply to students, teachers, classes, and monthly invoices. Stripe handles ${appName} subscription payments.`,
       ],
       [
         "Tuition payments",
-        "TLAS.MY does not collect tuition payments from parents in the MVP. Centre staff are responsible for manually recording cash, transfer, DuitNow, FPX, card, or other tuition payment records accurately.",
+        `${appName} does not collect tuition payments from parents in the MVP. Centre staff are responsible for manually recording cash, transfer, DuitNow, FPX, card, or other tuition payment records accurately.`,
       ],
       [
         "Centre responsibilities",
-        "Centres are responsible for the accuracy of student, guardian, teacher, invoice, attendance, and payment data entered into TLAS.MY and for obtaining any required consent from their own customers or staff.",
+        `Centres are responsible for the accuracy of student, guardian, teacher, invoice, attendance, and payment data entered into ${appName} and for obtaining any required consent from their own customers or staff.`,
       ],
       [
         "Availability and changes",
-        "TLAS.MY may change features, limits, pricing, or integrations as the product develops. We aim to communicate material changes before they affect active centres.",
+        `${appName} may change features, limits, pricing, or integrations as the product develops. We aim to communicate material changes before they affect active centres.`,
       ],
       [
         "Contact",
-        "For questions about these terms, contact the TLAS.MY operator through the contact page.",
+        `For questions about these terms, contact the ${appName} operator through the contact page.`,
       ],
     ],
   },
   ms: {
     title: "Terma Perkhidmatan",
     updated: "Dikemas kini: Julai 2026",
-    intro:
-      "Terma permulaan ini menerangkan penggunaan TLAS.MY semasa pelancaran dan pilot. Ia perlu disemak oleh penasihat undang-undang sebelum pelancaran produksi.",
+    intro: `Terma permulaan ini menerangkan penggunaan ${appName} semasa pelancaran dan pilot. Ia perlu disemak oleh penasihat undang-undang sebelum pelancaran produksi.`,
     sections: [
       [
         "Perkhidmatan",
-        "TLAS.MY menyediakan perisian pengurusan pusat tuisyen untuk pemilik, admin dan guru, termasuk pelajar, kelas, kehadiran, invois, rekod bayaran manual, laporan dan billing langganan.",
+        `${appName} menyediakan perisian pengurusan pusat tuisyen untuk pemilik, admin dan guru, termasuk pelajar, kelas, kehadiran, invois, rekod bayaran manual, laporan dan billing langganan.`,
       ],
       [
         "Langganan dan percubaan",
-        "Pusat boleh bermula dengan percubaan dan kemudian melanggan Starter atau Pro. Had pelan mungkin dikenakan pada pelajar, guru, kelas dan invois bulanan. Stripe mengendalikan bayaran langganan TLAS.MY.",
+        `Pusat boleh bermula dengan percubaan dan kemudian melanggan Starter atau Pro. Had pelan mungkin dikenakan pada pelajar, guru, kelas dan invois bulanan. Stripe mengendalikan bayaran langganan ${appName}.`,
       ],
       [
         "Bayaran tuisyen",
-        "TLAS.MY tidak mengutip bayaran tuisyen daripada ibu bapa dalam MVP. Staf pusat bertanggungjawab merekod bayaran tunai, transfer, DuitNow, FPX, kad atau lain-lain dengan tepat.",
+        `${appName} tidak mengutip bayaran tuisyen daripada ibu bapa dalam MVP. Staf pusat bertanggungjawab merekod bayaran tunai, transfer, DuitNow, FPX, kad atau lain-lain dengan tepat.`,
       ],
       [
         "Tanggungjawab pusat",
-        "Pusat bertanggungjawab terhadap ketepatan data pelajar, penjaga, guru, invois, kehadiran dan bayaran yang dimasukkan ke TLAS.MY serta mendapatkan persetujuan yang diperlukan daripada pelanggan atau staf mereka.",
+        `Pusat bertanggungjawab terhadap ketepatan data pelajar, penjaga, guru, invois, kehadiran dan bayaran yang dimasukkan ke ${appName} serta mendapatkan persetujuan yang diperlukan daripada pelanggan atau staf mereka.`,
       ],
       [
         "Ketersediaan dan perubahan",
-        "TLAS.MY mungkin mengubah ciri, had, harga atau integrasi semasa produk berkembang. Kami akan cuba memaklumkan perubahan penting sebelum ia menjejaskan pusat aktif.",
+        `${appName} mungkin mengubah ciri, had, harga atau integrasi semasa produk berkembang. Kami akan cuba memaklumkan perubahan penting sebelum ia menjejaskan pusat aktif.`,
       ],
       [
         "Hubungi",
-        "Untuk soalan tentang terma ini, hubungi operator TLAS.MY melalui halaman hubungi kami.",
+        `Untuk soalan tentang terma ini, hubungi operator ${appName} melalui halaman hubungi kami.`,
       ],
     ],
   },

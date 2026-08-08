@@ -1,4 +1,5 @@
 import { requireTenant } from "@repo/auth/authorization";
+import { appName } from "@repo/config/brand";
 import { type AttendanceStatus, database } from "@repo/database";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
@@ -76,7 +77,7 @@ const AttendancePage = async () => {
 
   return (
     <>
-      <Header page="Attendance" pages={["TLAS.MY"]} />
+      <Header page="Attendance" pages={[`${appName}`]} />
       <main className="grid gap-4 p-4 pt-0 xl:grid-cols-[360px_1fr]">
         <Card className="h-fit">
           <CardHeader>

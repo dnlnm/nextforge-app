@@ -1,4 +1,5 @@
 import { ensureLocalUser } from "@repo/auth/organizations";
+import { appName, formatWorkspaceHostname } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
@@ -19,7 +20,7 @@ interface CentreSettingsPageProps {
 }
 
 export const metadata: Metadata = {
-  title: "Centre Settings - TLAS.MY",
+  title: `Centre Settings - ${appName}`,
 };
 
 const CentreSettingsPage = async ({ params }: CentreSettingsPageProps) => {
@@ -99,7 +100,7 @@ const CentreSettingsPage = async ({ params }: CentreSettingsPageProps) => {
           <CardContent>
             <div className="space-y-4">
               <code className="flex-1 rounded bg-muted px-3 py-2 font-mono text-sm">
-                {organization.slug}.tlas.my
+                {formatWorkspaceHostname(organization.slug)}
               </code>
               <p className="text-muted-foreground text-sm">
                 Contact support to change your centre URL.

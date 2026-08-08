@@ -1,4 +1,5 @@
 import { ensureLocalUser } from "@repo/auth/organizations";
+import { appName } from "@repo/config/brand";
 import {
   Card,
   CardContent,
@@ -12,7 +13,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
-  title: "Account - TLAS.MY",
+  title: `Account - ${appName}`,
 };
 
 const AccountPage = async () => {
@@ -35,14 +36,14 @@ const AccountPage = async () => {
       <div className="mb-8">
         <h1 className="font-semibold text-3xl tracking-tight">Account</h1>
         <p className="text-muted-foreground">
-          Manage your TLAS.MY account details
+          Manage your {appName} account details
         </p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Profile</CardTitle>
-          <CardDescription>Your account details for TLAS.MY</CardDescription>
+          <CardDescription>Your account details for {appName}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-1">

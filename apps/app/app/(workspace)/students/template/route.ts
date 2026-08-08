@@ -25,7 +25,7 @@ export const GET = () =>
   new Response(template.join("\n"), {
     headers: {
       "Content-Disposition":
-        'attachment; filename="tlas-students-template.csv"',
+        'attachment; filename="klio-students-template.csv"',
       "Content-Type": "text/csv; charset=utf-8",
     },
   });

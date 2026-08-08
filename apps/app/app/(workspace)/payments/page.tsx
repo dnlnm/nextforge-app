@@ -1,4 +1,5 @@
 import { requireTenantRole } from "@repo/auth/authorization";
+import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
@@ -65,14 +66,14 @@ const PaymentsPage = async () => {
 
   return (
     <>
-      <Header page="Payments" pages={["TLAS.MY"]} />
+      <Header page="Payments" pages={[`${appName}`]} />
       <main className="grid gap-4 p-4 pt-0 xl:grid-cols-[380px_1fr]">
         <Card className="h-fit">
           <CardHeader>
             <CardTitle>Record payment</CardTitle>
             <CardDescription>
               Record cash, transfer, DuitNow, FPX, card, or other payments
-              received outside TLAS.MY.
+              received outside {appName}.
             </CardDescription>
           </CardHeader>
           <CardContent>

@@ -1,5 +1,6 @@
 "use client";
 
+import { appName } from "@repo/config/brand";
 import type { SubscriptionPlan, SubscriptionStatus } from "@repo/database";
 import {
   Alert,
@@ -205,7 +206,7 @@ const SubscriptionHero = ({
           <div className="space-y-1">
             <CardTitle className="text-2xl">Current Subscription</CardTitle>
             <CardDescription>
-              Manage your TLAS.MY subscription and billing
+              Manage your {appName} subscription and billing
             </CardDescription>
           </div>
           <Badge className={status.badge}>
