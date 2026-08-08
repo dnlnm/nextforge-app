@@ -7,7 +7,6 @@ import type { ReactNode } from "react";
 import { env } from "@/env";
 import { NotificationsProvider } from "../(workspace)/components/notifications-provider";
 import { MainNav } from "./components/main-nav";
-import { UserMenu } from "./components/user-menu";
 
 interface MainLayoutProperties {
   readonly children: ReactNode;
@@ -42,10 +41,10 @@ const MainLayout = async ({ children }: MainLayoutProperties) => {
       <div className="min-h-svh bg-background">
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="flex h-16 items-center px-4 sm:px-6">
-            <MainNav counts={{ admin: adminCount, teacher: teacherCount }} />
-            <div className="ml-auto flex items-center gap-4">
-              <UserMenu userId={user.id} />
-            </div>
+            <MainNav
+              counts={{ admin: adminCount, teacher: teacherCount }}
+              userId={user.id}
+            />
           </div>
         </header>
         <main>{children}</main>

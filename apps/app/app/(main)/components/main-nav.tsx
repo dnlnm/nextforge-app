@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@repo/design-system/components/ui/accordion";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
   NavigationMenu,
@@ -8,11 +14,12 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
 } from "@repo/design-system/components/ui/navigation-menu";
 import {
   Sheet,
   SheetContent,
+  SheetHeader,
+  SheetTitle,
   SheetTrigger,
 } from "@repo/design-system/components/ui/sheet";
 import { cn } from "@repo/design-system/lib/utils";
@@ -20,169 +27,196 @@ import {
   BriefcaseIcon,
   BuildingIcon,
   GraduationCapIcon,
+  type LucideIcon,
   Menu,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Brand } from "@/components/brand";
+import { UserMenu } from "./user-menu";
 
 export interface WorkspaceCounts {
   readonly admin: number;
   readonly teacher: number;
 }
 
-interface MainNavProperties {
-  readonly counts: WorkspaceCounts;
+interface WorkspaceItem {
+  readonly count: number;
+  readonly description: string;
+  readonly href: string;
+  readonly icon: LucideIcon;
+  readonly isActive: (pathname: string) => boolean;
+  readonly title: string;
 }
 
-export const MainNav = ({ counts }: MainNavProperties) => {
+interface MainNavProperties {
+  readonly counts: WorkspaceCounts;
+  readonly userId: string;
+}
+
+export const MainNav = ({ counts, userId }: MainNavProperties) => {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isCentresActive = pathname?.startsWith("/centres");
-  const isWorkspacesActive =
-    pathname?.startsWith("/workspaces/admin") ||
-    pathname?.startsWith("/workspaces/teacher");
+
+  const workspaceItems: WorkspaceItem[] = [
+    {
+      title: "Admin Centres",
+      description: "Manage billing, staff and centre settings",
+      icon: BriefcaseIcon,
+      href: "/workspaces/admin",
+      isActive: (path) => path.startsWith("/workspaces/admin"),
+      count: counts.admin,
+    },
+    {
+      title: "Teacher Centres",
+      description: "Schedules, classes and teaching tools",
+      href: "/workspaces/teacher",
+      icon: GraduationCapIcon,
+      isActive: (path) => path.startsWith("/workspaces/teacher"),
+      count: counts.teacher,
+    },
+  ];
+
+  const isWorkspacesActive = workspaceItems.some((item) =>
+    item.isActive(pathname ?? "")
+  );
 
   return (
-    <div className="flex items-center gap-6">
-      <Link className="flex items-center space-x-2" href="/centres">
-        <Brand />
-      </Link>
+    <div className="flex w-full items-center justify-between gap-6">
+      {/* Desktop Menu */}
+      <nav className="hidden h-9 items-center gap-6 lg:flex">
+        <Link className="flex h-9 items-center space-x-2" href="/centres">
+          <Brand />
+        </Link>
 
-      <Sheet onOpenChange={setMobileMenuOpen} open={mobileMenuOpen}>
-        <SheetTrigger asChild>
-          <Button
-            aria-label="Toggle menu"
-            className="md:hidden"
-            size="icon"
-            variant="ghost"
-          >
-            <Menu className="size-5" />
-          </Button>
-        </SheetTrigger>
-        <SheetContent className="w-72" side="left">
-          <div className="flex flex-col gap-6">
-            <Link className="flex items-center space-x-2" href="/centres">
-              <Brand />
-            </Link>
+        <NavigationMenu>
+          <NavigationMenuList>
+            <NavigationMenuItem>
+              <NavigationMenuTrigger
+                className={cn(
+                  isWorkspacesActive ? "text-foreground" : "text-foreground/60"
+                )}
+              >
+                My Workspaces
+              </NavigationMenuTrigger>
+              <NavigationMenuContent className="bg-popover text-popover-foreground">
+                {workspaceItems.map((item) => (
+                  <NavigationMenuLink asChild className="w-80" key={item.title}>
+                    <Link
+                      className="flex min-w-80 select-none flex-row gap-4 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-muted hover:text-accent-foreground"
+                      href={item.href}
+                    >
+                      <div className="text-foreground">
+                        <item.icon className="size-5 shrink-0" />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-sm">
+                          {item.title} ({item.count})
+                        </div>
+                        <p className="text-muted-foreground text-sm leading-snug">
+                          {item.description}
+                        </p>
+                      </div>
+                    </Link>
+                  </NavigationMenuLink>
+                ))}
+              </NavigationMenuContent>
+            </NavigationMenuItem>
 
-            <nav className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <p className="px-2 font-medium text-muted-foreground text-xs uppercase">
-                  My Workspaces
-                </p>
+            <NavigationMenuItem>
+              <NavigationMenuLink asChild>
                 <Link
                   className={cn(
-                    "flex items-center gap-3 rounded-md p-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
-                    pathname?.startsWith("/workspaces/admin")
-                      ? "bg-accent/50 text-accent-foreground"
-                      : "text-foreground/60"
+                    "group inline-flex h-9 flex-row items-center justify-center gap-2 rounded-md bg-background px-4 py-2 font-medium text-sm transition-colors hover:bg-muted hover:text-accent-foreground",
+                    isCentresActive ? "text-foreground" : "text-foreground/60"
                   )}
-                  href="/workspaces/admin"
-                  onClick={() => setMobileMenuOpen(false)}
+                  href="/centres"
                 >
-                  <BriefcaseIcon className="size-4" />
-                  <span>Admin Centres ({counts.admin})</span>
+                  <BuildingIcon className="size-4" />
+                  Centres
                 </Link>
-                <Link
-                  className={cn(
-                    "flex items-center gap-3 rounded-md p-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
-                    pathname?.startsWith("/workspaces/teacher")
-                      ? "bg-accent/50 text-accent-foreground"
-                      : "text-foreground/60"
-                  )}
-                  href="/workspaces/teacher"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <GraduationCapIcon className="size-4" />
-                  <span>Teacher Centres ({counts.teacher})</span>
-                </Link>
-              </div>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
+      </nav>
+
+      {/* Mobile Menu */}
+      <div className="flex items-center justify-between lg:hidden">
+        <Link className="flex items-center space-x-2" href="/centres">
+          <Brand />
+        </Link>
+      </div>
+
+      <div className="flex items-center gap-4">
+        <Sheet onOpenChange={setMobileMenuOpen} open={mobileMenuOpen}>
+          <SheetTrigger asChild>
+            <Button
+              aria-label="Toggle menu"
+              className="lg:hidden"
+              size="icon"
+              variant="outline"
+            >
+              <Menu className="size-4" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent className="overflow-y-auto">
+            <SheetHeader>
+              <SheetTitle className="flex items-center space-x-2">
+                <Brand />
+              </SheetTitle>
+            </SheetHeader>
+            <div className="flex flex-col gap-6 p-4">
+              <Accordion
+                className="flex w-full flex-col gap-4"
+                collapsible
+                type="single"
+              >
+                <AccordionItem className="border-b-0" value="my-workspaces">
+                  <AccordionTrigger className="py-0 font-semibold text-base hover:no-underline">
+                    My Workspaces
+                  </AccordionTrigger>
+                  <AccordionContent className="mt-2">
+                    {workspaceItems.map((item) => (
+                      <Link
+                        className="flex select-none flex-row gap-4 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-muted hover:text-accent-foreground"
+                        href={item.href}
+                        key={item.title}
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <div className="text-foreground">
+                          <item.icon className="size-5 shrink-0" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-sm">
+                            {item.title} ({item.count})
+                          </div>
+                          <p className="text-muted-foreground text-sm leading-snug">
+                            {item.description}
+                          </p>
+                        </div>
+                      </Link>
+                    ))}
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
 
               <Link
-                className={cn(
-                  "flex items-center gap-3 rounded-md p-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
-                  isCentresActive
-                    ? "bg-accent/50 text-accent-foreground"
-                    : "text-foreground/60"
-                )}
+                className="font-semibold text-base hover:no-underline"
                 href="/centres"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                <BuildingIcon className="size-4" />
-                <span>Centres</span>
-              </Link>
-            </nav>
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      <NavigationMenu className="hidden md:flex">
-        <NavigationMenuList>
-          <NavigationMenuItem>
-            <NavigationMenuTrigger
-              className={cn(
-                navigationMenuTriggerStyle(),
-                isWorkspacesActive ? "text-foreground" : "text-foreground/60"
-              )}
-            >
-              My Workspaces
-            </NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <ul className="w-56 p-2">
-                <li>
-                  <NavigationMenuLink
-                    active={pathname?.startsWith("/workspaces/admin")}
-                    asChild
-                    className={navigationMenuTriggerStyle()}
-                  >
-                    <Link
-                      className="justify-start gap-2"
-                      href="/workspaces/admin"
-                    >
-                      <BriefcaseIcon className="size-4" />
-                      <span>Admin Centres ({counts.admin})</span>
-                    </Link>
-                  </NavigationMenuLink>
-                </li>
-                <li>
-                  <NavigationMenuLink
-                    active={pathname?.startsWith("/workspaces/teacher")}
-                    asChild
-                    className={navigationMenuTriggerStyle()}
-                  >
-                    <Link
-                      className="justify-start gap-2"
-                      href="/workspaces/teacher"
-                    >
-                      <GraduationCapIcon className="size-4" />
-                      <span>Teacher Centres ({counts.teacher})</span>
-                    </Link>
-                  </NavigationMenuLink>
-                </li>
-              </ul>
-            </NavigationMenuContent>
-          </NavigationMenuItem>
-
-          <NavigationMenuItem>
-            <NavigationMenuLink
-              active={isCentresActive}
-              asChild
-              className={cn(
-                navigationMenuTriggerStyle(),
-                isCentresActive ? "text-foreground" : "text-foreground/60"
-              )}
-            >
-              <Link className="gap-2" href="/centres">
-                <BuildingIcon className="size-4" />
                 Centres
               </Link>
-            </NavigationMenuLink>
-          </NavigationMenuItem>
-        </NavigationMenuList>
-      </NavigationMenu>
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        <UserMenu userId={userId} />
+      </div>
     </div>
   );
 };
