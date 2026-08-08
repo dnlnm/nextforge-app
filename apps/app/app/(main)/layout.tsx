@@ -1,4 +1,5 @@
 import { isSuperadminUserId } from "@repo/auth/authorization";
+import { ensureLocalUser } from "@repo/auth/organizations";
 import { currentUser } from "@repo/auth/server";
 import { database } from "@repo/database";
 import { secure } from "@repo/security";
@@ -27,12 +28,27 @@ const MainLayout = async ({ children }: MainLayoutProperties) => {
     redirect("/superadmin");
   }
 
-  const [adminCount, teacherCount] = await Promise.all([
+  const localUser = await ensureLocalUser();
+
+  if (!localUser) {
+    redirect("/sign-in");
+  }
+
+  const [adminCount, teacherCount, ownedCentre] = await Promise.all([
     database.organizationMembership.count({
-      where: { userId: user.id, role: "ADMIN", status: "ACTIVE" },
+      where: { userId: localUser.id, role: "ADMIN", status: "ACTIVE" },
     }),
     database.organizationMembership.count({
-      where: { userId: user.id, role: "TEACHER", status: "ACTIVE" },
+      where: { userId: localUser.id, role: "TEACHER", status: "ACTIVE" },
+    }),
+    database.organizationMembership.findFirst({
+      where: {
+        userId: localUser.id,
+        role: "OWNER",
+        status: "ACTIVE",
+        organization: { status: "ACTIVE" },
+      },
+      select: { organization: { select: { id: true } } },
     }),
   ]);
 
@@ -43,6 +59,7 @@ const MainLayout = async ({ children }: MainLayoutProperties) => {
           <div className="flex h-16 items-center px-4 sm:px-6">
             <MainNav
               counts={{ admin: adminCount, teacher: teacherCount }}
+              ownedCentreId={ownedCentre?.organization.id ?? null}
               userId={user.id}
             />
           </div>

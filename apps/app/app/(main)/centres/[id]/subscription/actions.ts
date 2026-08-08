@@ -111,8 +111,8 @@ export const startSubscriptionCheckout = async (
     subscription_data: {
       metadata: { organizationId, plan },
     },
-    success_url: `${env.NEXT_PUBLIC_APP_URL}/centres/${organizationId}/billing?checkout=success`,
-    cancel_url: `${env.NEXT_PUBLIC_APP_URL}/centres/${organizationId}/billing?checkout=cancelled`,
+    success_url: `${env.NEXT_PUBLIC_APP_URL}/centres/${organizationId}/subscription?checkout=success`,
+    cancel_url: `${env.NEXT_PUBLIC_APP_URL}/centres/${organizationId}/subscription?checkout=cancelled`,
   });
 
   if (!session.url) {
@@ -132,7 +132,7 @@ export const openBillingPortal = async (organizationId: string) => {
 
   const session = await stripe.billingPortal.sessions.create({
     customer: customerId,
-    return_url: `${env.NEXT_PUBLIC_APP_URL}/centres/${organizationId}/billing`,
+    return_url: `${env.NEXT_PUBLIC_APP_URL}/centres/${organizationId}/subscription`,
   });
 
   redirect(session.url);
@@ -302,7 +302,7 @@ export const updateSubscriptionPlan = async (
     }
   );
 
-  revalidatePath(`/centres/${organizationId}/billing`);
+  revalidatePath(`/centres/${organizationId}/subscription`);
 };
 
 export const cancelSubscriptionAtPeriodEnd = async (
@@ -331,7 +331,7 @@ export const cancelSubscriptionAtPeriodEnd = async (
     }
   );
 
-  revalidatePath(`/centres/${organizationId}/billing`);
+  revalidatePath(`/centres/${organizationId}/subscription`);
 };
 
 export const reactivateSubscription = async (organizationId: string) => {
@@ -356,5 +356,5 @@ export const reactivateSubscription = async (organizationId: string) => {
     }
   );
 
-  revalidatePath(`/centres/${organizationId}/billing`);
+  revalidatePath(`/centres/${organizationId}/subscription`);
 };

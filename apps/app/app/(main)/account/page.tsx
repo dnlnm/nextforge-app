@@ -11,6 +11,9 @@ import { ArrowLeftIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { EmailForm } from "./email-form";
+import { PasswordForm } from "./password-form";
+import { ProfileForm } from "./profile-form";
 
 export const metadata: Metadata = {
   title: `Account - ${appName}`,
@@ -30,7 +33,7 @@ const AccountPage = async () => {
         href="/centres"
       >
         <ArrowLeftIcon className="size-4" />
-        Back to centres
+        Back to My Centre
       </Link>
 
       <div className="mb-8">
@@ -40,27 +43,45 @@ const AccountPage = async () => {
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Profile</CardTitle>
-          <CardDescription>Your account details for {appName}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-1">
-            <p className="text-muted-foreground text-sm">Name</p>
-            <p className="font-medium">
-              {[user.firstName, user.lastName].filter(Boolean).join(" ") || "—"}
-            </p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-muted-foreground text-sm">Email</p>
-            <p className="font-medium">{user.email ?? "—"}</p>
-          </div>
-          <p className="text-muted-foreground text-sm">
-            Profile updates are managed through your auth provider.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Profile</CardTitle>
+            <CardDescription>Your display name for {appName}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ProfileForm
+              defaultName={
+                [user.firstName, user.lastName].filter(Boolean).join(" ") || ""
+              }
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Email</CardTitle>
+            <CardDescription>
+              The email address used to sign in to {appName}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <EmailForm defaultEmail={user.email ?? ""} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Password</CardTitle>
+            <CardDescription>
+              Change the password used to sign in to {appName}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <PasswordForm />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

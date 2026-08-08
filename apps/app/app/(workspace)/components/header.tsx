@@ -70,7 +70,7 @@ export const Header = ({ pages, page, children }: HeaderProps) => (
         href={`${getMainDomainUrl()}/centres`}
       >
         <ArrowLeftIcon className="size-4" />
-        All Centres
+        My Centre
       </Link>
       {children}
     </div>

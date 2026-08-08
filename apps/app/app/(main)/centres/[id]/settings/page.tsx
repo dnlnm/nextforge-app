@@ -63,7 +63,7 @@ const CentreSettingsPage = async ({ params }: CentreSettingsPageProps) => {
         href="/centres"
       >
         <ArrowLeftIcon className="size-4" />
-        Back to centres
+        Back to My Centre
       </Link>
 
       <div className="mb-8">

@@ -7,7 +7,7 @@ const BillingPage = async () => {
 
   const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
   redirect(
-    `${protocol}://${getMainDomain()}/centres/${tenant.organizationId}/billing`
+    `${protocol}://${getMainDomain()}/centres/${tenant.organizationId}/subscription`
   );
 };
 

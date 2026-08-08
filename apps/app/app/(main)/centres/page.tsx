@@ -22,8 +22,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
-  title: `Your Centres - ${appName}`,
-  description: "Manage your tuition centres and workspaces",
+  title: `My Centre - ${appName}`,
+  description: "Manage your tuition centre and access your workspaces",
 };
 
 const CentresPage = async () => {
@@ -71,11 +71,9 @@ const CentresPage = async () => {
     <div className="container mx-auto max-w-6xl px-4 py-8 sm:px-6">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="font-semibold text-3xl tracking-tight">
-            Your Centres
-          </h1>
+          <h1 className="font-semibold text-3xl tracking-tight">My Centre</h1>
           <p className="text-muted-foreground">
-            Manage your tuition centres and access your workspaces
+            Manage your tuition centre and access your workspaces
           </p>
         </div>
         {canCreateCentre && (
@@ -205,9 +203,11 @@ const CentresPage = async () => {
                           </Link>
                         </Button>
                         <Button asChild size="sm" variant="outline">
-                          <Link href={`/centres/${organization.id}/billing`}>
+                          <Link
+                            href={`/centres/${organization.id}/subscription`}
+                          >
                             <CreditCardIcon className="mr-2 size-4" />
-                            Billing
+                            Subscription
                           </Link>
                         </Button>
                       </div>
@@ -219,25 +219,6 @@ const CentresPage = async () => {
           })}
         </div>
       )}
-
-      {!canCreateCentre && memberships.length > 0 ? (
-        <Card className="mt-6 border-blue-200 bg-blue-50">
-          <CardContent className="flex items-start gap-3 py-4">
-            <div className="rounded-full bg-blue-100 p-2">
-              <PlusCircleIcon className="size-5 text-blue-600" />
-            </div>
-            <div className="flex-1">
-              <p className="font-medium text-blue-900">
-                You&apos;ve reached the centre limit
-              </p>
-              <p className="text-blue-700 text-sm">
-                Each account can create one tuition centre. You can still be
-                invited as a teacher or admin to other centres.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      ) : null}
     </div>
   );
 };

@@ -80,7 +80,7 @@ export const SidebarUserMenu = () => {
         <DropdownMenuItem asChild>
           <a href="/billing">
             <CreditCardIcon />
-            Billing
+            Subscription
           </a>
         </DropdownMenuItem>
         <DropdownMenuSeparator />

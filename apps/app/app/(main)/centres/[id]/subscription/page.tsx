@@ -28,7 +28,7 @@ interface CentreBillingPageProps {
 }
 
 export const metadata: Metadata = {
-  title: `Billing - ${appName}`,
+  title: `Subscription - ${appName}`,
 };
 
 const CentreBillingPage = async ({
@@ -78,7 +78,7 @@ const CentreBillingPage = async ({
         href="/centres"
       >
         <ArrowLeftIcon className="size-4" />
-        Back to centres
+        Back to My Centre
       </Link>
 
       <div className="mb-8">
