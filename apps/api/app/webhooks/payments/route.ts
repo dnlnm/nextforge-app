@@ -77,8 +77,7 @@ const getDateFromUnix = (value?: number | null) =>
   value ? new Date(value * 1000) : undefined;
 
 const getCurrentPeriodEnd = (subscription: Stripe.Subscription) =>
-  (subscription as Stripe.Subscription & { current_period_end?: number | null })
-    .current_period_end;
+  subscription.items.data.at(0)?.current_period_end;
 
 const getOrganizationId = async (subscription: Stripe.Subscription) => {
   if (subscription.metadata.organizationId) {
