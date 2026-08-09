@@ -1,31 +1,22 @@
-const template = [
-  [
-    "fullName",
-    "preferredName",
-    "academicLevel",
-    "schoolName",
-    "enrolledAt",
-    "guardianName",
-    "guardianPhone",
-    "guardianEmail",
-  ],
-  [
-    "Aisyah Binti Ahmad",
-    "Aisyah",
-    "Form 3",
-    "SMK Taman Melati",
-    "2026-09-01",
-    "Ahmad Bin Hassan",
-    "0123456789",
-    "ahmad@example.com",
-  ],
-].map((row) => row.map((cell) => `"${cell}"`).join(","));
+import { requireTenantRole } from "@repo/auth/authorization";
+import { database } from "@repo/database";
+import { createStudentTemplate } from "../import/lib/workbook";
 
-export const GET = () =>
-  new Response(template.join("\n"), {
+const mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+export const GET = async () => {
+  const tenant = await requireTenantRole(["ADMIN"]);
+  const levels = await database.level.findMany({
+    where: { organizationId: tenant.organizationId, archivedAt: null },
+    orderBy: [{ order: "asc" }, { name: "asc" }],
+    select: { code: true, name: true },
+  });
+  const workbook = await createStudentTemplate(levels);
+  return new Response(workbook, {
     headers: {
-      "Content-Disposition":
-        'attachment; filename="klio-students-template.csv"',
-      "Content-Type": "text/csv; charset=utf-8",
+      "Content-Type": mime,
+      "Content-Disposition": 'attachment; filename="klio-student-import-template.xlsx"',
+      "Cache-Control": "private, no-store",
     },
   });
+};

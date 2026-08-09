@@ -29,40 +29,44 @@ model User {
   TeacherInvitation_TeacherInvitation_acceptedByUserIdToUser TeacherInvitation[]      @relation("TeacherInvitation_acceptedByUserIdToUser")
   TeacherInvitation_TeacherInvitation_invitedByUserIdToUser  TeacherInvitation[]      @relation("TeacherInvitation_invitedByUserIdToUser")
   TeacherProfile                                             TeacherProfile[]
+  studentImports                                             StudentImport[]
 
   @@index([email])
 }
 
 model Organization {
-  id                String                    @id @default(cuid())
-  name              String
-  slug              String                    @unique
-  imageUrl          String?
-  status            OrganizationStatus        @default(ACTIVE)
-  createdByUserId   String?
-  createdAt         DateTime                  @default(now())
-  updatedAt         DateTime                  @updatedAt
-  archivedAt        DateTime?
-  attendanceRecords AttendanceRecord[]
-  auditEvents       AuditEvent[]
-  branch            Branch?
-  classSessions     ClassSession[]
-  enrollments       Enrollment[]
-  guardians         Guardian[]
-  invoices          Invoice[]
-  classes           LearningClass[]
-  createdBy         User?                     @relation("CreatedOrganizations", fields: [createdByUserId], references: [id])
-  memberships       OrganizationMembership[]
-  settings          OrganizationSettings?
-  subscription      OrganizationSubscription?
-  payments          Payment[]
-  students          Student[]
-  subjects          Subject[]
-  levels            Level[]
-  rooms             Room[]
-  AdminInvitation   AdminInvitation[]
-  TeacherInvitation TeacherInvitation[]
-  teachers          TeacherProfile[]
+  id                  String                    @id @default(cuid())
+  name                String
+  slug                String                    @unique
+  imageUrl            String?
+  status              OrganizationStatus        @default(ACTIVE)
+  createdByUserId     String?
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+  archivedAt          DateTime?
+  attendanceRecords   AttendanceRecord[]
+  auditEvents         AuditEvent[]
+  branch              Branch?
+  classSessions       ClassSession[]
+  enrollments         Enrollment[]
+  guardians           Guardian[]
+  invoices            Invoice[]
+  classes             LearningClass[]
+  createdBy           User?                     @relation("CreatedOrganizations", fields: [createdByUserId], references: [id])
+  memberships         OrganizationMembership[]
+  settings            OrganizationSettings?
+  subscription        OrganizationSubscription?
+  payments            Payment[]
+  students            Student[]
+  subjects            Subject[]
+  levels              Level[]
+  rooms               Room[]
+  AdminInvitation     AdminInvitation[]
+  TeacherInvitation   TeacherInvitation[]
+  teachers            TeacherProfile[]
+  studentImports      StudentImport[]
+  studentImportRows   StudentImportRow[]
+  studentCodeSequence Int                       @default(0)
 
   @@index([slug])
   @@index([status])
@@ -191,11 +195,63 @@ model Student {
   guardians         StudentGuardian[]
   level             Level?             @relation("StudentLevel", fields: [levelId], references: [id])
   levelId           String?
+  importRows        StudentImportRow[]
 
   @@unique([organizationId, code])
   @@index([organizationId, status])
   @@index([organizationId, fullName])
   @@index([branchId])
+}
+
+model StudentImport {
+  id                  String              @id @default(cuid())
+  organizationId      String
+  createdByUserId     String
+  filename            String
+  fileSize            Int
+  sourceKey           String?
+  status              StudentImportStatus @default(UPLOADED)
+  totalRows           Int                 @default(0)
+  validRows           Int                 @default(0)
+  invalidRows         Int                 @default(0)
+  skippedRows         Int                 @default(0)
+  processedRows       Int                 @default(0)
+  createdRows         Int                 @default(0)
+  failureMessage      String?
+  validationStartedAt DateTime?
+  validatedAt         DateTime?
+  processingStartedAt DateTime?
+  completedAt         DateTime?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  organization        Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy           User                @relation(fields: [createdByUserId], references: [id])
+  rows                StudentImportRow[]
+
+  @@index([organizationId, createdAt])
+  @@index([organizationId, status])
+}
+
+model StudentImportRow {
+  id               String                 @id @default(cuid())
+  organizationId   String
+  importId         String
+  rowNumber        Int
+  status           StudentImportRowStatus
+  rawData          Json
+  normalizedData   Json?
+  errors           Json
+  fingerprint      String?
+  createdStudentId String?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  organization     Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  import           StudentImport          @relation(fields: [importId], references: [id], onDelete: Cascade)
+  createdStudent   Student?               @relation(fields: [createdStudentId], references: [id], onDelete: SetNull)
+
+  @@unique([importId, rowNumber])
+  @@index([organizationId, importId])
+  @@index([importId, status])
 }
 
 model Guardian {
@@ -634,6 +690,25 @@ enum AuditAction {
 enum StudentStatus {
   ACTIVE
   ARCHIVED
+}
+
+enum StudentImportStatus {
+  UPLOADED
+  VALIDATING
+  READY
+  PROCESSING
+  COMPLETED
+  COMPLETED_WITH_ERRORS
+  FAILED
+}
+
+enum StudentImportRowStatus {
+  VALID
+  INVALID
+  DUPLICATE
+  PROCESSING
+  CREATED
+  FAILED
 }
 
 enum Gender {

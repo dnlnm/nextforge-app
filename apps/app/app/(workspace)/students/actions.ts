@@ -11,6 +11,7 @@ import {
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { assertWithinPlanLimit } from "../billing/limits";
+import { reserveStudentCode } from "./lib/student-code";
 
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);
@@ -54,51 +55,13 @@ const relationships = new Set<GuardianRelationship>([
   "OTHER",
 ]);
 
-const csvLineRegex = /\r?\n/;
-const csvDateRegex = /^\d{4}-\d{2}-\d{2}$/;
-
-const parseCsvDate = (value: string | undefined) => {
-  if (!(value && csvDateRegex.test(value))) {
-    return undefined;
-  }
-
-  const date = new Date(`${value}T00:00:00.000Z`);
-
-  return Number.isNaN(date.getTime()) ? undefined : date;
-};
-
-const formatCode = (prefix: string, sequence: number) =>
-  `${prefix}${String(sequence).padStart(4, "0")}`;
-
-// Next sequential student code is derived from the highest existing code
-// (e.g. STU0007 -> 8) rather than the row count, so codes are never reused
-// when students are archived or deleted, keeping them permanent.
-const getNextStudentSequence = async (
-  tx: Prisma.TransactionClient,
-  organizationId: string
-) => {
-  const students = await tx.student.findMany({
-    where: { organizationId },
-    select: { code: true },
-  });
-
-  const maxSequence = students.reduce((max, student) => {
-    const sequence = Number.parseInt(student.code.replace("STU", ""), 10);
-
-    return Number.isNaN(sequence) ? max : Math.max(max, sequence);
-  }, 0);
-
-  return maxSequence + 1;
-};
-
 export const getNextStudentCode = async () => {
   const tenant = await requireTenant();
-
-  return database.$transaction(async (tx) => {
-    const sequence = await getNextStudentSequence(tx, tenant.organizationId);
-
-    return formatCode("STU", sequence);
+  const organization = await database.organization.findUniqueOrThrow({
+    where: { id: tenant.organizationId },
+    select: { studentCodeSequence: true },
   });
+  return `STU${String(organization.studentCodeSequence + 1).padStart(4, "0")}`;
 };
 
 const resolveLevel = async (levelId: string | undefined) => {
@@ -198,12 +161,12 @@ export const createStudent = async (
   };
 
   const student = await database.$transaction(async (tx) => {
-    const sequence = await getNextStudentSequence(tx, tenant.organizationId);
+    const code = await reserveStudentCode(tx, tenant.organizationId);
     const created = await tx.student.create({
       data: {
         organizationId: tenant.organizationId,
         fullName,
-        code: formatCode("STU", sequence),
+        code,
         levelId,
         dateOfBirth: getDate(formData, "dateOfBirth"),
         enrolledAt: getDate(formData, "enrolledAt") ?? new Date(),
@@ -456,123 +419,6 @@ export const updateStudent = async (formData: FormData) => {
   revalidatePath(`/students/${studentId}`);
   revalidatePath(`/students/${studentId}/edit`);
   redirect(`/students/${studentId}`);
-};
-
-const parseCsvLine = (line: string) => {
-  const cells: string[] = [];
-  let current = "";
-  let quoted = false;
-
-  for (let index = 0; index < line.length; index += 1) {
-    const character = line[index];
-    const next = line[index + 1];
-
-    if (character === '"' && quoted && next === '"') {
-      current += '"';
-      index += 1;
-    } else if (character === '"') {
-      quoted = !quoted;
-    } else if (character === "," && !quoted) {
-      cells.push(current.trim());
-      current = "";
-    } else {
-      current += character;
-    }
-  }
-
-  cells.push(current.trim());
-
-  return cells;
-};
-
-export const importStudents = async (formData: FormData) => {
-  const tenant = await requireTenantRole(["ADMIN"]);
-  const file = formData.get("csv");
-
-  if (!(file instanceof File) || file.size === 0) {
-    throw new Error("CSV file is required.");
-  }
-
-  const text = await file.text();
-  const [headerLine, ...dataLines] = text
-    .split(csvLineRegex)
-    .map((line) => line.trim())
-    .filter(Boolean);
-
-  if (!headerLine) {
-    throw new Error("CSV file is empty.");
-  }
-
-  const headers = parseCsvLine(headerLine).map((header) =>
-    header.toLowerCase()
-  );
-  const rows = dataLines.map((line) => {
-    const values = parseCsvLine(line);
-
-    return Object.fromEntries(
-      headers.map((header, index) => [header, values[index]])
-    );
-  });
-  const importableRows = rows.filter((row) => row.fullname && row.guardianname);
-
-  await assertWithinPlanLimit({
-    increment: importableRows.length,
-    organizationId: tenant.organizationId,
-    resource: "students",
-    userId: tenant.authUserId,
-  });
-
-  const levels = await database.level.findMany({
-    where: { organizationId: tenant.organizationId, archivedAt: null },
-    select: { id: true, name: true },
-  });
-  const levelByName = new Map(levels.map((level) => [level.name, level.id]));
-
-  await database.$transaction(async (tx) => {
-    const startSequence = await getNextStudentSequence(
-      tx,
-      tenant.organizationId
-    );
-
-    for (let index = 0; index < importableRows.length; index += 1) {
-      const row = importableRows[index];
-      const fullName = row.fullname;
-      const guardianName = row.guardianname;
-
-      const student = await tx.student.create({
-        data: {
-          organizationId: tenant.organizationId,
-          fullName,
-          code: formatCode("STU", startSequence + index),
-          levelId: levelByName.get(row.academiclevel),
-          enrolledAt: parseCsvDate(row.enrolledat),
-          preferredName: row.preferredname,
-          schoolName: row.schoolname,
-        },
-        select: { id: true },
-      });
-      const guardian = await tx.guardian.create({
-        data: {
-          organizationId: tenant.organizationId,
-          email: row.guardianemail,
-          fullName: guardianName,
-          phone: row.guardianphone,
-        },
-        select: { id: true },
-      });
-
-      await tx.studentGuardian.create({
-        data: {
-          guardianId: guardian.id,
-          isPrimary: true,
-          receivesBilling: true,
-          studentId: student.id,
-        },
-      });
-    }
-  });
-
-  revalidatePath("/students");
 };
 
 // Types for table queries

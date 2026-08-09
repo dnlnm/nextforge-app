@@ -70,7 +70,7 @@ const StudentsPage = async () => {
           </div>
           <div className="flex gap-2">
             <Button asChild className="flex-1 md:flex-none" variant="outline">
-              <Link href="/students/template">
+              <Link href="/students/import">
                 <UploadIcon className="size-4" />
                 <span className="hidden sm:inline">Import Students</span>
                 <span className="sm:hidden">Import</span>

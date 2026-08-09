@@ -1,5 +1,7 @@
 import {
+  DeleteObjectCommand,
   GetObjectCommand,
+  HeadObjectCommand,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
@@ -75,6 +77,12 @@ export const getPrivateObject = async (key: string) => {
 
   return object;
 };
+
+export const headPrivateObject = async (key: string) =>
+  r2.send(new HeadObjectCommand({ Bucket: buckets.private, Key: key }));
+
+export const deletePrivateObject = async (key: string) =>
+  r2.send(new DeleteObjectCommand({ Bucket: buckets.private, Key: key }));
 
 // Generates a short-lived signed GET URL for a private object.
 export const createSignedDownloadUrl = async ({
