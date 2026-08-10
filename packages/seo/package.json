@@ -9,7 +9,7 @@
   "dependencies": {
     "@repo/config": "workspace:*",
     "lodash.merge": "^4.6.2",
-    "react": "19.2.4",
+    "react": "19.2.3",
     "schema-dts": "^1.1.5"
   },
   "devDependencies": {
