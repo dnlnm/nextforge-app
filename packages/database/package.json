@@ -26,6 +26,6 @@
     "prisma": "7.4.2",
     "pg": "^8.16.3",
     "supabase": "^2.75.0",
-    "typescript": "^5.9.3"
+    "typescript": "^7.0.2"
   }
 }
