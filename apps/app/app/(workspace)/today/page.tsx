@@ -25,6 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@repo/design-system/components/ui/table";
+import { findTeacherProfileForUser } from "@/lib/teacher-profile";
 import {
   markAttendance,
   markSessionAttendanceStatus,
@@ -43,20 +44,12 @@ const statusLabels: Record<AttendanceStatus, string> = {
 const TodayPage = async () => {
   const tenant = await requireTenant();
   const today = getMalaysiaDateParts();
-  const user = await database.user.findUnique({
-    where: { id: tenant.userId },
-    select: { email: true },
-  });
   const teacher =
-    tenant.role === "TEACHER" && user?.email
-      ? await database.teacherProfile.findFirst({
-          where: {
-            archivedAt: null,
-            email: { equals: user.email, mode: "insensitive" },
-            organizationId: tenant.organizationId,
-          },
-          select: { fullName: true, id: true },
-        })
+    tenant.role === "TEACHER"
+      ? await findTeacherProfileForUser(
+          tenant.organizationId,
+          tenant.userId
+        )
       : null;
   const teacherClassFilter =
     tenant.role === "TEACHER" ? { teacherId: teacher?.id ?? "__none__" } : {};
@@ -117,9 +110,8 @@ const TodayPage = async () => {
             <div className="grid gap-3">
               {tenant.role === "TEACHER" && !teacher ? (
                 <p className="text-muted-foreground text-sm">
-                  Your login email is not linked to a teacher profile yet. Ask
-                  an admin to set your teacher profile email to{" "}
-                  {user?.email ?? "your login email"}.
+                  Your account is not linked to an active teacher profile. Ask
+                  an admin to send you a teacher invitation.
                 </p>
               ) : null}
               <form action={createTodaySessions}>

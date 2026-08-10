@@ -1,22 +1,14 @@
 import "server-only";
 
-import { database, type MembershipRole } from "@repo/database";
+import { database } from "@repo/database";
 import { notFound, redirect } from "next/navigation";
 import { TENANT_ACCESS_DENIED_MESSAGE } from "./errors";
-import { hasTenantRole } from "./roles";
+import { hasTenantRole, type TenantRole } from "./roles";
 import { auth } from "./server";
 import { getCurrentSlug } from "./subdomain";
+import type { TenantContext } from "./tenant-types";
 
-export interface TenantContext {
-  readonly authOrganizationId: string;
-  readonly authUserId: string;
-  readonly membershipId: string;
-  readonly organizationId: string;
-  readonly role: MembershipRole;
-  readonly slug: string | null;
-  readonly source: "active-organization" | "subdomain";
-  readonly userId: string;
-}
+export type { TenantContext } from "./tenant-types";
 
 export const requireTenant = async (): Promise<TenantContext> => {
   const session = await auth();
@@ -119,7 +111,7 @@ export const requireTenant = async (): Promise<TenantContext> => {
 };
 
 export const requireTenantRole = async (
-  allowedRoles: readonly MembershipRole[]
+  allowedRoles: readonly TenantRole[]
 ): Promise<TenantContext> => {
   const tenant = await requireTenant();
 

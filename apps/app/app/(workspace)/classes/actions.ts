@@ -1,7 +1,8 @@
 "use server";
 
 import { requireTenantRole } from "@repo/auth/authorization";
-import { type DayOfWeek, database } from "@repo/database";
+import { database } from "@repo/database";
+import { type DayOfWeek, daysOfWeek } from "@repo/schemas/enums";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
@@ -11,15 +12,7 @@ import {
 } from "@/lib/codes";
 import { assertWithinPlanLimit } from "../billing/limits";
 
-const days = new Set<DayOfWeek>([
-  "MONDAY",
-  "TUESDAY",
-  "WEDNESDAY",
-  "THURSDAY",
-  "FRIDAY",
-  "SATURDAY",
-  "SUNDAY",
-]);
+const days = new Set<DayOfWeek>(daysOfWeek);
 
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);

@@ -1,49 +1,16 @@
 "use server";
 
 import { requireTenantRole } from "@repo/auth/authorization";
+import { database } from "@repo/database";
 import {
   type AttendanceStatus,
+  attendanceStatuses,
   type DayOfWeek,
-  database,
-} from "@repo/database";
+} from "@repo/schemas/enums";
 import { revalidatePath } from "next/cache";
+import { getTeacherProfileId } from "@/lib/teacher-profile";
 
-const statuses = new Set<AttendanceStatus>([
-  "PRESENT",
-  "ABSENT",
-  "LATE",
-  "EXCUSED",
-]);
-
-const getTeacherProfileId = async (tenant: {
-  readonly organizationId: string;
-  readonly role: string;
-  readonly userId: string;
-}) => {
-  if (tenant.role !== "TEACHER") {
-    return;
-  }
-
-  const user = await database.user.findUnique({
-    where: { id: tenant.userId },
-    select: { email: true },
-  });
-
-  if (!user?.email) {
-    return "__unassigned_teacher__";
-  }
-
-  const teacher = await database.teacherProfile.findFirst({
-    where: {
-      archivedAt: null,
-      email: { equals: user.email, mode: "insensitive" },
-      organizationId: tenant.organizationId,
-    },
-    select: { id: true },
-  });
-
-  return teacher?.id ?? "__unassigned_teacher__";
-};
+const statuses = new Set<AttendanceStatus>(attendanceStatuses);
 
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);

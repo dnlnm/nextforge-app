@@ -1,17 +1,11 @@
 "use server";
 
 import { requireTenantRole } from "@repo/auth/authorization";
-import { database, type PaymentMethod } from "@repo/database";
+import { database } from "@repo/database";
+import { type PaymentMethod, paymentMethods } from "@repo/schemas/enums";
 import { revalidatePath } from "next/cache";
 
-const methods = new Set<PaymentMethod>([
-  "CASH",
-  "BANK_TRANSFER",
-  "DUITNOW",
-  "FPX",
-  "CARD",
-  "OTHER",
-]);
+const methods = new Set<PaymentMethod>(paymentMethods);
 
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);

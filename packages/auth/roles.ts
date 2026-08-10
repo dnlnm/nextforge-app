@@ -1,5 +1,3 @@
-import type { MembershipRole } from "@repo/database";
-
 export const tenantRoles = ["OWNER", "ADMIN", "TEACHER"] as const;
 
 export type TenantRole = (typeof tenantRoles)[number];
@@ -13,7 +11,7 @@ const roleMap: Record<string, TenantRole> = {
   teacher: "TEACHER",
 };
 
-export const normalizeRole = (role?: string | null): MembershipRole => {
+export const normalizeRole = (role?: string | null): TenantRole => {
   if (!role) {
     return "TEACHER";
   }

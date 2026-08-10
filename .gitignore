@@ -281,3 +281,13 @@ packages/database/generated
 # Cloudflare Tunnel
 cloudflared-config.yml
 .cloudflared/
+
+# Expo / React Native
+.expo/
+.expo-shared/
+.eas/
+apps/mobile/ios/
+apps/mobile/android/
+*.jks
+*.keystore
+*.mobileprovision

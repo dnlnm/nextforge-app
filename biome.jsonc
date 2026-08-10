@@ -11,6 +11,18 @@
       }
     }
   },
+  "overrides": [
+    {
+      "includes": ["apps/mobile/global.css"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noUnknownAtRules": "off"
+          }
+        }
+      }
+    }
+  ],
   "files": {
     "includes": [
       "**/*",

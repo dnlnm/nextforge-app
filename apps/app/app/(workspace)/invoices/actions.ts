@@ -2,6 +2,7 @@
 
 import { requireTenantRole } from "@repo/auth/authorization";
 import { database } from "@repo/database";
+import { billingMonthSchema } from "@repo/schemas/invoices";
 import { revalidatePath } from "next/cache";
 import { assertWithinPlanLimit } from "../billing/limits";
 
@@ -11,18 +12,10 @@ const getString = (formData: FormData, key: string) => {
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 };
 
-const billingMonthRegex = /^\d{4}-\d{2}$/;
-
 const parseBillingMonth = (value?: string) => {
-  if (!value) {
-    return null;
-  }
+  const parsed = billingMonthSchema.safeParse(value);
 
-  if (!billingMonthRegex.test(value)) {
-    return null;
-  }
-
-  return value;
+  return parsed.success ? parsed.data : null;
 };
 
 const getDueDate = (billingMonth: string, dueDay: number) => {

@@ -1,17 +1,22 @@
 "use server";
 
 import { requireTenant, requireTenantRole } from "@repo/auth/authorization";
+import { database, type Prisma } from "@repo/database";
 import {
-  database,
   type Gender,
   type GuardianRelationship,
-  type Prisma,
+  genders,
+  guardianRelationships,
   type StudentStatus,
-} from "@repo/database";
+  studentStatuses,
+} from "@repo/schemas/enums";
+import type { StudentsQueryParams } from "@repo/schemas/students";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { assertWithinPlanLimit } from "../billing/limits";
 import { reserveStudentCode } from "./lib/student-code";
+
+export type { StudentsQueryParams } from "@repo/schemas/students";
 
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);
@@ -19,12 +24,14 @@ const getString = (formData: FormData, key: string) => {
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 };
 
-const genders = new Set<Gender>(["MALE", "FEMALE", "OTHER"]);
+const genderSet = new Set<Gender>(genders);
 
 const getGender = (formData: FormData, key: string) => {
   const value = getString(formData, key);
 
-  return value && genders.has(value as Gender) ? (value as Gender) : undefined;
+  return value && genderSet.has(value as Gender)
+    ? (value as Gender)
+    : undefined;
 };
 
 const getDate = (formData: FormData, key: string) => {
@@ -48,12 +55,8 @@ const isValidPhone = (phone: string) =>
 
 const isValidPostcode = (postcode: string) => postcodeRegex.test(postcode);
 
-const relationships = new Set<GuardianRelationship>([
-  "FATHER",
-  "MOTHER",
-  "GUARDIAN",
-  "OTHER",
-]);
+const relationships = new Set<GuardianRelationship>(guardianRelationships);
+const statuses = new Set<StudentStatus>(studentStatuses);
 
 export const getNextStudentCode = async () => {
   const tenant = await requireTenant();
@@ -421,15 +424,6 @@ export const updateStudent = async (formData: FormData) => {
   redirect(`/students/${studentId}`);
 };
 
-// Types for table queries
-export type StudentsQueryParams = {
-  page: number;
-  pageSize: number;
-  search?: string;
-  sorting?: Array<{ id: string; desc: boolean }>;
-  filters?: Array<{ id: string; value: unknown }>;
-};
-
 // Fetch students for table with server-side pagination, filtering, and sorting
 export async function getStudentsForTable(params: StudentsQueryParams) {
   const tenant = await requireTenant();
@@ -459,7 +453,7 @@ export async function getStudentsForTable(params: StudentsQueryParams) {
             : [filter.value];
           const validStatuses = values.filter(
             (v): v is StudentStatus =>
-              typeof v === "string" && ["ACTIVE", "ARCHIVED"].includes(v)
+              typeof v === "string" && statuses.has(v as StudentStatus)
           );
           if (validStatuses.length > 0) {
             where.status = { in: validStatuses };
