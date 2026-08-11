@@ -242,7 +242,7 @@ export function TeachersPageClient({
                     </div>
                   ))}
                   <Button asChild className="mt-1 w-full" variant="outline">
-                    <Link href={`/teachers?teacherId=${selectedTeacher.id}`}>
+                    <Link href={`/teachers/${selectedTeacher.id}`}>
                       View Full Profile
                       <ChevronRightIcon className="size-4" />
                     </Link>

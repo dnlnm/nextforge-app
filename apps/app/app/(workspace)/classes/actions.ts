@@ -1,7 +1,13 @@
 "use server";
 
 import { requireTenantRole } from "@repo/auth/authorization";
-import { database, Prisma } from "@repo/database";
+import { database } from "@repo/database";
+import {
+  EnrollmentValidationError,
+  endEnrollment as endEnrollmentCommand,
+  enrollStudent as enrollStudentCommand,
+  updateEnrollment as updateEnrollmentCommand,
+} from "@repo/domain/classes/enrollment";
 import { type DayOfWeek, daysOfWeek } from "@repo/schemas/enums";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -399,37 +405,23 @@ export const enrollStudent = async (formData: FormData) => {
     throw new Error("Class and student are required.");
   }
 
-  const [learningClass, student] = await Promise.all([
-    database.learningClass.findFirst({
-      where: { id: classId, organizationId: tenant.organizationId },
-      select: { id: true },
-    }),
-    database.student.findFirst({
-      where: { id: studentId, organizationId: tenant.organizationId },
-      select: { id: true },
-    }),
-  ]);
-
-  if (!(learningClass && student)) {
-    throw new Error("Class or student not found.");
-  }
-
   try {
-    await database.enrollment.create({
-      data: {
+    await enrollStudentCommand(
+      database,
+      {
         organizationId: tenant.organizationId,
-        classId: learningClass.id,
-        customFeeSen: getMoneySen(formData, "customFee"),
-        startsOn: getDate(formData, "startsOn") ?? new Date(),
-        studentId: student.id,
+        userId: tenant.userId,
       },
-    });
+      {
+        classId,
+        customFeeSen: getMoneySen(formData, "customFee"),
+        startsOn: getDate(formData, "startsOn")?.toISOString().slice(0, 10),
+        studentId,
+      }
+    );
   } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
-    ) {
-      throw new Error("This student is already enrolled in the class.");
+    if (error instanceof EnrollmentValidationError) {
+      throw new Error(error.message);
     }
     throw error;
   }
@@ -555,13 +547,22 @@ export const updateEnrollment = async (formData: FormData) => {
     throw new Error("Enrollment is required.");
   }
 
-  await database.enrollment.updateMany({
-    where: { id: enrollmentId, organizationId: tenant.organizationId },
-    data: {
-      customFeeSen: getMoneySen(formData, "customFee"),
-      startsOn: getDate(formData, "startsOn"),
-    },
-  });
+  try {
+    await updateEnrollmentCommand(
+      database,
+      { organizationId: tenant.organizationId, userId: tenant.userId },
+      {
+        customFeeSen: getMoneySen(formData, "customFee"),
+        enrollmentId,
+        startsOn: getDate(formData, "startsOn")?.toISOString().slice(0, 10),
+      }
+    );
+  } catch (error) {
+    if (error instanceof EnrollmentValidationError) {
+      throw new Error(error.message);
+    }
+    throw error;
+  }
 
   revalidatePath("/classes");
 };
@@ -574,10 +575,18 @@ export const endEnrollment = async (formData: FormData) => {
     throw new Error("Enrollment is required.");
   }
 
-  await database.enrollment.updateMany({
-    where: { id: enrollmentId, organizationId: tenant.organizationId },
-    data: { endsOn: new Date(), status: "ENDED" },
-  });
+  try {
+    await endEnrollmentCommand(
+      database,
+      { organizationId: tenant.organizationId, userId: tenant.userId },
+      { enrollmentId }
+    );
+  } catch (error) {
+    if (error instanceof EnrollmentValidationError) {
+      throw new Error(error.message);
+    }
+    throw error;
+  }
 
   revalidatePath("/classes");
 };

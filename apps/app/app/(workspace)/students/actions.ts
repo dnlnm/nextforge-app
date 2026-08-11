@@ -3,6 +3,11 @@
 import { requireTenant, requireTenantRole } from "@repo/auth/authorization";
 import { database, type Prisma } from "@repo/database";
 import {
+  studentArchivedEvent,
+  studentCreatedEvent,
+  studentRestoredEvent,
+} from "@repo/domain/students/activity";
+import {
   type Gender,
   type GuardianRelationship,
   genders,
@@ -221,6 +226,15 @@ export const createStudent = async (
       },
     });
 
+    const event = studentCreatedEvent(
+      tenant.organizationId,
+      created.id,
+      fullName,
+      tenant.userId
+    );
+
+    await tx.auditEvent.create({ data: event });
+
     return created;
   });
 
@@ -239,6 +253,15 @@ export const archiveStudent = async (formData: FormData) => {
   const archivedAt = new Date();
 
   await database.$transaction(async (tx) => {
+    const student = await tx.student.findFirst({
+      where: { id: studentId, organizationId: tenant.organizationId },
+      select: { fullName: true },
+    });
+
+    if (!student) {
+      throw new Error("Student not found.");
+    }
+
     await tx.student.updateMany({
       where: { id: studentId, organizationId: tenant.organizationId },
       data: { archivedAt, status: "ARCHIVED" },
@@ -247,6 +270,15 @@ export const archiveStudent = async (formData: FormData) => {
       where: { studentId, organizationId: tenant.organizationId },
       data: { archivedAt, status: "ARCHIVED" },
     });
+
+    const event = studentArchivedEvent(
+      tenant.organizationId,
+      studentId,
+      student.fullName,
+      tenant.userId
+    );
+
+    await tx.auditEvent.create({ data: event });
   });
 
   revalidatePath("/students");
@@ -265,7 +297,7 @@ export const restoreStudent = async (formData: FormData) => {
   await database.$transaction(async (tx) => {
     const student = await tx.student.findFirst({
       where: { id: studentId, organizationId: tenant.organizationId },
-      select: { id: true },
+      select: { fullName: true, id: true },
     });
 
     if (!student) {
@@ -311,6 +343,15 @@ export const restoreStudent = async (formData: FormData) => {
       },
       data: { archivedAt: null, status: "ACTIVE" },
     });
+
+    const event = studentRestoredEvent(
+      tenant.organizationId,
+      student.id,
+      student.fullName,
+      tenant.userId
+    );
+
+    await tx.auditEvent.create({ data: event });
   });
 
   revalidatePath("/students");

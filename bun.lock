@@ -66,6 +66,7 @@
         "@repo/config": "workspace:*",
         "@repo/database": "workspace:*",
         "@repo/design-system": "workspace:*",
+        "@repo/domain": "workspace:*",
         "@repo/feature-flags": "workspace:*",
         "@repo/next-config": "workspace:*",
         "@repo/notifications": "workspace:*",
@@ -307,6 +308,7 @@
       "dependencies": {
         "@repo/auth": "workspace:*",
         "@repo/database": "workspace:*",
+        "@repo/domain": "workspace:*",
         "@repo/schemas": "workspace:*",
         "@supabase/supabase-js": "^2.99.0",
         "@trpc/server": "^11.18.0",
@@ -458,6 +460,20 @@
         "postcss": "^8.5.8",
         "tailwindcss": "^4.2.1",
         "typescript": "^5.9.3",
+      },
+    },
+    "packages/domain": {
+      "name": "@repo/domain",
+      "version": "0.0.0",
+      "dependencies": {
+        "@repo/database": "workspace:*",
+        "@repo/schemas": "workspace:*",
+        "server-only": "^0.0.1",
+      },
+      "devDependencies": {
+        "@repo/typescript-config": "workspace:*",
+        "typescript": "^5.9.3",
+        "vitest": "^4.0.18",
       },
     },
     "packages/email": {
@@ -1841,6 +1857,8 @@
     "@repo/database": ["@repo/database@workspace:packages/database"],
 
     "@repo/design-system": ["@repo/design-system@workspace:packages/design-system"],
+
+    "@repo/domain": ["@repo/domain@workspace:packages/domain"],
 
     "@repo/email": ["@repo/email@workspace:packages/email"],
 

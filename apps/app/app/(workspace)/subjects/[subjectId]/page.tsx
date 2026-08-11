@@ -24,6 +24,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@repo/design-system/components/ui/tabs";
+import { getSubjectDashboard } from "@repo/domain/subjects/dashboard";
 import {
   ArchiveIcon,
   BookOpenIcon,
@@ -173,15 +174,17 @@ const SubjectHeader = ({ subject }: { readonly subject: SubjectData }) => (
 );
 
 const SubjectMetrics = ({
+  attendanceRate,
   classes,
   students,
   teachers,
 }: {
+  readonly attendanceRate: number | null;
   readonly classes: number;
   readonly students: number;
   readonly teachers: number;
 }) => (
-  <section className="grid gap-3 md:grid-cols-3">
+  <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
     <Stat>
       <StatLabel>Classes</StatLabel>
       <StatIndicator color="info" variant="icon">
@@ -205,6 +208,16 @@ const SubjectMetrics = ({
       </StatIndicator>
       <StatValue>{teachers}</StatValue>
       <StatDescription>Teaching this subject</StatDescription>
+    </Stat>
+    <Stat>
+      <StatLabel>Attendance</StatLabel>
+      <StatIndicator color="default" variant="icon">
+        <CalendarDaysIcon />
+      </StatIndicator>
+      <StatValue>
+        {attendanceRate === null ? "No data" : `${attendanceRate}%`}
+      </StatValue>
+      <StatDescription>This academic year</StatDescription>
     </Stat>
   </section>
 );
@@ -471,7 +484,13 @@ const SubjectSidebar = ({ subject }: { readonly subject: SubjectData }) => (
 const SubjectProfilePage = async ({ params }: SubjectPageProperties) => {
   const tenant = await requireTenantRole(["ADMIN"]);
   const { subjectId } = await params;
-  const subject = await getSubjectData(subjectId, tenant.organizationId);
+  const [subject, dashboard] = await Promise.all([
+    getSubjectData(subjectId, tenant.organizationId),
+    getSubjectDashboard(database, {
+      organizationId: tenant.organizationId,
+      subjectId,
+    }),
+  ]);
 
   if (!subject) {
     notFound();
@@ -511,6 +530,7 @@ const SubjectProfilePage = async ({ params }: SubjectPageProperties) => {
             <SubjectHeader subject={subject} />
 
             <SubjectMetrics
+              attendanceRate={dashboard?.attendanceRate ?? null}
               classes={subject.classes.length}
               students={students.size}
               teachers={teachers.size}

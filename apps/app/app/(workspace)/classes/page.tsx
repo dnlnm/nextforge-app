@@ -131,7 +131,7 @@ const ClassesPage = async () => {
   }[] = [
     {
       color: "info",
-      detail: "+ 5 this month",
+      detail: `${classes.length > 0 ? Math.round((activeClasses.length / classes.length) * 100) : 0}% of total`,
       Icon: BookOpenIcon,
       label: "Total Classes",
       value: classes.length.toLocaleString(),
@@ -145,14 +145,14 @@ const ClassesPage = async () => {
     },
     {
       color: "default",
-      detail: "+ 24 this month",
+      detail: "Active enrollments",
       Icon: UsersRoundIcon,
       label: "Total Enrolled Students",
       value: totalEnrollments.toLocaleString(),
     },
     {
       color: "warning",
-      detail: "Target: 15 - 20",
+      detail: "Across active classes",
       Icon: BarChart3Icon,
       label: "Average Class Size",
       value: averageClassSize.toFixed(1),

@@ -54,6 +54,7 @@ import {
   SearchIcon,
   Undo2Icon,
 } from "lucide-react";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { archiveLevel, restoreLevel, updateLevel } from "./actions";
 
@@ -78,6 +79,27 @@ interface AcademicLevelsListProps {
 }
 
 type LevelView = "active" | "archived";
+
+const LevelNameCell = ({
+  isArchived,
+  level,
+}: {
+  readonly isArchived: boolean;
+  readonly level: LevelSummary;
+}) => {
+  if (isArchived) {
+    return <span className="font-medium">{level.name}</span>;
+  }
+
+  return (
+    <Link
+      className="font-medium hover:underline"
+      href={`/academic-levels/${level.id}`}
+    >
+      {level.name}
+    </Link>
+  );
+};
 
 const STAGE_META: Record<
   LevelStage,
@@ -317,7 +339,10 @@ export const AcademicLevelsList = ({
                             </Button>
                           </form>
                         ) : (
-                          <span className="font-medium">{level.name}</span>
+                          <LevelNameCell
+                            isArchived={isArchived}
+                            level={level}
+                          />
                         )}
                       </TableCell>
                       <TableCell>

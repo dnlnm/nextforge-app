@@ -1,27 +1,20 @@
 {
-  "name": "@repo/api",
+  "name": "@repo/domain",
   "version": "0.0.0",
   "private": true,
-  "main": "./index.ts",
-  "types": "./index.ts",
   "scripts": {
     "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "test": "NODE_ENV=test vitest run",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
-    "@repo/auth": "workspace:*",
     "@repo/database": "workspace:*",
-    "@repo/domain": "workspace:*",
     "@repo/schemas": "workspace:*",
-    "@supabase/supabase-js": "^2.99.0",
-    "@trpc/server": "^11.18.0",
-    "server-only": "^0.0.1",
-    "superjson": "^2.2.6",
-    "zod": "^4.3.6"
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "25.3.5",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   }
 }

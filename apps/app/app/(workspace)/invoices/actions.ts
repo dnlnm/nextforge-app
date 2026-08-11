@@ -2,6 +2,7 @@
 
 import { requireTenantRole } from "@repo/auth/authorization";
 import { database } from "@repo/database";
+import { invoiceGeneratedEvent } from "@repo/domain/students/activity";
 import { billingMonthSchema } from "@repo/schemas/invoices";
 import { revalidatePath } from "next/cache";
 import { assertWithinPlanLimit } from "../billing/limits";
@@ -117,22 +118,38 @@ export const generateMonthlyInvoices = async (formData: FormData) => {
     });
     const totalSen = lineItems.reduce((sum, item) => sum + item.totalSen, 0);
 
-    await database.invoice.create({
+    const invoiceNumber = await nextInvoiceNumber(
+      tenant.organizationId,
+      settings?.invoicePrefix ?? "INV"
+    );
+
+    const invoice = await database.invoice.create({
       data: {
         organizationId: tenant.organizationId,
         billingMonth,
         dueDate: getDueDate(billingMonth, settings?.defaultInvoiceDueDay ?? 7),
-        invoiceNumber: await nextInvoiceNumber(
-          tenant.organizationId,
-          settings?.invoicePrefix ?? "INV"
-        ),
+        invoiceNumber,
         lineItems: { create: lineItems },
         status: "ISSUED",
         studentId,
         subtotalSen: totalSen,
         totalSen,
       },
+      select: { id: true },
     });
+
+    const student = studentEnrollments[0]?.student;
+
+    const event = invoiceGeneratedEvent(
+      tenant.organizationId,
+      studentId,
+      student?.fullName ?? "student",
+      invoice.id,
+      invoiceNumber,
+      tenant.userId
+    );
+
+    await database.auditEvent.create({ data: event });
   }
 
   revalidatePath("/invoices");

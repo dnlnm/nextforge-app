@@ -47,6 +47,9 @@ const navigationSections = [
     items: [
       { title: "Dashboard", url: "/", icon: HomeIcon },
       { title: "Today", url: "/today", icon: CalendarCheckIcon },
+      { title: "Enrollment", url: "/enrollment", icon: ClipboardCheckIcon },
+      { title: "Academic Planner", url: "/academics", icon: BookOpenIcon },
+      { title: "Schedules", url: "/schedules", icon: CalendarDaysIcon },
     ],
     title: "Overview",
   },

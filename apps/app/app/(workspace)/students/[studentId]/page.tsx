@@ -17,11 +17,16 @@ import {
   TabsList,
   TabsTrigger,
 } from "@repo/design-system/components/ui/tabs";
+import { getStudentTrends } from "@repo/domain/analytics";
+import {
+  getStudentDashboard,
+  getStudentOverview,
+  listStudentActivity,
+} from "@repo/domain/students/dashboard";
 import { privateFileUrl } from "@repo/storage/client";
 import {
   BookOpenIcon,
   CalendarDaysIcon,
-  CreditCardIcon,
   Edit3Icon,
   ExternalLinkIcon,
   LandmarkIcon,
@@ -38,6 +43,9 @@ import Balancer from "react-wrap-balancer";
 import { Header } from "../../components/header";
 import { StudentAvatar } from "../../components/student-avatar";
 import { StudentProfileActions } from "../../components/student-profile-actions";
+import { StudentActivityTimeline } from "./student-activity-timeline";
+import { StudentAnalyticsTab } from "./student-analytics-tab";
+import { StudentQuickActions } from "./student-quick-actions";
 
 interface StudentPageProperties {
   readonly params: Promise<{ studentId: string }>;
@@ -128,6 +136,45 @@ const getStudentData = async (studentId: string, organizationId: string) => {
 
 type StudentData = NonNullable<Awaited<ReturnType<typeof getStudentData>>>;
 
+const getEnrollableClasses = async (organizationId: string) => {
+  const classes = await database.learningClass.findMany({
+    where: {
+      archivedAt: null,
+      organizationId,
+      status: "ACTIVE",
+    },
+    include: {
+      level: { select: { name: true } },
+      schedules: {
+        orderBy: { dayOfWeek: "asc" },
+        select: { dayOfWeek: true, endsAt: true, startsAt: true },
+      },
+      subject: { select: { name: true } },
+      teacher: { select: { fullName: true } },
+    },
+    orderBy: { name: "asc" },
+  });
+
+  return classes.map((learningClass) => ({
+    capacity: learningClass.capacity,
+    id: learningClass.id,
+    levelName: learningClass.level?.name ?? null,
+    monthlyFeeSen: learningClass.monthlyFeeSen,
+    name: learningClass.name,
+    scheduleLabel:
+      learningClass.schedules.length > 0
+        ? learningClass.schedules
+            .map(
+              (schedule) =>
+                `${schedule.dayOfWeek} ${schedule.startsAt}-${schedule.endsAt}`
+            )
+            .join(", ")
+        : "No schedule",
+    subjectName: learningClass.subject.name,
+    teacherName: learningClass.teacher?.fullName ?? null,
+  }));
+};
+
 const StudentHeader = ({
   primaryGuardianPhone,
   student,
@@ -185,10 +232,6 @@ const StudentHeader = ({
             WhatsApp guardian
           </Link>
         </Button>
-        <Button variant="outline">
-          <CreditCardIcon className="size-4" />
-          Create invoice
-        </Button>
         <StudentProfileActions status={student.status} studentId={student.id} />
       </div>
     </CardContent>
@@ -199,31 +242,21 @@ const StudentMetrics = ({
   attendanceRate,
   activeEnrollments,
   outstandingSen,
-  student,
   totalBilledSen,
   totalPaidSen,
 }: {
   readonly activeEnrollments: number;
   readonly attendanceRate: number;
   readonly outstandingSen: number;
-  readonly student: StudentData;
   readonly totalBilledSen: number;
   readonly totalPaidSen: number;
 }) => (
   <section className="grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
     {[
       ["Active Classes", activeEnrollments.toString(), "Currently enrolled"],
-      [
-        "Outstanding",
-        formatMoney(outstandingSen),
-        `${student.invoices.length} invoices`,
-      ],
+      ["Outstanding", formatMoney(outstandingSen), "Outstanding balance"],
       ["Paid", formatMoney(totalPaidSen), formatMoney(totalBilledSen)],
-      [
-        "Attendance",
-        `${attendanceRate}%`,
-        `${student.attendanceRecords.length} records`,
-      ],
+      ["Attendance", `${attendanceRate}%`, "This academic year"],
     ].map(([label, value, detail]) => (
       <Card key={label}>
         <CardContent className="flex items-center gap-4 p-4">
@@ -679,34 +712,37 @@ const StudentSidebar = ({
 const StudentProfilePage = async ({ params }: StudentPageProperties) => {
   const tenant = await requireTenantRole(["ADMIN"]);
   const { studentId } = await params;
-  const student = await getStudentData(studentId, tenant.organizationId);
+  const [student, dashboard, _overview, activities, trends, enrollableClasses] =
+    await Promise.all([
+      getStudentData(studentId, tenant.organizationId),
+      getStudentDashboard(database, {
+        organizationId: tenant.organizationId,
+        studentId,
+      }),
+      getStudentOverview(database, {
+        organizationId: tenant.organizationId,
+        studentId,
+      }),
+      listStudentActivity(database, tenant.organizationId, studentId),
+      getStudentTrends(database, tenant.organizationId, studentId),
+      getEnrollableClasses(tenant.organizationId),
+    ]);
 
   if (!student) {
     notFound();
   }
 
   const primaryGuardian = student.guardians.at(0)?.guardian;
-  const totalBilledSen = student.invoices.reduce(
-    (total, invoice) => total + invoice.totalSen,
-    0
-  );
-  const totalPaidSen = student.invoices.reduce(
-    (total, invoice) => total + invoice.amountPaidSen,
-    0
-  );
-  const outstandingSen = student.invoices.reduce(
-    (total, invoice) =>
-      total + Math.max(0, invoice.totalSen - invoice.amountPaidSen),
-    0
-  );
-  const activeEnrollments = student.enrollments.length;
-  const presentCount = student.attendanceRecords.filter(
-    (record) => record.status === "PRESENT"
-  ).length;
-  const attendanceRate =
-    student.attendanceRecords.length > 0
-      ? Math.round((presentCount / student.attendanceRecords.length) * 100)
-      : 0;
+  const activeEnrollmentOptions = student.enrollments.map((enrollment) => ({
+    className: enrollment.class.name,
+    id: enrollment.id,
+    subjectName: enrollment.class.subject.name,
+  }));
+  const totalBilledSen = dashboard?.totalBilledSen ?? 0;
+  const totalPaidSen = dashboard?.totalPaidSen ?? 0;
+  const outstandingSen = dashboard?.outstandingSen ?? 0;
+  const activeEnrollments = dashboard?.activeEnrollmentCount ?? 0;
+  const attendanceRate = dashboard?.attendanceRate ?? 0;
 
   return (
     <>
@@ -734,18 +770,25 @@ const StudentProfilePage = async ({ params }: StudentPageProperties) => {
               student={student}
             />
 
+            <StudentQuickActions
+              activeEnrollments={activeEnrollmentOptions}
+              classes={enrollableClasses}
+              studentId={student.id}
+            />
+
             <StudentMetrics
               activeEnrollments={activeEnrollments}
               attendanceRate={attendanceRate}
               outstandingSen={outstandingSen}
-              student={student}
               totalBilledSen={totalBilledSen}
               totalPaidSen={totalPaidSen}
             />
 
             <Tabs className="gap-4" defaultValue="overview">
-              <TabsList className="grid h-auto w-full grid-cols-3 md:grid-cols-6">
+              <TabsList className="grid h-auto w-full grid-cols-4 md:grid-cols-8">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="activity">Activity</TabsTrigger>
+                <TabsTrigger value="analytics">Analytics</TabsTrigger>
                 <TabsTrigger value="academics">Academics</TabsTrigger>
                 <TabsTrigger value="guardians">Guardians</TabsTrigger>
                 <TabsTrigger value="billing">Billing</TabsTrigger>
@@ -755,6 +798,12 @@ const StudentProfilePage = async ({ params }: StudentPageProperties) => {
 
               <TabsContent className="grid gap-5" value="overview">
                 <StudentOverviewTab student={student} />
+              </TabsContent>
+              <TabsContent className="grid gap-5" value="activity">
+                <StudentActivityTimeline activities={activities} />
+              </TabsContent>
+              <TabsContent className="grid gap-5" value="analytics">
+                {trends ? <StudentAnalyticsTab trends={trends} /> : null}
               </TabsContent>
               <TabsContent className="grid gap-5" value="academics">
                 <StudentAcademicsTab student={student} />

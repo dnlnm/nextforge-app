@@ -2,6 +2,7 @@
 
 import { requireTenantRole } from "@repo/auth/authorization";
 import { database } from "@repo/database";
+import { attendanceMarkedEvent } from "@repo/domain/students/activity";
 import {
   type AttendanceStatus,
   attendanceStatuses,
@@ -172,6 +173,28 @@ export const markAttendance = async (formData: FormData) => {
           status: record.status,
         },
       });
+
+      const studentName = await tx.student
+        .findFirst({
+          where: {
+            id: record.studentId,
+            organizationId: tenant.organizationId,
+          },
+          select: { fullName: true },
+        })
+        .then((student) => student?.fullName ?? "student");
+
+      const event = attendanceMarkedEvent(
+        tenant.organizationId,
+        record.studentId,
+        studentName,
+        session.class.name,
+        session.sessionDate,
+        session.id,
+        tenant.userId
+      );
+
+      await tx.auditEvent.create({ data: event });
     }
 
     await tx.classSession.update({
@@ -238,6 +261,28 @@ export const markSessionAttendanceStatus = async (formData: FormData) => {
           status: status as AttendanceStatus,
         },
       });
+
+      const studentName = await tx.student
+        .findFirst({
+          where: {
+            id: enrollment.studentId,
+            organizationId: tenant.organizationId,
+          },
+          select: { fullName: true },
+        })
+        .then((student) => student?.fullName ?? "student");
+
+      const event = attendanceMarkedEvent(
+        tenant.organizationId,
+        enrollment.studentId,
+        studentName,
+        session.class.name,
+        session.sessionDate,
+        session.id,
+        tenant.userId
+      );
+
+      await tx.auditEvent.create({ data: event });
     }
 
     await tx.classSession.update({

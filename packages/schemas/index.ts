@@ -2,6 +2,7 @@ export * from "./attendance";
 export * from "./classes";
 export * from "./codes";
 export * from "./common";
+export * from "./enrollments";
 export * from "./enums";
 export * from "./invoices";
 export * from "./organizations";

@@ -7,6 +7,13 @@ import {
 } from "./common";
 import { dayOfWeekSchema } from "./enums";
 
+export {
+  type EndEnrollmentInput,
+  type EnrollStudentInput,
+  endEnrollmentInputSchema,
+  enrollStudentInputSchema,
+} from "./enrollments";
+
 export const classScheduleInputSchema = z
   .strictObject({
     dayOfWeek: dayOfWeekSchema,
@@ -42,12 +49,6 @@ export const updateClassInputSchema = z.strictObject({
   ...classFields,
   classId: entityIdSchema,
 });
-export const enrollStudentInputSchema = z.strictObject({
-  classId: entityIdSchema,
-  customFeeSen: moneySenSchema.optional(),
-  startsOn: dateStringSchema.optional(),
-  studentId: entityIdSchema,
-});
 
 export const classIdInputSchema = z.strictObject({
   classId: entityIdSchema,
@@ -59,14 +60,8 @@ export const classesListInputSchema = z.strictObject({
   search: z.string().trim().min(1).optional(),
 });
 
-export const endEnrollmentInputSchema = z.strictObject({
-  enrollmentId: entityIdSchema,
-});
-
 export type ClassScheduleInput = z.infer<typeof classScheduleInputSchema>;
 export type CreateClassInput = z.infer<typeof createClassInputSchema>;
 export type UpdateClassInput = z.infer<typeof updateClassInputSchema>;
-export type EnrollStudentInput = z.infer<typeof enrollStudentInputSchema>;
 export type ClassIdInput = z.infer<typeof classIdInputSchema>;
 export type ClassesListInput = z.infer<typeof classesListInputSchema>;
-export type EndEnrollmentInput = z.infer<typeof endEnrollmentInputSchema>;

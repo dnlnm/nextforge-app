@@ -2,6 +2,10 @@
 
 import { requireTenantRole } from "@repo/auth/authorization";
 import { database } from "@repo/database";
+import {
+  paymentRecordedEvent,
+  paymentReversedEvent,
+} from "@repo/domain/students/activity";
 import { type PaymentMethod, paymentMethods } from "@repo/schemas/enums";
 import { revalidatePath } from "next/cache";
 
@@ -112,6 +116,24 @@ export const recordPayment = async (formData: FormData) => {
         status: nextPaidSen >= invoice.totalSen ? "PAID" : "PARTIALLY_PAID",
       },
     });
+
+    const studentName = await tx.student
+      .findFirst({
+        where: { id: invoice.studentId, organizationId: tenant.organizationId },
+        select: { fullName: true },
+      })
+      .then((student) => student?.fullName ?? "student");
+
+    const event = paymentRecordedEvent(
+      tenant.organizationId,
+      invoice.studentId,
+      studentName,
+      payment.id,
+      amountSen,
+      tenant.userId
+    );
+
+    await tx.auditEvent.create({ data: event });
   });
 
   revalidatePath("/invoices");
@@ -162,6 +184,24 @@ export const reversePayment = async (formData: FormData) => {
       where: { id: payment.id },
       data: { reversedAt: new Date(), status: "REVERSED" },
     });
+
+    const studentName = await tx.student
+      .findFirst({
+        where: { id: payment.studentId, organizationId: tenant.organizationId },
+        select: { fullName: true },
+      })
+      .then((student) => student?.fullName ?? "student");
+
+    const event = paymentReversedEvent(
+      tenant.organizationId,
+      payment.studentId,
+      studentName,
+      payment.id,
+      payment.amountSen,
+      tenant.userId
+    );
+
+    await tx.auditEvent.create({ data: event });
   });
 
   revalidatePath("/invoices");
