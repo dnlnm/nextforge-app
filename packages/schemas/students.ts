@@ -60,6 +60,11 @@ export const studentsQueryParamsSchema = paginationSchema.extend({
   sorting: sortingSchema.optional(),
 });
 
+export const studentIdInputSchema = z.strictObject({
+  studentId: entityIdSchema,
+});
+
 export type CreateStudentInput = z.infer<typeof createStudentInputSchema>;
 export type UpdateStudentInput = z.infer<typeof updateStudentInputSchema>;
 export type StudentsQueryParams = z.infer<typeof studentsQueryParamsSchema>;
+export type StudentIdInput = z.infer<typeof studentIdInputSchema>;

@@ -4,6 +4,7 @@ const { getUserMock, db } = vi.hoisted(() => ({
   getUserMock: vi.fn(),
   db: {
     organizationMembership: { findFirst: vi.fn(), findMany: vi.fn() },
+    organizationSubscription: { findFirst: vi.fn() },
     teacherProfile: { findFirst: vi.fn(), findMany: vi.fn() },
     classSchedule: { findMany: vi.fn(), findFirst: vi.fn(), count: vi.fn() },
     classSession: {
@@ -30,6 +31,7 @@ vi.mock("@repo/database", () => ({
   database: {
     $transaction: async (cb: (tx: unknown) => Promise<unknown>) => cb(db),
     organizationMembership: db.organizationMembership,
+    organizationSubscription: db.organizationSubscription,
     teacherProfile: db.teacherProfile,
     classSchedule: db.classSchedule,
     classSession: db.classSession,
@@ -63,6 +65,13 @@ const defaultMembership = {
   organizationId: "org-1",
   role: "TEACHER",
   userId: "user-1",
+};
+
+const defaultSubscription = {
+  id: "subscription-1",
+  plan: "TRIAL",
+  status: "TRIALING",
+  trialEndsAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
 };
 
 describe("organizations router", () => {
@@ -135,6 +144,9 @@ describe("today router", () => {
     vi.clearAllMocks();
     getUserMock.mockResolvedValue({ data: { user: defaultUser }, error: null });
     db.organizationMembership.findFirst.mockResolvedValue(defaultMembership);
+    db.organizationSubscription.findFirst.mockResolvedValue(
+      defaultSubscription
+    );
   });
 
   test("sessions returns today's class count and sessions for the teacher", async () => {
@@ -301,6 +313,9 @@ describe("attendance router", () => {
     vi.clearAllMocks();
     getUserMock.mockResolvedValue({ data: { user: defaultUser }, error: null });
     db.organizationMembership.findFirst.mockResolvedValue(defaultMembership);
+    db.organizationSubscription.findFirst.mockResolvedValue(
+      defaultSubscription
+    );
     db.teacherProfile.findFirst.mockResolvedValue({
       id: "teacher-1",
       fullName: "Ms Lim",
@@ -380,6 +395,9 @@ describe("students router", () => {
     vi.clearAllMocks();
     getUserMock.mockResolvedValue({ data: { user: defaultUser }, error: null });
     db.organizationMembership.findFirst.mockResolvedValue(defaultMembership);
+    db.organizationSubscription.findFirst.mockResolvedValue(
+      defaultSubscription
+    );
     db.student.findMany.mockResolvedValue([
       {
         id: "student-1",

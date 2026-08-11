@@ -42,3 +42,6 @@ example
 # generated native folders
 /ios
 /android
+
+# Local environment (never commit)
+.env.local

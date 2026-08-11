@@ -84,14 +84,16 @@ WITH ranked AS (
     lc."organizationId",
     lc."createdAt",
     s."code" AS subject_code,
-    COALESCE(l."code", 'GEN') AS level_code,
+    -- The LearningClass.levelId column does not exist yet at this point in the
+    -- migration history (it is added by the schema-drift repair migration), so
+    -- default to the generic GEN level code when backfilling class codes.
+    'GEN' AS level_code,
     row_number() OVER (
       PARTITION BY lc."organizationId"
       ORDER BY lc."createdAt", lc."id"
     ) AS rn
   FROM "LearningClass" lc
   LEFT JOIN "Subject" s ON s."id" = lc."subjectId"
-  LEFT JOIN "Level" l ON l."id" = lc."levelId"
 ),
 deduped AS (
   SELECT

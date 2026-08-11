@@ -1,7 +1,9 @@
 import { type AttendanceStatus, database } from "@repo/database";
 import {
+  attendanceHistoryInputSchema,
   markAttendanceInputSchema,
   markSessionAttendanceStatusInputSchema,
+  sessionAttendanceInputSchema,
 } from "@repo/schemas/attendance";
 import { getTeacherProfileId } from "../lib/teacher-profile";
 import { roleProcedure } from "../middleware";
@@ -126,6 +128,154 @@ export const attendanceRouter = createTRPCRouter({
       await upsertAttendance(ctx, { session, records });
 
       return { ok: true };
+    }),
+
+  /**
+   * Roster + attendance records for a single session, so a teacher can open a
+   * class from Today and mark (or edit) attendance in one screen.
+   */
+  session: roleProcedure(["TEACHER"])
+    .input(sessionAttendanceInputSchema)
+    .query(async ({ ctx, input }) => {
+      const teacherProfileId = await getTeacherProfileId(ctx);
+
+      const session = await database.classSession.findFirst({
+        where: {
+          id: input.sessionId,
+          organizationId: ctx.organizationId,
+          ...(teacherProfileId
+            ? { class: { teacherId: teacherProfileId } }
+            : {}),
+        },
+        include: {
+          class: {
+            select: {
+              code: true,
+              id: true,
+              name: true,
+            },
+          },
+          attendance: {
+            select: {
+              notes: true,
+              status: true,
+              studentId: true,
+            },
+          },
+          _count: {
+            select: {
+              attendance: true,
+            },
+          },
+        },
+      });
+
+      if (!session) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Session not found.",
+        });
+      }
+
+      const enrollments = await database.enrollment.findMany({
+        where: {
+          classId: session.class.id,
+          status: "ACTIVE",
+          archivedAt: null,
+        },
+        select: {
+          id: true,
+          student: {
+            select: {
+              code: true,
+              fullName: true,
+              id: true,
+              photoKey: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      });
+
+      const recordsByStudent = new Map(
+        session.attendance.map((record) => [record.studentId, record])
+      );
+
+      return {
+        ...session,
+        roster: enrollments.map((enrollment) => ({
+          attendanceStatus:
+            recordsByStudent.get(enrollment.student.id)?.status ?? null,
+          student: enrollment.student,
+        })),
+      };
+    }),
+
+  /** Recent sessions for a class, with present/absent summaries. */
+  history: roleProcedure(["TEACHER"])
+    .input(attendanceHistoryInputSchema)
+    .query(async ({ ctx, input }) => {
+      const teacherProfileId = await getTeacherProfileId(ctx);
+
+      const classBelongsToOrg = await database.learningClass.findFirst({
+        where: {
+          id: input.classId,
+          organizationId: ctx.organizationId,
+          archivedAt: null,
+          ...(teacherProfileId ? { teacherId: teacherProfileId } : {}),
+        },
+        select: { id: true },
+      });
+
+      if (!classBelongsToOrg) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Class not found.",
+        });
+      }
+
+      const sessions = await database.classSession.findMany({
+        where: { classId: input.classId },
+        orderBy: { sessionDate: "desc" },
+        take: input.limit,
+        include: {
+          _count: { select: { attendance: true } },
+        },
+      });
+
+      const sessionIds = sessions.map((session) => session.id);
+      const records = sessionIds.length
+        ? await database.attendanceRecord.groupBy({
+            by: ["sessionId", "status"],
+            where: { sessionId: { in: sessionIds } },
+            _count: { _all: true },
+          })
+        : [];
+
+      const summaryBySession = new Map<
+        string,
+        { present: number; absent: number }
+      >();
+
+      for (const record of records) {
+        const summary = summaryBySession.get(record.sessionId) ?? {
+          present: 0,
+          absent: 0,
+        };
+        if (record.status === "PRESENT") {
+          summary.present = record._count._all;
+        } else if (record.status === "ABSENT") {
+          summary.absent = record._count._all;
+        }
+        summaryBySession.set(record.sessionId, summary);
+      }
+
+      return sessions.map((session) => ({
+        ...session,
+        markedCount: session._count.attendance,
+        present: summaryBySession.get(session.id)?.present ?? 0,
+        absent: summaryBySession.get(session.id)?.absent ?? 0,
+      }));
     }),
 });
 

@@ -8,4 +8,5 @@
 export * from "./domain";
 export * from "./roles";
 export * from "./slug-pure";
+export * from "./superadmin-shared";
 export type { TenantContext } from "./tenant-types";

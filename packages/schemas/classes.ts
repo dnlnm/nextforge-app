@@ -28,13 +28,13 @@ const classFields = {
     .regex(/^[A-Z0-9-]+$/)
     .optional(),
   endDate: dateStringSchema.optional(),
-  levelId: entityIdSchema,
+  levelId: entityIdSchema.optional(),
   monthlyFeeSen: moneySenSchema.or(z.literal(0)),
   name: z.string().trim().min(1),
   schedules: z.array(classScheduleInputSchema).min(1),
   startDate: dateStringSchema,
   subjectId: entityIdSchema,
-  teacherId: entityIdSchema,
+  teacherId: entityIdSchema.nullable().optional(),
 };
 
 export const createClassInputSchema = z.strictObject(classFields);
@@ -49,7 +49,24 @@ export const enrollStudentInputSchema = z.strictObject({
   studentId: entityIdSchema,
 });
 
+export const classIdInputSchema = z.strictObject({
+  classId: entityIdSchema,
+});
+
+export const classesListInputSchema = z.strictObject({
+  page: z.int().nonnegative().optional(),
+  pageSize: z.int().positive().max(100).optional(),
+  search: z.string().trim().min(1).optional(),
+});
+
+export const endEnrollmentInputSchema = z.strictObject({
+  enrollmentId: entityIdSchema,
+});
+
 export type ClassScheduleInput = z.infer<typeof classScheduleInputSchema>;
 export type CreateClassInput = z.infer<typeof createClassInputSchema>;
 export type UpdateClassInput = z.infer<typeof updateClassInputSchema>;
 export type EnrollStudentInput = z.infer<typeof enrollStudentInputSchema>;
+export type ClassIdInput = z.infer<typeof classIdInputSchema>;
+export type ClassesListInput = z.infer<typeof classesListInputSchema>;
+export type EndEnrollmentInput = z.infer<typeof endEnrollmentInputSchema>;

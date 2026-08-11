@@ -6,7 +6,7 @@ export default function AuthLayout() {
   const { session } = useSession();
 
   if (session) {
-    return <Redirect href="/(app)" />;
+    return <Redirect href="/" />;
   }
 
   return (

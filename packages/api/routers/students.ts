@@ -1,8 +1,18 @@
 import { database, type Prisma } from "@repo/database";
 import { type StudentStatus, studentStatuses } from "@repo/schemas/enums";
-import { studentsQueryParamsSchema } from "@repo/schemas/students";
-import { orgProcedure } from "../middleware";
-import { createTRPCRouter } from "../trpc";
+import {
+  createStudentInputSchema,
+  studentIdInputSchema,
+  studentsQueryParamsSchema,
+  updateStudentInputSchema,
+} from "@repo/schemas/students";
+import { getTeacherProfileId } from "../lib/teacher-profile";
+import {
+  assertWithinPlanLimit,
+  orgProcedure,
+  roleProcedure,
+} from "../middleware";
+import { createTRPCRouter, TRPCError } from "../trpc";
 
 const statuses = new Set<StudentStatus>(studentStatuses);
 
@@ -139,6 +149,21 @@ export const studentsRouter = createTRPCRouter({
         archivedAt: null,
       };
 
+      // Teachers only see students in the classes they teach (spec §5).
+      const teacherProfileId = await getTeacherProfileId(ctx);
+
+      if (teacherProfileId !== undefined) {
+        where.enrollments = {
+          some: {
+            status: "ACTIVE",
+            archivedAt: null,
+            class: {
+              teacherId: teacherProfileId,
+            },
+          },
+        };
+      }
+
       if (input.search) {
         where.OR = [
           { fullName: { contains: input.search, mode: "insensitive" } },
@@ -217,4 +242,210 @@ export const studentsRouter = createTRPCRouter({
       ],
     };
   }),
+
+  getNextStudentCode: orgProcedure.query(async ({ ctx }) => {
+    const organization = await database.organization.findUniqueOrThrow({
+      where: { id: ctx.organizationId },
+      select: { studentCodeSequence: true },
+    });
+    return `STU${String(organization.studentCodeSequence + 1).padStart(4, "0")}`;
+  }),
+
+  create: roleProcedure(["ADMIN"])
+    .input(createStudentInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      await assertWithinPlanLimit(ctx, "students");
+
+      const levelId =
+        input.levelId === "none" || input.levelId === undefined
+          ? null
+          : input.levelId;
+
+      const address = {
+        addressLine1: input.addressLine1,
+        addressLine2: input.addressLine2,
+      };
+
+      const student = await database.$transaction(async (tx) => {
+        const organization = await tx.organization.update({
+          where: { id: ctx.organizationId },
+          data: { studentCodeSequence: { increment: 1 } },
+          select: { studentCodeSequence: true },
+        });
+        const code = `STU${String(organization.studentCodeSequence).padStart(4, "0")}`;
+
+        const created = await tx.student.create({
+          data: {
+            organizationId: ctx.organizationId,
+            fullName: input.fullName,
+            code,
+            levelId,
+            dateOfBirth: input.dateOfBirth
+              ? new Date(`${input.dateOfBirth}T00:00:00.000Z`)
+              : undefined,
+            enrolledAt: input.enrolledAt
+              ? new Date(`${input.enrolledAt}T00:00:00.000Z`)
+              : new Date(),
+            gender: input.gender,
+            phone: input.studentPhone,
+            email: input.studentEmail,
+            ...address,
+            city: input.city,
+            state: input.state,
+            postcode: input.postcode,
+            preferredName: input.preferredName,
+            schoolName: input.schoolName,
+            photoKey: input.photoKey,
+            notes: input.notes,
+          },
+          select: { id: true },
+        });
+
+        const guardianAddress = input.sameAsStudentAddress
+          ? address
+          : {
+              addressLine1: input.guardianAddressLine1,
+              addressLine2: input.guardianAddressLine2,
+            };
+
+        const guardian = await tx.guardian.create({
+          data: {
+            organizationId: ctx.organizationId,
+            email: input.guardianEmail,
+            fullName: input.guardianName,
+            phone: input.guardianPhone,
+            ...guardianAddress,
+            city: input.sameAsStudentAddress ? input.city : undefined,
+            state: input.sameAsStudentAddress ? input.state : undefined,
+            postcode: input.sameAsStudentAddress ? input.postcode : undefined,
+          },
+          select: { id: true },
+        });
+
+        await tx.studentGuardian.create({
+          data: {
+            guardianId: guardian.id,
+            isPrimary: true,
+            receivesBilling: true,
+            relationship: input.relationship ?? "GUARDIAN",
+            studentId: created.id,
+          },
+        });
+
+        return created;
+      });
+
+      return { studentId: student.id };
+    }),
+
+  update: roleProcedure(["ADMIN"])
+    .input(updateStudentInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const levelId =
+        input.levelId === "none" || input.levelId === undefined
+          ? null
+          : input.levelId;
+
+      const address = {
+        addressLine1: input.addressLine1,
+        addressLine2: input.addressLine2,
+      };
+
+      await database.$transaction(async (tx) => {
+        await tx.student.updateMany({
+          where: { id: input.studentId, organizationId: ctx.organizationId },
+          data: {
+            fullName: input.fullName,
+            levelId,
+            dateOfBirth: input.dateOfBirth
+              ? new Date(`${input.dateOfBirth}T00:00:00.000Z`)
+              : undefined,
+            enrolledAt: input.enrolledAt
+              ? new Date(`${input.enrolledAt}T00:00:00.000Z`)
+              : undefined,
+            gender: input.gender,
+            phone: input.studentPhone,
+            email: input.studentEmail,
+            ...address,
+            city: input.city,
+            state: input.state,
+            postcode: input.postcode,
+            preferredName: input.preferredName,
+            schoolName: input.schoolName,
+            photoKey: input.photoKey,
+            notes: input.notes,
+          },
+        });
+
+        const guardianAddress = input.sameAsStudentAddress
+          ? address
+          : {
+              addressLine1: input.guardianAddressLine1,
+              addressLine2: input.guardianAddressLine2,
+            };
+
+        await tx.guardian.updateMany({
+          where: {
+            id: input.guardianId,
+            organizationId: ctx.organizationId,
+          },
+          data: {
+            email: input.guardianEmail,
+            fullName: input.guardianName,
+            phone: input.guardianPhone,
+            ...guardianAddress,
+            city: input.sameAsStudentAddress ? input.city : undefined,
+            state: input.sameAsStudentAddress ? input.state : undefined,
+            postcode: input.sameAsStudentAddress ? input.postcode : undefined,
+          },
+        });
+      });
+
+      return { ok: true };
+    }),
+
+  archive: roleProcedure(["ADMIN"])
+    .input(studentIdInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const archivedAt = new Date();
+
+      await database.$transaction(async (tx) => {
+        await tx.student.updateMany({
+          where: { id: input.studentId, organizationId: ctx.organizationId },
+          data: { archivedAt, status: "ARCHIVED" },
+        });
+        await tx.enrollment.updateMany({
+          where: {
+            studentId: input.studentId,
+            organizationId: ctx.organizationId,
+          },
+          data: { archivedAt, status: "ARCHIVED" },
+        });
+      });
+
+      return { ok: true };
+    }),
+
+  restore: roleProcedure(["ADMIN"])
+    .input(studentIdInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const student = await database.student.findFirst({
+        where: { id: input.studentId, organizationId: ctx.organizationId },
+        select: { id: true },
+      });
+
+      if (!student) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Student not found.",
+        });
+      }
+
+      await database.student.update({
+        where: { id: student.id },
+        data: { archivedAt: null, status: "ACTIVE" },
+      });
+
+      return { ok: true };
+    }),
 });

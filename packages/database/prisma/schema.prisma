@@ -138,6 +138,7 @@ model OrganizationMembership {
   @@unique([organizationId, userId])
   @@index([organizationId, role])
   @@index([userId, status])
+  @@unique([userId], where: { role: "OWNER", status: "ACTIVE" })
 }
 
 model Branch {
@@ -440,7 +441,7 @@ model Enrollment {
   organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   student        Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
-  @@unique([studentId, classId, status])
+  @@unique([studentId, classId], where: { status: "ACTIVE" })
   @@index([organizationId, status])
   @@index([classId, status])
   @@index([studentId, status])

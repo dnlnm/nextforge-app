@@ -42,7 +42,7 @@ export default function SignInScreen() {
     }
 
     // The (auth)/_layout guard redirects to the app once the session lands.
-    router.replace("/(app)");
+    router.replace("/");
   };
 
   return (

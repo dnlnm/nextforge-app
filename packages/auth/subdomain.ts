@@ -4,6 +4,7 @@ import { database, type MembershipRole } from "@repo/database";
 import { headers } from "next/headers";
 import { parseSubdomain } from "./domain";
 import { ensureLocalUser } from "./organizations";
+import { hasTenantRole, type TenantRole } from "./roles";
 
 export interface SubdomainTenant {
   readonly authOrganizationId: string;
@@ -83,7 +84,9 @@ export const requireSubdomainTenantRole = async (
 ): Promise<SubdomainTenant> => {
   const tenant = await requireSubdomainTenant();
 
-  if (!allowedRoles.includes(tenant.role)) {
+  // Hierarchical semantics, matching `hasTenantRole` used everywhere else
+  // (OWNER >= ADMIN >= TEACHER), so OWNER passes an ADMIN-only gate.
+  if (!hasTenantRole(tenant.role as TenantRole, allowedRoles as TenantRole[])) {
     throw new Error(
       `Access denied. Required role: ${allowedRoles.join(" or ")}`
     );

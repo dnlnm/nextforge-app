@@ -37,7 +37,7 @@ export default function UpdatePasswordScreen() {
     }
 
     Alert.alert("Password updated", "Your new password is ready to use.");
-    router.replace("/(app)");
+    router.replace("/");
   };
 
   return (

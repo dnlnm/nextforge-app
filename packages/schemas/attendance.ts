@@ -22,10 +22,27 @@ export const markSessionAttendanceStatusInputSchema = z.strictObject({
   status: attendanceStatusSchema,
 });
 
+/** Roster + attendance records for a single session. */
+export const sessionAttendanceInputSchema = z.strictObject({
+  sessionId: entityIdSchema,
+});
+
+/** Recent sessions for a class, with attendance summaries. */
+export const attendanceHistoryInputSchema = z.strictObject({
+  classId: entityIdSchema,
+  limit: z.int().positive().max(60).default(10),
+});
+
 export type CreateClassSessionInput = z.infer<
   typeof createClassSessionInputSchema
 >;
 export type MarkAttendanceInput = z.infer<typeof markAttendanceInputSchema>;
 export type MarkSessionAttendanceStatusInput = z.infer<
   typeof markSessionAttendanceStatusInputSchema
+>;
+export type SessionAttendanceInput = z.infer<
+  typeof sessionAttendanceInputSchema
+>;
+export type AttendanceHistoryInput = z.infer<
+  typeof attendanceHistoryInputSchema
 >;

@@ -1,8 +1,13 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-const { getUserMock, organizationMembershipFindFirstMock } = vi.hoisted(() => ({
+const {
+  getUserMock,
+  organizationMembershipFindFirstMock,
+  subscriptionFindFirstMock,
+} = vi.hoisted(() => ({
   getUserMock: vi.fn(),
   organizationMembershipFindFirstMock: vi.fn(),
+  subscriptionFindFirstMock: vi.fn(),
 }));
 
 vi.mock("@repo/api/context", () => ({
@@ -18,6 +23,9 @@ vi.mock("@repo/database", () => ({
   database: {
     organizationMembership: {
       findFirst: organizationMembershipFindFirstMock,
+    },
+    organizationSubscription: {
+      findFirst: subscriptionFindFirstMock,
     },
   },
 }));
@@ -81,6 +89,12 @@ describe("API auth middleware", () => {
       organizationId: "org-1",
       role: "TEACHER",
       userId: "user-1",
+    });
+    subscriptionFindFirstMock.mockResolvedValue({
+      id: "subscription-1",
+      plan: "TRIAL",
+      status: "TRIALING",
+      trialEndsAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
   });
 

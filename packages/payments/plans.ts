@@ -54,7 +54,14 @@ export const getStripePriceId = (plan: BillablePlan) => {
     : (env.KLIO_STRIPE_PRO_PRICE_ID ?? env.TLAS_STRIPE_PRO_PRICE_ID);
 };
 
-export const getPlanFromStripePriceId = (priceId?: string | null) => {
+/**
+ * Maps a Stripe price id to the billable plan, or `null` when the price id is
+ * not recognised. Callers must not silently downgrade to TRIAL on an unknown id
+ * — a misconfigured env var should never turn a paying customer into a trial.
+ */
+export const getPlanFromStripePriceId = (
+  priceId?: string | null
+): BillablePlan | null => {
   const env = keys();
 
   const starterPriceId =
@@ -70,5 +77,5 @@ export const getPlanFromStripePriceId = (priceId?: string | null) => {
     return "PRO";
   }
 
-  return "TRIAL";
+  return null;
 };

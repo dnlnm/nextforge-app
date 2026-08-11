@@ -109,9 +109,7 @@ export default function AuthCallbackScreen() {
       type,
     })
       .then(() => {
-        router.replace(
-          type === "recovery" ? "/auth/update-password" : "/(app)"
-        );
+        router.replace(type === "recovery" ? "/auth/update-password" : "/");
       })
       .catch((error: unknown) => {
         setErrorMessage(

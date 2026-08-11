@@ -61,7 +61,7 @@ export default function SignUpScreen() {
       return;
     }
 
-    router.replace("/(app)");
+    router.replace("/");
   };
 
   return (

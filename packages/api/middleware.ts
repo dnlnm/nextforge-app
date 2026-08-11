@@ -5,7 +5,16 @@ import { hasTenantRole } from "@repo/auth/shared";
 
 export type { TenantRole } from "@repo/auth/shared";
 
-import { database } from "@repo/database";
+import {
+  database,
+  type SubscriptionPlan,
+  type SubscriptionStatus,
+} from "@repo/database";
+import { activeSubscriptionStatuses } from "@repo/payments/plans";
+import {
+  assertWithinPlanLimit as assertWithinPlanLimitShared,
+  type LimitResource,
+} from "@repo/payments/subscription";
 import { createSupabaseClient } from "./context";
 import { baseProcedure, TRPCError } from "./trpc";
 
@@ -22,6 +31,8 @@ const getBearerToken = (headers: Headers): string | null => {
 };
 
 export interface AuthenticatedContext {
+  /** The validated `Authorization: Bearer` token, for acting as the user. */
+  accessToken: string;
   authEmail: string | null;
   authUserId: string;
   headers: Headers;
@@ -55,6 +66,7 @@ export const protectedProcedure = baseProcedure.use(async (opts) => {
 
   return opts.next({
     ctx: {
+      accessToken: token,
       headers: opts.ctx.headers,
       authUserId: data.user.id,
       authEmail: data.user.email ?? null,
@@ -69,6 +81,13 @@ export interface OrganizationContext extends AuthenticatedContext {
   membershipId: string;
   organizationId: string;
   role: TenantRole;
+  /** Snapshot of the organization's subscription for the active request. */
+  subscription: {
+    canUsePaidFeatures: boolean;
+    plan: SubscriptionPlan;
+    status: SubscriptionStatus;
+    trialExpired: boolean;
+  };
   userId: string;
 }
 
@@ -112,8 +131,21 @@ export const orgProcedure = protectedProcedure.use(async (opts) => {
     });
   }
 
+  const subscription = await database.organizationSubscription.findFirst({
+    where: { organizationId: membership.organizationId },
+  });
+
+  const now = new Date();
+  const trialExpired =
+    subscription?.status === "TRIALING" &&
+    Boolean(subscription.trialEndsAt && subscription.trialEndsAt < now);
+  const canUsePaidFeatures =
+    activeSubscriptionStatuses.has(subscription?.status ?? "TRIALING") &&
+    !trialExpired;
+
   return opts.next({
     ctx: {
+      accessToken: opts.ctx.accessToken,
       headers,
       authUserId,
       authEmail,
@@ -122,9 +154,57 @@ export const orgProcedure = protectedProcedure.use(async (opts) => {
       organizationId: membership.organizationId,
       role: membership.role as TenantRole,
       userId: membership.userId,
+      subscription: {
+        canUsePaidFeatures,
+        plan: subscription?.plan ?? "TRIAL",
+        status: subscription?.status ?? "TRIALING",
+        trialExpired,
+      },
     } satisfies OrganizationContext,
   });
 });
+
+/**
+ * Blocks requests when the organization's subscription is not usable
+ * (expired trial, past-due, cancelled, etc.). Mirrors the web's
+ * `assertWithinPlanLimit` "not active" branch.
+ */
+export const requireActiveSubscription = (ctx: OrganizationContext) => {
+  if (!ctx.subscription.canUsePaidFeatures) {
+    throw new TRPCError({
+      code: "PAYMENT_REQUIRED",
+      message:
+        "Your trial or subscription is not active. Contact the centre owner or manage the plan from Billing.",
+    });
+  }
+};
+
+/**
+ * Enforces the same plan limits as the web's `assertWithinPlanLimit`, translating
+ * the plain error into a tRPC PAYMENT_REQUIRED.
+ */
+export const assertWithinPlanLimit = async (
+  ctx: OrganizationContext,
+  resource: LimitResource,
+  increment = 1
+) => {
+  try {
+    await assertWithinPlanLimitShared({
+      increment,
+      organizationId: ctx.organizationId,
+      resource,
+      userId: ctx.authUserId,
+    });
+  } catch (error) {
+    throw new TRPCError({
+      code: "PAYMENT_REQUIRED",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Your trial or subscription is not active.",
+    });
+  }
+};
 
 /**
  * Role-gated procedure using the same hierarchical semantics as the web

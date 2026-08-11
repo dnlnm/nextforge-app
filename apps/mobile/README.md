@@ -1,56 +1,41 @@
-# Welcome to your Expo app 👋
+# KLIO.MY Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+React Native (Expo SDK 57 + expo-router) client for the KLIO.MY API.
 
-## Get started
+## What's implemented
 
-1. Install dependencies
+- Authentication (sign in / sign up / password reset / deep-link callbacks) via Supabase.
+- Multi-centre switching (`activeOrganizationId` re-validated server-side per request).
+- Role-gated tabs (`OWNER`/`ADMIN` vs `TEACHER`).
+- **Core operational flow**: Today → Class → Student roster → Attendance.
+  - Today lists the day's sessions; open a session to mark attendance.
+  - Classes lists the user's classes; open one for the roster and "take attendance today".
+  - Attendance marks Present/Absent per student and saves via the tRPC API.
 
-   ```bash
-   npm install
-   ```
+## Environment
 
-2. Start the app
+Copy `.env.example` to `.env.local` and set:
 
-   ```bash
-   npx expo start
-   ```
+- `EXPO_PUBLIC_SUPABASE_URL`
+- `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- `EXPO_PUBLIC_API_URL` (the tRPC API base URL, e.g. `https://api.klio.my`)
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Development
 
 ```bash
-npm run reset-project
+bun install
+bunx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Use an Expo development build for native modules (`eas build --profile development`), or `bunx expo start --web` for web.
 
-### Other setup steps
+## Testing & CI
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+The mobile app is intentionally excluded from the monorepo Turbo `test`/`build`
+graphs (EAS builds run externally). Feature work is exercised through the shared
+tRPC API tests in `apps/api`; a dedicated mobile test runner is a post-MVP item.
 
-## Learn more
+## API
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+The app talks to the same tRPC API and domain rules as the web app (see
+`packages/api`). No client-side authorization decisions are trusted.

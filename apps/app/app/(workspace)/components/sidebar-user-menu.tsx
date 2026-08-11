@@ -1,6 +1,7 @@
 "use client";
 
 import { createClient } from "@repo/auth/client";
+import { getMainDomain } from "@repo/auth/domain";
 import {
   Avatar,
   AvatarFallback,
@@ -72,7 +73,7 @@ export const SidebarUserMenu = () => {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <a href="/settings">
+          <a href={`https://${getMainDomain()}/account`}>
             <UserIcon />
             Account
           </a>

@@ -132,12 +132,18 @@ const syncSubscription = async (
 
   // Price mapping is the source of truth for the plan; metadata (set during
   // checkout) can go stale when a plan is changed, so only fall back to it when
-  // the price is unknown (mapped to TRIAL).
+  // the price is unknown. An unknown price never downgrades an existing plan.
   const metadataPlan = subscription.metadata.plan as
     | SubscriptionPlan
     | undefined;
   const planFromPriceId = getPlanFromStripePriceId(priceId);
-  const plan = planFromPriceId !== "TRIAL" ? planFromPriceId : metadataPlan;
+  const plan = planFromPriceId ?? metadataPlan;
+
+  if (!(planFromPriceId || metadataPlan)) {
+    log.error(
+      `Could not map a plan for subscription ${subscription.id}: priceId=${priceId}, metadataPlan=${metadataPlan}. Keeping the current plan on file.`
+    );
+  }
 
   // Log for debugging
   log.info(
@@ -145,11 +151,7 @@ const syncSubscription = async (
   );
 
   // Warn if there's a mismatch between metadata and priceId mapping
-  if (
-    metadataPlan &&
-    metadataPlan !== planFromPriceId &&
-    planFromPriceId !== "TRIAL"
-  ) {
+  if (metadataPlan && planFromPriceId && metadataPlan !== planFromPriceId) {
     log.warn(
       `Plan mismatch for subscription ${subscription.id}: metadata=${metadataPlan}, priceId mapping=${planFromPriceId}`
     );
@@ -204,7 +206,12 @@ const handleSubscriptionScheduleCanceled = async (
 
 export const POST = async (request: Request): Promise<Response> => {
   if (!(stripe && env.STRIPE_WEBHOOK_SECRET)) {
-    return NextResponse.json({ message: "Not configured", ok: false });
+    // Return a server error so Stripe retries once the webhook is configured.
+    // A 200 here would make Stripe silently drop every event.
+    return NextResponse.json(
+      { message: "Not configured", ok: false },
+      { status: 503 }
+    );
   }
 
   try {

@@ -1,17 +1,8 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
-import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import { Card, CardContent } from "@repo/design-system/components/ui/card";
-import { Input } from "@repo/design-system/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@repo/design-system/components/ui/select";
 import {
   Stat,
   StatDescription,
@@ -19,30 +10,18 @@ import {
   StatLabel,
   StatValue,
 } from "@repo/design-system/components/ui/stat";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@repo/design-system/components/ui/table";
 import type { LucideIcon } from "lucide-react";
 import {
   BarChart3Icon,
   BookOpenIcon,
   CalendarIcon,
   CheckCircle2Icon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  FilterIcon,
-  MoreHorizontalIcon,
   PlusIcon,
-  SearchIcon,
   UsersRoundIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { Header } from "../components/header";
+import { ClassesTable } from "./components/classes-table";
 
 const dayLabel: Record<string, string> = {
   FRIDAY: "Fri",
@@ -54,8 +33,6 @@ const dayLabel: Record<string, string> = {
   WEDNESDAY: "Wed",
 };
 
-const whitespaceRegex = /\s+/;
-
 const formatTime = (time: string) => {
   const [hour = "0", minute = "0"] = time.split(":");
   const date = new Date();
@@ -66,15 +43,6 @@ const formatTime = (time: string) => {
     minute: "2-digit",
   }).format(date);
 };
-
-const teacherInitials = (name?: string | null) =>
-  name
-    ?.split(whitespaceRegex)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.at(0))
-    .join("")
-    .toUpperCase() || "--";
 
 interface ScheduleSummaryItem {
   readonly dayOfWeek: string;
@@ -221,154 +189,25 @@ const ClassesPage = async () => {
 
             <Card>
               <CardContent className="p-0">
-                <div className="grid gap-4 p-4">
-                  <div className="flex flex-wrap items-end gap-3">
-                    <div className="relative min-w-64 flex-1 sm:max-w-sm">
-                      <SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        className="pl-9"
-                        placeholder="Search classes by name, code or subject..."
-                      />
-                    </div>
-                    {[
-                      ["Subject", "All Subjects"],
-                      ["Level", "All Levels"],
-                    ].map(([label, value]) => (
-                      <div className="grid w-36 gap-1" key={label}>
-                        <span className="text-muted-foreground text-xs">
-                          {label}
-                        </span>
-                        <Select defaultValue="all">
-                          <SelectTrigger>
-                            <SelectValue placeholder={value} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">{value}</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    ))}
-                    <Button variant="outline">
-                      <FilterIcon className="size-4" />
-                      Filters
-                    </Button>
-                    <Button asChild className="ml-auto">
-                      <Link href="/classes/new">
-                        <PlusIcon className="size-4" />
-                        Add New Class
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-12">#</TableHead>
-                        <TableHead>Class Name</TableHead>
-                        <TableHead>Subject</TableHead>
-                        <TableHead>Level</TableHead>
-                        <TableHead>Teacher</TableHead>
-                        <TableHead>Schedule</TableHead>
-                        <TableHead>Students</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Action</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {classes.map((item, index) => (
-                        <TableRow key={item.id}>
-                          <TableCell>{index + 1}</TableCell>
-                          <TableCell>
-                            <div className="grid gap-1">
-                              <Link
-                                className="font-medium hover:underline"
-                                href={`/classes/${item.id}`}
-                              >
-                                {item.name}
-                              </Link>
-                              <span className="text-muted-foreground text-xs">
-                                {item.code}
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="secondary">
-                              {item.subject.name}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="secondary">
-                              {item.level?.name ?? "General"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <div className="flex size-8 shrink-0 items-center justify-center rounded-full border bg-muted text-muted-foreground text-xs">
-                                {teacherInitials(item.teacher?.fullName)}
-                              </div>
-                              <span>{item.teacher?.fullName ?? "-"}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <ScheduleSummary
-                              className="grid gap-1 text-xs"
-                              schedules={item.schedules}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            {item.enrollments.length} / {item.capacity ?? "-"}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">
-                              {item.status === "ACTIVE" ? "Active" : "Upcoming"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex justify-end">
-                              <Button asChild size="icon" variant="outline">
-                                <Link href={`/classes/${item.id}`}>
-                                  <MoreHorizontalIcon className="size-4" />
-                                </Link>
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-                <div className="flex flex-col gap-3 border-t p-4 text-muted-foreground text-sm md:flex-row md:items-center md:justify-between">
-                  <p>
-                    Showing 1 to {classes.length} of {classes.length} classes
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Button size="icon" variant="outline">
-                      <ChevronLeftIcon className="size-4" />
-                    </Button>
-                    {[1, 2, 3, 4, 5].map((page) => (
-                      <Button
-                        key={page}
-                        size="icon"
-                        variant={page === 1 ? "default" : "outline"}
-                      >
-                        {page}
-                      </Button>
-                    ))}
-                    <Button size="icon" variant="outline">
-                      <ChevronRightIcon className="size-4" />
-                    </Button>
-                    <Select defaultValue="10">
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="10">10 / page</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+                <ClassesTable
+                  classes={classes.map((item) => ({
+                    id: item.id,
+                    name: item.name,
+                    code: item.code,
+                    status: item.status,
+                    capacity: item.capacity,
+                    subject: item.subject,
+                    level: item.level,
+                    teacher: item.teacher,
+                    schedules: item.schedules.map((schedule) => ({
+                      dayOfWeek: schedule.dayOfWeek,
+                      endsAt: schedule.endsAt,
+                      startsAt: schedule.startsAt,
+                      room: schedule.room,
+                    })),
+                    enrollments: item.enrollments,
+                  }))}
+                />
               </CardContent>
             </Card>
           </section>

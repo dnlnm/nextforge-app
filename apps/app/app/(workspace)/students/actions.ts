@@ -13,6 +13,7 @@ import {
 import type { StudentsQueryParams } from "@repo/schemas/students";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getTeacherProfileId } from "@/lib/teacher-profile";
 import { assertWithinPlanLimit } from "../billing/limits";
 import { reserveStudentCode } from "./lib/student-code";
 
@@ -434,6 +435,21 @@ export async function getStudentsForTable(params: StudentsQueryParams) {
     archivedAt: null,
   };
 
+  // Teachers only see students in the classes they teach (spec §5).
+  const teacherProfileId = await getTeacherProfileId(tenant);
+
+  if (teacherProfileId !== undefined) {
+    where.enrollments = {
+      some: {
+        status: "ACTIVE",
+        archivedAt: null,
+        class: {
+          teacherId: teacherProfileId,
+        },
+      },
+    };
+  }
+
   // Apply global search
   if (params.search) {
     where.OR = [
@@ -511,6 +527,8 @@ export async function getStudentsForTable(params: StudentsQueryParams) {
           }
           break;
         }
+        default:
+          break;
       }
     }
   }
@@ -530,6 +548,8 @@ export async function getStudentsForTable(params: StudentsQueryParams) {
           orderBy.push({
             level: { name: sort.desc ? "desc" : "asc" },
           });
+          break;
+        default:
           break;
       }
     }

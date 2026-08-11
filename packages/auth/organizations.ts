@@ -1,10 +1,22 @@
 import "server-only";
 
-import { database } from "@repo/database";
+import { database, Prisma } from "@repo/database";
 import { createClient, currentUser } from "./server";
 import { generateSlug, isSlugAvailable } from "./slug-utils";
 
 const whitespace = /\s+/;
+
+const OWNER_LIMIT_MESSAGE =
+  "You can only create one tuition centre. Contact support if you need additional centres.";
+
+const isUniqueViolation = (
+  error: unknown,
+  target?: string[]
+): error is Prisma.PrismaClientKnownRequestError =>
+  error instanceof Prisma.PrismaClientKnownRequestError &&
+  error.code === "P2002" &&
+  (target === undefined ||
+    target.some((name) => String(error.meta?.target).includes(name)));
 
 export const ensureLocalUser = async () => {
   const user = await currentUser();
@@ -66,21 +78,6 @@ export const createOrganization = async (
     throw new Error("You must be signed in to create an organization");
   }
 
-  const ownedOrganizations = await database.organizationMembership.count({
-    where: {
-      userId: user.id,
-      role: "OWNER",
-      status: "ACTIVE",
-      organization: { status: "ACTIVE" },
-    },
-  });
-
-  if (ownedOrganizations >= 1) {
-    throw new Error(
-      "You can only create one tuition centre. Contact support if you need additional centres."
-    );
-  }
-
   const slug = slugOverride ? generateSlug(slugOverride) : generateSlug(name);
 
   if (!slug || slug.length < 3) {
@@ -114,27 +111,58 @@ export const createOrganization = async (
     { code: "GEN", name: "General", order: 12, stage: "GENERAL" },
   ];
 
-  const organization = await database.organization.create({
-    data: {
-      name,
-      slug,
-      imageUrl,
-      createdByUserId: user.id,
-      settings: { create: {} },
-      branch: { create: { name: "Main Branch", isDefault: true } },
-      levels: {
-        create: defaultLevels.map(({ code, name, order, stage }) => ({
-          code,
+  // The ownership check and the create must be atomic: two concurrent requests
+  // must never both pass the count check. The database's partial unique index
+  // (OrganizationMembership_userId_key) is the backstop.
+  let organization: Awaited<ReturnType<typeof database.organization.create>>;
+  try {
+    organization = await database.$transaction(async (tx) => {
+      const ownedOrganizations = await tx.organizationMembership.count({
+        where: {
+          userId: user.id,
+          role: "OWNER",
+          status: "ACTIVE",
+          organization: { status: "ACTIVE" },
+        },
+      });
+
+      if (ownedOrganizations >= 1) {
+        throw new Error(OWNER_LIMIT_MESSAGE);
+      }
+
+      return tx.organization.create({
+        data: {
           name,
-          order,
-          stage,
-        })),
-      },
-      memberships: {
-        create: { userId: user.id, role: "OWNER", status: "ACTIVE" },
-      },
-    },
-  });
+          slug,
+          imageUrl,
+          createdByUserId: user.id,
+          settings: { create: {} },
+          branch: { create: { name: "Main Branch", isDefault: true } },
+          levels: {
+            create: defaultLevels.map(({ code, name, order, stage }) => ({
+              code,
+              name,
+              order,
+              stage,
+            })),
+          },
+          memberships: {
+            create: { userId: user.id, role: "OWNER", status: "ACTIVE" },
+          },
+        },
+      });
+    });
+  } catch (error) {
+    if (
+      isUniqueViolation(error, ["OrganizationMembership_userId_key", "userId"])
+    ) {
+      throw new Error(OWNER_LIMIT_MESSAGE);
+    }
+    if (isUniqueViolation(error, ["Organization_slug_key", "slug"])) {
+      throw new Error("That centre URL is not available.");
+    }
+    throw error;
+  }
 
   await switchOrganization(organization.id);
   return organization;

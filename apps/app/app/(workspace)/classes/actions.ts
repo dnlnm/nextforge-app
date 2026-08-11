@@ -1,7 +1,7 @@
 "use server";
 
 import { requireTenantRole } from "@repo/auth/authorization";
-import { database } from "@repo/database";
+import { database, Prisma } from "@repo/database";
 import { type DayOfWeek, daysOfWeek } from "@repo/schemas/enums";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -414,15 +414,25 @@ export const enrollStudent = async (formData: FormData) => {
     throw new Error("Class or student not found.");
   }
 
-  await database.enrollment.create({
-    data: {
-      organizationId: tenant.organizationId,
-      classId: learningClass.id,
-      customFeeSen: getMoneySen(formData, "customFee"),
-      startsOn: getDate(formData, "startsOn") ?? new Date(),
-      studentId: student.id,
-    },
-  });
+  try {
+    await database.enrollment.create({
+      data: {
+        organizationId: tenant.organizationId,
+        classId: learningClass.id,
+        customFeeSen: getMoneySen(formData, "customFee"),
+        startsOn: getDate(formData, "startsOn") ?? new Date(),
+        studentId: student.id,
+      },
+    });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      throw new Error("This student is already enrolled in the class.");
+    }
+    throw error;
+  }
 
   revalidatePath("/classes");
 };

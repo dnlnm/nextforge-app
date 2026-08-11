@@ -32,6 +32,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Brand } from "@/components/brand";
 import { useOrganization } from "./organization-context";
+import { OrganizationSwitcher } from "./organization-switcher";
 import { SidebarUserMenu } from "./sidebar-user-menu";
 
 type SidebarRole = "TEACHER" | "ADMIN" | "OWNER";
@@ -119,6 +120,8 @@ const getRoleBadgeVariant = (
       return "secondary";
     case "TEACHER":
       return "outline";
+    default:
+      return "outline";
   }
 };
 
@@ -136,6 +139,11 @@ export const GlobalSidebar = ({ children, role }: GlobalSidebarProperties) => {
               <Link className="mb-2 block px-2" href="/">
                 <Brand />
               </Link>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <div className="px-2 pb-2">
+                <OrganizationSwitcher />
+              </div>
             </SidebarMenuItem>
             {organization?.role && (
               <SidebarMenuItem>

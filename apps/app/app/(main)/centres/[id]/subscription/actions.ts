@@ -6,10 +6,10 @@ import { database, type SubscriptionPlan } from "@repo/database";
 import type { InvoiceItem } from "@repo/design-system/components/billingsdk/invoice-history";
 import { stripe } from "@repo/payments";
 import {
+  type BillablePlan,
   getPlanFromStripePriceId,
   getStripePriceId,
   planDefinitions,
-  type BillablePlan,
 } from "@repo/payments/plans";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -155,7 +155,8 @@ const mapStripeStatus = (status: string | null | undefined): InvoiceStatus => {
   }
 };
 
-const formatRM = (amountCents: number): string => `RM${(amountCents / 100).toFixed(2)}`;
+const formatRM = (amountCents: number): string =>
+  `RM${(amountCents / 100).toFixed(2)}`;
 
 export const getStripeInvoices = async (
   organizationId: string
@@ -184,8 +185,10 @@ export const getStripeInvoices = async (
       const priceDetail = invoice.lines?.data[0]?.pricing?.price_details?.price;
       const priceId =
         typeof priceDetail === "string" ? priceDetail : priceDetail?.id;
-      const planName =
-        planDefinitions[getPlanFromStripePriceId(priceId ?? subscription.stripePriceId)].name;
+      const plan =
+        getPlanFromStripePriceId(priceId ?? subscription.stripePriceId) ??
+        subscription.plan;
+      const planName = planDefinitions[plan].name;
 
       return {
         id: invoice.id,
@@ -267,7 +270,8 @@ export const updateSubscriptionPlan = async (
     throw new Error("You cannot switch to the trial plan.");
   }
 
-  const { subscription, stripeInstance } = await getSubscription(organizationId);
+  const { subscription, stripeInstance } =
+    await getSubscription(organizationId);
 
   if (!subscription.stripeCustomerId) {
     throw new Error("Please subscribe to a plan first.");
@@ -293,26 +297,20 @@ export const updateSubscriptionPlan = async (
     throw new Error("Unable to find the subscription item to update.");
   }
 
-  await stripeInstance.subscriptions.update(
-    subscription.stripeSubscriptionId,
-    {
-      items: [{ id: itemId, price: priceId }],
-      metadata: { organizationId, plan: newPlan },
-      proration_behavior: "always_invoice",
-    }
-  );
+  await stripeInstance.subscriptions.update(subscription.stripeSubscriptionId, {
+    items: [{ id: itemId, price: priceId }],
+    metadata: { organizationId, plan: newPlan },
+    proration_behavior: "always_invoice",
+  });
 
   revalidatePath(`/centres/${organizationId}/subscription`);
 };
 
-export const cancelSubscriptionAtPeriodEnd = async (
-  organizationId: string
-) => {
+export const cancelSubscriptionAtPeriodEnd = async (organizationId: string) => {
   await requireOwner(organizationId);
 
-  const { subscription, stripeInstance } = await getSubscription(
-    organizationId
-  );
+  const { subscription, stripeInstance } =
+    await getSubscription(organizationId);
 
   if (!subscription.stripeSubscriptionId) {
     throw new Error("No active subscription to cancel.");
@@ -324,12 +322,9 @@ export const cancelSubscriptionAtPeriodEnd = async (
     );
   }
 
-  await stripeInstance.subscriptions.update(
-    subscription.stripeSubscriptionId,
-    {
-      cancel_at_period_end: true,
-    }
-  );
+  await stripeInstance.subscriptions.update(subscription.stripeSubscriptionId, {
+    cancel_at_period_end: true,
+  });
 
   revalidatePath(`/centres/${organizationId}/subscription`);
 };
@@ -337,9 +332,8 @@ export const cancelSubscriptionAtPeriodEnd = async (
 export const reactivateSubscription = async (organizationId: string) => {
   await requireOwner(organizationId);
 
-  const { subscription, stripeInstance } = await getSubscription(
-    organizationId
-  );
+  const { subscription, stripeInstance } =
+    await getSubscription(organizationId);
 
   if (!subscription.stripeSubscriptionId) {
     throw new Error("No subscription to reactivate.");
@@ -349,12 +343,9 @@ export const reactivateSubscription = async (organizationId: string) => {
     throw new Error("Your subscription is not scheduled for cancellation.");
   }
 
-  await stripeInstance.subscriptions.update(
-    subscription.stripeSubscriptionId,
-    {
-      cancel_at_period_end: false,
-    }
-  );
+  await stripeInstance.subscriptions.update(subscription.stripeSubscriptionId, {
+    cancel_at_period_end: false,
+  });
 
   revalidatePath(`/centres/${organizationId}/subscription`);
 };
