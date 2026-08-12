@@ -2,10 +2,18 @@
 
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
+import {
+  animate,
+  useReducedMotion,
+  type AnimationPlaybackControls,
+} from "motion/react";
 import { cva, type VariantProps } from "class-variance-authority";
+import { useEffect, useRef, type KeyboardEvent } from "react";
 import type * as React from "react";
 import { cn } from "@repo/design-system/lib/utils";
 import { Spinner } from "@repo/design-system/components/ui/spinner";
+import { useComposedRefs } from "@repo/design-system/lib/compose-refs";
+import { INSTANT, SMALL } from "@repo/design-system/lib/motion";
 
 export const buttonVariants = cva(
   "relative inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg border font-medium text-base outline-none transition-shadow before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-lg)-1px)] pointer-coarse:after:absolute pointer-coarse:after:size-full pointer-coarse:after:min-h-11 pointer-coarse:after:min-w-11 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-64 data-loading:select-none data-loading:text-transparent sm:text-sm [&_svg:not([class*='opacity-'])]:opacity-80 [&_svg:not([class*='size-'])]:size-4.5 sm:[&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:-mx-0.5 [&_svg]:shrink-0",
@@ -62,11 +70,45 @@ export function Button({
   children,
   loading = false,
   disabled: disabledProp,
+  ref,
   ...props
 }: ButtonProps): React.ReactElement {
   const isDisabled: boolean = Boolean(loading || disabledProp);
   const typeValue: React.ButtonHTMLAttributes<HTMLButtonElement>["type"] =
     render ? undefined : "button";
+
+  const reduced = useReducedMotion();
+  const move = reduced ? INSTANT : SMALL;
+  const nodeRef = useRef<HTMLElement | null>(null);
+  const pressControls = useRef<AnimationPlaybackControls | null>(null);
+  const composedRef = useComposedRefs(nodeRef, ref);
+
+  useEffect(() => () => pressControls.current?.stop(), []);
+
+  const setPressed = (pressed: boolean): void => {
+    const node = nodeRef.current;
+
+    if (!node) return;
+
+    pressControls.current?.stop();
+    pressControls.current = animate(
+      node,
+      { scale: pressed ? 0.97 : 1 },
+      move,
+    );
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLElement>): void => {
+    if (!event.repeat && (event.key === "Enter" || event.key === " ")) {
+      setPressed(true);
+    }
+  };
+
+  const handleKeyUp = (event: KeyboardEvent<HTMLElement>): void => {
+    if (event.key === "Enter" || event.key === " ") {
+      setPressed(false);
+    }
+  };
 
   const defaultProps = {
     children: (
@@ -81,6 +123,14 @@ export function Button({
       </>
     ),
     className: cn(buttonVariants({ className, size, variant })),
+    onBlur: () => setPressed(false),
+    onKeyDown: handleKeyDown,
+    onKeyUp: handleKeyUp,
+    onLostPointerCapture: () => setPressed(false),
+    onPointerCancel: () => setPressed(false),
+    onPointerDown: () => setPressed(true),
+    onPointerUp: () => setPressed(false),
+    ref: composedRef,
     "aria-disabled": loading || undefined,
     "data-loading": loading ? "" : undefined,
     "data-slot": "button",
