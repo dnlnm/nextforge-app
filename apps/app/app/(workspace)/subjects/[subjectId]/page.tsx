@@ -155,15 +155,16 @@ const SubjectHeader = ({ subject }: { readonly subject: SubjectData }) => (
         </div>
       </div>
       <div className="grid gap-2 sm:grid-cols-2 md:w-auto md:min-w-[18rem]">
-        <Button asChild variant="outline">
-          <Link href={`/subjects/${subject.id}/edit`}>
-            <Edit3Icon className="size-4" />
-            Edit subject
-          </Link>
+        <Button
+          variant="outline"
+          render={<Link href={`/subjects/${subject.id}/edit`} />}
+        >
+          <Edit3Icon className="size-4" />
+          Edit subject
         </Button>
         <form action={archiveSubject}>
           <input name="subjectId" type="hidden" value={subject.id} />
-          <Button variant="outline">
+          <Button type="submit" variant="outline">
             <ArchiveIcon className="size-4" />
             Archive subject
           </Button>
@@ -466,12 +467,15 @@ const SubjectSidebar = ({ subject }: { readonly subject: SubjectData }) => (
             <SettingsIcon className="size-4 text-muted-foreground" />
             Actions
           </div>
-          <Button asChild variant="outline">
-            <Link href={`/subjects/${subject.id}/edit`}>Edit subject</Link>
+          <Button
+            variant="outline"
+            render={<Link href={`/subjects/${subject.id}/edit`} />}
+          >
+            Edit subject
           </Button>
           <form action={archiveSubject}>
             <input name="subjectId" type="hidden" value={subject.id} />
-            <Button className="w-full" variant="outline">
+            <Button className="w-full" type="submit" variant="outline">
               Archive subject
             </Button>
           </form>

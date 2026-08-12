@@ -6,7 +6,7 @@ import { Label } from "@repo/design-system/components/ui/label";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import { updateCentreProfile } from "./actions";
 
 interface CentreSettingsFormProps {
@@ -34,12 +34,14 @@ export const CentreSettingsForm = ({
         name,
         imageUrl: imageUrl || null,
       });
-      toast.success("Centre profile updated");
+      toastManager.add({ title: "Centre profile updated", type: "success" });
       router.refresh();
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update profile"
-      );
+      toastManager.add({
+        title:
+          error instanceof Error ? error.message : "Failed to update profile",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }

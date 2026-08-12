@@ -7,8 +7,7 @@ import {
 } from "@repo/design-system/components/ui/alert";
 import {
   AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
+  AlertDialogClose,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -21,7 +20,7 @@ import { Progress } from "@repo/design-system/components/ui/progress";
 import { Loader2Icon, PlayIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
-import { toast } from "sonner";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import { executeStudentImportBatch, startStudentImport } from "../actions";
 
 export const ImportRunner = ({
@@ -52,14 +51,17 @@ export const ImportRunner = ({
         return;
       }
       if (result.error) {
-        toast.error(result.error);
+        toastManager.add({ title: result.error, type: "error" });
         setRunning(false);
         return;
       }
       router.refresh();
       if (result.complete) {
         setRunning(false);
-        toast.success("Student import completed.");
+        toastManager.add({
+          title: "Student import completed.",
+          type: "success",
+        });
       } else {
         setBatch((value) => value + 1);
       }
@@ -73,7 +75,7 @@ export const ImportRunner = ({
     startTransition(async () => {
       const result = await startStudentImport(importId);
       if (result.error) {
-        toast.error(result.error);
+        toastManager.add({ title: result.error, type: "error" });
         return;
       }
       setRunning(true);
@@ -90,18 +92,20 @@ export const ImportRunner = ({
           </AlertDescription>
         </Alert>
         <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              className="justify-self-end"
-              disabled={!validRows || pending}
-            >
-              {pending ? (
-                <Loader2Icon className="size-4 animate-spin" />
-              ) : (
-                <PlayIcon className="size-4" />
-              )}
-              Import {validRows.toLocaleString()} Students
-            </Button>
+          <AlertDialogTrigger
+            render={
+              <Button
+                className="justify-self-end"
+                disabled={!validRows || pending}
+              />
+            }
+          >
+            {pending ? (
+              <Loader2Icon className="size-4 animate-spin" />
+            ) : (
+              <PlayIcon className="size-4" />
+            )}
+            Import {validRows.toLocaleString()} Students
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -114,10 +118,12 @@ export const ImportRunner = ({
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={start}>
+              <AlertDialogClose render={<Button variant="ghost" />}>
+                Cancel
+              </AlertDialogClose>
+              <AlertDialogClose render={<Button />} onClick={start}>
                 Confirm Import
-              </AlertDialogAction>
+              </AlertDialogClose>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

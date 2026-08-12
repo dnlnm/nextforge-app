@@ -274,8 +274,11 @@ const StudentEditPage = async ({ params }: StudentEditPageProperties) => {
                 </div>
                 <div className="flex gap-2">
                   <Button type="submit">Save changes</Button>
-                  <Button asChild variant="outline">
-                    <Link href={`/students/${student.id}`}>Cancel</Link>
+                  <Button
+                    variant="outline"
+                    render={<Link href={`/students/${student.id}`} />}
+                  >
+                    Cancel
                   </Button>
                 </div>
               </form>

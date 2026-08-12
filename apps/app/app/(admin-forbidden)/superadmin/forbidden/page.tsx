@@ -20,9 +20,7 @@ const AdminForbiddenPage = () => (
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Button asChild>
-          <Link href="/">Return to centre dashboard</Link>
-        </Button>
+        <Button render={<Link href="/" />}>Return to centre dashboard</Button>
       </CardContent>
     </Card>
   </main>

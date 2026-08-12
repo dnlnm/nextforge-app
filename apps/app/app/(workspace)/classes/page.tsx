@@ -289,11 +289,9 @@ const ClassesPage = async () => {
             <Card>
               <CardContent className="grid gap-3 p-4">
                 <h2 className="font-semibold text-sm">Quick Actions</h2>
-                <Button asChild>
-                  <Link href="/classes/new">
-                    <PlusIcon className="size-4" />
-                    Add New Class
-                  </Link>
+                <Button render={<Link href="/classes/new" />}>
+                  <PlusIcon className="size-4" />
+                  Add New Class
                 </Button>
                 <Button variant="outline">
                   <CalendarIcon className="size-4" />

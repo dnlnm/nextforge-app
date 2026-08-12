@@ -81,11 +81,13 @@ export const WorkspaceCard = ({
             <p className="text-muted-foreground text-xs">Classes</p>
           </div>
         </div>
-        <Button asChild className="mt-auto w-full" size="lg">
-          <a href={workspaceUrl}>
-            Open Workspace
-            <ExternalLinkIcon className="ml-2 size-4" />
-          </a>
+        <Button
+          className="mt-auto w-full"
+          size="lg"
+          render={<a href={workspaceUrl} />}
+        >
+          Open Workspace
+          <ExternalLinkIcon className="ml-2 size-4" />
         </Button>
       </CardContent>
     </Card>

@@ -238,8 +238,8 @@ export const ClassEditForm = ({
       </div>
       <div className="flex gap-2">
         <Button type="submit">Save changes</Button>
-        <Button asChild variant="outline">
-          <a href="/classes">Cancel</a>
+        <Button variant="outline" render={<a href="/classes" />}>
+          Cancel
         </Button>
       </div>
     </form>

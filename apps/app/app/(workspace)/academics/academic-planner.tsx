@@ -136,33 +136,35 @@ export const AcademicPlanner = ({ hierarchy, stats }: AcademicPlannerProps) => {
               open={isOpen}
             >
               <Card>
-                <CollapsibleTrigger asChild>
-                  <button
-                    className="flex w-full items-center justify-between gap-3 p-4 text-left"
-                    type="button"
-                  >
-                    <div className="flex items-center gap-3">
-                      {isOpen ? (
-                        <ChevronDownIcon className="size-4 text-muted-foreground" />
-                      ) : (
-                        <ChevronRightIcon className="size-4 text-muted-foreground" />
-                      )}
-                      <GraduationCapIcon className="size-5 text-muted-foreground" />
-                      <span className="font-medium">
-                        <Link
-                          className="hover:underline"
-                          href={`/academic-levels/${level.id}`}
-                          onClick={(event) => event.stopPropagation()}
-                        >
-                          {level.name}
-                        </Link>
-                      </span>
-                      <Badge variant="secondary">
-                        {level.subjects.length} subject
-                        {level.subjects.length === 1 ? "" : "s"}
-                      </Badge>
-                    </div>
-                  </button>
+                <CollapsibleTrigger
+                  render={
+                    <button
+                      className="flex w-full items-center justify-between gap-3 p-4 text-left"
+                      type="button"
+                    />
+                  }
+                >
+                  <div className="flex items-center gap-3">
+                    {isOpen ? (
+                      <ChevronDownIcon className="size-4 text-muted-foreground" />
+                    ) : (
+                      <ChevronRightIcon className="size-4 text-muted-foreground" />
+                    )}
+                    <GraduationCapIcon className="size-5 text-muted-foreground" />
+                    <span className="font-medium">
+                      <Link
+                        className="hover:underline"
+                        href={`/academic-levels/${level.id}`}
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        {level.name}
+                      </Link>
+                    </span>
+                    <Badge variant="secondary">
+                      {level.subjects.length} subject
+                      {level.subjects.length === 1 ? "" : "s"}
+                    </Badge>
+                  </div>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <div className="grid gap-3 border-t p-4">

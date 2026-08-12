@@ -65,19 +65,22 @@ const TeachersPage = async () => {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button asChild className="flex-1 md:flex-none" variant="outline">
-              <Link href="/teachers/invite">
-                <SendIcon className="size-4" />
-                <span className="hidden sm:inline">Invite Teacher</span>
-                <span className="sm:hidden">Invite</span>
-              </Link>
+            <Button
+              className="flex-1 md:flex-none"
+              variant="outline"
+              render={<Link href="/teachers/invite" />}
+            >
+              <SendIcon className="size-4" />
+              <span className="hidden sm:inline">Invite Teacher</span>
+              <span className="sm:hidden">Invite</span>
             </Button>
-            <Button asChild className="flex-1 md:flex-none">
-              <Link href="/teachers/new">
-                <PlusIcon className="size-4" />
-                <span className="hidden sm:inline">Add Teacher</span>
-                <span className="sm:hidden">Add</span>
-              </Link>
+            <Button
+              className="flex-1 md:flex-none"
+              render={<Link href="/teachers/new" />}
+            >
+              <PlusIcon className="size-4" />
+              <span className="hidden sm:inline">Add Teacher</span>
+              <span className="sm:hidden">Add</span>
             </Button>
             <Button size="icon" variant="outline">
               <ChevronDownIcon className="size-4" />

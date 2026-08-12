@@ -27,7 +27,7 @@ import {
 import { Loader2Icon, SearchIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
-import { toast } from "sonner";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import {
   bulkEnrollStudentsAction,
   endEnrollmentAction,
@@ -131,11 +131,11 @@ export const EnrollmentCenter = ({
 
   const handleEnroll = () => {
     if (!enrollStudentId) {
-      toast.error("Select a student.");
+      toastManager.add({ title: "Select a student.", type: "error" });
       return;
     }
     if (!enrollClassId) {
-      toast.error("Select a class.");
+      toastManager.add({ title: "Select a class.", type: "error" });
       return;
     }
 
@@ -147,11 +147,15 @@ export const EnrollmentCenter = ({
       });
 
       if (result.error) {
-        toast.error("Could not enroll student", { description: result.error });
+        toastManager.add({
+          ...{ description: result.error },
+          title: "Could not enroll student",
+          type: "error",
+        });
         return;
       }
 
-      toast.success("Student enrolled");
+      toastManager.add({ title: "Student enrolled", type: "success" });
       setEnrollStudentId("");
       setEnrollClassId("");
       setEnrollCustomFee("");
@@ -169,11 +173,14 @@ export const EnrollmentCenter = ({
 
   const handleBulk = () => {
     if (!bulkClassId) {
-      toast.error("Select a class.");
+      toastManager.add({ title: "Select a class.", type: "error" });
       return;
     }
     if (bulkSelectedIds.length === 0) {
-      toast.error("Select at least one student.");
+      toastManager.add({
+        title: "Select at least one student.",
+        type: "error",
+      });
       return;
     }
 
@@ -183,8 +190,12 @@ export const EnrollmentCenter = ({
         studentIds: bulkSelectedIds,
       });
 
-      toast.success("Bulk enrollment complete", {
-        description: `${result.enrolledCount} enrolled, ${result.skippedCount} skipped, ${result.failed.length} failed.`,
+      toastManager.add({
+        ...{
+          description: `${result.enrolledCount} enrolled, ${result.skippedCount} skipped, ${result.failed.length} failed.`,
+        },
+        title: "Bulk enrollment complete",
+        type: "success",
       });
       setBulkSelectedIds([]);
       refresh();
@@ -193,11 +204,17 @@ export const EnrollmentCenter = ({
 
   const handleTransfer = () => {
     if (!transferEnrollmentId) {
-      toast.error("Select the current enrollment.");
+      toastManager.add({
+        title: "Select the current enrollment.",
+        type: "error",
+      });
       return;
     }
     if (!transferClassId) {
-      toast.error("Select the destination class.");
+      toastManager.add({
+        title: "Select the destination class.",
+        type: "error",
+      });
       return;
     }
 
@@ -209,13 +226,17 @@ export const EnrollmentCenter = ({
       });
 
       if (result.error) {
-        toast.error("Could not transfer student", {
-          description: result.error,
+        toastManager.add({
+          ...{
+            description: result.error,
+          },
+          title: "Could not transfer student",
+          type: "error",
         });
         return;
       }
 
-      toast.success("Student transferred");
+      toastManager.add({ title: "Student transferred", type: "success" });
       setTransferEnrollmentId("");
       setTransferClassId("");
       setTransferCustomFee("");
@@ -225,7 +246,10 @@ export const EnrollmentCenter = ({
 
   const handleEnd = () => {
     if (!endEnrollmentId) {
-      toast.error("Select an enrollment to end.");
+      toastManager.add({
+        title: "Select an enrollment to end.",
+        type: "error",
+      });
       return;
     }
 
@@ -235,11 +259,15 @@ export const EnrollmentCenter = ({
       });
 
       if (result.error) {
-        toast.error("Could not end enrollment", { description: result.error });
+        toastManager.add({
+          ...{ description: result.error },
+          title: "Could not end enrollment",
+          type: "error",
+        });
         return;
       }
 
-      toast.success("Enrollment ended");
+      toastManager.add({ title: "Enrollment ended", type: "success" });
       setEndEnrollmentId("");
       refresh();
     });
@@ -275,7 +303,10 @@ export const EnrollmentCenter = ({
               />
               <div className="grid gap-2">
                 <Label htmlFor="enroll-class">Class</Label>
-                <Select onValueChange={setEnrollClassId} value={enrollClassId}>
+                <Select
+                  onValueChange={(value) => setEnrollClassId(value ?? "")}
+                  value={enrollClassId}
+                >
                   <SelectTrigger id="enroll-class">
                     <SelectValue placeholder="Select a class" />
                   </SelectTrigger>
@@ -349,7 +380,10 @@ export const EnrollmentCenter = ({
           <CardContent className="grid gap-4">
             <div className="grid gap-2 md:max-w-md">
               <Label htmlFor="bulk-class">Class</Label>
-              <Select onValueChange={setBulkClassId} value={bulkClassId}>
+              <Select
+                onValueChange={(value) => setBulkClassId(value ?? "")}
+                value={bulkClassId}
+              >
                 <SelectTrigger id="bulk-class">
                   <SelectValue placeholder="Select a class" />
                 </SelectTrigger>
@@ -428,7 +462,9 @@ export const EnrollmentCenter = ({
               <div className="grid gap-2">
                 <Label htmlFor="transfer-enrollment">Current enrollment</Label>
                 <Select
-                  onValueChange={setTransferEnrollmentId}
+                  onValueChange={(value) =>
+                    setTransferEnrollmentId(value ?? "")
+                  }
                   value={transferEnrollmentId}
                 >
                   <SelectTrigger id="transfer-enrollment">
@@ -451,7 +487,7 @@ export const EnrollmentCenter = ({
               <div className="grid gap-2">
                 <Label htmlFor="transfer-class">Destination class</Label>
                 <Select
-                  onValueChange={setTransferClassId}
+                  onValueChange={(value) => setTransferClassId(value ?? "")}
                   value={transferClassId}
                 >
                   <SelectTrigger id="transfer-class">
@@ -520,7 +556,7 @@ export const EnrollmentCenter = ({
             <div className="grid gap-2 md:max-w-md">
               <Label htmlFor="end-enrollment">Enrollment</Label>
               <Select
-                onValueChange={setEndEnrollmentId}
+                onValueChange={(value) => setEndEnrollmentId(value ?? "")}
                 value={endEnrollmentId}
               >
                 <SelectTrigger id="end-enrollment">

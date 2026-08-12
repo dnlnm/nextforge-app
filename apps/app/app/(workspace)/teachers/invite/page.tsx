@@ -69,8 +69,12 @@ const InviteTeacherPage = () => (
         </Card>
 
         <div className="flex gap-3">
-          <Button asChild size="lg" variant="outline">
-            <Link href="/teachers">Cancel</Link>
+          <Button
+            size="lg"
+            variant="outline"
+            render={<Link href="/teachers" />}
+          >
+            Cancel
           </Button>
           <Button className="flex-1" size="lg" type="submit">
             <MailPlusIcon className="size-4" />

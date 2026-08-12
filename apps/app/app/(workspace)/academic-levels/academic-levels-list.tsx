@@ -3,8 +3,7 @@
 import type { LevelStage } from "@repo/database";
 import {
   AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
+  AlertDialogClose,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -365,14 +364,16 @@ export const AcademicLevelsList = ({
                       <TableCell>{level.studentCount}</TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              aria-label={`Actions for ${level.name}`}
-                              size="icon"
-                              variant="ghost"
-                            >
-                              <MoreHorizontalIcon className="size-4" />
-                            </Button>
+                          <DropdownMenuTrigger
+                            render={
+                              <Button
+                                aria-label={`Actions for ${level.name}`}
+                                size="icon"
+                                variant="ghost"
+                              />
+                            }
+                          >
+                            <MoreHorizontalIcon className="size-4" />
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             {isArchived ? (
@@ -432,8 +433,10 @@ export const AcademicLevelsList = ({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
+            <AlertDialogClose render={<Button variant="ghost" />}>
+              Cancel
+            </AlertDialogClose>
+            <Button
               onClick={async () => {
                 if (!archiveTarget) {
                   return;
@@ -446,7 +449,7 @@ export const AcademicLevelsList = ({
               }}
             >
               Archive
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -77,11 +77,9 @@ const CentresPage = async () => {
           </p>
         </div>
         {canCreateCentre && (
-          <Button asChild size="lg">
-            <Link href="/center-setup">
-              <PlusCircleIcon className="mr-2 size-5" />
-              Create Centre
-            </Link>
+          <Button size="lg" render={<Link href="/center-setup" />}>
+            <PlusCircleIcon className="mr-2 size-5" />
+            Create Centre
           </Button>
         )}
       </div>
@@ -97,11 +95,9 @@ const CentresPage = async () => {
               Create your first tuition centre to start managing students,
               classes, and attendance.
             </p>
-            <Button asChild size="lg">
-              <Link href="/center-setup">
-                <PlusCircleIcon className="mr-2 size-5" />
-                Create Your First Centre
-              </Link>
+            <Button size="lg" render={<Link href="/center-setup" />}>
+              <PlusCircleIcon className="mr-2 size-5" />
+              Create Your First Centre
             </Button>
           </CardContent>
         </Card>
@@ -187,28 +183,40 @@ const CentresPage = async () => {
                   ) : null}
 
                   <div className="mt-auto space-y-2">
-                    <Button asChild className="w-full" size="lg">
-                      <a href={workspaceUrl}>
-                        Open Workspace
-                        <ExternalLinkIcon className="ml-2 size-4" />
-                      </a>
+                    <Button
+                      className="w-full"
+                      size="lg"
+                      render={<a href={workspaceUrl} />}
+                    >
+                      Open Workspace
+                      <ExternalLinkIcon className="ml-2 size-4" />
                     </Button>
 
                     {role === "OWNER" ? (
                       <div className="grid grid-cols-2 gap-2">
-                        <Button asChild size="sm" variant="outline">
-                          <Link href={`/centres/${organization.id}/settings`}>
-                            <SettingsIcon className="mr-2 size-4" />
-                            Settings
-                          </Link>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          render={
+                            <Link
+                              href={`/centres/${organization.id}/settings`}
+                            />
+                          }
+                        >
+                          <SettingsIcon className="mr-2 size-4" />
+                          Settings
                         </Button>
-                        <Button asChild size="sm" variant="outline">
-                          <Link
-                            href={`/centres/${organization.id}/subscription`}
-                          >
-                            <CreditCardIcon className="mr-2 size-4" />
-                            Subscription
-                          </Link>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          render={
+                            <Link
+                              href={`/centres/${organization.id}/subscription`}
+                            />
+                          }
+                        >
+                          <CreditCardIcon className="mr-2 size-4" />
+                          Subscription
                         </Button>
                       </div>
                     ) : null}

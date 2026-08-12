@@ -440,8 +440,12 @@ const App = async () => {
             <Card className="h-[430px]">
               <CardHeader className="flex flex-row items-center justify-between gap-4">
                 <CardTitle>Today&apos;s Classes</CardTitle>
-                <Button asChild size="sm" variant="link">
-                  <Link href="/today">View All</Link>
+                <Button
+                  size="sm"
+                  variant="link"
+                  render={<Link href="/today" />}
+                >
+                  View All
                 </Button>
               </CardHeader>
               <CardContent className="grid gap-1">
@@ -516,8 +520,12 @@ const App = async () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-4">
               <CardTitle>Outstanding Fees</CardTitle>
-              <Button asChild size="sm" variant="link">
-                <Link href="/invoices">View All</Link>
+              <Button
+                size="sm"
+                variant="link"
+                render={<Link href="/invoices" />}
+              >
+                View All
               </Button>
             </CardHeader>
             <CardContent className="grid gap-1">
@@ -557,8 +565,12 @@ const App = async () => {
                 />
               )}
               {openInvoices.length > 0 ? (
-                <Button asChild className="mt-4" variant="outline">
-                  <Link href="/invoices">View All Outstanding Fees</Link>
+                <Button
+                  className="mt-4"
+                  variant="outline"
+                  render={<Link href="/invoices" />}
+                >
+                  View All Outstanding Fees
                 </Button>
               ) : null}
             </CardContent>

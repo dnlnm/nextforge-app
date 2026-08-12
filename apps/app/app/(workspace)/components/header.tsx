@@ -50,8 +50,8 @@ export const Header = ({ pages, page, children }: HeaderProps) => (
                   <BreadcrumbSeparator className="hidden md:block" />
                 )}
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink asChild>
-                    <Link href={breadcrumb.href}>{breadcrumb.label}</Link>
+                  <BreadcrumbLink render={<Link href={breadcrumb.href} />}>
+                    {breadcrumb.label}
                   </BreadcrumbLink>
                 </BreadcrumbItem>
               </Fragment>

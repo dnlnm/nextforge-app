@@ -220,17 +220,19 @@ const StudentHeader = ({
         </div>
       </div>
       <div className="grid gap-2 sm:grid-cols-2 md:w-auto md:min-w-[18rem]">
-        <Button asChild variant="outline">
-          <Link href={`/students/${student.id}/edit`}>
-            <Edit3Icon className="size-4" />
-            Edit profile
-          </Link>
+        <Button
+          variant="outline"
+          render={<Link href={`/students/${student.id}/edit`} />}
+        >
+          <Edit3Icon className="size-4" />
+          Edit profile
         </Button>
-        <Button asChild variant="outline">
-          <Link href={`https://wa.me/${primaryGuardianPhone ?? ""}`}>
-            <PhoneIcon className="size-4" />
-            WhatsApp guardian
-          </Link>
+        <Button
+          variant="outline"
+          render={<Link href={`https://wa.me/${primaryGuardianPhone ?? ""}`} />}
+        >
+          <PhoneIcon className="size-4" />
+          WhatsApp guardian
         </Button>
         <StudentProfileActions status={student.status} studentId={student.id} />
       </div>
@@ -695,13 +697,19 @@ const StudentSidebar = ({
             <ExternalLinkIcon className="size-4 text-muted-foreground" />
             Actions
           </div>
-          <Button asChild variant="outline">
-            <Link href={`/students/${student.id}/edit`}>Edit profile</Link>
+          <Button
+            variant="outline"
+            render={<Link href={`/students/${student.id}/edit`} />}
+          >
+            Edit profile
           </Button>
-          <Button asChild variant="outline">
-            <Link href={`https://wa.me/${primaryGuardian?.phone ?? ""}`}>
-              Message guardian
-            </Link>
+          <Button
+            variant="outline"
+            render={
+              <Link href={`https://wa.me/${primaryGuardian?.phone ?? ""}`} />
+            }
+          >
+            Message guardian
           </Button>
         </div>
       </CardContent>

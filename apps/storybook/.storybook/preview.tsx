@@ -1,4 +1,7 @@
-import { Toaster } from "@repo/design-system/components/ui/sonner";
+import {
+  AnchoredToastProvider,
+  ToastProvider,
+} from "@repo/design-system/components/ui/toast";
 import { TooltipProvider } from "@repo/design-system/components/ui/tooltip";
 import { ThemeProvider } from "@repo/design-system/providers/theme";
 import { withThemeByClassName } from "@storybook/addon-themes";
@@ -38,10 +41,13 @@ const preview: Preview = {
     (Story) => (
       <div className="bg-background">
         <ThemeProvider>
-          <TooltipProvider>
-            <Story />
-          </TooltipProvider>
-          <Toaster />
+          <ToastProvider>
+            <AnchoredToastProvider>
+              <TooltipProvider>
+                <Story />
+              </TooltipProvider>
+            </AnchoredToastProvider>
+          </ToastProvider>
         </ThemeProvider>
       </div>
     ),

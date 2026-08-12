@@ -81,8 +81,8 @@ const InvoicePage = async ({ params }: InvoicePageProperties) => {
       <div className="print:hidden">
         <Header page={invoice.invoiceNumber} pages={["Invoices"]}>
           <div className="flex gap-2 pr-4">
-            <Button asChild variant="outline">
-              <Link href="/invoices">Back</Link>
+            <Button variant="outline" render={<Link href="/invoices" />}>
+              Back
             </Button>
             <PrintButton />
           </div>

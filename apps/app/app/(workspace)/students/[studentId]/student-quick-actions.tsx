@@ -41,11 +41,12 @@ export const StudentQuickActions = ({
           <ArrowLeftRightIcon className="size-4" />
           Transfer
         </Button>
-        <Button asChild variant="outline">
-          <Link href={`/students/${studentId}/print`}>
-            <PrinterIcon className="size-4" />
-            Print profile
-          </Link>
+        <Button
+          variant="outline"
+          render={<Link href={`/students/${studentId}/print`} />}
+        >
+          <PrinterIcon className="size-4" />
+          Print profile
         </Button>
       </div>
       <EnrollStudentDialog

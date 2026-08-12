@@ -325,7 +325,10 @@ export const CreateClassForm = ({
                 <div className="grid gap-2">
                   <Label htmlFor="subjectId">Subject *</Label>
                   <input name="subjectId" type="hidden" value={subjectId} />
-                  <Select onValueChange={setSubjectId} value={subjectId}>
+                  <Select
+                    onValueChange={(value) => setSubjectId(value ?? "")}
+                    value={subjectId}
+                  >
                     <SelectTrigger
                       className={errorClassName(Boolean(errors.subjectId))}
                       id="subjectId"
@@ -348,7 +351,10 @@ export const CreateClassForm = ({
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="level">Level *</Label>
-                  <Select onValueChange={setLevelId} value={levelId}>
+                  <Select
+                    onValueChange={(value) => setLevelId(value ?? "")}
+                    value={levelId}
+                  >
                     <SelectTrigger
                       className={errorClassName(Boolean(errors.levelId))}
                       id="level"
@@ -391,7 +397,10 @@ export const CreateClassForm = ({
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="academicYear">Academic Year *</Label>
-                  <Select onValueChange={setAcademicYear} value={academicYear}>
+                  <Select
+                    onValueChange={(value) => setAcademicYear(value ?? "")}
+                    value={academicYear}
+                  >
                     <SelectTrigger id="academicYear">
                       <SelectValue />
                     </SelectTrigger>
@@ -503,8 +512,8 @@ export const CreateClassForm = ({
               </Card>
 
               <div className="flex justify-end gap-2">
-                <Button asChild variant="outline">
-                  <a href="/classes">Cancel</a>
+                <Button variant="outline" render={<a href="/classes" />}>
+                  Cancel
                 </Button>
                 <SubmitButton />
               </div>
@@ -607,7 +616,10 @@ export const CreateClassForm = ({
           <CardContent className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="teacherId">Main Teacher *</Label>
-              <Select onValueChange={setTeacherId} value={teacherId}>
+              <Select
+                onValueChange={(value) => setTeacherId(value ?? "")}
+                value={teacherId}
+              >
                 <SelectTrigger
                   className={errorClassName(Boolean(errors.teacherId))}
                   id="teacherId"

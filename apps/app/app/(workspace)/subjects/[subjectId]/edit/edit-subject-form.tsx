@@ -6,7 +6,7 @@ import { Label } from "@repo/design-system/components/ui/label";
 import { Textarea } from "@repo/design-system/components/ui/textarea";
 import Link from "next/link";
 import { useActionState, useEffect } from "react";
-import { toast } from "sonner";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import { updateSubject } from "../../actions";
 
 interface EditSubjectFormProperties {
@@ -30,7 +30,7 @@ export const EditSubjectForm = ({
 
   useEffect(() => {
     if (state.error) {
-      toast.error(state.error);
+      toastManager.add({ title: state.error, type: "error" });
     }
   }, [state.error]);
 
@@ -66,8 +66,11 @@ export const EditSubjectForm = ({
         <Button disabled={isPending} type="submit">
           Save changes
         </Button>
-        <Button asChild variant="outline">
-          <Link href={`/subjects/${subjectId}`}>Cancel</Link>
+        <Button
+          variant="outline"
+          render={<Link href={`/subjects/${subjectId}`} />}
+        >
+          Cancel
         </Button>
       </div>
     </form>

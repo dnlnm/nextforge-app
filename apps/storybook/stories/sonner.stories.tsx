@@ -1,14 +1,14 @@
-import { Toaster } from "@repo/design-system/components/ui/sonner";
+import { ToastProvider } from "@repo/design-system/components/ui/toast";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import type { Meta, StoryObj } from "@storybook/react";
-import { toast } from "sonner";
 import { action } from "storybook/actions";
 
 /**
  * An opinionated toast component for React.
  */
-const meta: Meta<typeof Toaster> = {
-  title: "ui/Sonner",
-  component: Toaster,
+const meta: Meta<typeof ToastProvider> = {
+  title: "ui/Toast",
+  component: ToastProvider,
   tags: ["autodocs"],
   argTypes: {},
   args: {
@@ -17,7 +17,7 @@ const meta: Meta<typeof Toaster> = {
   parameters: {
     layout: "fullscreen",
   },
-} satisfies Meta<typeof Toaster>;
+} satisfies Meta<typeof ToastProvider>;
 
 export default meta;
 
@@ -31,11 +31,12 @@ export const Default: Story = {
     <div className="flex min-h-96 items-center justify-center space-x-2">
       <button
         onClick={() =>
-          toast("Event has been created", {
+          toastManager.add({
+            title: "Event has been created",
             description: new Date().toLocaleString(),
-            action: {
-              label: "Undo",
-              onClick: action("Undo clicked"),
+            actionProps: {
+              children: "Undo",
+              onClick: () => action("Undo clicked")(),
             },
           })
         }
@@ -43,7 +44,7 @@ export const Default: Story = {
       >
         Show Toast
       </button>
-      <Toaster {...args} />
+      <ToastProvider {...args} />
     </div>
   ),
 };

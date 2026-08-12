@@ -59,13 +59,16 @@ const SettingsPage = async () => {
                   {appName} portal.
                 </p>
               </div>
-              <Button asChild variant="secondary">
-                <Link
-                  href={`${getMainDomainUrl()}/centres/${tenant.organizationId}/settings`}
-                >
-                  Open centre portal
-                  <ArrowUpRightIcon className="ml-2 size-4" />
-                </Link>
+              <Button
+                variant="secondary"
+                render={
+                  <Link
+                    href={`${getMainDomainUrl()}/centres/${tenant.organizationId}/settings`}
+                  />
+                }
+              >
+                Open centre portal
+                <ArrowUpRightIcon className="ml-2 size-4" />
               </Button>
             </CardContent>
           </Card>
@@ -90,8 +93,11 @@ const SettingsPage = async () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button asChild variant="secondary">
-              <Link href="/academic-levels">Manage academic levels</Link>
+            <Button
+              variant="secondary"
+              render={<Link href="/academic-levels" />}
+            >
+              Manage academic levels
             </Button>
           </CardContent>
         </Card>

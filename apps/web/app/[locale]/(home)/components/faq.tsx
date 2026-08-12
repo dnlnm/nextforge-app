@@ -30,16 +30,17 @@ export const FAQ = ({ dictionary, locale }: FAQProps) => (
               </p>
             </div>
             <div className="">
-              <Button asChild className="gap-4" variant="outline">
-                <Link href={localizePath(locale, "/contact")}>
-                  {dictionary.web.home.faq.cta}{" "}
-                  <PhoneCall className="h-4 w-4" />
-                </Link>
+              <Button
+                className="gap-4"
+                variant="outline"
+                render={<Link href={localizePath(locale, "/contact")} />}
+              >
+                {dictionary.web.home.faq.cta} <PhoneCall className="h-4 w-4" />
               </Button>
             </div>
           </div>
         </div>
-        <Accordion className="w-full" collapsible type="single">
+        <Accordion className="w-full">
           {dictionary.web.home.faq.items.map((item) => (
             <AccordionItem key={item.question} value={item.question}>
               <AccordionTrigger>{item.question}</AccordionTrigger>

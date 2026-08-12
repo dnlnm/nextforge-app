@@ -5,7 +5,7 @@ import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import { updateEmail } from "./actions";
 
 interface EmailFormProps {
@@ -23,14 +23,18 @@ export const EmailForm = ({ defaultEmail }: EmailFormProps) => {
 
     try {
       await updateEmail(email);
-      toast.success(
-        "Confirmation email sent. Check your inbox to complete the change."
-      );
+      toastManager.add({
+        title:
+          "Confirmation email sent. Check your inbox to complete the change.",
+        type: "success",
+      });
       router.refresh();
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update email"
-      );
+      toastManager.add({
+        title:
+          error instanceof Error ? error.message : "Failed to update email",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }

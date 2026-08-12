@@ -94,11 +94,9 @@ const CenterSetupPage = async () => {
                 You can still be invited as a teacher or admin to other centres.
                 Contact support if you need additional centres.
               </p>
-              <Button asChild className="w-full">
-                <Link href="/centres">
-                  <ArrowLeftIcon className="mr-2 size-4" />
-                  Back to Centres
-                </Link>
+              <Button className="w-full" render={<Link href="/centres" />}>
+                <ArrowLeftIcon className="mr-2 size-4" />
+                Back to Centres
               </Button>
             </CardContent>
           </Card>

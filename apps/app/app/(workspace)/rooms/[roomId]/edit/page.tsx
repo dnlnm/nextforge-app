@@ -84,8 +84,8 @@ const EditRoomPage = async ({ params }: EditRoomPageProperties) => {
               </div>
               <div className="flex gap-2">
                 <Button type="submit">Save changes</Button>
-                <Button asChild variant="outline">
-                  <Link href="/rooms">Cancel</Link>
+                <Button variant="outline" render={<Link href="/rooms" />}>
+                  Cancel
                 </Button>
               </div>
             </form>

@@ -23,17 +23,19 @@ export const CTA = ({ dictionary, locale }: CTAProps) => (
           </p>
         </div>
         <div className="flex flex-row gap-4">
-          <Button asChild className="gap-4" variant="outline">
-            <Link href={localizePath(locale, "/contact")}>
-              {dictionary.web.global.primaryCta}{" "}
-              <PhoneCall className="h-4 w-4" />
-            </Link>
+          <Button
+            className="gap-4"
+            variant="outline"
+            render={<Link href={localizePath(locale, "/contact")} />}
+          >
+            {dictionary.web.global.primaryCta} <PhoneCall className="h-4 w-4" />
           </Button>
-          <Button asChild className="gap-4">
-            <Link href={env.NEXT_PUBLIC_APP_URL}>
-              {dictionary.web.global.secondaryCta}{" "}
-              <MoveRight className="h-4 w-4" />
-            </Link>
+          <Button
+            className="gap-4"
+            render={<Link href={env.NEXT_PUBLIC_APP_URL} />}
+          >
+            {dictionary.web.global.secondaryCta}{" "}
+            <MoveRight className="h-4 w-4" />
           </Button>
         </div>
       </div>

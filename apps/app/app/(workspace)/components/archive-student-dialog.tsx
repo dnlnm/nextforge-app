@@ -2,17 +2,17 @@
 
 import {
   AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
+  AlertDialogClose,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@repo/design-system/components/ui/alert-dialog";
+import { Button } from "@repo/design-system/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { toast } from "sonner";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import { archiveStudent } from "@/app/(workspace)/students/actions";
 
 export const ArchiveStudentDialog = ({
@@ -35,16 +35,24 @@ export const ArchiveStudentDialog = ({
       try {
         await archiveStudent(formData);
         onOpenChange(false);
-        toast.success("Student archived", {
-          description: "The student and their enrollments were archived.",
+        toastManager.add({
+          ...{
+            description: "The student and their enrollments were archived.",
+          },
+          title: "Student archived",
+          type: "success",
         });
         router.refresh();
       } catch (error) {
         const message =
           error instanceof Error ? error.message : "Failed to archive student";
 
-        toast.error("Could not archive student", {
-          description: message,
+        toastManager.add({
+          ...{
+            description: message,
+          },
+          title: "Could not archive student",
+          type: "error",
         });
       }
     });
@@ -61,16 +69,14 @@ export const ArchiveStudentDialog = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            disabled={isPending}
-            onClick={(event) => {
-              event.preventDefault();
-              handleArchive();
-            }}
+          <AlertDialogClose
+            render={<Button variant="ghost" disabled={isPending} />}
           >
+            Cancel
+          </AlertDialogClose>
+          <Button disabled={isPending} onClick={() => handleArchive()}>
             {isPending ? "Archiving..." : "Archive"}
-          </AlertDialogAction>
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

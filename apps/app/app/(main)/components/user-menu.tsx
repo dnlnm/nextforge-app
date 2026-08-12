@@ -46,24 +46,30 @@ export const UserMenu = ({ userId }: UserMenuProperties) => {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          aria-label="Account menu"
-          className="relative size-9 rounded-full"
-          variant="ghost"
-        >
-          <Avatar className="size-9">
-            <AvatarImage
-              alt={email ?? "Account"}
-              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
-                email ?? "U"
-              )}&background=6366f1&color=fff`}
-            />
-            <AvatarFallback>{initials(email ?? "U")}</AvatarFallback>
-          </Avatar>
-        </Button>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            aria-label="Account menu"
+            className="relative size-9 rounded-full"
+            variant="ghost"
+          />
+        }
+      >
+        <Avatar className="size-9">
+          <AvatarImage
+            alt={email ?? "Account"}
+            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+              email ?? "U"
+            )}&background=6366f1&color=fff`}
+          />
+          <AvatarFallback>{initials(email ?? "U")}</AvatarFallback>
+        </Avatar>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56" forceMount>
+      <DropdownMenuContent
+        align="end"
+        className="w-56"
+        portalProps={{ keepMounted: true }}
+      >
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="font-medium text-sm leading-none">
@@ -75,16 +81,16 @@ export const UserMenu = ({ userId }: UserMenuProperties) => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <a className="cursor-pointer" href="/account">
-            <UserIcon />
-            Account Settings
-          </a>
+        <DropdownMenuItem
+          render={<a className="cursor-pointer" href="/account" />}
+        >
+          <UserIcon />
+          Account Settings
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="cursor-pointer text-destructive"
-          onSelect={signOut}
+          onClick={() => signOut()}
         >
           <LogOutIcon />
           Sign Out

@@ -85,16 +85,14 @@ const ImportDetailPage = async ({
               Created {studentImport.createdAt.toLocaleString("en-MY")}
             </p>
           </div>
-          <Button asChild variant="outline">
-            <Link href="/students/import">
-              <ArrowLeftIcon className="size-4" />
-              Import History
-            </Link>
+          <Button variant="outline" render={<Link href="/students/import" />}>
+            <ArrowLeftIcon className="size-4" />
+            Import History
           </Button>
         </div>
         <ImportStepper current={currentStep} />
         {studentImport.status === "FAILED" && (
-          <Alert variant="destructive">
+          <Alert variant="error">
             <AlertTitle>Import failed</AlertTitle>
             <AlertDescription>
               {studentImport.failureMessage ??
@@ -145,15 +143,18 @@ const ImportDetailPage = async ({
             {terminalStatuses.has(studentImport.status) && (
               <div className="flex flex-wrap justify-end gap-2">
                 {hasErrors && (
-                  <Button asChild variant="outline">
-                    <Link href={`/students/import/${importId}/errors`}>
-                      <DownloadIcon className="size-4" />
-                      Download Error Report
-                    </Link>
+                  <Button
+                    variant="outline"
+                    render={
+                      <Link href={`/students/import/${importId}/errors`} />
+                    }
+                  >
+                    <DownloadIcon className="size-4" />
+                    Download Error Report
                   </Button>
                 )}
-                <Button asChild>
-                  <Link href="/students">Back to Students</Link>
+                <Button render={<Link href="/students" />}>
+                  Back to Students
                 </Button>
               </div>
             )}
@@ -199,11 +200,14 @@ const ImportDetailPage = async ({
               </Table>
               {hasErrors && (
                 <div className="mt-4 flex justify-end">
-                  <Button asChild variant="outline">
-                    <Link href={`/students/import/${importId}/errors`}>
-                      <DownloadIcon className="size-4" />
-                      Download All Errors
-                    </Link>
+                  <Button
+                    variant="outline"
+                    render={
+                      <Link href={`/students/import/${importId}/errors`} />
+                    }
+                  >
+                    <DownloadIcon className="size-4" />
+                    Download All Errors
                   </Button>
                 </div>
               )}

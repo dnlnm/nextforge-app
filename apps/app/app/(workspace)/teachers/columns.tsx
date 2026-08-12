@@ -192,29 +192,33 @@ export const columns: DataTableColumnDef<Teacher>[] = [
     cell: ({ row }) => (
       <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button aria-label="Row actions" size="icon" variant="ghost">
-              <MoreHorizontalIcon className="size-4" />
-            </Button>
+          <DropdownMenuTrigger
+            render={
+              <Button aria-label="Row actions" size="icon" variant="ghost" />
+            }
+          >
+            <MoreHorizontalIcon className="size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-44">
-            <DropdownMenuItem asChild>
-              <Link href={`/teachers?teacherId=${row.original.id}`}>
-                <EyeIcon />
-                View profile
-              </Link>
+            <DropdownMenuItem
+              render={<Link href={`/teachers?teacherId=${row.original.id}`} />}
+            >
+              <EyeIcon />
+              View profile
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link
-                href={
-                  row.original.phone
-                    ? `https://wa.me/${row.original.phone}`
-                    : "#"
-                }
-              >
-                <MessageCircleIcon />
-                WhatsApp
-              </Link>
+            <DropdownMenuItem
+              render={
+                <Link
+                  href={
+                    row.original.phone
+                      ? `https://wa.me/${row.original.phone}`
+                      : "#"
+                  }
+                />
+              }
+            >
+              <MessageCircleIcon />
+              WhatsApp
             </DropdownMenuItem>
             <DropdownMenuItem className="text-destructive focus:text-destructive">
               <form

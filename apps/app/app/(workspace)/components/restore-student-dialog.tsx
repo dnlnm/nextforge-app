@@ -2,17 +2,17 @@
 
 import {
   AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
+  AlertDialogClose,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@repo/design-system/components/ui/alert-dialog";
+import { Button } from "@repo/design-system/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { toast } from "sonner";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import { restoreStudent } from "@/app/(workspace)/students/actions";
 
 export const RestoreStudentDialog = ({
@@ -35,16 +35,24 @@ export const RestoreStudentDialog = ({
       try {
         await restoreStudent(formData);
         onOpenChange(false);
-        toast.success("Student restored", {
-          description: "The student is active again.",
+        toastManager.add({
+          ...{
+            description: "The student is active again.",
+          },
+          title: "Student restored",
+          type: "success",
         });
         router.refresh();
       } catch (error) {
         const message =
           error instanceof Error ? error.message : "Failed to restore student";
 
-        toast.error("Could not restore student", {
-          description: message,
+        toastManager.add({
+          ...{
+            description: message,
+          },
+          title: "Could not restore student",
+          type: "error",
         });
       }
     });
@@ -61,16 +69,14 @@ export const RestoreStudentDialog = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            disabled={isPending}
-            onClick={(event) => {
-              event.preventDefault();
-              handleRestore();
-            }}
+          <AlertDialogClose
+            render={<Button variant="ghost" disabled={isPending} />}
           >
+            Cancel
+          </AlertDialogClose>
+          <Button disabled={isPending} onClick={() => handleRestore()}>
             {isPending ? "Restoring..." : "Restore"}
-          </AlertDialogAction>
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

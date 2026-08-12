@@ -22,7 +22,7 @@ import {
 import { Loader2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
-import { toast } from "sonner";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import { enrollStudentAction } from "../../enrollment/actions";
 
 export interface EnrollableClass {
@@ -64,7 +64,10 @@ export const EnrollStudentDialog = ({
 
   const handleSubmit = () => {
     if (!classId) {
-      toast.error("Select a class to enroll the student into.");
+      toastManager.add({
+        title: "Select a class to enroll the student into.",
+        type: "error",
+      });
       return;
     }
 
@@ -81,14 +84,22 @@ export const EnrollStudentDialog = ({
       });
 
       if (result.error) {
-        toast.error("Could not enroll student", { description: result.error });
+        toastManager.add({
+          ...{ description: result.error },
+          title: "Could not enroll student",
+          type: "error",
+        });
         return;
       }
 
-      toast.success("Student enrolled", {
-        description: selectedClass
-          ? `Enrolled into ${selectedClass.name}.`
-          : undefined,
+      toastManager.add({
+        ...{
+          description: selectedClass
+            ? `Enrolled into ${selectedClass.name}.`
+            : undefined,
+        },
+        title: "Student enrolled",
+        type: "success",
       });
       onOpenChange(false);
       setClassId("");
@@ -110,7 +121,11 @@ export const EnrollStudentDialog = ({
         <form className="grid gap-4" ref={formRef}>
           <div className="grid gap-2">
             <Label htmlFor="class">Class</Label>
-            <Select name="classId" onValueChange={setClassId} value={classId}>
+            <Select
+              name="classId"
+              onValueChange={(value) => setClassId(value ?? "")}
+              value={classId}
+            >
               <SelectTrigger id="class">
                 <SelectValue placeholder="Select a class" />
               </SelectTrigger>

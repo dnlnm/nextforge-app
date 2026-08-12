@@ -60,11 +60,12 @@ const StudentImportPage = async () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button asChild variant="outline">
-                <a download href="/students/template">
-                  <DownloadIcon className="size-4" />
-                  Download Template
-                </a>
+              <Button
+                variant="outline"
+                render={<a download href="/students/template" />}
+              >
+                <DownloadIcon className="size-4" />
+                Download Template
               </Button>
             </CardContent>
           </Card>

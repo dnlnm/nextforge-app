@@ -41,15 +41,17 @@ export const LanguageSwitcher = () => {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          className="relative size-9 shrink-0 text-foreground"
-          size="icon"
-          variant="ghost"
-        >
-          <Languages className="h-[1.2rem] w-[1.2rem]" />
-          <span className="sr-only">Switch language</span>
-        </Button>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            className="relative size-9 shrink-0 text-foreground"
+            size="icon"
+            variant="ghost"
+          />
+        }
+      >
+        <Languages className="h-[1.2rem] w-[1.2rem]" />
+        <span className="sr-only">Switch language</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         {languages.map(({ label, value }) => (

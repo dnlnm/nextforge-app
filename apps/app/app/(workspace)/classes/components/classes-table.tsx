@@ -160,7 +160,7 @@ export const ClassesTable = ({ classes }: { classes: ClassTableItem[] }) => {
             <span className="text-muted-foreground text-xs">Subject</span>
             <Select
               onValueChange={(value) => {
-                setSubjectFilter(value);
+                setSubjectFilter(value ?? "");
                 setPage(0);
               }}
               value={subjectFilter}
@@ -182,7 +182,7 @@ export const ClassesTable = ({ classes }: { classes: ClassTableItem[] }) => {
             <span className="text-muted-foreground text-xs">Level</span>
             <Select
               onValueChange={(value) => {
-                setLevelFilter(value);
+                setLevelFilter(value ?? "");
                 setPage(0);
               }}
               value={levelFilter}
@@ -212,11 +212,9 @@ export const ClassesTable = ({ classes }: { classes: ClassTableItem[] }) => {
             <FilterIcon className="size-4" />
             Reset
           </Button>
-          <Button asChild className="ml-auto">
-            <Link href="/classes/new">
-              <PlusIcon className="size-4" />
-              Add New Class
-            </Link>
+          <Button className="ml-auto" render={<Link href="/classes/new" />}>
+            <PlusIcon className="size-4" />
+            Add New Class
           </Button>
         </div>
       </div>
@@ -295,10 +293,12 @@ export const ClassesTable = ({ classes }: { classes: ClassTableItem[] }) => {
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end">
-                    <Button asChild size="icon" variant="outline">
-                      <Link href={`/classes/${item.id}`}>
-                        <MoreHorizontalIcon className="size-4" />
-                      </Link>
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      render={<Link href={`/classes/${item.id}`} />}
+                    >
+                      <MoreHorizontalIcon className="size-4" />
                     </Button>
                   </div>
                 </TableCell>

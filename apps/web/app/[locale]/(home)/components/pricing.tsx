@@ -76,24 +76,24 @@ export const Pricing = ({
                     ))}
                   </div>
                   <Button
-                    asChild
                     className="gap-4"
                     variant={plan.highlighted ? "default" : "outline"}
+                    render={
+                      <Link
+                        href={
+                          planIndex === 2
+                            ? localizePath(locale, "/contact")
+                            : env.NEXT_PUBLIC_APP_URL
+                        }
+                      />
+                    }
                   >
-                    <Link
-                      href={
-                        planIndex === 2
-                          ? localizePath(locale, "/contact")
-                          : env.NEXT_PUBLIC_APP_URL
-                      }
-                    >
-                      {plan.cta}{" "}
-                      {planIndex === 2 ? (
-                        <PhoneCall className="h-4 w-4" />
-                      ) : (
-                        <MoveRight className="h-4 w-4" />
-                      )}
-                    </Link>
+                    {plan.cta}{" "}
+                    {planIndex === 2 ? (
+                      <PhoneCall className="h-4 w-4" />
+                    ) : (
+                      <MoveRight className="h-4 w-4" />
+                    )}
                   </Button>
                 </div>
               </CardContent>
@@ -101,11 +101,13 @@ export const Pricing = ({
           ))}
         </div>
         {showFullComparison && (
-          <Button asChild className="mt-10 gap-4" variant="outline">
-            <Link href={localizePath(locale, "/pricing")}>
-              {dictionary.web.home.pricing.fullComparison}
-              <MoveRight className="h-4 w-4" />
-            </Link>
+          <Button
+            className="mt-10 gap-4"
+            variant="outline"
+            render={<Link href={localizePath(locale, "/pricing")} />}
+          >
+            {dictionary.web.home.pricing.fullComparison}
+            <MoveRight className="h-4 w-4" />
           </Button>
         )}
       </div>

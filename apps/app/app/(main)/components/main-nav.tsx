@@ -207,15 +207,17 @@ export const MainNav = ({
 
       <div className="flex items-center gap-4">
         <Sheet onOpenChange={setMobileMenuOpen} open={mobileMenuOpen}>
-          <SheetTrigger asChild>
-            <Button
-              aria-label="Toggle menu"
-              className="lg:hidden"
-              size="icon"
-              variant="outline"
-            >
-              <Menu className="size-4" />
-            </Button>
+          <SheetTrigger
+            render={
+              <Button
+                aria-label="Toggle menu"
+                className="lg:hidden"
+                size="icon"
+                variant="outline"
+              />
+            }
+          >
+            <Menu className="size-4" />
           </SheetTrigger>
           <SheetContent className="overflow-y-auto">
             <SheetHeader>
@@ -235,11 +237,7 @@ export const MainNav = ({
                 My Centre
               </Link>
 
-              <Accordion
-                className="flex w-full flex-col gap-4"
-                collapsible
-                type="single"
-              >
+              <Accordion className="flex w-full flex-col gap-4">
                 <AccordionItem className="border-b-0" value="my-workspaces">
                   <AccordionTrigger className="py-0 font-semibold text-base hover:no-underline">
                     My Workspaces

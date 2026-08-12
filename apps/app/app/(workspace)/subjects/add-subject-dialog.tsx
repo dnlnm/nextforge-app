@@ -15,7 +15,7 @@ import { Label } from "@repo/design-system/components/ui/label";
 import { Textarea } from "@repo/design-system/components/ui/textarea";
 import { PlusIcon } from "lucide-react";
 import { useActionState, useEffect, useState } from "react";
-import { toast } from "sonner";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import { createSubject } from "./actions";
 
 export const AddSubjectDialog = () => {
@@ -35,17 +35,15 @@ export const AddSubjectDialog = () => {
 
   useEffect(() => {
     if (state.error) {
-      toast.error(state.error);
+      toastManager.add({ title: state.error, type: "error" });
     }
   }, [state.error]);
 
   return (
     <Dialog onOpenChange={setOpen} open={open}>
-      <DialogTrigger asChild>
-        <Button className="flex-1 md:flex-none">
-          <PlusIcon className="size-4" />
-          Add Subject
-        </Button>
+      <DialogTrigger render={<Button className="flex-1 md:flex-none" />}>
+        <PlusIcon className="size-4" />
+        Add Subject
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

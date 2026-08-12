@@ -21,7 +21,7 @@ import {
 import { Loader2Icon, UserPlusIcon, UsersRoundIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
-import { toast } from "sonner";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import {
   bulkEnrollStudentsAction,
   enrollStudentAction,
@@ -62,7 +62,7 @@ export const ClassEnrollmentActions = ({
 
   const handleSingleAdd = () => {
     if (!selectedStudentId) {
-      toast.error("Select a student to enroll.");
+      toastManager.add({ title: "Select a student to enroll.", type: "error" });
       return;
     }
 
@@ -73,11 +73,15 @@ export const ClassEnrollmentActions = ({
       });
 
       if (result.error) {
-        toast.error("Could not enroll student", { description: result.error });
+        toastManager.add({
+          ...{ description: result.error },
+          title: "Could not enroll student",
+          type: "error",
+        });
         return;
       }
 
-      toast.success("Student enrolled");
+      toastManager.add({ title: "Student enrolled", type: "success" });
       setIsAddOpen(false);
       setSelectedStudentId("");
       router.refresh();
@@ -86,7 +90,10 @@ export const ClassEnrollmentActions = ({
 
   const handleBulkAdd = () => {
     if (selectedIds.length === 0) {
-      toast.error("Select at least one student.");
+      toastManager.add({
+        title: "Select at least one student.",
+        type: "error",
+      });
       return;
     }
 
@@ -96,8 +103,12 @@ export const ClassEnrollmentActions = ({
         studentIds: selectedIds,
       });
 
-      toast.success("Bulk enrollment complete", {
-        description: `${result.enrolledCount} enrolled, ${result.skippedCount} skipped, ${result.failed.length} failed.`,
+      toastManager.add({
+        ...{
+          description: `${result.enrolledCount} enrolled, ${result.skippedCount} skipped, ${result.failed.length} failed.`,
+        },
+        title: "Bulk enrollment complete",
+        type: "success",
       });
       setIsBulkOpen(false);
       setSelectedIds([]);
@@ -131,7 +142,7 @@ export const ClassEnrollmentActions = ({
             <div className="grid gap-2">
               <Label htmlFor="student">Student</Label>
               <Select
-                onValueChange={setSelectedStudentId}
+                onValueChange={(value) => setSelectedStudentId(value ?? "")}
                 value={selectedStudentId}
               >
                 <SelectTrigger id="student">

@@ -54,16 +54,16 @@ export const SidebarUserMenu = () => {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button className="w-full justify-start gap-2 px-2" variant="ghost">
-          <Avatar className="size-8">
-            <AvatarFallback>{initials(email ?? "")}</AvatarFallback>
-          </Avatar>
-          <span className="flex-1 truncate text-left">
-            {email ?? "Account"}
-          </span>
-          <ChevronsUpDown className="ml-auto size-4 shrink-0" />
-        </Button>
+      <DropdownMenuTrigger
+        render={
+          <Button className="w-full justify-start gap-2 px-2" variant="ghost" />
+        }
+      >
+        <Avatar className="size-8">
+          <AvatarFallback>{initials(email ?? "")}</AvatarFallback>
+        </Avatar>
+        <span className="flex-1 truncate text-left">{email ?? "Account"}</span>
+        <ChevronsUpDown className="ml-auto size-4 shrink-0" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56" sideOffset={8}>
         <DropdownMenuLabel className="font-normal">
@@ -72,17 +72,15 @@ export const SidebarUserMenu = () => {
           </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <a href={`https://${getMainDomain()}/account`}>
-            <UserIcon />
-            Account
-          </a>
+        <DropdownMenuItem
+          render={<a href={`https://${getMainDomain()}/account`} />}
+        >
+          <UserIcon />
+          Account
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <a href="/billing">
-            <CreditCardIcon />
-            Subscription
-          </a>
+        <DropdownMenuItem render={<a href="/billing" />}>
+          <CreditCardIcon />
+          Subscription
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuSub>
@@ -105,7 +103,7 @@ export const SidebarUserMenu = () => {
           </DropdownMenuSubContent>
         </DropdownMenuSub>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={signOut}>
+        <DropdownMenuItem onClick={() => signOut()}>
           <LogOutIcon />
           Log out
         </DropdownMenuItem>

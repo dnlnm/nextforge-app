@@ -60,11 +60,12 @@ const RoomsPage = async () => {
               Manage classrooms and venues used by class schedules.
             </p>
           </div>
-          <Button asChild className="flex-1 md:flex-none">
-            <a href="#add-room">
-              <PlusIcon className="size-4" />
-              Add Room
-            </a>
+          <Button
+            className="flex-1 md:flex-none"
+            render={<a href="#add-room" />}
+          >
+            <PlusIcon className="size-4" />
+            Add Room
           </Button>
         </div>
 
@@ -157,10 +158,14 @@ const RoomsPage = async () => {
                           </TableCell>
                           <TableCell>
                             <div className="flex justify-end gap-2">
-                              <Button asChild size="sm" variant="outline">
-                                <Link href={`/rooms/${room.id}/edit`}>
-                                  Edit
-                                </Link>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                render={
+                                  <Link href={`/rooms/${room.id}/edit`} />
+                                }
+                              >
+                                Edit
                               </Button>
                               <form action={archiveRoom}>
                                 <input
@@ -168,7 +173,11 @@ const RoomsPage = async () => {
                                   type="hidden"
                                   value={room.id}
                                 />
-                                <Button size="sm" variant="outline">
+                                <Button
+                                  size="sm"
+                                  type="submit"
+                                  variant="outline"
+                                >
                                   Archive
                                 </Button>
                               </form>
@@ -213,7 +222,11 @@ const RoomsPage = async () => {
                                   type="hidden"
                                   value={room.id}
                                 />
-                                <Button size="sm" variant="outline">
+                                <Button
+                                  size="sm"
+                                  type="submit"
+                                  variant="outline"
+                                >
                                   Restore
                                 </Button>
                               </form>

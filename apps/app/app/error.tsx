@@ -36,15 +36,16 @@ const AppError = ({ error, reset }: AppErrorProperties) => {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-2">
-            <Button asChild>
-              <Link href={`https://${getMainDomain()}/centres`}>
-                Go to my centres
-              </Link>
+            <Button
+              render={<Link href={`https://${getMainDomain()}/centres`} />}
+            >
+              Go to my centres
             </Button>
-            <Button asChild variant="outline">
-              <Link href={`https://${getMainDomain()}/account`}>
-                Manage my account
-              </Link>
+            <Button
+              variant="outline"
+              render={<Link href={`https://${getMainDomain()}/account`} />}
+            >
+              Manage my account
             </Button>
           </CardContent>
         </Card>
@@ -63,10 +64,11 @@ const AppError = ({ error, reset }: AppErrorProperties) => {
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
           <Button onClick={reset}>Try again</Button>
-          <Button asChild variant="outline">
-            <Link href={`https://${getMainDomain()}/centres`}>
-              Go to my centres
-            </Link>
+          <Button
+            variant="outline"
+            render={<Link href={`https://${getMainDomain()}/centres`} />}
+          >
+            Go to my centres
           </Button>
         </CardContent>
       </Card>

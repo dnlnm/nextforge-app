@@ -8,7 +8,7 @@ import { Label } from "@repo/design-system/components/ui/label";
 import { CheckCircle2Icon, Loader2Icon, XCircleIcon } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import { checkSlugAvailability, createCentre } from "./actions";
 
 const deriveSlug = (name: string) =>
@@ -81,12 +81,17 @@ export const CenterSetupForm = () => {
     try {
       const result = await createCentre({ name: name.trim(), slug, imageUrl });
       const workspaceUrl = buildWorkspaceUrl(result.slug);
-      toast.success("Centre created successfully!");
+      toastManager.add({
+        title: "Centre created successfully!",
+        type: "success",
+      });
       window.location.href = workspaceUrl;
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to create centre"
-      );
+      toastManager.add({
+        title:
+          error instanceof Error ? error.message : "Failed to create centre",
+        type: "error",
+      });
       setLoading(false);
     }
   };

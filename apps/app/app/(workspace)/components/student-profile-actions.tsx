@@ -36,37 +36,27 @@ export const StudentProfileActions = ({
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline">
-            <MoreHorizontalIcon className="size-4" />
-            More
-          </Button>
+        <DropdownMenuTrigger render={<Button variant="outline" />}>
+          <MoreHorizontalIcon className="size-4" />
+          More
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-44">
-          <DropdownMenuItem asChild>
-            <Link href={`/students/${studentId}/edit`}>
-              <Edit3Icon />
-              Edit profile
-            </Link>
+          <DropdownMenuItem
+            render={<Link href={`/students/${studentId}/edit`} />}
+          >
+            <Edit3Icon />
+            Edit profile
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           {isArchived ? (
-            <DropdownMenuItem
-              onSelect={(event) => {
-                event.preventDefault();
-                setIsRestoreOpen(true);
-              }}
-            >
+            <DropdownMenuItem onClick={() => setIsRestoreOpen(true)}>
               <RotateCcwIcon />
               Restore
             </DropdownMenuItem>
           ) : (
             <DropdownMenuItem
               className="text-destructive focus:text-destructive"
-              onSelect={(event) => {
-                event.preventDefault();
-                setIsArchiveOpen(true);
-              }}
+              onClick={() => setIsArchiveOpen(true)}
             >
               <ArchiveIcon />
               Archive
@@ -74,10 +64,7 @@ export const StudentProfileActions = ({
           )}
           <DropdownMenuItem
             className="text-destructive focus:text-destructive"
-            onSelect={(event) => {
-              event.preventDefault();
-              setIsDeleteOpen(true);
-            }}
+            onClick={() => setIsDeleteOpen(true)}
           >
             <Trash2Icon />
             Delete student

@@ -22,7 +22,7 @@ import {
 import { Loader2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
-import { toast } from "sonner";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import { transferStudentAction } from "../../enrollment/actions";
 import type { EnrollableClass } from "./enroll-student-dialog";
 
@@ -59,12 +59,18 @@ export const TransferStudentDialog = ({
 
   const handleSubmit = () => {
     if (!sourceEnrollmentId) {
-      toast.error("Select the current enrollment to transfer.");
+      toastManager.add({
+        title: "Select the current enrollment to transfer.",
+        type: "error",
+      });
       return;
     }
 
     if (!destinationClassId) {
-      toast.error("Select the destination class.");
+      toastManager.add({
+        title: "Select the destination class.",
+        type: "error",
+      });
       return;
     }
 
@@ -83,14 +89,22 @@ export const TransferStudentDialog = ({
       });
 
       if (result.error) {
-        toast.error("Could not transfer student", {
-          description: result.error,
+        toastManager.add({
+          ...{
+            description: result.error,
+          },
+          title: "Could not transfer student",
+          type: "error",
         });
         return;
       }
 
-      toast.success("Student transferred", {
-        description: "The enrollment was moved to the destination class.",
+      toastManager.add({
+        ...{
+          description: "The enrollment was moved to the destination class.",
+        },
+        title: "Student transferred",
+        type: "success",
       });
       onOpenChange(false);
       setSourceEnrollmentId("");
@@ -118,7 +132,7 @@ export const TransferStudentDialog = ({
               <Label htmlFor="source">Current class</Label>
               <Select
                 name="sourceEnrollmentId"
-                onValueChange={setSourceEnrollmentId}
+                onValueChange={(value) => setSourceEnrollmentId(value ?? "")}
                 value={sourceEnrollmentId}
               >
                 <SelectTrigger id="source">
@@ -138,7 +152,7 @@ export const TransferStudentDialog = ({
               <Label htmlFor="destination">Destination class</Label>
               <Select
                 name="destinationClassId"
-                onValueChange={setDestinationClassId}
+                onValueChange={(value) => setDestinationClassId(value ?? "")}
                 value={destinationClassId}
               >
                 <SelectTrigger id="destination">

@@ -5,7 +5,7 @@ import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import { updatePassword } from "./actions";
 
 export const PasswordForm = () => {
@@ -20,22 +20,24 @@ export const PasswordForm = () => {
     setLoading(true);
 
     if (newPassword !== confirmPassword) {
-      toast.error("New passwords do not match.");
+      toastManager.add({ title: "New passwords do not match.", type: "error" });
       setLoading(false);
       return;
     }
 
     try {
       await updatePassword(currentPassword, newPassword);
-      toast.success("Password updated");
+      toastManager.add({ title: "Password updated", type: "success" });
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
       router.refresh();
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update password"
-      );
+      toastManager.add({
+        title:
+          error instanceof Error ? error.message : "Failed to update password",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }

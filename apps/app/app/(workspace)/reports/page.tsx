@@ -96,8 +96,12 @@ const ReportsPage = async () => {
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
             {exports.map(([kind, label]) => (
-              <Button asChild key={kind} variant="outline">
-                <Link href={`/reports/exports/${kind}`}>{label}</Link>
+              <Button
+                key={kind}
+                variant="outline"
+                render={<Link href={`/reports/exports/${kind}`} />}
+              >
+                {label}
               </Button>
             ))}
           </CardContent>

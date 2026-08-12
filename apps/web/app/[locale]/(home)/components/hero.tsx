@@ -37,11 +37,13 @@ export const Hero = ({ dictionary, locale }: HeroProps) => {
               {meta.description}
             </p>
             <div className="flex flex-col items-center gap-3 pt-3 pb-12">
-              <Button size="lg" asChild className="w-full sm:w-auto">
-                <a href={localizePath(locale, "/contact")}>
-                  {global.primaryCta}
-                  <ArrowRight className="size-4" />
-                </a>
+              <Button
+                size="lg"
+                className="w-full sm:w-auto"
+                render={<a href={localizePath(locale, "/contact")} />}
+              >
+                {global.primaryCta}
+                <ArrowRight className="size-4" />
               </Button>
               <div className="text-center text-sm text-muted-foreground">
                 {hero.announcement}

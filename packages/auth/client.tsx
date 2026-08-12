@@ -46,13 +46,18 @@ export const UserButton = ({ showName = false }: { showName?: boolean }) => {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button className="max-w-full justify-start truncate" variant="ghost">
-          {showName ? (email ?? "Account") : "Account"}
-        </Button>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            className="max-w-full justify-start truncate"
+            variant="ghost"
+          />
+        }
+      >
+        {showName ? (email ?? "Account") : "Account"}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
-        <DropdownMenuItem onSelect={async () => signOut()}>
+        <DropdownMenuItem onClick={async () => signOut()}>
           Sign out
         </DropdownMenuItem>
       </DropdownMenuContent>

@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { toast } from "sonner";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import { validateStudentImport } from "./actions";
 import { MAX_IMPORT_BYTES } from "./lib/workbook";
 
@@ -29,11 +29,14 @@ export const StudentImportUpload = () => {
       return;
     }
     if (!selected.name.toLowerCase().endsWith(".xlsx")) {
-      toast.error("Select an .xlsx workbook.");
+      toastManager.add({ title: "Select an .xlsx workbook.", type: "error" });
       return;
     }
     if (selected.size > MAX_IMPORT_BYTES) {
-      toast.error("The workbook exceeds the 10 MiB limit.");
+      toastManager.add({
+        title: "The workbook exceeds the 10 MiB limit.",
+        type: "error",
+      });
       return;
     }
     setFile(selected);
@@ -72,15 +75,17 @@ export const StudentImportUpload = () => {
       if (result.error) {
         throw new Error(result.error);
       }
-      toast.success("Workbook validated.");
+      toastManager.add({ title: "Workbook validated.", type: "success" });
       router.push(`/students/import/${signed.importId}`);
       router.refresh();
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "The import could not be prepared."
-      );
+      toastManager.add({
+        title:
+          error instanceof Error
+            ? error.message
+            : "The import could not be prepared.",
+        type: "error",
+      });
     } finally {
       setPending(false);
     }

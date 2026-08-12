@@ -360,7 +360,7 @@ const FilterSelect = ({
 }) => (
   <div className="grid gap-1.5">
     <Label className="text-xs">{label}</Label>
-    <Select onValueChange={onChange} value={value}>
+    <Select onValueChange={(v) => onChange(v ?? "")} value={value}>
       <SelectTrigger>
         <SelectValue />
       </SelectTrigger>

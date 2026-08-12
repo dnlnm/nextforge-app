@@ -207,10 +207,12 @@ const ClassPage = async ({ params }: ClassPageProperties) => {
           </Badge>
           <Badge variant="secondary">{learningClass.subject.name}</Badge>
           {learningClass.teacher ? (
-            <Button asChild size="sm" variant="link">
-              <Link href={`/teachers/${learningClass.teacher.id}`}>
-                {learningClass.teacher.fullName}
-              </Link>
+            <Button
+              size="sm"
+              variant="link"
+              render={<Link href={`/teachers/${learningClass.teacher.id}`} />}
+            >
+              {learningClass.teacher.fullName}
             </Button>
           ) : null}
         </div>
@@ -317,10 +319,16 @@ const ClassPage = async ({ params }: ClassPageProperties) => {
                       {learningClass.enrollments.map((enrollment) => (
                         <TableRow key={enrollment.id}>
                           <TableCell>
-                            <Button asChild size="sm" variant="link">
-                              <Link href={`/students/${enrollment.student.id}`}>
-                                {enrollment.student.fullName}
-                              </Link>
+                            <Button
+                              size="sm"
+                              variant="link"
+                              render={
+                                <Link
+                                  href={`/students/${enrollment.student.id}`}
+                                />
+                              }
+                            >
+                              {enrollment.student.fullName}
                             </Button>
                           </TableCell>
                           <TableCell>

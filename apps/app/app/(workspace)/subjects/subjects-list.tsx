@@ -165,18 +165,24 @@ const SubjectDetail = ({ subject }: { readonly subject: SubjectSummary }) => (
     ) : null}
 
     <div className="flex flex-wrap gap-2 pt-1">
-      <Button asChild size="sm" variant="outline">
-        <Link href={`/subjects/${subject.id}`}>View profile</Link>
+      <Button
+        size="sm"
+        variant="outline"
+        render={<Link href={`/subjects/${subject.id}`} />}
+      >
+        View profile
       </Button>
-      <Button asChild size="sm" variant="outline">
-        <Link href={`/subjects/${subject.id}/edit`}>
-          <Edit3Icon className="size-4" />
-          Edit
-        </Link>
+      <Button
+        size="sm"
+        variant="outline"
+        render={<Link href={`/subjects/${subject.id}/edit`} />}
+      >
+        <Edit3Icon className="size-4" />
+        Edit
       </Button>
       <form action={archiveSubject}>
         <input name="subjectId" type="hidden" value={subject.id} />
-        <Button size="sm" variant="outline">
+        <Button size="sm" type="submit" variant="outline">
           Archive
         </Button>
       </form>
@@ -247,7 +253,7 @@ const SubjectsList = ({
       {filtered.length === 0 ? (
         <EmptyState query={query} />
       ) : (
-        <Accordion className="px-4" collapsible type="single">
+        <Accordion className="px-4">
           {filtered.map((subject) => (
             <AccordionItem key={subject.id} value={subject.id}>
               <AccordionTrigger className="items-center gap-4 py-3 hover:no-underline">

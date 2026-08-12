@@ -342,8 +342,12 @@ const AddTeacherPage = async () => {
             </Card>
 
             <div className="grid grid-cols-2 gap-3">
-              <Button asChild size="lg" variant="outline">
-                <Link href="/teachers">Cancel</Link>
+              <Button
+                size="lg"
+                variant="outline"
+                render={<Link href="/teachers" />}
+              >
+                Cancel
               </Button>
               <Button size="lg" type="submit">
                 Save Teacher

@@ -85,21 +85,24 @@ export const Header = ({ dictionary, locale }: HeaderProps) => {
               {navigationItems.map((item) => (
                 <NavigationMenuItem key={item.title}>
                   <NavigationMenuLink asChild>
-                    <Button asChild variant="ghost">
-                      <Link
-                        href={item.href}
-                        onClick={(event) => handleHashClick(event, item.href)}
-                        rel={
-                          item.href.startsWith("http")
-                            ? "noopener noreferrer"
-                            : undefined
-                        }
-                        target={
-                          item.href.startsWith("http") ? "_blank" : undefined
-                        }
-                      >
-                        {item.title}
-                      </Link>
+                    <Button
+                      variant="ghost"
+                      render={
+                        <Link
+                          href={item.href}
+                          onClick={(event) => handleHashClick(event, item.href)}
+                          rel={
+                            item.href.startsWith("http")
+                              ? "noopener noreferrer"
+                              : undefined
+                          }
+                          target={
+                            item.href.startsWith("http") ? "_blank" : undefined
+                          }
+                        />
+                      }
+                    >
+                      {item.title}
                     </Button>
                   </NavigationMenuLink>
                 </NavigationMenuItem>
@@ -114,34 +117,43 @@ export const Header = ({ dictionary, locale }: HeaderProps) => {
           <p className="whitespace-nowrap font-semibold">{appName}</p>
         </div>
         <div className="flex w-full items-center justify-end gap-3 lg:w-auto lg:gap-2">
-          <Button asChild className="hidden lg:inline-flex" variant="ghost">
-            <Link href={localizePath(locale, "/contact")}>
-              {dictionary.web.header.contact}
-            </Link>
+          <Button
+            className="hidden lg:inline-flex"
+            variant="ghost"
+            render={<Link href={localizePath(locale, "/contact")} />}
+          >
+            {dictionary.web.header.contact}
           </Button>
-          <Button asChild className="hidden lg:inline-flex" variant="ghost">
-            <Link
-              href={localizePath(locale, "/#faq")}
-              onClick={(event) =>
-                handleHashClick(event, localizePath(locale, "/#faq"))
-              }
-            >
-              {dictionary.web.header.faq}
-            </Link>
+          <Button
+            className="hidden lg:inline-flex"
+            variant="ghost"
+            render={
+              <Link
+                href={localizePath(locale, "/#faq")}
+                onClick={(event) =>
+                  handleHashClick(event, localizePath(locale, "/#faq"))
+                }
+              />
+            }
+          >
+            {dictionary.web.header.faq}
           </Button>
           <div className="hidden items-center gap-1 lg:flex">
             <LanguageSwitcher />
             <ModeToggle />
           </div>
-          <Button asChild className="hidden lg:inline-flex" variant="outline">
-            <Link href={`${env.NEXT_PUBLIC_APP_URL}/sign-in`}>
-              {dictionary.web.header.signIn}
-            </Link>
+          <Button
+            className="hidden lg:inline-flex"
+            variant="outline"
+            render={<Link href={`${env.NEXT_PUBLIC_APP_URL}/sign-in`} />}
+          >
+            {dictionary.web.header.signIn}
           </Button>
-          <Button asChild className="lg:inline-flex">
-            <Link href={`${env.NEXT_PUBLIC_APP_URL}/sign-up`}>
-              {dictionary.web.header.signUp}
-            </Link>
+          <Button
+            className="lg:inline-flex"
+            render={<Link href={`${env.NEXT_PUBLIC_APP_URL}/sign-up`} />}
+          >
+            {dictionary.web.header.signUp}
           </Button>
         </div>
         <div className="flex w-12 shrink items-end justify-end lg:hidden">

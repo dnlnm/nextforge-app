@@ -59,49 +59,43 @@ export const StudentRowActions = ({ student }: { student: Student }) => {
   return (
     <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button aria-label="Row actions" size="icon" variant="ghost">
-            <MoreHorizontalIcon className="size-4" />
-          </Button>
+        <DropdownMenuTrigger
+          render={
+            <Button aria-label="Row actions" size="icon" variant="ghost" />
+          }
+        >
+          <MoreHorizontalIcon className="size-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-44">
-          <DropdownMenuItem asChild>
-            <Link href={`/students/${student.id}`}>
-              <EyeIcon />
-              View profile
-            </Link>
+          <DropdownMenuItem render={<Link href={`/students/${student.id}`} />}>
+            <EyeIcon />
+            View profile
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href={`/students/${student.id}/edit`}>
-              <Edit3Icon />
-              Edit
-            </Link>
+          <DropdownMenuItem
+            render={<Link href={`/students/${student.id}/edit`} />}
+          >
+            <Edit3Icon />
+            Edit
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link
-              href={guardian?.phone ? `https://wa.me/${guardian.phone}` : "#"}
-            >
-              <MessageCircleIcon />
-              WhatsApp
-            </Link>
+          <DropdownMenuItem
+            render={
+              <Link
+                href={guardian?.phone ? `https://wa.me/${guardian.phone}` : "#"}
+              />
+            }
+          >
+            <MessageCircleIcon />
+            WhatsApp
           </DropdownMenuItem>
           {isArchived ? (
-            <DropdownMenuItem
-              onSelect={(event) => {
-                event.preventDefault();
-                setIsRestoreOpen(true);
-              }}
-            >
+            <DropdownMenuItem onClick={() => setIsRestoreOpen(true)}>
               <RotateCcwIcon />
               Restore
             </DropdownMenuItem>
           ) : (
             <DropdownMenuItem
               className="text-destructive focus:text-destructive"
-              onSelect={(event) => {
-                event.preventDefault();
-                setIsArchiveOpen(true);
-              }}
+              onClick={() => setIsArchiveOpen(true)}
             >
               <ArchiveIcon />
               Archive
@@ -109,10 +103,7 @@ export const StudentRowActions = ({ student }: { student: Student }) => {
           )}
           <DropdownMenuItem
             className="text-destructive focus:text-destructive"
-            onSelect={(event) => {
-              event.preventDefault();
-              setIsDeleteOpen(true);
-            }}
+            onClick={() => setIsDeleteOpen(true)}
           >
             <Trash2Icon />
             Delete

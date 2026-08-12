@@ -2,17 +2,17 @@
 
 import {
   AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
+  AlertDialogClose,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@repo/design-system/components/ui/alert-dialog";
+import { Button } from "@repo/design-system/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { toast } from "sonner";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import { deleteStudent } from "@/app/(workspace)/students/actions";
 
 export const DeleteStudentDialog = ({
@@ -35,8 +35,12 @@ export const DeleteStudentDialog = ({
       try {
         await deleteStudent(formData);
         onOpenChange(false);
-        toast.success("Student deleted", {
-          description: "The student record has been removed.",
+        toastManager.add({
+          ...{
+            description: "The student record has been removed.",
+          },
+          title: "Student deleted",
+          type: "success",
         });
         router.push("/students");
         router.refresh();
@@ -44,8 +48,12 @@ export const DeleteStudentDialog = ({
         const message =
           error instanceof Error ? error.message : "Failed to delete student";
 
-        toast.error("Could not delete student", {
-          description: message,
+        toastManager.add({
+          ...{
+            description: message,
+          },
+          title: "Could not delete student",
+          type: "error",
         });
       }
     });
@@ -62,17 +70,18 @@ export const DeleteStudentDialog = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            className="bg-destructive text-white hover:bg-destructive/90"
+          <AlertDialogClose
+            render={<Button variant="ghost" disabled={isPending} />}
+          >
+            Cancel
+          </AlertDialogClose>
+          <Button
             disabled={isPending}
-            onClick={(event) => {
-              event.preventDefault();
-              handleDelete();
-            }}
+            onClick={() => handleDelete()}
+            variant="destructive"
           >
             {isPending ? "Deleting..." : "Delete"}
-          </AlertDialogAction>
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

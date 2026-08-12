@@ -224,24 +224,26 @@ export const Base: Story = {
             <SidebarMenu>
               <SidebarMenuItem>
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <SidebarMenuButton
-                      className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                      size="lg"
-                    >
-                      <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                        <activeTeam.logo className="size-4" />
-                      </div>
-                      <div className="grid flex-1 text-left text-sm leading-tight">
-                        <span className="truncate font-semibold">
-                          {activeTeam.name}
-                        </span>
-                        <span className="truncate text-xs">
-                          {activeTeam.plan}
-                        </span>
-                      </div>
-                      <ChevronsUpDown className="ml-auto" />
-                    </SidebarMenuButton>
+                  <DropdownMenuTrigger
+                    render={
+                      <SidebarMenuButton
+                        className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                        size="lg"
+                      />
+                    }
+                  >
+                    <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                      <activeTeam.logo className="size-4" />
+                    </div>
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                      <span className="truncate font-semibold">
+                        {activeTeam.name}
+                      </span>
+                      <span className="truncate text-xs">
+                        {activeTeam.plan}
+                      </span>
+                    </div>
+                    <ChevronsUpDown className="ml-auto" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
                     align="start"
@@ -330,11 +332,11 @@ export const Base: Story = {
                       </a>
                     </SidebarMenuButton>
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <SidebarMenuAction showOnHover>
-                          <MoreHorizontal />
-                          <span className="sr-only">More</span>
-                        </SidebarMenuAction>
+                      <DropdownMenuTrigger
+                        render={<SidebarMenuAction showOnHover />}
+                      >
+                        <MoreHorizontal />
+                        <span className="sr-only">More</span>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
                         align="end"
@@ -371,30 +373,30 @@ export const Base: Story = {
             <SidebarMenu>
               <SidebarMenuItem>
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <SidebarMenuButton
-                      className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                      size="lg"
-                    >
-                      <Avatar className="h-8 w-8 rounded-lg">
-                        <AvatarImage
-                          alt={data.user.name}
-                          src={data.user.avatar}
-                        />
-                        <AvatarFallback className="rounded-lg">
-                          CN
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="grid flex-1 text-left text-sm leading-tight">
-                        <span className="truncate font-semibold">
-                          {data.user.name}
-                        </span>
-                        <span className="truncate text-xs">
-                          {data.user.email}
-                        </span>
-                      </div>
-                      <ChevronsUpDown className="ml-auto size-4" />
-                    </SidebarMenuButton>
+                  <DropdownMenuTrigger
+                    render={
+                      <SidebarMenuButton
+                        className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                        size="lg"
+                      />
+                    }
+                  >
+                    <Avatar className="h-8 w-8 rounded-lg">
+                      <AvatarImage
+                        alt={data.user.name}
+                        src={data.user.avatar}
+                      />
+                      <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                    </Avatar>
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                      <span className="truncate font-semibold">
+                        {data.user.name}
+                      </span>
+                      <span className="truncate text-xs">
+                        {data.user.email}
+                      </span>
+                    </div>
+                    <ChevronsUpDown className="ml-auto size-4" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
                     align="end"

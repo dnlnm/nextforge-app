@@ -166,14 +166,15 @@ const TeacherPage = async ({ params }: TeacherPageProperties) => {
               </div>
             </div>
             <div className="grid gap-2 sm:grid-cols-2 md:w-auto md:min-w-[16rem]">
-              <Button asChild variant="outline">
-                <Link href={`https://wa.me/${teacher.phone ?? ""}`}>
-                  <PhoneIcon className="size-4" />
-                  WhatsApp
-                </Link>
+              <Button
+                variant="outline"
+                render={<Link href={`https://wa.me/${teacher.phone ?? ""}`} />}
+              >
+                <PhoneIcon className="size-4" />
+                WhatsApp
               </Button>
-              <Button asChild variant="outline">
-                <Link href="/teachers">Back to teachers</Link>
+              <Button variant="outline" render={<Link href="/teachers" />}>
+                Back to teachers
               </Button>
             </div>
           </CardContent>

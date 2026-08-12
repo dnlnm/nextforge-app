@@ -3,8 +3,7 @@
 import type { DayOfWeek } from "@repo/database";
 import {
   AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
+  AlertDialogClose,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -210,7 +209,9 @@ export const ScheduleBuilder = ({
             <div className="grid gap-1.5">
               <Label htmlFor={`schedule-${schedule.id}-room`}>Room</Label>
               <Select
-                onValueChange={(value) => handleRoomSelect(schedule.id, value)}
+                onValueChange={(value) =>
+                  handleRoomSelect(schedule.id, value ?? "")
+                }
                 value={schedule.roomId || undefined}
               >
                 <SelectTrigger
@@ -278,10 +279,15 @@ export const ScheduleBuilder = ({
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Go back</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmRoomSelection}>
+              <AlertDialogClose render={<Button variant="ghost" />}>
+                Go back
+              </AlertDialogClose>
+              <AlertDialogClose
+                render={<Button />}
+                onClick={confirmRoomSelection}
+              >
                 Continue anyway
-              </AlertDialogAction>
+              </AlertDialogClose>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

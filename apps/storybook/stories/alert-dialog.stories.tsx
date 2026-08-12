@@ -1,7 +1,6 @@
 import {
   AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
+  AlertDialogClose,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -9,6 +8,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@repo/design-system/components/ui/alert-dialog";
+import { Button } from "@repo/design-system/components/ui/button";
 import type { Meta, StoryObj } from "@storybook/react";
 
 /**
@@ -32,8 +32,10 @@ const meta = {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction>Continue</AlertDialogAction>
+          <AlertDialogClose render={<Button variant="ghost" />}>
+            Cancel
+          </AlertDialogClose>
+          <AlertDialogClose render={<Button />}>Continue</AlertDialogClose>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

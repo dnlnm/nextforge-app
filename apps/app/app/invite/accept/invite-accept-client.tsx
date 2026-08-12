@@ -50,8 +50,8 @@ export const InviteAcceptClient = ({
     return (
       <Shell kind={invitationKind}>
         <p className="text-muted-foreground">This invite link is not valid.</p>
-        <Button asChild className="mt-6">
-          <Link href="/">Go to {appName}</Link>
+        <Button className="mt-6" render={<Link href="/" />}>
+          Go to {appName}
         </Button>
       </Shell>
     );
@@ -63,8 +63,8 @@ export const InviteAcceptClient = ({
         <p className="text-muted-foreground">
           This centre is no longer active.
         </p>
-        <Button asChild className="mt-6">
-          <Link href="/">Go to {appName}</Link>
+        <Button className="mt-6" render={<Link href="/" />}>
+          Go to {appName}
         </Button>
       </Shell>
     );
@@ -111,11 +111,14 @@ export const InviteAcceptClient = ({
           You need to sign in to accept this invitation.
         </p>
         <div className="mt-6 grid gap-3">
-          <Button asChild>
-            <Link href={`/sign-in?${redirectQuery}`}>Sign in</Link>
+          <Button render={<Link href={`/sign-in?${redirectQuery}`} />}>
+            Sign in
           </Button>
-          <Button asChild variant="outline">
-            <Link href={`/sign-up?${redirectQuery}`}>Create an account</Link>
+          <Button
+            variant="outline"
+            render={<Link href={`/sign-up?${redirectQuery}`} />}
+          >
+            Create an account
           </Button>
         </div>
       </Shell>

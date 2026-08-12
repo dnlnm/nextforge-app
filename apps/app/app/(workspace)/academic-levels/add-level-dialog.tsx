@@ -38,11 +38,9 @@ export const AddLevelDialog = () => {
 
   return (
     <Dialog onOpenChange={setOpen} open={open}>
-      <DialogTrigger asChild>
-        <Button className="flex-1 md:flex-none">
-          <PlusIcon className="size-4" />
-          Add Level
-        </Button>
+      <DialogTrigger render={<Button className="flex-1 md:flex-none" />}>
+        <PlusIcon className="size-4" />
+        Add Level
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -62,7 +60,11 @@ export const AddLevelDialog = () => {
         >
           <div className="grid gap-2">
             <Label htmlFor="stage">Stage</Label>
-            <Select name="stage" onValueChange={setStage} value={stage}>
+            <Select
+              name="stage"
+              onValueChange={(value) => setStage(value ?? "")}
+              value={stage}
+            >
               <SelectTrigger id="stage">
                 <SelectValue />
               </SelectTrigger>

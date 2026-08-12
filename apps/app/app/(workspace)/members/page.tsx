@@ -58,12 +58,13 @@ const MembersPage = async () => {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button asChild className="flex-1 md:flex-none">
-              <Link href="/members/invite">
-                <SendIcon className="size-4" />
-                <span className="hidden sm:inline">Invite Admin</span>
-                <span className="sm:hidden">Invite</span>
-              </Link>
+            <Button
+              className="flex-1 md:flex-none"
+              render={<Link href="/members/invite" />}
+            >
+              <SendIcon className="size-4" />
+              <span className="hidden sm:inline">Invite Admin</span>
+              <span className="sm:hidden">Invite</span>
             </Button>
           </div>
         </div>

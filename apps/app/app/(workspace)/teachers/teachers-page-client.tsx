@@ -199,10 +199,15 @@ export function TeachersPageClient({
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <Button asChild variant="outline">
-                    <Link href={`https://wa.me/${selectedTeacher.phone ?? ""}`}>
-                      WhatsApp
-                    </Link>
+                  <Button
+                    variant="outline"
+                    render={
+                      <Link
+                        href={`https://wa.me/${selectedTeacher.phone ?? ""}`}
+                      />
+                    }
+                  >
+                    WhatsApp
                   </Button>
                   <Button variant="outline">More</Button>
                 </div>
@@ -241,11 +246,13 @@ export function TeachersPageClient({
                       <span>{value}</span>
                     </div>
                   ))}
-                  <Button asChild className="mt-1 w-full" variant="outline">
-                    <Link href={`/teachers/${selectedTeacher.id}`}>
-                      View Full Profile
-                      <ChevronRightIcon className="size-4" />
-                    </Link>
+                  <Button
+                    className="mt-1 w-full"
+                    variant="outline"
+                    render={<Link href={`/teachers/${selectedTeacher.id}`} />}
+                  >
+                    View Full Profile
+                    <ChevronRightIcon className="size-4" />
                   </Button>
                 </section>
                 <section className="grid gap-3 p-4">

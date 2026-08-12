@@ -71,35 +71,37 @@ export const OrganizationSwitcher = () => {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          className="h-auto w-full justify-between rounded-md border bg-background px-3 py-2 text-left shadow-none hover:bg-accent"
-          variant="ghost"
-        >
-          <span className="min-w-0">
-            <span className="block truncate font-medium text-sm">
-              {activeMembership?.organization.name ?? "Select organization"}
-            </span>
-            <span className="flex items-center gap-1.5 text-muted-foreground text-xs">
-              {activeMembership?.role && (
-                <Badge
-                  className="h-4 px-1.5 text-[10px]"
-                  variant={getRoleBadgeVariant(activeMembership.role)}
-                >
-                  {activeMembership.role}
-                </Badge>
-              )}
-              {activeMembership?.organization.slug ? (
-                <span className="truncate">
-                  {activeMembership.organization.slug}
-                </span>
-              ) : (
-                !activeMembership && "No active organization"
-              )}
-            </span>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            className="h-auto w-full justify-between rounded-md border bg-background px-3 py-2 text-left shadow-none hover:bg-accent"
+            variant="ghost"
+          />
+        }
+      >
+        <span className="min-w-0">
+          <span className="block truncate font-medium text-sm">
+            {activeMembership?.organization.name ?? "Select organization"}
           </span>
-          <ChevronDownIcon className="ml-3 size-4 shrink-0 text-muted-foreground" />
-        </Button>
+          <span className="flex items-center gap-1.5 text-muted-foreground text-xs">
+            {activeMembership?.role && (
+              <Badge
+                className="h-4 px-1.5 text-[10px]"
+                variant={getRoleBadgeVariant(activeMembership.role)}
+              >
+                {activeMembership.role}
+              </Badge>
+            )}
+            {activeMembership?.organization.slug ? (
+              <span className="truncate">
+                {activeMembership.organization.slug}
+              </span>
+            ) : (
+              !activeMembership && "No active organization"
+            )}
+          </span>
+        </span>
+        <ChevronDownIcon className="ml-3 size-4 shrink-0 text-muted-foreground" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-72">
         <DropdownMenuLabel>Organizations</DropdownMenuLabel>
@@ -111,7 +113,7 @@ export const OrganizationSwitcher = () => {
             <DropdownMenuItem
               className="flex cursor-pointer items-center justify-between gap-3"
               key={membership.id}
-              onSelect={() => {
+              onClick={() => {
                 if (!isActive) {
                   switchOrganization(membership.organization.id)
                     .then(() => {
@@ -149,18 +151,22 @@ export const OrganizationSwitcher = () => {
           );
         })}
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link className="flex items-center gap-2" href="/center-setup">
-            <PlusCircleIcon className="size-4" />
-            New Center
-          </Link>
+        <DropdownMenuItem
+          render={
+            <Link className="flex items-center gap-2" href="/center-setup" />
+          }
+        >
+          <PlusCircleIcon className="size-4" />
+          New Center
         </DropdownMenuItem>
         {activeMembership?.role !== "TEACHER" && (
-          <DropdownMenuItem asChild>
-            <Link className="flex items-center gap-2" href="/settings">
-              <Settings2Icon className="size-4" />
-              Manage
-            </Link>
+          <DropdownMenuItem
+            render={
+              <Link className="flex items-center gap-2" href="/settings" />
+            }
+          >
+            <Settings2Icon className="size-4" />
+            Manage
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>

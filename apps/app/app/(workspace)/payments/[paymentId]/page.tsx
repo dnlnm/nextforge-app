@@ -75,8 +75,8 @@ const PaymentPage = async ({ params }: PaymentPageProperties) => {
       <div className="print:hidden">
         <Header page={payment.receiptNumber} pages={["Payments"]}>
           <div className="flex gap-2 pr-4">
-            <Button asChild variant="outline">
-              <Link href="/payments">Back</Link>
+            <Button variant="outline" render={<Link href="/payments" />}>
+              Back
             </Button>
             <PrintButton />
             {payment.status === "RECORDED" ? (

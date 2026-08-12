@@ -5,7 +5,7 @@ import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import { updateProfileName } from "./actions";
 
 interface ProfileFormProps {
@@ -23,12 +23,13 @@ export const ProfileForm = ({ defaultName }: ProfileFormProps) => {
 
     try {
       await updateProfileName(name);
-      toast.success("Name updated");
+      toastManager.add({ title: "Name updated", type: "success" });
       router.refresh();
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update name"
-      );
+      toastManager.add({
+        title: error instanceof Error ? error.message : "Failed to update name",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }

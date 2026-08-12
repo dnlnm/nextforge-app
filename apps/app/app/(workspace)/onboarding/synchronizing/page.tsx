@@ -50,11 +50,11 @@ const SynchronizingPage = async () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex gap-3">
-            <Button asChild>
-              <Link href="/onboarding/synchronizing">Check again</Link>
+            <Button render={<Link href="/onboarding/synchronizing" />}>
+              Check again
             </Button>
-            <Button asChild variant="outline">
-              <Link href="/center-setup">Back</Link>
+            <Button variant="outline" render={<Link href="/center-setup" />}>
+              Back
             </Button>
           </CardContent>
         </Card>

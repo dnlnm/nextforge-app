@@ -14,7 +14,7 @@ import type { CurrentPlan } from "@repo/payments/billingsdk-plans";
 import { billingSDKPlans } from "@repo/payments/billingsdk-plans";
 import { CheckIcon } from "lucide-react";
 import { useTransition } from "react";
-import { toast } from "sonner";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import {
   cancelSubscriptionAtPeriodEnd,
   reactivateSubscription,
@@ -46,9 +46,11 @@ export const SubscriptionManagementWrapper = ({
         formData.set("plan", planId);
         await startSubscriptionCheckout(organizationId, formData);
       } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Failed to start checkout"
-        );
+        toastManager.add({
+          title:
+            error instanceof Error ? error.message : "Failed to start checkout",
+          type: "error",
+        });
       }
     });
   };
@@ -69,16 +71,22 @@ export const SubscriptionManagementWrapper = ({
         await updateSubscriptionPlan(organizationId, planId as never);
 
         if (isDowngrade) {
-          toast.success(
-            `Downgrade will take effect on ${currentPlan.nextBillingDate}.`
-          );
+          toastManager.add({
+            title: `Downgrade will take effect on ${currentPlan.nextBillingDate}.`,
+            type: "success",
+          });
         } else {
-          toast.success("Plan updated successfully!");
+          toastManager.add({
+            title: "Plan updated successfully!",
+            type: "success",
+          });
         }
       } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Failed to update plan"
-        );
+        toastManager.add({
+          title:
+            error instanceof Error ? error.message : "Failed to update plan",
+          type: "error",
+        });
       }
     });
   };
@@ -87,13 +95,18 @@ export const SubscriptionManagementWrapper = ({
     startTransition(async () => {
       try {
         await cancelSubscriptionAtPeriodEnd(organizationId);
-        toast.success(
-          `Subscription will remain active until ${currentPlan.nextBillingDate}.`
-        );
+        toastManager.add({
+          title: `Subscription will remain active until ${currentPlan.nextBillingDate}.`,
+          type: "success",
+        });
       } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Failed to cancel subscription"
-        );
+        toastManager.add({
+          title:
+            error instanceof Error
+              ? error.message
+              : "Failed to cancel subscription",
+          type: "error",
+        });
       }
     });
   };
@@ -102,11 +115,16 @@ export const SubscriptionManagementWrapper = ({
     startTransition(async () => {
       try {
         await reactivateSubscription(organizationId);
-        toast.success("Subscription reactivated successfully!");
+        toastManager.add({
+          title: "Subscription reactivated successfully!",
+          type: "success",
+        });
       } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Failed to reactivate"
-        );
+        toastManager.add({
+          title:
+            error instanceof Error ? error.message : "Failed to reactivate",
+          type: "error",
+        });
       }
     });
   };
@@ -206,7 +224,10 @@ export const SubscriptionManagementWrapper = ({
           confirmButtonText: "Yes, Cancel Subscription",
           onCancel: handleCancel,
           onKeepSubscription: async () => {
-            toast.success("Great choice! Your subscription continues.");
+            toastManager.add({
+              title: "Great choice! Your subscription continues.",
+              type: "success",
+            });
           },
         }}
       />

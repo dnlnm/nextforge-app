@@ -41,7 +41,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useActionState, useEffect, useState } from "react";
-import { toast } from "sonner";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import { StudentPhotoUpload } from "../../components/student-photo-upload";
 import { createStudent } from "../actions";
 
@@ -161,7 +161,7 @@ export const StudentCreateForm = ({
 
   useEffect(() => {
     if (state.error) {
-      toast.error(state.error);
+      toastManager.add({ title: state.error, type: "error" });
     }
   }, [state.error]);
 
@@ -280,11 +280,11 @@ export const StudentCreateForm = ({
                   Optional contact details and home address.
                 </CardDescription>
               </div>
-              <CollapsibleTrigger asChild>
-                <Button size="icon" type="button" variant="ghost">
-                  <ChevronDownIcon className="size-4 transition-transform group-data-[state=open]:rotate-180" />
-                  <span className="sr-only">Toggle contact and address</span>
-                </Button>
+              <CollapsibleTrigger
+                render={<Button size="icon" type="button" variant="ghost" />}
+              >
+                <ChevronDownIcon className="size-4 transition-transform in-[[data-panel-open]]:rotate-180" />
+                <span className="sr-only">Toggle contact and address</span>
               </CollapsibleTrigger>
             </CardHeader>
             <CollapsibleContent>
@@ -412,11 +412,11 @@ export const StudentCreateForm = ({
                   School and current academic level.
                 </CardDescription>
               </div>
-              <CollapsibleTrigger asChild>
-                <Button size="icon" type="button" variant="ghost">
-                  <ChevronDownIcon className="size-4 transition-transform group-data-[state=open]:rotate-180" />
-                  <span className="sr-only">Toggle academic information</span>
-                </Button>
+              <CollapsibleTrigger
+                render={<Button size="icon" type="button" variant="ghost" />}
+              >
+                <ChevronDownIcon className="size-4 transition-transform in-[[data-panel-open]]:rotate-180" />
+                <span className="sr-only">Toggle academic information</span>
               </CollapsibleTrigger>
             </CardHeader>
             <CollapsibleContent>
@@ -483,11 +483,7 @@ export const StudentCreateForm = ({
               </TabsList>
             </CardHeader>
             <CardContent className="p-0">
-              <TabsContent
-                className="p-4 data-[state=inactive]:hidden"
-                forceMount
-                value="guardian"
-              >
+              <TabsContent className="p-4" keepMounted value="guardian">
                 <div className="grid gap-4">
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="grid gap-2">
@@ -608,11 +604,7 @@ export const StudentCreateForm = ({
                   )}
                 </div>
               </TabsContent>
-              <TabsContent
-                className="p-4 data-[state=inactive]:hidden"
-                forceMount
-                value="classes"
-              >
+              <TabsContent className="p-4" keepMounted value="classes">
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base">
@@ -673,8 +665,12 @@ export const StudentCreateForm = ({
         </Card>
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-2">
-          <Button asChild size="lg" variant="outline">
-            <Link href="/students">Cancel</Link>
+          <Button
+            size="lg"
+            variant="outline"
+            render={<Link href="/students" />}
+          >
+            Cancel
           </Button>
           <Button disabled={isPending} size="lg" type="submit">
             {isPending ? (
