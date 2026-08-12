@@ -73,6 +73,12 @@
       "skillPath": "skills/heroui-native/SKILL.md",
       "computedHash": "44a402405b9e6ff2745407526e3140d50c3627a0eec49e7fb65895cb8fb5b243"
     },
+    "impeccable": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/impeccable/SKILL.md",
+      "computedHash": "f6ae3e260fa13c00cf5edfd4622816a8764757dbe6454bb80699c3e521b9febd"
+    },
     "next-forge": {
       "source": "vercel/next-forge",
       "sourceType": "github",

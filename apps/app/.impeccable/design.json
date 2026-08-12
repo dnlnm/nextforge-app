@@ -1,0 +1,178 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-12T00:00:00.000Z",
+  "title": "Design System: KLIO.MY",
+  "extensions": {
+    "colorMeta": {
+      "background": { "role": "neutral", "displayName": "Cool Canvas", "canonical": "oklch(0.985 0.002 260)", "tonalRamp": ["oklch(0.15 0.002 260)", "oklch(0.25 0.002 260)", "oklch(0.38 0.002 260)", "oklch(0.52 0.002 260)", "oklch(0.66 0.002 260)", "oklch(0.78 0.002 260)", "oklch(0.88 0.002 260)", "oklch(0.985 0.002 260)"] },
+      "foreground": { "role": "neutral", "displayName": "Control Ink", "canonical": "oklch(0.13 0.028 260)", "tonalRamp": ["oklch(0.13 0.028 260)", "oklch(0.24 0.026 260)", "oklch(0.36 0.022 260)", "oklch(0.49 0.018 260)", "oklch(0.62 0.014 260)", "oklch(0.74 0.010 260)", "oklch(0.86 0.006 260)", "oklch(0.95 0.003 260)"] },
+      "card": { "role": "neutral", "displayName": "Paper Surface", "canonical": "oklch(1 0 0)", "tonalRamp": ["oklch(0.15 0 0)", "oklch(0.28 0 0)", "oklch(0.42 0 0)", "oklch(0.56 0 0)", "oklch(0.70 0 0)", "oklch(0.82 0 0)", "oklch(0.92 0 0)", "oklch(1 0 0)"] },
+      "primary": { "role": "primary", "displayName": "Control Indigo", "canonical": "oklch(0.488 0.185 264)", "tonalRamp": ["oklch(0.15 0.08 264)", "oklch(0.26 0.13 264)", "oklch(0.37 0.17 264)", "oklch(0.488 0.185 264)", "oklch(0.60 0.16 264)", "oklch(0.72 0.12 264)", "oklch(0.84 0.07 264)", "oklch(0.95 0.025 264)"] },
+      "primary-foreground": { "role": "neutral", "displayName": "Clear Mark", "canonical": "oklch(0.985 0 0)", "tonalRamp": ["oklch(0.15 0 0)", "oklch(0.28 0 0)", "oklch(0.42 0 0)", "oklch(0.56 0 0)", "oklch(0.70 0 0)", "oklch(0.82 0 0)", "oklch(0.91 0 0)", "oklch(0.985 0 0)"] },
+      "secondary": { "role": "secondary", "displayName": "Quiet Indigo Wash", "canonical": "oklch(0.958 0.008 264)", "tonalRamp": ["oklch(0.15 0.012 264)", "oklch(0.27 0.012 264)", "oklch(0.40 0.011 264)", "oklch(0.53 0.010 264)", "oklch(0.66 0.010 264)", "oklch(0.78 0.009 264)", "oklch(0.88 0.008 264)", "oklch(0.958 0.008 264)"] },
+      "secondary-foreground": { "role": "neutral", "displayName": "Deep Utility Ink", "canonical": "oklch(0.25 0.03 264)", "tonalRamp": ["oklch(0.15 0.03 264)", "oklch(0.25 0.03 264)", "oklch(0.38 0.027 264)", "oklch(0.51 0.022 264)", "oklch(0.64 0.017 264)", "oklch(0.76 0.012 264)", "oklch(0.87 0.007 264)", "oklch(0.95 0.003 264)"] },
+      "muted": { "role": "neutral", "displayName": "Muted Field", "canonical": "oklch(0.955 0.006 264)", "tonalRamp": ["oklch(0.15 0.010 264)", "oklch(0.28 0.010 264)", "oklch(0.41 0.009 264)", "oklch(0.54 0.008 264)", "oklch(0.67 0.008 264)", "oklch(0.79 0.007 264)", "oklch(0.88 0.006 264)", "oklch(0.955 0.006 264)"] },
+      "muted-foreground": { "role": "neutral", "displayName": "Reference Gray", "canonical": "oklch(0.50 0.015 264)", "tonalRamp": ["oklch(0.15 0.015 264)", "oklch(0.27 0.015 264)", "oklch(0.39 0.015 264)", "oklch(0.50 0.015 264)", "oklch(0.62 0.013 264)", "oklch(0.74 0.010 264)", "oklch(0.85 0.006 264)", "oklch(0.95 0.003 264)"] },
+      "accent": { "role": "secondary", "displayName": "Selection Mist", "canonical": "oklch(0.955 0.012 264)", "tonalRamp": ["oklch(0.15 0.025 264)", "oklch(0.27 0.023 264)", "oklch(0.40 0.021 264)", "oklch(0.53 0.019 264)", "oklch(0.66 0.017 264)", "oklch(0.78 0.015 264)", "oklch(0.88 0.013 264)", "oklch(0.955 0.012 264)"] },
+      "destructive": { "role": "tertiary", "displayName": "Consequence Red", "canonical": "oklch(0.577 0.245 27.325)", "tonalRamp": ["oklch(0.15 0.09 27.325)", "oklch(0.25 0.15 27.325)", "oklch(0.36 0.20 27.325)", "oklch(0.48 0.235 27.325)", "oklch(0.577 0.245 27.325)", "oklch(0.70 0.19 27.325)", "oklch(0.83 0.11 27.325)", "oklch(0.95 0.035 27.325)"] },
+      "success": { "role": "tertiary", "displayName": "Operational Green", "canonical": "oklch(50.8% 0.118 165.612)", "tonalRamp": ["oklch(0.15 0.05 165.612)", "oklch(0.25 0.08 165.612)", "oklch(0.38 0.105 165.612)", "oklch(0.508 0.118 165.612)", "oklch(0.63 0.10 165.612)", "oklch(0.75 0.075 165.612)", "oklch(0.86 0.045 165.612)", "oklch(0.95 0.018 165.612)"] },
+      "border": { "role": "neutral", "displayName": "Hairline Structure", "canonical": "oklch(0.920 0.005 264)", "tonalRamp": ["oklch(0.15 0.008 264)", "oklch(0.27 0.008 264)", "oklch(0.40 0.007 264)", "oklch(0.53 0.007 264)", "oklch(0.66 0.006 264)", "oklch(0.77 0.006 264)", "oklch(0.86 0.005 264)", "oklch(0.920 0.005 264)"] },
+      "input": { "role": "neutral", "displayName": "Input Edge", "canonical": "oklch(0.920 0.005 264)", "tonalRamp": ["oklch(0.15 0.008 264)", "oklch(0.27 0.008 264)", "oklch(0.40 0.007 264)", "oklch(0.53 0.007 264)", "oklch(0.66 0.006 264)", "oklch(0.77 0.006 264)", "oklch(0.86 0.005 264)", "oklch(0.920 0.005 264)"] },
+      "ring": { "role": "primary", "displayName": "Focus Indigo", "canonical": "oklch(0.488 0.185 264)", "tonalRamp": ["oklch(0.15 0.08 264)", "oklch(0.26 0.13 264)", "oklch(0.37 0.17 264)", "oklch(0.488 0.185 264)", "oklch(0.60 0.16 264)", "oklch(0.72 0.12 264)", "oklch(0.84 0.07 264)", "oklch(0.95 0.025 264)"] },
+      "sidebar": { "role": "neutral", "displayName": "Sidebar Mist", "canonical": "oklch(0.975 0.004 264)", "tonalRamp": ["oklch(0.15 0.007 264)", "oklch(0.28 0.007 264)", "oklch(0.41 0.006 264)", "oklch(0.54 0.006 264)", "oklch(0.67 0.005 264)", "oklch(0.79 0.005 264)", "oklch(0.89 0.004 264)", "oklch(0.975 0.004 264)"] },
+      "sidebar-accent": { "role": "secondary", "displayName": "Sidebar Selection", "canonical": "oklch(0.955 0.012 264)", "tonalRamp": ["oklch(0.15 0.025 264)", "oklch(0.27 0.023 264)", "oklch(0.40 0.021 264)", "oklch(0.53 0.019 264)", "oklch(0.66 0.017 264)", "oklch(0.78 0.015 264)", "oklch(0.88 0.013 264)", "oklch(0.955 0.012 264)"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Exceptional Display", "purpose": "Large onboarding and setup statements only." },
+      "headline": { "displayName": "Workspace Headline", "purpose": "Primary page titles in operational surfaces." },
+      "title": { "displayName": "Panel Title", "purpose": "Card, dialog, and section titles." },
+      "body": { "displayName": "Operational Body", "purpose": "Default product copy, tables, descriptions, and fields." },
+      "label": { "displayName": "Control Label", "purpose": "Buttons, labels, navigation, and emphasized row values." },
+      "mono": { "displayName": "Precision Mono", "purpose": "Aligned numbers, codes, and technical identifiers." },
+      "brand": { "displayName": "KLIO.MY Wordmark", "purpose": "The product wordmark only." }
+    },
+    "darkColors": {
+      "background": "oklch(0 0 0)",
+      "foreground": "oklch(0.95 0 0)",
+      "card": "oklch(0.145 0 0)",
+      "card-foreground": "oklch(0.95 0 0)",
+      "primary": "oklch(0.68 0.10 245)",
+      "primary-foreground": "oklch(0.12 0 0)",
+      "secondary": "oklch(0.22 0 0)",
+      "secondary-foreground": "oklch(0.90 0 0)",
+      "muted": "oklch(0.22 0 0)",
+      "muted-foreground": "oklch(0.65 0 0)",
+      "accent": "oklch(0.22 0 0)",
+      "accent-foreground": "oklch(0.90 0 0)",
+      "destructive": "oklch(0.704 0.191 22.216)",
+      "success": "oklch(50.8% 0.118 165.612)",
+      "border": "oklch(0.26 0 0)",
+      "input": "oklch(0.26 0 0)",
+      "ring": "oklch(0.65 0.10 245)",
+      "sidebar": "oklch(0.14 0 0)",
+      "sidebar-accent": "oklch(0.22 0 0)"
+    },
+    "shadows": [
+      { "name": "hairline-lift", "value": "0 1px 2px oklch(0 0 0 / 0.04)", "purpose": "Inputs and outline controls." },
+      { "name": "resting-surface", "value": "0 1px 3px oklch(0 0 0 / 0.06), 0 1px 2px oklch(0 0 0 / 0.04)", "purpose": "Default cards, stats, and active segmented controls." },
+      { "name": "raised-surface", "value": "0 4px 8px -2px oklch(0 0 0 / 0.08), 0 2px 4px -2px oklch(0 0 0 / 0.04)", "purpose": "Menus, popovers, and restrained hover elevation." }
+    ],
+    "motion": [
+      { "name": "accordion", "value": "200ms ease-out", "purpose": "Accordion height expansion and collapse." },
+      { "name": "fade-in-up", "value": "350ms ease-out", "purpose": "Optional subtle entrance from 6px below; disabled for reduced motion." },
+      { "name": "press-scale", "value": "120ms ease", "purpose": "Optional active scale to 0.97; disabled for reduced motion." },
+      { "name": "card-hover", "value": "200ms ease", "purpose": "Optional 1px lift and raised-surface shadow; disabled for reduced motion." },
+      { "name": "sidebar-width", "value": "200ms linear", "purpose": "Desktop sidebar collapse and expansion." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" },
+      { "name": "2xl", "value": "1536px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The main local action: compact, assured, and explicitly focused.",
+      "html": "<button class=\"ds-btn-primary\">Save changes</button>",
+      "css": ".ds-btn-primary{display:inline-flex;height:36px;align-items:center;justify-content:center;gap:8px;border:0;border-radius:4px;padding:8px 16px;background:var(--primary,oklch(0.488 0.185 264));color:var(--primary-foreground,oklch(0.985 0 0));font:500 14px/20px 'Geist Sans',system-ui,sans-serif;white-space:nowrap;transition:background-color .15s,box-shadow .15s}.ds-btn-primary:hover{background:color-mix(in oklch,var(--primary,oklch(0.488 0.185 264)) 90%,black)}.ds-btn-primary:focus-visible{outline:0;box-shadow:0 0 0 3px color-mix(in oklch,var(--ring,oklch(0.488 0.185 264)) 50%,transparent)}.ds-btn-primary:active{transform:translateY(1px)}"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "A secondary action with hairline structure and a quiet hover field.",
+      "html": "<button class=\"ds-btn-outline\">View report</button>",
+      "css": ".ds-btn-outline{display:inline-flex;height:36px;align-items:center;justify-content:center;gap:8px;border:1px solid var(--border,oklch(0.920 0.005 264));border-radius:4px;padding:8px 16px;background:var(--background,oklch(0.985 0.002 260));color:var(--foreground,oklch(0.13 0.028 260));box-shadow:0 1px 2px oklch(0 0 0/.04);font:500 14px/20px 'Geist Sans',system-ui,sans-serif;transition:background-color .15s,box-shadow .15s}.ds-btn-outline:hover{background:var(--accent,oklch(0.955 0.012 264));color:var(--accent-foreground,oklch(0.25 0.03 264))}.ds-btn-outline:focus-visible{outline:0;box-shadow:0 0 0 3px color-mix(in oklch,var(--ring,oklch(0.488 0.185 264)) 50%,transparent)}"
+    },
+    {
+      "name": "Operational Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "The default bounded surface for forms, lists, and operational summaries.",
+      "html": "<section class=\"ds-card\"><header><h3>Outstanding fees</h3><p>Issued invoices requiring attention</p></header><strong>RM 4,280</strong></section>",
+      "css": ".ds-card{display:flex;flex-direction:column;gap:24px;border:1px solid var(--border,oklch(0.920 0.005 264));border-radius:10px;padding:24px;background:var(--card,white);color:var(--card-foreground,oklch(0.13 0.028 260));box-shadow:0 1px 3px oklch(0 0 0/.06),0 1px 2px oklch(0 0 0/.04);font-family:'Geist Sans',system-ui,sans-serif}.ds-card header{display:grid;gap:8px}.ds-card h3,.ds-card p{margin:0}.ds-card h3{font-size:16px;line-height:16px;font-weight:600}.ds-card p{color:var(--muted-foreground,oklch(0.50 0.015 264));font-size:14px;line-height:20px}.ds-card strong{font-size:30px;line-height:36px;font-weight:600;letter-spacing:-.025em}"
+    },
+    {
+      "name": "Form Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "A compact labeled field with explicit focus and supporting text.",
+      "html": "<label class=\"ds-field\"><span>Student name</span><input placeholder=\"Enter full name\"><small>Use the name shown on centre records.</small></label>",
+      "css": ".ds-field{display:grid;gap:8px;color:var(--foreground,oklch(0.13 0.028 260));font-family:'Geist Sans',system-ui,sans-serif}.ds-field>span{font-size:14px;line-height:20px;font-weight:500}.ds-field input{box-sizing:border-box;width:100%;height:36px;border:1px solid var(--input,oklch(0.920 0.005 264));border-radius:4px;padding:4px 12px;background:transparent;color:inherit;box-shadow:0 1px 2px oklch(0 0 0/.04);font:400 14px/20px inherit;outline:0}.ds-field input::placeholder{color:var(--muted-foreground,oklch(0.50 0.015 264))}.ds-field input:focus-visible{border-color:var(--ring,oklch(0.488 0.185 264));box-shadow:0 0 0 3px color-mix(in oklch,var(--ring,oklch(0.488 0.185 264)) 50%,transparent)}.ds-field small{color:var(--muted-foreground,oklch(0.50 0.015 264));font-size:12px;line-height:16px}"
+    },
+    {
+      "name": "Role Badges",
+      "kind": "chip",
+      "refersTo": "badge-primary",
+      "description": "Compact role and status labels with hierarchy beyond color alone.",
+      "html": "<div class=\"ds-badges\"><span class=\"ds-badge ds-badge-primary\">Owner</span><span class=\"ds-badge ds-badge-secondary\">Admin</span><span class=\"ds-badge ds-badge-outline\">Teacher</span></div>",
+      "css": ".ds-badges{display:flex;flex-wrap:wrap;gap:8px;font-family:'Geist Sans',system-ui,sans-serif}.ds-badge{display:inline-flex;align-items:center;justify-content:center;border:1px solid transparent;border-radius:9999px;padding:2px 8px;font-size:12px;line-height:16px;font-weight:500;white-space:nowrap}.ds-badge-primary{background:var(--primary,oklch(0.488 0.185 264));color:var(--primary-foreground,oklch(0.985 0 0))}.ds-badge-secondary{background:var(--secondary,oklch(0.958 0.008 264));color:var(--secondary-foreground,oklch(0.25 0.03 264))}.ds-badge-outline{border-color:var(--border,oklch(0.920 0.005 264));color:var(--foreground,oklch(0.13 0.028 260))}"
+    },
+    {
+      "name": "Sidebar Navigation",
+      "kind": "nav",
+      "refersTo": "sidebar-item-active",
+      "description": "Compact grouped navigation with a quiet but unmistakable active state.",
+      "html": "<nav class=\"ds-sidebar\"><span>Overview</span><a class=\"active\" href=\"#\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/></svg>Dashboard</a><a href=\"#\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M8 2v4m8-4v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/></svg>Today</a></nav>",
+      "css": ".ds-sidebar{box-sizing:border-box;width:256px;padding:8px;background:var(--sidebar,oklch(0.975 0.004 264));color:var(--foreground,oklch(0.13 0.028 260));font-family:'Geist Sans',system-ui,sans-serif}.ds-sidebar>span{display:block;padding:8px;color:var(--muted-foreground,oklch(0.50 0.015 264));font-size:12px;line-height:16px;font-weight:500}.ds-sidebar a{display:flex;height:32px;align-items:center;gap:8px;border-radius:4px;padding:0 8px;color:inherit;font-size:14px;line-height:20px;text-decoration:none;transition:background-color .15s}.ds-sidebar a:hover,.ds-sidebar a:focus-visible,.ds-sidebar a.active{background:var(--sidebar-accent,oklch(0.955 0.012 264));outline:0}.ds-sidebar a.active{font-weight:500}.ds-sidebar svg{width:16px;height:16px;flex:none}"
+    },
+    {
+      "name": "Dashboard Stat",
+      "kind": "custom",
+      "description": "A compact operational metric with a local semantic indicator.",
+      "html": "<article class=\"ds-stat\"><span>Total students</span><div class=\"ds-stat-icon\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m7-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8m13 10v-2a4 4 0 0 0-3-3.87m-2-12a4 4 0 0 1 0 7.75\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/></svg></div><strong>248</strong><small>+12 this month</small></article>",
+      "css": ".ds-stat{display:grid;grid-template-columns:1fr auto;column-gap:16px;row-gap:4px;border:1px solid var(--border,oklch(0.920 0.005 264));border-radius:6px;padding:16px;background:var(--card,white);color:var(--card-foreground,oklch(0.13 0.028 260));box-shadow:0 1px 3px oklch(0 0 0/.06),0 1px 2px oklch(0 0 0/.04);font-family:'Geist Sans',system-ui,sans-serif;transition:box-shadow .2s}.ds-stat:hover{box-shadow:0 4px 8px -2px oklch(0 0 0/.08),0 2px 4px -2px oklch(0 0 0/.04)}.ds-stat>span{color:var(--muted-foreground,oklch(0.50 0.015 264));font-size:14px;line-height:20px;font-weight:500}.ds-stat-icon{grid-column:2;grid-row:1/3;display:grid;width:32px;height:32px;place-items:center;border:1px solid color-mix(in oklch,var(--primary,oklch(0.488 0.185 264)) 20%,transparent);border-radius:4px;background:color-mix(in oklch,var(--primary,oklch(0.488 0.185 264)) 10%,transparent);color:var(--primary,oklch(0.488 0.185 264))}.ds-stat-icon svg{width:14px;height:14px}.ds-stat strong{font-size:24px;line-height:32px;font-weight:600;letter-spacing:-.025em}.ds-stat small{grid-column:1/3;color:var(--muted-foreground,oklch(0.50 0.015 264));font-size:12px;line-height:16px}"
+    },
+    {
+      "name": "Operational Table",
+      "kind": "custom",
+      "description": "A bounded, horizontally stable table with clear row hierarchy.",
+      "html": "<div class=\"ds-table-wrap\"><table class=\"ds-table\"><thead><tr><th>Student</th><th>Status</th><th>Balance</th></tr></thead><tbody><tr><td><strong>Aisha Rahman</strong><small>STU-0248</small></td><td><span>Active</span></td><td>RM 120</td></tr><tr><td><strong>Daniel Lee</strong><small>STU-0249</small></td><td><span>Active</span></td><td>RM 0</td></tr></tbody></table></div>",
+      "css": ".ds-table-wrap{overflow-x:auto;border:1px solid var(--border,oklch(0.920 0.005 264));border-radius:10px;background:var(--card,white);box-shadow:0 1px 3px oklch(0 0 0/.06);font-family:'Geist Sans',system-ui,sans-serif}.ds-table{width:100%;min-width:520px;border-collapse:collapse;color:var(--foreground,oklch(0.13 0.028 260));font-size:14px;line-height:20px}.ds-table th{height:40px;padding:0 8px;border-bottom:1px solid var(--border,oklch(0.920 0.005 264));text-align:left;font-weight:500;white-space:nowrap}.ds-table td{padding:8px;border-bottom:1px solid var(--border,oklch(0.920 0.005 264));white-space:nowrap}.ds-table tbody tr:last-child td{border-bottom:0}.ds-table tbody tr:hover{background:color-mix(in oklch,var(--muted,oklch(0.955 0.006 264)) 50%,transparent)}.ds-table strong,.ds-table small{display:block}.ds-table strong{font-weight:500}.ds-table small{color:var(--muted-foreground,oklch(0.50 0.015 264));font-size:12px;line-height:16px}.ds-table td span{display:inline-flex;border:1px solid var(--border,oklch(0.920 0.005 264));border-radius:9999px;padding:2px 8px;font-size:12px;line-height:16px;font-weight:500}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Calm Control Room",
+    "overview": "KLIO.MY is calm, precise, and assured. Its interface behaves like a well-run operational control room: the whole centre can be scanned quickly, consequential state is explicit, and the next useful action is close at hand. Density is compact but not cramped, with a near-white canvas, crisp bounded surfaces, and a cool indigo reserved for authority and action.\n\nThe system is compact and dependable rather than expressive for its own sake. Familiar controls, restrained geometry, clear status language, and structurally faithful loading states create confidence across records, attendance, billing, and reporting. Marketing spectacle is the anti-reference for routine product work: gradients, glass, decorative noise, oversized statements, and dramatic elevation must not compete with operational information.",
+    "keyCharacteristics": [
+      "Cool-indigo actions against quiet blue-neutral surfaces.",
+      "Compact 14px controls and body text with disciplined 500/600 weight hierarchy.",
+      "Thin borders and low shadows that separate information without making every panel float.",
+      "Responsive shells that stack controls, preserve tables, and move navigation into sheets.",
+      "Explicit hover, focus, selected, disabled, invalid, loading, empty, and dark-mode states."
+    ],
+    "rules": [
+      { "name": "The One Voice Rule", "body": "Control Indigo carries action and selection; do not introduce competing general-purpose accent hues.", "section": "colors" },
+      { "name": "The Semantic Surface Rule", "body": "Standard backgrounds, text, borders, and controls use semantic tokens so light and dark modes remain paired. Literal colors are restricted to verified status treatments.", "section": "colors" },
+      { "name": "The Quiet Weight Rule", "body": "Routine hierarchy uses 400 for body, 500 for controls, and 600 for headings and metrics. Do not default product UI to bold 700+ weights.", "section": "typography" },
+      { "name": "The Wordmark Boundary Rule", "body": "Chillax belongs to the KLIO.MY wordmark, never to headings, buttons, or decorative pull quotes.", "section": "typography" },
+      { "name": "The Border-Before-Shadow Rule", "body": "Use a semantic border and tonal contrast to define a surface before increasing its shadow.", "section": "elevation" },
+      { "name": "The Grounded Card Rule", "body": "Strong shadows are transient or exceptional. Routine cards rest at low elevation.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use semantic surface, foreground, border, status, and focus tokens so light and dark modes remain coherent.",
+      "Do preserve the 400/500/600 type-weight hierarchy and use 14px as the operational body and control baseline.",
+      "Do use 36px controls by default, 32px in compact toolbars, and 40px for exceptional emphasis.",
+      "Do keep cards bordered and low-elevation at rest.",
+      "Do preserve keyboard focus, selected, disabled, invalid, empty, loading, and reduced-motion states.",
+      "Do stack action rows on mobile, move navigation into sheets, and keep true tables horizontally scrollable.",
+      "Do align money, counts, and changing metrics with tabular numerals or JetBrains Mono when precision benefits.",
+      "Do make skeletons structurally match their loaded surfaces."
+    ],
+    "donts": [
+      "Don't introduce arbitrary gray values for standard surfaces, text, or borders; use the semantic palette.",
+      "Don't add gradients, glass effects, decorative noise, oversized marketing typography, or dramatic elevation to routine operational screens.",
+      "Don't use literal status tints as general-purpose panel colors or copy light-only status treatments without verified dark-mode behavior.",
+      "Don't make every card float with large shadows or animate layout shifts.",
+      "Don't use 700+ weights as the default hierarchy or Chillax outside the wordmark.",
+      "Don't use pill corners for buttons, inputs, cards, or navigation rows.",
+      "Don't replace operational tables with mobile cards unless the information model itself changes.",
+      "Don't create local substitutes for shared button, card, input, badge, navigation, or table primitives without a concrete missing capability."
+    ]
+  }
+}

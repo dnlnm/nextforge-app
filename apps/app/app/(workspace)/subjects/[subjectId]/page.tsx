@@ -30,7 +30,7 @@ import {
   BookOpenIcon,
   CalendarDaysIcon,
   Edit3Icon,
-  LandmarkIcon,
+  SettingsIcon,
   UserRoundIcon,
   UsersRoundIcon,
 } from "lucide-react";
@@ -463,7 +463,7 @@ const SubjectSidebar = ({ subject }: { readonly subject: SubjectData }) => (
 
         <div className="grid gap-3">
           <div className="flex items-center gap-2 font-medium text-sm">
-            <LandmarkIcon className="size-4 text-muted-foreground" />
+            <SettingsIcon className="size-4 text-muted-foreground" />
             Actions
           </div>
           <Button asChild variant="outline">

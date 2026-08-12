@@ -6,39 +6,46 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isValidCode, normalizeCode } from "@/lib/codes";
 
+interface SubjectActionState {
+  error?: string;
+}
+
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);
 
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 };
 
-const getCode = (formData: FormData) => {
+const getCode = (formData: FormData): string | undefined => {
   const value = getString(formData, "code");
   const code = value ? normalizeCode(value) : undefined;
 
-  if (!(code && isValidCode(code))) {
-    throw new Error("Subject code must be 1-4 alphanumeric characters.");
-  }
-
-  return code;
+  return code && isValidCode(code) ? code : undefined;
 };
 
-export const createSubject = async (formData: FormData) => {
+export const createSubject = async (
+  formData: FormData
+): Promise<SubjectActionState> => {
   const tenant = await requireTenantRole(["ADMIN"]);
   const name = getString(formData, "name");
 
   if (!name) {
-    throw new Error("Subject name is required.");
+    return { error: "Subject name is required." };
   }
 
   const code = getCode(formData);
+
+  if (!code) {
+    return { error: "Subject code must be 1-4 alphanumeric characters." };
+  }
+
   const duplicate = await database.subject.findFirst({
     where: { organizationId: tenant.organizationId, code },
     select: { id: true },
   });
 
   if (duplicate) {
-    throw new Error("A subject with this code already exists.");
+    return { error: "A subject with this code already exists." };
   }
 
   await database.subject.create({
@@ -51,18 +58,30 @@ export const createSubject = async (formData: FormData) => {
   });
 
   revalidatePath("/subjects");
+  return {};
 };
 
-export const updateSubject = async (formData: FormData) => {
+export const updateSubject = async (
+  formData: FormData
+): Promise<SubjectActionState> => {
   const tenant = await requireTenantRole(["ADMIN"]);
   const subjectId = getString(formData, "subjectId");
   const name = getString(formData, "name");
 
-  if (!(subjectId && name)) {
-    throw new Error("Subject is required.");
+  if (!subjectId) {
+    return { error: "Subject is required." };
+  }
+
+  if (!name) {
+    return { error: "Subject name is required." };
   }
 
   const code = getCode(formData);
+
+  if (!code) {
+    return { error: "Subject code must be 1-4 alphanumeric characters." };
+  }
+
   const duplicate = await database.subject.findFirst({
     where: {
       organizationId: tenant.organizationId,
@@ -73,7 +92,7 @@ export const updateSubject = async (formData: FormData) => {
   });
 
   if (duplicate) {
-    throw new Error("A subject with this code already exists.");
+    return { error: "A subject with this code already exists." };
   }
 
   await database.subject.updateMany({
