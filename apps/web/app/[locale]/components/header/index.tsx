@@ -3,12 +3,6 @@
 import { appName } from "@repo/config/brand";
 import { ModeToggle } from "@repo/design-system/components/mode-toggle";
 import { Button } from "@repo/design-system/components/ui/button";
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-} from "@repo/design-system/components/ui/navigation-menu";
 import type { Dictionary } from "@repo/internationalization";
 import { localizePath } from "@repo/internationalization/path";
 import { Menu, MoveRight, X } from "lucide-react";
@@ -79,37 +73,33 @@ export const Header = ({ dictionary, locale }: HeaderProps) => {
   return (
     <header className="sticky top-0 left-0 z-40 w-full border-b bg-background">
       <div className="container relative mx-auto flex min-h-20 flex-row items-center gap-4 lg:justify-between">
-        <div className="hidden flex-row items-center justify-start gap-4 lg:flex">
-          <NavigationMenu className="flex items-start justify-start">
-            <NavigationMenuList className="flex flex-row justify-start gap-3">
-              {navigationItems.map((item) => (
-                <NavigationMenuItem key={item.title}>
-                  <NavigationMenuLink asChild>
-                    <Button
-                      variant="ghost"
-                      render={
-                        <Link
-                          href={item.href}
-                          onClick={(event) => handleHashClick(event, item.href)}
-                          rel={
-                            item.href.startsWith("http")
-                              ? "noopener noreferrer"
-                              : undefined
-                          }
-                          target={
-                            item.href.startsWith("http") ? "_blank" : undefined
-                          }
-                        />
+        <nav className="hidden flex-row items-center justify-start gap-4 lg:flex">
+          <ul className="flex flex-row justify-start gap-3">
+            {navigationItems.map((item) => (
+              <li key={item.title}>
+                <Button
+                  variant="ghost"
+                  render={
+                    <Link
+                      href={item.href}
+                      onClick={(event) => handleHashClick(event, item.href)}
+                      rel={
+                        item.href.startsWith("http")
+                          ? "noopener noreferrer"
+                          : undefined
                       }
-                    >
-                      {item.title}
-                    </Button>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-              ))}
-            </NavigationMenuList>
-          </NavigationMenu>
-        </div>
+                      target={
+                        item.href.startsWith("http") ? "_blank" : undefined
+                      }
+                    />
+                  }
+                >
+                  {item.title}
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </nav>
         <div className="flex items-center gap-2 lg:absolute lg:left-1/2 lg:-translate-x-1/2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary font-bold text-primary-foreground text-sm">
             {appName.charAt(0)}

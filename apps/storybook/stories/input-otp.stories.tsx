@@ -1,69 +1,59 @@
 import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSeparator,
-  InputOTPSlot,
-} from "@repo/design-system/components/ui/input-otp";
+  OTPField,
+  OTPFieldInput,
+  OTPFieldSeparator,
+} from "@repo/design-system/components/ui/otp-field";
 import type { Meta, StoryObj } from "@storybook/react";
-import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
 
 /**
  * Accessible one-time password component with copy paste functionality.
  */
 const meta = {
-  title: "ui/InputOTP",
-  component: InputOTP,
+  title: "ui/OTPField",
+  component: OTPField,
   tags: ["autodocs"],
   argTypes: {},
   args: {
-    maxLength: 6,
-    pattern: REGEXP_ONLY_DIGITS_AND_CHARS,
-    children: null,
+    length: 6,
   },
 
   render: (args) => (
-    <InputOTP {...args} render={undefined}>
-      <InputOTPGroup>
-        <InputOTPSlot index={0} />
-        <InputOTPSlot index={1} />
-        <InputOTPSlot index={2} />
-        <InputOTPSlot index={3} />
-        <InputOTPSlot index={4} />
-        <InputOTPSlot index={5} />
-      </InputOTPGroup>
-    </InputOTP>
+    <OTPField {...args}>
+      <OTPFieldInput />
+      <OTPFieldInput />
+      <OTPFieldInput />
+      <OTPFieldInput />
+      <OTPFieldInput />
+      <OTPFieldInput />
+    </OTPField>
   ),
   parameters: {
     layout: "centered",
   },
-} satisfies Meta<typeof InputOTP>;
+} satisfies Meta<typeof OTPField>;
 
 export default meta;
 
 type Story = StoryObj<typeof meta>;
 
 /**
- * The default form of the InputOTP field.
+ * The default form of the OTP field.
  */
 export const Default: Story = {};
 
 /**
- * Use multiple groups to separate the input slots.
+ * Use separators to split the input slots into groups.
  */
 export const SeparatedGroup: Story = {
   render: (args) => (
-    <InputOTP {...args} render={undefined}>
-      <InputOTPGroup>
-        <InputOTPSlot index={0} />
-        <InputOTPSlot index={1} />
-        <InputOTPSlot index={2} />
-      </InputOTPGroup>
-      <InputOTPSeparator />
-      <InputOTPGroup>
-        <InputOTPSlot index={3} />
-        <InputOTPSlot index={4} />
-        <InputOTPSlot index={5} />
-      </InputOTPGroup>
-    </InputOTP>
+    <OTPField {...args}>
+      <OTPFieldInput />
+      <OTPFieldInput />
+      <OTPFieldInput />
+      <OTPFieldSeparator />
+      <OTPFieldInput />
+      <OTPFieldInput />
+      <OTPFieldInput />
+    </OTPField>
   ),
 };

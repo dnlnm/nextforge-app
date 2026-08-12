@@ -1,4 +1,4 @@
-import { ArrowLeftIcon } from "@radix-ui/react-icons";
+import { ArrowLeft } from "lucide-react";
 import { blog } from "@repo/cms";
 import { Body } from "@repo/cms/components/body";
 import { CodeBlock } from "@repo/cms/components/code-block";
@@ -87,7 +87,7 @@ const BlogPost = async ({ params }: BlogPostProperties) => {
                 className="mb-4 inline-flex items-center gap-1 text-muted-foreground text-sm focus:underline focus:outline-none"
                 href={localizePath(locale, "/blog")}
               >
-                <ArrowLeftIcon className="h-4 w-4" />
+                <ArrowLeft className="h-4 w-4" />
                 Back to Blog
               </Link>
               <div className="mt-16 flex flex-col items-start gap-8 sm:flex-row">

@@ -8,13 +8,11 @@ import {
 } from "@repo/design-system/components/ui/accordion";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@repo/design-system/components/ui/navigation-menu";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@repo/design-system/components/ui/dropdown-menu";
 import {
   Sheet,
   SheetContent,
@@ -26,6 +24,7 @@ import { cn } from "@repo/design-system/lib/utils";
 import {
   BriefcaseIcon,
   BuildingIcon,
+  ChevronDownIcon,
   CreditCardIcon,
   GraduationCapIcon,
   type LucideIcon,
@@ -112,90 +111,88 @@ export const MainNav = ({
           <Brand />
         </Link>
 
-        <NavigationMenu>
-          <NavigationMenuList>
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild>
-                <Link
-                  className={cn(
-                    "group inline-flex h-9 flex-row items-center justify-center gap-2 rounded-md bg-background px-4 py-2 font-medium text-sm transition-colors hover:bg-muted hover:text-accent-foreground",
-                    isMyCentreActive ? "text-foreground" : "text-foreground/60"
-                  )}
-                  href={centreHref}
-                >
-                  <BuildingIcon className="size-4" />
-                  My Centre
-                </Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
+        <ul className="flex items-center gap-1">
+          <li>
+            <Button
+              variant="ghost"
+              className={cn(
+                isMyCentreActive ? "text-foreground" : "text-foreground/60"
+              )}
+              render={<Link href={centreHref} />}
+            >
+              <BuildingIcon className="size-4" />
+              My Centre
+            </Button>
+          </li>
 
-            <NavigationMenuItem>
-              <NavigationMenuTrigger
-                className={cn(
-                  isWorkspacesActive ? "text-foreground" : "text-foreground/60"
-                )}
+          <li>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      isWorkspacesActive
+                        ? "text-foreground"
+                        : "text-foreground/60"
+                    )}
+                  />
+                }
               >
                 My Workspaces
-              </NavigationMenuTrigger>
-              <NavigationMenuContent className="bg-popover text-popover-foreground">
+                <ChevronDownIcon className="size-3.5 opacity-60" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-80 p-1">
                 {workspaceItems.map((item) => (
-                  <NavigationMenuLink asChild className="w-80" key={item.title}>
-                    <Link
-                      className="flex min-w-80 select-none flex-row gap-4 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-muted hover:text-accent-foreground"
-                      href={item.href}
-                    >
-                      <div className="text-foreground">
-                        <item.icon className="size-5 shrink-0" />
+                  <DropdownMenuItem
+                    key={item.title}
+                    render={<Link href={item.href} />}
+                  >
+                    <div className="text-foreground">
+                      <item.icon className="size-5 shrink-0" />
+                    </div>
+                    <div>
+                      <div className="font-semibold text-sm">
+                        {item.title} ({item.count})
                       </div>
-                      <div>
-                        <div className="font-semibold text-sm">
-                          {item.title} ({item.count})
-                        </div>
-                        <p className="text-muted-foreground text-sm leading-snug">
-                          {item.description}
-                        </p>
-                      </div>
-                    </Link>
-                  </NavigationMenuLink>
+                      <p className="text-muted-foreground text-sm leading-snug">
+                        {item.description}
+                      </p>
+                    </div>
+                  </DropdownMenuItem>
                 ))}
-              </NavigationMenuContent>
-            </NavigationMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </li>
 
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild>
-                <Link
-                  className={cn(
-                    "group inline-flex h-9 flex-row items-center justify-center gap-2 rounded-md bg-background px-4 py-2 font-medium text-sm transition-colors hover:bg-muted hover:text-accent-foreground",
-                    isCentreSettingsActive
-                      ? "text-foreground"
-                      : "text-foreground/60"
-                  )}
-                  href={centreSettingsHref}
-                >
-                  <SettingsIcon className="size-4" />
-                  Centre Settings
-                </Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
+          <li>
+            <Button
+              variant="ghost"
+              className={cn(
+                isCentreSettingsActive
+                  ? "text-foreground"
+                  : "text-foreground/60"
+              )}
+              render={<Link href={centreSettingsHref} />}
+            >
+              <SettingsIcon className="size-4" />
+              Centre Settings
+            </Button>
+          </li>
 
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild>
-                <Link
-                  className={cn(
-                    "group inline-flex h-9 flex-row items-center justify-center gap-2 rounded-md bg-background px-4 py-2 font-medium text-sm transition-colors hover:bg-muted hover:text-accent-foreground",
-                    isSubscriptionActive
-                      ? "text-foreground"
-                      : "text-foreground/60"
-                  )}
-                  href={subscriptionHref}
-                >
-                  <CreditCardIcon className="size-4" />
-                  Subscription
-                </Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu>
+          <li>
+            <Button
+              variant="ghost"
+              className={cn(
+                isSubscriptionActive ? "text-foreground" : "text-foreground/60"
+              )}
+              render={<Link href={subscriptionHref} />}
+            >
+              <CreditCardIcon className="size-4" />
+              Subscription
+            </Button>
+          </li>
+        </ul>
       </nav>
 
       {/* Mobile Menu */}

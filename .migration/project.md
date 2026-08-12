@@ -54,9 +54,31 @@
 - `bun run check`: repo-wide lint was already failing at HEAD (~9578 diagnostics, unrelated debt). Migration adds a small number of new diagnostics, dominated by `lint/a11y/useAnchorContent` false positives on the standard Base UI `render={<a/>}` pattern (content is merged at runtime).
 - `sonner` dependency removed from `packages/design-system`.
 
-## Remaining Radix wrappers (not yet migrated)
+## Phase 2 complete (2026-08-13)
 
-AspectRatio, Calendar (react-day-picker), Chart (recharts), Command (cmdk), DatePicker, Drawer (vaul), HoverCard (radix; coss preview-card available), InputOTP, Menubar, NavigationMenu, Resizable, Sortable (dnd-kit), Table (kept for Niko Table compatibility), Stat, plus `packages/design-system/components/niko-table` and `components/billingsdk` surface refactors (their underlying primitives are now coss). `radix-ui` still declared and used by these; remove after the last one migrates. `apps/mobile` untouched.
+- `radix-ui` and `@radix-ui/react-icons` removed from all packages — no Radix imports remain in the repo (web only; mobile untouched).
+- Remaining families migrated:
+  - **OTP field**: `input-otp` -> coss `otp-field.tsx` (`OTPField`, `OTPFieldInput`, `OTPFieldSeparator`); story rewritten; `input-otp` dep removed.
+  - **Table**: coss `table.tsx`; added `TableComponent` bare-table export for Niko Table compatibility.
+  - **Sidebar**: full coss `sidebar.tsx`; 2 consumer `SidebarMenuButton asChild` -> `render`.
+  - **Calendar**: coss `calendar.tsx` (`@daypicker/react`); `react-day-picker` dep removed.
+  - **Drawer**: coss `drawer.tsx`; `vaul` dep removed.
+  - **HoverCard**: `hover-card.tsx` is now a facade over `preview-card.tsx`.
+  - **AspectRatio**: Radix primitive replaced with a plain CSS `aspect-ratio` div.
+  - **ModeToggle + web icons**: `@radix-ui/react-icons` -> `lucide-react`.
+  - **NavigationMenu**: removed — web header now uses a plain `<nav>`; app main-nav uses `Button` links + coss `DropdownMenu` for "My Workspaces"; unused `navbar1.tsx` deleted.
+  - **Menubar**: removed (storybook-only, no coss counterpart).
+  - **Slot-based wrappers**: `form.tsx`, `item.tsx`, `sortable.tsx` (dnd-kit), `button-group.tsx` now use a local `cloneElement` slot / `useRender` instead of Radix `Slot`.
+
+## Remaining non-coss (intentionally kept)
+
+Command (cmdk — skill rule), Chart (recharts), Carousel (embla), Resizable (react-resizable-panels), DatePicker + Stat (custom composites now on coss parts), Niko Table + BillingSDK (surface refactors; their primitives are coss). `apps/mobile` untouched.
+
+## Verification (Phase 2)
+
+- `packages/design-system`, `apps/app`, `apps/web`, `apps/api` typechecks pass.
+- `apps/app` and `apps/web` production builds pass.
+- `bun run test` passes (3 tasks).
 
 ## Remaining Radix wrappers (derived via grep)
 

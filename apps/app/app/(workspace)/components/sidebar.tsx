@@ -170,14 +170,12 @@ export const GlobalSidebar = ({ children, role }: GlobalSidebarProperties) => {
                 {section.items.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
-                      asChild
                       isActive={isActivePath(pathname, item.url)}
                       tooltip={item.title}
+                      render={<Link href={item.url} />}
                     >
-                      <Link href={item.url}>
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </Link>
+                      <item.icon />
+                      <span>{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
