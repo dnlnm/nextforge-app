@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 /**
  * niko-table — created by Semir N. (Semkoo, https://github.com/Semkoo) with AI assistance.
@@ -11,39 +11,43 @@
  * users (and future LLMs reading this code) benefit:
  * https://github.com/Semkoo/niko-table-registry
  */
-import React from "react"
-import { AlertCircle } from "lucide-react"
-import { Alert, AlertDescription, AlertTitle } from "@repo/design-system/components/ui/alert"
-import { Button } from "@repo/design-system/components/ui/button"
+import React from "react";
+import { AlertCircle } from "lucide-react";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@repo/design-system/components/ui/alert";
+import { Button } from "@repo/design-system/components/ui/button";
 
 export interface DataTableErrorBoundaryProps {
   /**
    * The content to render when there's no error
    */
-  children: React.ReactNode
+  children: React.ReactNode;
   /**
    * Custom fallback UI to show when an error occurs
    */
-  fallback?: React.ReactNode
+  fallback?: React.ReactNode;
   /**
    * Callback fired when an error is caught
    */
-  onError?: (error: Error, errorInfo: React.ErrorInfo) => void
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
   /**
    * Whether to show a reset button
    * @default true
    */
-  showResetButton?: boolean
+  showResetButton?: boolean;
   /**
    * Custom reset button text
    * @default "Try Again"
    */
-  resetButtonText?: string
+  resetButtonText?: string;
 }
 
 interface DataTableErrorBoundaryState {
-  hasError: boolean
-  error: Error | null
+  hasError: boolean;
+  error: Error | null;
 }
 
 /**
@@ -95,39 +99,43 @@ export class DataTableErrorBoundary extends React.Component<
   DataTableErrorBoundaryProps,
   DataTableErrorBoundaryState
 > {
-  static displayName = "DataTableErrorBoundary"
+  static displayName = "DataTableErrorBoundary";
 
   constructor(props: DataTableErrorBoundaryProps) {
-    super(props)
-    this.state = { hasError: false, error: null }
+    super(props);
+    this.state = { hasError: false, error: null };
   }
 
   static getDerivedStateFromError(error: Error): DataTableErrorBoundaryState {
-    return { hasError: true, error }
+    return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("DataTable Error Boundary caught an error:", error, errorInfo)
-    this.props.onError?.(error, errorInfo)
+    console.error(
+      "DataTable Error Boundary caught an error:",
+      error,
+      errorInfo
+    );
+    this.props.onError?.(error, errorInfo);
   }
 
   handleReset = () => {
-    this.setState({ hasError: false, error: null })
-  }
+    this.setState({ hasError: false, error: null });
+  };
 
   render() {
     if (this.state.hasError) {
       // Use custom fallback if provided
       if (this.props.fallback) {
-        return this.props.fallback
+        return this.props.fallback;
       }
 
       const { showResetButton = true, resetButtonText = "Try Again" } =
-        this.props
+        this.props;
 
       // Default error UI
       return (
-        <Alert variant="destructive" className="my-4">
+        <Alert variant="error" className="my-4">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Table Error</AlertTitle>
           <AlertDescription className="mt-2 flex flex-col gap-2">
@@ -147,9 +155,9 @@ export class DataTableErrorBoundary extends React.Component<
             )}
           </AlertDescription>
         </Alert>
-      )
+      );
     }
 
-    return this.props.children
+    return this.props.children;
   }
 }

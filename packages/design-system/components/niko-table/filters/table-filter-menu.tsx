@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 /**
  * niko-table — created by Semir N. (Semkoo, https://github.com/Semkoo) with AI assistance.
@@ -15,7 +15,7 @@
 // useSyncFiltersWithTable), filter input components, sub-components, and the
 // `TableFilterMenu` popover.
 
-import type { Column, Table } from "@tanstack/react-table"
+import type { Column, Table } from "@tanstack/react-table";
 import {
   CalendarIcon,
   Check,
@@ -23,13 +23,13 @@ import {
   Grip,
   ListFilter,
   Trash2,
-} from "lucide-react"
-import * as React from "react"
+} from "lucide-react";
+import * as React from "react";
 
-import { TableRangeFilter } from "./table-range-filter"
-import { Badge } from "@repo/design-system/components/ui/badge"
-import { Button } from "@repo/design-system/components/ui/button"
-import { Calendar } from "@repo/design-system/components/ui/calendar"
+import { TableRangeFilter } from "./table-range-filter";
+import { Badge } from "@repo/design-system/components/ui/badge";
+import { Button } from "@repo/design-system/components/ui/button";
+import { Calendar } from "@repo/design-system/components/ui/calendar";
 import {
   Command,
   CommandEmpty,
@@ -37,56 +37,56 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@repo/design-system/components/ui/command"
-import { Input } from "@repo/design-system/components/ui/input"
+} from "@repo/design-system/components/ui/command";
+import { Input } from "@repo/design-system/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@repo/design-system/components/ui/popover"
+} from "@repo/design-system/components/ui/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@repo/design-system/components/ui/select"
+} from "@repo/design-system/components/ui/select";
 import {
   Sortable,
   SortableContent,
   SortableItem,
   SortableItemHandle,
   SortableOverlay,
-} from "@repo/design-system/components/ui/sortable"
-import { dataTableConfig } from "../config/data-table"
+} from "@repo/design-system/components/ui/sortable";
+import { dataTableConfig } from "../config/data-table";
 import {
   expandMergedEqualityFilters,
   getDefaultFilterOperator,
   getFilterOperators,
   processFiltersForLogic,
-} from "../lib/data-table"
-import { formatDate } from "../lib/format"
-import { useKeyboardShortcut } from "../hooks/use-keyboard-shortcut"
-import { cn } from "@repo/design-system/lib/utils"
+} from "../lib/data-table";
+import { formatDate } from "../lib/format";
+import { useKeyboardShortcut } from "../hooks/use-keyboard-shortcut";
+import { cn } from "@repo/design-system/lib/utils";
 import {
   FILTER_OPERATORS,
   FILTER_VARIANTS,
   JOIN_OPERATORS,
   ERROR_MESSAGES,
   KEYBOARD_SHORTCUTS,
-} from "../lib/constants"
-import { useGeneratedOptionsForColumn } from "../hooks/use-generated-options"
+} from "../lib/constants";
+import { useGeneratedOptionsForColumn } from "../hooks/use-generated-options";
 import type {
   ExtendedColumnFilter,
   FilterOperator,
   JoinOperator,
   Option,
-} from "../types"
+} from "../types";
 
 /* ---------- Precomputed options context (avoids per-column row walks) ---------- */
 const PrecomputedOptionsContext = React.createContext<
   Record<string, Option[]> | undefined
->(undefined)
+>(undefined);
 
 /* --------------------------------- Utilities -------------------------------- */
 
@@ -96,23 +96,23 @@ const PrecomputedOptionsContext = React.createContext<
  */
 function createFilterId<TData>(
   filter: Omit<ExtendedColumnFilter<TData>, "filterId">,
-  index?: number,
+  index?: number
 ): string {
   // Create a deterministic ID based on filter properties
   // Using a combination that should be unique for each filter configuration
   const valueStr =
     typeof filter.value === "string"
       ? filter.value
-      : JSON.stringify(filter.value)
+      : JSON.stringify(filter.value);
 
   // Include index as a fallback to ensure uniqueness for URL sharing
-  const indexSuffix = typeof index === "number" ? `-${index}` : ""
+  const indexSuffix = typeof index === "number" ? `-${index}` : "";
 
   return `${filter.id}-${filter.operator}-${filter.variant}-${valueStr}${indexSuffix}`
     .toLowerCase()
     .replace(/[^a-z0-9-]/g, "-")
     .replace(/-+/g, "-")
-    .substring(0, 100) // Limit length to avoid extremely long IDs
+    .substring(0, 100); // Limit length to avoid extremely long IDs
 }
 
 /**
@@ -125,14 +125,14 @@ function getFilterKey<TData>(filter: ExtendedColumnFilter<TData>): string {
       ? filter.value
       : Array.isArray(filter.value)
         ? filter.value.join(",")
-        : JSON.stringify(filter.value)
-  return `${filter.id}-${filter.operator}-${filter.variant}-${valueStr}`
+        : JSON.stringify(filter.value);
+  return `${filter.id}-${filter.operator}-${filter.variant}-${valueStr}`;
 }
 
 /**
  * Type for filters without filterId (for URL serialization)
  */
-type FilterWithoutId<TData> = Omit<ExtendedColumnFilter<TData>, "filterId">
+type FilterWithoutId<TData> = Omit<ExtendedColumnFilter<TData>, "filterId">;
 
 /**
  * Normalize filters loaded from URL by ensuring they have filterId
@@ -145,15 +145,15 @@ type FilterWithoutId<TData> = Omit<ExtendedColumnFilter<TData>, "filterId">
  * @returns Filters with guaranteed filterId values
  */
 export function normalizeFiltersFromUrl<TData>(
-  filters: (FilterWithoutId<TData> | ExtendedColumnFilter<TData>)[],
+  filters: (FilterWithoutId<TData> | ExtendedColumnFilter<TData>)[]
 ): ExtendedColumnFilter<TData>[] {
   // Quick check: if all filters already have filterIds, return as-is
   // This preserves object and array references
   const hasAllIds = filters.every(
-    (f): f is ExtendedColumnFilter<TData> => "filterId" in f && !!f.filterId,
-  )
+    (f): f is ExtendedColumnFilter<TData> => "filterId" in f && !!f.filterId
+  );
   if (hasAllIds) {
-    return filters as ExtendedColumnFilter<TData>[]
+    return filters as ExtendedColumnFilter<TData>[];
   }
 
   return filters.map((filter, index) => {
@@ -162,10 +162,10 @@ export function normalizeFiltersFromUrl<TData>(
       return {
         ...filter,
         filterId: createFilterId(filter, index),
-      } as ExtendedColumnFilter<TData>
+      } as ExtendedColumnFilter<TData>;
     }
-    return filter as ExtendedColumnFilter<TData>
-  })
+    return filter as ExtendedColumnFilter<TData>;
+  });
 }
 
 /**
@@ -185,13 +185,13 @@ export function normalizeFiltersFromUrl<TData>(
  * @returns Filters without filterId (suitable for URL storage)
  */
 export function serializeFiltersForUrl<TData>(
-  filters: ExtendedColumnFilter<TData>[],
+  filters: ExtendedColumnFilter<TData>[]
 ): FilterWithoutId<TData>[] {
-  return filters.map(filter => {
+  return filters.map((filter) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { filterId, ...filterWithoutId } = filter
-    return filterWithoutId
-  })
+    const { filterId, ...filterWithoutId } = filter;
+    return filterWithoutId;
+  });
 }
 
 /* --------------------------------- Faceted Component (Inline) -------------------------------- */
@@ -203,24 +203,24 @@ export function serializeFiltersForUrl<TData>(
 
 type FacetedValue<Multiple extends boolean> = Multiple extends true
   ? string[]
-  : string
+  : string;
 
 interface FacetedContextValue<Multiple extends boolean = boolean> {
-  value?: FacetedValue<Multiple>
-  onItemSelect?: (value: string) => void
-  multiple?: Multiple
+  value?: FacetedValue<Multiple>;
+  onItemSelect?: (value: string) => void;
+  multiple?: Multiple;
 }
 
 const FacetedContext = React.createContext<FacetedContextValue<boolean> | null>(
-  null,
-)
+  null
+);
 
 function useFacetedContext(name: string) {
-  const context = React.useContext(FacetedContext)
+  const context = React.useContext(FacetedContext);
   if (!context) {
-    throw new Error(`\`${name}\` must be within Faceted`)
+    throw new Error(`\`${name}\` must be within Faceted`);
   }
-  return context
+  return context;
 }
 
 /**
@@ -228,7 +228,7 @@ function useFacetedContext(name: string) {
  * codemod doesn't rewrite it to `render` — the sortable component keeps the
  * `asChild` API in both the Radix and Base UI shadcn generations.
  */
-const sortableAsChild = { asChild: true }
+const sortableAsChild = { asChild: true };
 
 interface FacetedProps<
   Multiple extends boolean = false,
@@ -236,15 +236,15 @@ interface FacetedProps<
   // params required; declare our own single-param callback so calling it
   // with just `open` typechecks in both shadcn generations
 > extends Omit<React.ComponentProps<typeof Popover>, "onOpenChange"> {
-  onOpenChange?: (open: boolean) => void
-  value?: FacetedValue<Multiple>
-  onValueChange?: (value: FacetedValue<Multiple> | undefined) => void
-  children?: React.ReactNode
-  multiple?: Multiple
+  onOpenChange?: (open: boolean) => void;
+  value?: FacetedValue<Multiple>;
+  onValueChange?: (value: FacetedValue<Multiple> | undefined) => void;
+  children?: React.ReactNode;
+  multiple?: Multiple;
 }
 
 function Faceted<Multiple extends boolean = false>(
-  props: FacetedProps<Multiple>,
+  props: FacetedProps<Multiple>
 ) {
   const {
     open: openProp,
@@ -254,49 +254,49 @@ function Faceted<Multiple extends boolean = false>(
     children,
     multiple = false,
     ...facetedProps
-  } = props
+  } = props;
 
-  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false)
-  const isControlled = openProp !== undefined
-  const open = isControlled ? openProp : uncontrolledOpen
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
+  const isControlled = openProp !== undefined;
+  const open = isControlled ? openProp : uncontrolledOpen;
 
   const onOpenChange = React.useCallback(
     (newOpen: boolean) => {
       if (!isControlled) {
-        setUncontrolledOpen(newOpen)
+        setUncontrolledOpen(newOpen);
       }
-      onOpenChangeProp?.(newOpen)
+      onOpenChangeProp?.(newOpen);
     },
-    [isControlled, onOpenChangeProp],
-  )
+    [isControlled, onOpenChangeProp]
+  );
 
   const onItemSelect = React.useCallback(
     (selectedValue: string) => {
-      if (!onValueChange) return
+      if (!onValueChange) return;
 
       if (multiple) {
-        const currentValue = (Array.isArray(value) ? value : []) as string[]
+        const currentValue = (Array.isArray(value) ? value : []) as string[];
         const newValue = currentValue.includes(selectedValue)
-          ? currentValue.filter(v => v !== selectedValue)
-          : [...currentValue, selectedValue]
-        onValueChange(newValue as FacetedValue<Multiple>)
+          ? currentValue.filter((v) => v !== selectedValue)
+          : [...currentValue, selectedValue];
+        onValueChange(newValue as FacetedValue<Multiple>);
       } else {
         if (value === selectedValue) {
-          onValueChange(undefined)
+          onValueChange(undefined);
         } else {
-          onValueChange(selectedValue as FacetedValue<Multiple>)
+          onValueChange(selectedValue as FacetedValue<Multiple>);
         }
 
-        requestAnimationFrame(() => onOpenChange(false))
+        requestAnimationFrame(() => onOpenChange(false));
       }
     },
-    [multiple, value, onValueChange, onOpenChange],
-  )
+    [multiple, value, onValueChange, onOpenChange]
+  );
 
   const contextValue = React.useMemo<FacetedContextValue<typeof multiple>>(
     () => ({ value, onItemSelect, multiple }),
-    [value, onItemSelect, multiple],
-  )
+    [value, onItemSelect, multiple]
+  );
 
   return (
     <FacetedContext.Provider value={contextValue}>
@@ -304,11 +304,11 @@ function Faceted<Multiple extends boolean = false>(
         {children}
       </Popover>
     </FacetedContext.Provider>
-  )
+  );
 }
 
 function FacetedTrigger(props: React.ComponentProps<typeof PopoverTrigger>) {
-  const { className, children, ...triggerProps } = props
+  const { className, children, ...triggerProps } = props;
 
   return (
     <PopoverTrigger
@@ -317,14 +317,14 @@ function FacetedTrigger(props: React.ComponentProps<typeof PopoverTrigger>) {
     >
       {children}
     </PopoverTrigger>
-  )
+  );
 }
 
 interface FacetedBadgeListProps extends React.ComponentProps<"div"> {
-  options?: { label: string; value: string }[]
-  max?: number
-  badgeClassName?: string
-  placeholder?: string
+  options?: { label: string; value: string }[];
+  max?: number;
+  badgeClassName?: string;
+  placeholder?: string;
 }
 
 function FacetedBadgeList(props: FacetedBadgeListProps) {
@@ -335,20 +335,20 @@ function FacetedBadgeList(props: FacetedBadgeListProps) {
     className,
     badgeClassName,
     ...badgeListProps
-  } = props
+  } = props;
 
-  const context = useFacetedContext("FacetedBadgeList")
+  const context = useFacetedContext("FacetedBadgeList");
   const values = Array.isArray(context.value)
     ? context.value
-    : ([context.value].filter(Boolean) as string[])
+    : ([context.value].filter(Boolean) as string[]);
 
   const getLabel = React.useCallback(
     (value: string) => {
-      const option = options.find(opt => opt.value === value)
-      return option?.label ?? value
+      const option = options.find((opt) => opt.value === value);
+      return option?.label ?? value;
     },
-    [options],
-  )
+    [options]
+  );
 
   if (!values || values.length === 0) {
     return (
@@ -359,7 +359,7 @@ function FacetedBadgeList(props: FacetedBadgeListProps) {
         {placeholder}
         <ChevronsUpDown className="ml-auto size-4 shrink-0 opacity-50" />
       </div>
-    )
+    );
   }
 
   return (
@@ -375,7 +375,7 @@ function FacetedBadgeList(props: FacetedBadgeListProps) {
           {values.length} selected
         </Badge>
       ) : (
-        values.map(value => (
+        values.map((value) => (
           <Badge
             key={value}
             variant="secondary"
@@ -386,11 +386,11 @@ function FacetedBadgeList(props: FacetedBadgeListProps) {
         ))
       )}
     </div>
-  )
+  );
 }
 
 function FacetedContent(props: React.ComponentProps<typeof PopoverContent>) {
-  const { className, children, ...contentProps } = props
+  const { className, children, ...contentProps } = props;
 
   return (
     <PopoverContent
@@ -398,44 +398,44 @@ function FacetedContent(props: React.ComponentProps<typeof PopoverContent>) {
       align="start"
       className={cn(
         "w-[200px] origin-(--radix-popover-content-transform-origin) p-0",
-        className,
+        className
       )}
     >
       <Command>{children}</Command>
     </PopoverContent>
-  )
+  );
 }
 
-const FacetedInput = CommandInput
+const FacetedInput = CommandInput;
 
-const FacetedList = CommandList
+const FacetedList = CommandList;
 
-const FacetedEmpty = CommandEmpty
+const FacetedEmpty = CommandEmpty;
 
-const FacetedGroup = CommandGroup
+const FacetedGroup = CommandGroup;
 
 interface FacetedItemProps extends React.ComponentProps<typeof CommandItem> {
-  value: string
+  value: string;
 }
 
 function FacetedItem(props: FacetedItemProps) {
-  const { value, onSelect, className, children, ...itemProps } = props
-  const context = useFacetedContext("FacetedItem")
+  const { value, onSelect, className, children, ...itemProps } = props;
+  const context = useFacetedContext("FacetedItem");
 
   const isSelected = context.multiple
     ? Array.isArray(context.value) && context.value.includes(value)
-    : context.value === value
+    : context.value === value;
 
   const onItemSelect = React.useCallback(
     (currentValue: string) => {
       if (onSelect) {
-        onSelect(currentValue)
+        onSelect(currentValue);
       } else if (context.onItemSelect) {
-        context.onItemSelect(currentValue)
+        context.onItemSelect(currentValue);
       }
     },
-    [onSelect, context],
-  )
+    [onSelect, context]
+  );
 
   return (
     <CommandItem
@@ -450,14 +450,14 @@ function FacetedItem(props: FacetedItemProps) {
           "flex size-4 items-center justify-center rounded-sm border border-primary",
           isSelected
             ? "bg-primary text-primary-foreground"
-            : "opacity-50 [&_svg]:invisible",
+            : "opacity-50 [&_svg]:invisible"
         )}
       >
         <Check className="size-4" />
       </span>
       {children}
     </CommandItem>
-  )
+  );
 }
 
 /**
@@ -471,7 +471,7 @@ function FacetedItem(props: FacetedItemProps) {
  */
 function normalizeFilterJoinOperators<TData>(
   originalFilters: ExtendedColumnFilter<TData>[],
-  reorderedFilters: ExtendedColumnFilter<TData>[],
+  reorderedFilters: ExtendedColumnFilter<TData>[]
 ): ExtendedColumnFilter<TData>[] {
   // If filters are the same or empty, return as-is
   if (
@@ -479,34 +479,34 @@ function normalizeFilterJoinOperators<TData>(
     reorderedFilters.length === 0 ||
     originalFilters.length !== reorderedFilters.length
   ) {
-    return reorderedFilters
+    return reorderedFilters;
   }
 
   // Check if order actually changed (using filterId first, then fallback to properties)
   const orderChangedById = reorderedFilters.some(
-    (filter, index) => filter.filterId !== originalFilters[index]?.filterId,
-  )
+    (filter, index) => filter.filterId !== originalFilters[index]?.filterId
+  );
 
   // Also check if order changed by comparing filter properties
   const orderChangedByProps = reorderedFilters.some((filter, index) => {
-    const original = originalFilters[index]
-    if (!original) return true
-    return getFilterKey(filter) !== getFilterKey(original)
-  })
+    const original = originalFilters[index];
+    if (!original) return true;
+    return getFilterKey(filter) !== getFilterKey(original);
+  });
 
   if (!orderChangedById && !orderChangedByProps) {
-    return reorderedFilters
+    return reorderedFilters;
   }
 
   // Create maps using filterId (primary) and filter properties (fallback)
   // This allows matching even if filterId is changed in URL
-  const originalIndexMapById = new Map<string, number>()
-  const originalIndexMapByKey = new Map<string, number>()
+  const originalIndexMapById = new Map<string, number>();
+  const originalIndexMapByKey = new Map<string, number>();
 
   originalFilters.forEach((filter, index) => {
-    originalIndexMapById.set(filter.filterId, index)
-    originalIndexMapByKey.set(getFilterKey(filter), index)
-  })
+    originalIndexMapById.set(filter.filterId, index);
+    originalIndexMapByKey.set(getFilterKey(filter), index);
+  });
 
   // Normalize the reordered filters
   return reorderedFilters.map((filter, newIndex) => {
@@ -515,26 +515,26 @@ function normalizeFilterJoinOperators<TData>(
       return {
         ...filter,
         joinOperator: JOIN_OPERATORS.AND,
-      }
+      };
     }
 
     // Get the previous filter in the new order
-    const previousFilter = reorderedFilters[newIndex - 1]
+    const previousFilter = reorderedFilters[newIndex - 1];
 
     // Try to find original index using filterId first, then fallback to properties
-    let currentOriginalIndex = originalIndexMapById.get(filter.filterId) ?? -1
+    let currentOriginalIndex = originalIndexMapById.get(filter.filterId) ?? -1;
     let previousOriginalIndex =
-      originalIndexMapById.get(previousFilter.filterId) ?? -1
+      originalIndexMapById.get(previousFilter.filterId) ?? -1;
 
     // If not found by filterId, try matching by properties
     // This handles the case where filterId was changed in the URL
     if (currentOriginalIndex === -1) {
       currentOriginalIndex =
-        originalIndexMapByKey.get(getFilterKey(filter)) ?? -1
+        originalIndexMapByKey.get(getFilterKey(filter)) ?? -1;
     }
     if (previousOriginalIndex === -1) {
       previousOriginalIndex =
-        originalIndexMapByKey.get(getFilterKey(previousFilter)) ?? -1
+        originalIndexMapByKey.get(getFilterKey(previousFilter)) ?? -1;
     }
 
     // If either filter wasn't in original, default to AND
@@ -543,7 +543,7 @@ function normalizeFilterJoinOperators<TData>(
       return {
         ...filter,
         joinOperator: JOIN_OPERATORS.AND,
-      }
+      };
     }
 
     // If filters were adjacent in original order
@@ -555,35 +555,35 @@ function normalizeFilterJoinOperators<TData>(
         return {
           ...filter,
           joinOperator: originalFilters[currentOriginalIndex].joinOperator,
-        }
+        };
       } else {
         // Current came before previous in original - use previous's original joinOperator
         // (which determines how it joins with what was before it)
         return {
           ...filter,
           joinOperator: originalFilters[previousOriginalIndex].joinOperator,
-        }
+        };
       }
     }
 
     // Filters were not adjacent in original order
     // Determine relationship by checking if there's an OR operator in the path
-    const startIndex = Math.min(currentOriginalIndex, previousOriginalIndex)
-    const endIndex = Math.max(currentOriginalIndex, previousOriginalIndex)
+    const startIndex = Math.min(currentOriginalIndex, previousOriginalIndex);
+    const endIndex = Math.max(currentOriginalIndex, previousOriginalIndex);
 
     // Check if any filter between them (or the one after start) has OR
     const hasOrInPath = originalFilters
       .slice(startIndex, endIndex + 1)
       .some((f, idx) => {
         // Check joinOperator of filters after startIndex
-        return idx > 0 && f.joinOperator === JOIN_OPERATORS.OR
-      })
+        return idx > 0 && f.joinOperator === JOIN_OPERATORS.OR;
+      });
 
     return {
       ...filter,
       joinOperator: hasOrInPath ? JOIN_OPERATORS.OR : JOIN_OPERATORS.AND,
-    }
-  })
+    };
+  });
 }
 
 /**
@@ -599,69 +599,72 @@ function normalizeFilterJoinOperators<TData>(
  */
 function useInitialFilters<TData>(
   table: Table<TData>,
-  controlledFilters?: ExtendedColumnFilter<TData>[],
+  controlledFilters?: ExtendedColumnFilter<TData>[]
 ): ExtendedColumnFilter<TData>[] {
   // Derive initial filters from table state only once on mount
   const initialFilters = React.useMemo(() => {
     // If controlled, use controlled filters (normalize to ensure filterId exists)
     if (controlledFilters) {
-      const normalized = normalizeFiltersFromUrl(controlledFilters)
+      const normalized = normalizeFiltersFromUrl(controlledFilters);
       if (process.env.NODE_ENV === "development") {
-        console.log("[useInitialFilters] Using controlled filters:", normalized)
+        console.log(
+          "[useInitialFilters] Using controlled filters:",
+          normalized
+        );
       }
-      return normalized
+      return normalized;
     }
 
     // Check if table has globalFilter with filters object (OR filters)
-    const globalFilter = table.getState().globalFilter
+    const globalFilter = table.getState().globalFilter;
     if (
       globalFilter &&
       typeof globalFilter === "object" &&
       "filters" in globalFilter
     ) {
       const filterObj = globalFilter as {
-        filters: (FilterWithoutId<TData> | ExtendedColumnFilter<TData>)[]
-      }
-      const normalized = normalizeFiltersFromUrl(filterObj.filters)
+        filters: (FilterWithoutId<TData> | ExtendedColumnFilter<TData>)[];
+      };
+      const normalized = normalizeFiltersFromUrl(filterObj.filters);
       if (process.env.NODE_ENV === "development") {
         console.log(
           "[useInitialFilters] Extracted from globalFilter:",
-          normalized,
-        )
+          normalized
+        );
       }
-      return normalized
+      return normalized;
     }
 
     // Otherwise check columnFilters (AND filters)
-    const columnFilters = table.getState().columnFilters
+    const columnFilters = table.getState().columnFilters;
     if (columnFilters && columnFilters.length > 0) {
       const extractedFilters = columnFilters
-        .map(cf => cf.value)
+        .map((cf) => cf.value)
         .filter(
           (v): v is FilterWithoutId<TData> | ExtendedColumnFilter<TData> =>
-            v !== null && typeof v === "object" && "id" in v,
-        )
+            v !== null && typeof v === "object" && "id" in v
+        );
       if (extractedFilters.length > 0) {
-        const normalized = normalizeFiltersFromUrl(extractedFilters)
+        const normalized = normalizeFiltersFromUrl(extractedFilters);
         if (process.env.NODE_ENV === "development") {
           console.log(
             "[useInitialFilters] Extracted from columnFilters:",
-            normalized,
-          )
+            normalized
+          );
         }
-        return normalized
+        return normalized;
       }
     }
 
     if (process.env.NODE_ENV === "development") {
-      console.log("[useInitialFilters] No initial filters found")
+      console.log("[useInitialFilters] No initial filters found");
     }
-    return []
+    return [];
     // Only run once on mount - we don't want to reset when table state changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, []);
 
-  return initialFilters
+  return initialFilters;
 }
 
 // columnFilters-only sync (globalFilter stays free for other uses). OR/MIXED
@@ -671,24 +674,24 @@ function useInitialFilters<TData>(
 function useSyncFiltersWithTable<TData>(
   table: Table<TData>,
   filters: ExtendedColumnFilter<TData>[],
-  isControlled: boolean,
+  isControlled: boolean
 ) {
   // Track if we've done initial sync
-  const hasSyncedRef = React.useRef(false)
+  const hasSyncedRef = React.useRef(false);
 
   // Use core utility to process filters and determine logic
   const filterLogic = React.useMemo(
     () => processFiltersForLogic(filters),
-    [filters],
-  )
+    [filters]
+  );
 
   // Update table meta immediately (no effect needed, happens during render)
   // This is safe because we're only mutating table.options.meta, not triggering re-renders
   // Custom filter logic can read this meta to apply correct join operators
   if (table.options.meta) {
-    table.options.meta.hasIndividualJoinOperators = true
+    table.options.meta.hasIndividualJoinOperators = true;
 
-    table.options.meta.joinOperator = filterLogic.joinOperator
+    table.options.meta.joinOperator = filterLogic.joinOperator;
   }
 
   // Sync with table state only when filters change (and not in controlled mode)
@@ -697,14 +700,14 @@ function useSyncFiltersWithTable<TData>(
     if (isControlled) {
       if (process.env.NODE_ENV === "development") {
         console.log(
-          "[useSyncFiltersWithTable] Controlled mode - skipping table sync",
-        )
+          "[useSyncFiltersWithTable] Controlled mode - skipping table sync"
+        );
       }
-      return
+      return;
     }
 
     // Mark that we've synced at least once
-    hasSyncedRef.current = true
+    hasSyncedRef.current = true;
 
     if (process.env.NODE_ENV === "development") {
       console.log("[useSyncFiltersWithTable] Syncing filters:", {
@@ -712,23 +715,23 @@ function useSyncFiltersWithTable<TData>(
         hasOrFilters: filterLogic.hasOrFilters,
         hasSameColumnFilters: filterLogic.hasSameColumnFilters,
         joinOperator: filterLogic.joinOperator,
-        filters: filters.map(f => ({
+        filters: filters.map((f) => ({
           id: f.id,
           operator: f.operator,
           joinOp: f.joinOperator,
           value: f.value,
         })),
-      })
+      });
     }
 
     // Use core utility to determine routing
     if (filterLogic.shouldUseGlobalFilter) {
-      table.resetColumnFilters()
+      table.resetColumnFilters();
 
       table.setGlobalFilter({
         filters: filterLogic.processedFilters,
         joinOperator: filterLogic.joinOperator,
-      })
+      });
 
       if (process.env.NODE_ENV === "development") {
         console.log(
@@ -736,14 +739,14 @@ function useSyncFiltersWithTable<TData>(
           {
             hasOrFilters: filterLogic.hasOrFilters,
             hasSameColumnFilters: filterLogic.hasSameColumnFilters,
-          },
-        )
+          }
+        );
       }
     } else {
       // BUILD COLUMN FILTERS ARRAY
       // Each filter becomes a separate columnFilter entry
       // TanStack Table will AND them together by default, but we can override with custom logic
-      const columnFilters = filterLogic.processedFilters.map(filter => ({
+      const columnFilters = filterLogic.processedFilters.map((filter) => ({
         id: filter.id,
         value: {
           operator: filter.operator,
@@ -752,33 +755,32 @@ function useSyncFiltersWithTable<TData>(
           filterId: filter.filterId,
           joinOperator: filter.joinOperator,
         },
-      }))
+      }));
 
-      table.setColumnFilters(columnFilters)
+      table.setColumnFilters(columnFilters);
 
       if (process.env.NODE_ENV === "development") {
         console.log(
           "[useSyncFiltersWithTable] Set columnFilters (columnFilters-only architecture)",
-          "- pure AND logic",
-        )
+          "- pure AND logic"
+        );
       }
     }
-  }, [filters, filterLogic, table, isControlled])
+  }, [filters, filterLogic, table, isControlled]);
 }
 
-interface TableFilterMenuProps<TData> extends React.ComponentProps<
-  typeof PopoverContent
-> {
-  table: Table<TData>
-  filters?: ExtendedColumnFilter<TData>[]
-  onFiltersChange?: (filters: ExtendedColumnFilter<TData>[] | null) => void
-  joinOperator?: JoinOperator
-  onJoinOperatorChange?: (operator: JoinOperator) => void
+interface TableFilterMenuProps<TData>
+  extends React.ComponentProps<typeof PopoverContent> {
+  table: Table<TData>;
+  filters?: ExtendedColumnFilter<TData>[];
+  onFiltersChange?: (filters: ExtendedColumnFilter<TData>[] | null) => void;
+  joinOperator?: JoinOperator;
+  onJoinOperatorChange?: (operator: JoinOperator) => void;
   /**
    * Precomputed options map from batch generation. When provided,
    * faceted selects skip per-column row scans.
    */
-  precomputedOptions?: Record<string, Option[]>
+  precomputedOptions?: Record<string, Option[]>;
 }
 
 export function TableFilterMenu<TData>({
@@ -792,76 +794,76 @@ export function TableFilterMenu<TData>({
   TableFilterMenuProps<TData>,
   "joinOperator" | "onJoinOperatorChange"
 > & {
-  joinOperator?: JoinOperator
-  onJoinOperatorChange?: (operator: JoinOperator) => void
+  joinOperator?: JoinOperator;
+  onJoinOperatorChange?: (operator: JoinOperator) => void;
 }) {
-  const id = React.useId()
-  const labelId = React.useId()
-  const descriptionId = React.useId()
-  const [open, setOpen] = React.useState(false)
-  const addButtonRef = React.useRef<HTMLButtonElement>(null)
+  const id = React.useId();
+  const labelId = React.useId();
+  const descriptionId = React.useId();
+  const [open, setOpen] = React.useState(false);
+  const addButtonRef = React.useRef<HTMLButtonElement>(null);
 
   // Initialize filters from table state (replaces initialization useEffect)
-  const initialFilters = useInitialFilters(table, controlledFilters)
-  const [internalFilters, setInternalFilters] = React.useState(initialFilters)
+  const initialFilters = useInitialFilters(table, controlledFilters);
+  const [internalFilters, setInternalFilters] = React.useState(initialFilters);
 
   // Use controlled values if provided, otherwise use internal state.
   // Display expands merged multi-value IN entries (the canonical columnFilters
   // shape the faceted dropdown reads) back into one simple "is" row per value;
   // edits re-collapse on sync via processFiltersForLogic.
-  const rawFilters = controlledFilters ?? internalFilters
+  const rawFilters = controlledFilters ?? internalFilters;
   const filters = React.useMemo(
     () => expandMergedEqualityFilters(rawFilters),
-    [rawFilters],
-  )
-  const isControlled = Boolean(controlledFilters)
+    [rawFilters]
+  );
+  const isControlled = Boolean(controlledFilters);
 
   // Handler that works with both controlled and internal state
   const onFiltersChange = React.useCallback(
     (newFilters: ExtendedColumnFilter<TData>[] | null) => {
       if (controlledOnFiltersChange) {
-        controlledOnFiltersChange(newFilters)
+        controlledOnFiltersChange(newFilters);
       } else {
-        setInternalFilters(newFilters ?? [])
+        setInternalFilters(newFilters ?? []);
       }
     },
-    [controlledOnFiltersChange],
-  )
+    [controlledOnFiltersChange]
+  );
 
   // Sync filters with table state (replaces sync useEffect)
-  useSyncFiltersWithTable(table, filters, isControlled)
+  useSyncFiltersWithTable(table, filters, isControlled);
 
   // Legacy global join operator - replaced with individual join operators per filter
   const onJoinOperatorChange = React.useCallback(() => {
     // No-op: Individual join operators handle this functionality
-    console.warn(ERROR_MESSAGES.DEPRECATED_GLOBAL_JOIN_OPERATOR)
-  }, [])
+    console.warn(ERROR_MESSAGES.DEPRECATED_GLOBAL_JOIN_OPERATOR);
+  }, []);
 
   const columns = React.useMemo(() => {
     return table
       .getAllColumns()
-      .filter(column => column.columnDef.enableColumnFilter)
+      .filter((column) => column.columnDef.enableColumnFilter);
     // Depend on the column set, not just the (stable) table ref.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [table, table.options.columns])
+  }, [table, table.options.columns]);
 
   const onFilterAdd = React.useCallback(() => {
-    const column = columns[0]
+    const column = columns[0];
 
-    if (!column) return
+    if (!column) return;
 
     const filterWithoutId = {
       id: column.id as Extract<keyof TData, string>,
       value: "",
       variant: column.columnDef.meta?.variant ?? FILTER_VARIANTS.TEXT,
       operator: getDefaultFilterOperator(
-        column.columnDef.meta?.variant ?? FILTER_VARIANTS.TEXT,
+        column.columnDef.meta?.variant ?? FILTER_VARIANTS.TEXT
       ),
       joinOperator: JOIN_OPERATORS.AND, // Default to AND for new filters
-    }
+    };
 
     // Use current filter length as index to ensure unique IDs
-    const newFilterIndex = filters.length
+    const newFilterIndex = filters.length;
 
     onFiltersChange([
       ...filters,
@@ -869,48 +871,48 @@ export function TableFilterMenu<TData>({
         ...filterWithoutId,
         filterId: createFilterId(filterWithoutId, newFilterIndex),
       },
-    ])
-  }, [columns, filters, onFiltersChange])
+    ]);
+  }, [columns, filters, onFiltersChange]);
 
   const onFilterUpdate = React.useCallback(
     (
       filterId: string,
-      updates: Partial<Omit<ExtendedColumnFilter<TData>, "filterId">>,
+      updates: Partial<Omit<ExtendedColumnFilter<TData>, "filterId">>
     ) => {
-      const updatedFilters = filters.map(filter => {
+      const updatedFilters = filters.map((filter) => {
         if (filter.filterId === filterId) {
-          return { ...filter, ...updates } as ExtendedColumnFilter<TData>
+          return { ...filter, ...updates } as ExtendedColumnFilter<TData>;
         }
-        return filter
-      })
-      onFiltersChange(updatedFilters)
+        return filter;
+      });
+      onFiltersChange(updatedFilters);
     },
-    [filters, onFiltersChange],
-  )
+    [filters, onFiltersChange]
+  );
 
   const onFilterRemove = React.useCallback(
     (filterId: string) => {
       const updatedFilters = filters.filter(
-        filter => filter.filterId !== filterId,
-      )
-      onFiltersChange(updatedFilters)
+        (filter) => filter.filterId !== filterId
+      );
+      onFiltersChange(updatedFilters);
       requestAnimationFrame(() => {
-        addButtonRef.current?.focus()
-      })
+        addButtonRef.current?.focus();
+      });
     },
-    [filters, onFiltersChange],
-  )
+    [filters, onFiltersChange]
+  );
 
   const onFiltersReset = React.useCallback(() => {
-    onFiltersChange(null)
-    onJoinOperatorChange?.() // Legacy - individual filters handle their own join operators
-  }, [onFiltersChange, onJoinOperatorChange])
+    onFiltersChange(null);
+    onJoinOperatorChange?.(); // Legacy - individual filters handle their own join operators
+  }, [onFiltersChange, onJoinOperatorChange]);
 
   // Toggle filter menu with 'F' key
   useKeyboardShortcut({
     key: KEYBOARD_SHORTCUTS.FILTER_TOGGLE,
-    onTrigger: () => setOpen(prev => !prev),
-  })
+    onTrigger: () => setOpen((prev) => !prev),
+  });
 
   // Remove last filter with Shift+F
   useKeyboardShortcut({
@@ -918,11 +920,11 @@ export function TableFilterMenu<TData>({
     requireShift: true,
     onTrigger: () => {
       if (filters.length > 0) {
-        onFilterRemove(filters[filters.length - 1]?.filterId ?? "")
+        onFilterRemove(filters[filters.length - 1]?.filterId ?? "");
       }
     },
     condition: () => filters.length > 0,
-  })
+  });
 
   // Handle filter reordering with join operator normalization
   const handleFiltersReorder = React.useCallback(
@@ -930,34 +932,40 @@ export function TableFilterMenu<TData>({
       // Normalize join operators when filters are reordered
       const normalizedFilters = normalizeFilterJoinOperators(
         filters,
-        reorderedFilters,
-      )
-      onFiltersChange(normalizedFilters)
+        reorderedFilters
+      );
+      onFiltersChange(normalizedFilters);
     },
-    [filters, onFiltersChange],
-  )
+    [filters, onFiltersChange]
+  );
 
   return (
     <PrecomputedOptionsContext.Provider value={precomputedOptions}>
       <Sortable
         value={filters}
         onValueChange={handleFiltersReorder}
-        getItemValue={item => item.filterId}
+        getItemValue={(item) => item.filterId}
       >
         <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" title="Open filter menu (F)">
-              <ListFilter />
-              Filter
-              {filters.length > 0 && (
-                <Badge
-                  variant="secondary"
-                  className="h-[18.24px] rounded-[3.2px] px-[5.12px] font-mono text-[10.4px] font-normal"
-                >
-                  {filters.length}
-                </Badge>
-              )}
-            </Button>
+          <PopoverTrigger
+            render={
+              <Button
+                variant="outline"
+                size="sm"
+                title="Open filter menu (F)"
+              />
+            }
+          >
+            <ListFilter />
+            Filter
+            {filters.length > 0 && (
+              <Badge
+                variant="secondary"
+                className="h-[18.24px] rounded-[3.2px] px-[5.12px] font-mono text-[10.4px] font-normal"
+              >
+                {filters.length}
+              </Badge>
+            )}
           </PopoverTrigger>
           <PopoverContent
             aria-describedby={descriptionId}
@@ -973,7 +981,7 @@ export function TableFilterMenu<TData>({
                 id={descriptionId}
                 className={cn(
                   "text-sm text-muted-foreground",
-                  filters.length > 0 && "sr-only",
+                  filters.length > 0 && "sr-only"
                 )}
               >
                 {filters.length > 0
@@ -1035,20 +1043,20 @@ export function TableFilterMenu<TData>({
         </SortableOverlay>
       </Sortable>
     </PrecomputedOptionsContext.Provider>
-  )
+  );
 }
 
 interface TableFilterItemProps<TData> {
-  filter: ExtendedColumnFilter<TData>
-  index: number
-  filterItemId: string
-  table: Table<TData>
-  columns: Column<TData>[]
+  filter: ExtendedColumnFilter<TData>;
+  index: number;
+  filterItemId: string;
+  table: Table<TData>;
+  columns: Column<TData>[];
   onFilterUpdate: (
     filterId: string,
-    updates: Partial<Omit<ExtendedColumnFilter<TData>, "filterId">>,
-  ) => void
-  onFilterRemove: (filterId: string) => void
+    updates: Partial<Omit<ExtendedColumnFilter<TData>, "filterId">>
+  ) => void;
+  onFilterRemove: (filterId: string) => void;
 }
 
 function TableFilterItem<TData>({
@@ -1060,13 +1068,13 @@ function TableFilterItem<TData>({
   onFilterUpdate,
   onFilterRemove,
 }: TableFilterItemProps<TData>) {
-  const [showFieldSelector, setShowFieldSelector] = React.useState(false)
-  const [showOperatorSelector, setShowOperatorSelector] = React.useState(false)
-  const [showValueSelector, setShowValueSelector] = React.useState(false)
+  const [showFieldSelector, setShowFieldSelector] = React.useState(false);
+  const [showOperatorSelector, setShowOperatorSelector] = React.useState(false);
+  const [showValueSelector, setShowValueSelector] = React.useState(false);
 
-  const column = columns.find(column => column.id === filter.id)
-  const inputId = `${filterItemId}-input`
-  const columnMeta = column?.columnDef.meta
+  const column = columns.find((column) => column.id === filter.id);
+  const inputId = `${filterItemId}-input`;
+  const columnMeta = column?.columnDef.meta;
 
   // Handle keyboard shortcuts for removing filters
   const onItemKeyDown = React.useCallback(
@@ -1075,20 +1083,20 @@ function TableFilterItem<TData>({
         event.target instanceof HTMLInputElement ||
         event.target instanceof HTMLTextAreaElement
       ) {
-        return
+        return;
       }
 
       if (showFieldSelector || showOperatorSelector || showValueSelector) {
-        return
+        return;
       }
 
-      const key = event.key.toLowerCase()
+      const key = event.key.toLowerCase();
       if (
         key === KEYBOARD_SHORTCUTS.BACKSPACE ||
         key === KEYBOARD_SHORTCUTS.DELETE
       ) {
-        event.preventDefault()
-        onFilterRemove(filter.filterId)
+        event.preventDefault();
+        onFilterRemove(filter.filterId);
       }
     },
     [
@@ -1097,10 +1105,10 @@ function TableFilterItem<TData>({
       showOperatorSelector,
       showValueSelector,
       onFilterRemove,
-    ],
-  )
+    ]
+  );
 
-  if (!column) return null
+  if (!column) return null;
 
   return (
     <SortableItem value={filter.filterId} {...sortableAsChild}>
@@ -1176,23 +1184,23 @@ function TableFilterItem<TData>({
         </SortableItemHandle>
       </li>
     </SortableItem>
-  )
+  );
 }
 
 /* ----------------------------- Filter Input Components ---------------------------- */
 
 interface FilterInputProps<TData> {
-  filter: ExtendedColumnFilter<TData>
-  inputId: string
-  table: Table<TData>
-  column: Column<TData>
-  columnMeta?: Column<TData>["columnDef"]["meta"]
+  filter: ExtendedColumnFilter<TData>;
+  inputId: string;
+  table: Table<TData>;
+  column: Column<TData>;
+  columnMeta?: Column<TData>["columnDef"]["meta"];
   onFilterUpdate: (
     filterId: string,
-    updates: Partial<Omit<ExtendedColumnFilter<TData>, "filterId">>,
-  ) => void
-  showValueSelector: boolean
-  setShowValueSelector: (value: boolean) => void
+    updates: Partial<Omit<ExtendedColumnFilter<TData>, "filterId">>
+  ) => void;
+  showValueSelector: boolean;
+  setShowValueSelector: (value: boolean) => void;
 }
 
 /**
@@ -1213,9 +1221,9 @@ function FilterEmptyInput<TData>({
       aria-live="polite"
       className="h-8 w-full rounded border bg-transparent dark:bg-input/30"
     />
-  )
+  );
 }
-FilterEmptyInput.displayName = "FilterEmptyInput"
+FilterEmptyInput.displayName = "FilterEmptyInput";
 
 /**
  * Text or number input for text/number/range variants
@@ -1231,7 +1239,7 @@ function FilterTextNumberInput<TData>({
 >) {
   const isNumber =
     filter.variant === FILTER_VARIANTS.NUMBER ||
-    filter.variant === FILTER_VARIANTS.RANGE
+    filter.variant === FILTER_VARIANTS.RANGE;
 
   return (
     <Input
@@ -1243,15 +1251,15 @@ function FilterTextNumberInput<TData>({
       placeholder={columnMeta?.placeholder ?? "Enter a value..."}
       className="h-8 w-full rounded"
       value={typeof filter.value === "string" ? filter.value : ""}
-      onChange={event =>
+      onChange={(event) =>
         onFilterUpdate(filter.filterId, {
           value: String(event.target.value),
         })
       }
     />
-  )
+  );
 }
-FilterTextNumberInput.displayName = "FilterTextNumberInput"
+FilterTextNumberInput.displayName = "FilterTextNumberInput";
 
 /**
  * Boolean select input
@@ -1264,16 +1272,16 @@ function FilterBooleanSelect<TData>({
   showValueSelector,
   setShowValueSelector,
 }: FilterInputProps<TData>) {
-  if (Array.isArray(filter.value)) return null
+  if (Array.isArray(filter.value)) return null;
 
-  const inputListboxId = `${inputId}-listbox`
+  const inputListboxId = `${inputId}-listbox`;
 
   return (
     <Select
       open={showValueSelector}
       onOpenChange={setShowValueSelector}
       value={typeof filter.value === "string" ? filter.value : undefined}
-      onValueChange={value =>
+      onValueChange={(value) =>
         // Base UI selects pass null on clear; Radix never does
         value != null &&
         onFilterUpdate(filter.filterId, {
@@ -1295,9 +1303,9 @@ function FilterBooleanSelect<TData>({
         <SelectItem value="false">False</SelectItem>
       </SelectContent>
     </Select>
-  )
+  );
 }
-FilterBooleanSelect.displayName = "FilterBooleanSelect"
+FilterBooleanSelect.displayName = "FilterBooleanSelect";
 
 /**
  * Select/multi-select faceted input
@@ -1312,60 +1320,62 @@ function FilterFacetedSelect<TData>({
   showValueSelector,
   setShowValueSelector,
 }: FilterInputProps<TData>) {
-  const inputListboxId = `${inputId}-listbox`
-  const multiple = filter.variant === FILTER_VARIANTS.MULTI_SELECT
+  const inputListboxId = `${inputId}-listbox`;
+  const multiple = filter.variant === FILTER_VARIANTS.MULTI_SELECT;
   const selectedValues = multiple
     ? Array.isArray(filter.value)
       ? filter.value
       : []
     : typeof filter.value === "string"
       ? filter.value
-      : undefined
+      : undefined;
 
   // Resolve options: prefer static meta.options, then precomputed batch,
   // and only then fall back to per-column generation.
-  const precomputedOptions = React.useContext(PrecomputedOptionsContext)
+  const precomputedOptions = React.useContext(PrecomputedOptionsContext);
   const needsPerColumnGeneration =
-    !precomputedOptions?.[column.id] && !columnMeta?.options?.length
+    !precomputedOptions?.[column.id] && !columnMeta?.options?.length;
   const perColumnGenerated = useGeneratedOptionsForColumn(
     table,
-    needsPerColumnGeneration ? column.id : "__noop__",
-  )
-  const generatedOptions = precomputedOptions?.[column.id] ?? perColumnGenerated
+    needsPerColumnGeneration ? column.id : "__noop__"
+  );
+  const generatedOptions =
+    precomputedOptions?.[column.id] ?? perColumnGenerated;
   const options = columnMeta?.options?.length
     ? columnMeta.options
-    : generatedOptions
+    : generatedOptions;
 
   return (
     <Faceted
       open={showValueSelector}
       onOpenChange={setShowValueSelector}
       value={selectedValues}
-      onValueChange={value => {
+      onValueChange={(value) => {
         onFilterUpdate(filter.filterId, {
           value,
-        })
+        });
       }}
       multiple={multiple}
     >
-      <FacetedTrigger asChild>
-        <Button
-          id={inputId}
-          aria-controls={inputListboxId}
-          aria-label={`${columnMeta?.label} filter value${multiple ? "s" : ""}`}
-          variant="outline"
-          size="sm"
-          className="w-full rounded font-normal"
-          title={`Select ${columnMeta?.label?.toLowerCase() ?? "option"}${multiple ? "s" : ""}`}
-        >
-          <FacetedBadgeList
-            options={options}
-            placeholder={
-              columnMeta?.placeholder ??
-              `Select option${multiple ? "s" : ""}...`
-            }
+      <FacetedTrigger
+        render={
+          <Button
+            id={inputId}
+            aria-controls={inputListboxId}
+            aria-label={`${columnMeta?.label} filter value${multiple ? "s" : ""}`}
+            variant="outline"
+            size="sm"
+            className="w-full rounded font-normal"
+            title={`Select ${columnMeta?.label?.toLowerCase() ?? "option"}${multiple ? "s" : ""}`}
           />
-        </Button>
+        }
+      >
+        <FacetedBadgeList
+          options={options}
+          placeholder={
+            columnMeta?.placeholder ?? `Select option${multiple ? "s" : ""}...`
+          }
+        />
       </FacetedTrigger>
       <FacetedContent
         id={inputListboxId}
@@ -1390,7 +1400,7 @@ function FilterFacetedSelect<TData>({
                   // multi-select holds an array, single-select a bare string.
                   (Array.isArray(selectedValues)
                     ? selectedValues.includes(option.value)
-                    : selectedValues === option.value),
+                    : selectedValues === option.value)
               )
               .map((option: Option) => (
                 <FacetedItem key={option.value} value={option.value}>
@@ -1407,7 +1417,7 @@ function FilterFacetedSelect<TData>({
         </FacetedList>
       </FacetedContent>
     </Faceted>
-  )
+  );
 }
 
 /**
@@ -1421,39 +1431,41 @@ function FilterDatePicker<TData>({
   showValueSelector,
   setShowValueSelector,
 }: FilterInputProps<TData>) {
-  const inputListboxId = `${inputId}-listbox`
+  const inputListboxId = `${inputId}-listbox`;
 
   const dateValue = Array.isArray(filter.value)
     ? filter.value.filter(Boolean)
-    : [filter.value, filter.value].filter(Boolean)
+    : [filter.value, filter.value].filter(Boolean);
 
   const displayValue =
     filter.operator === FILTER_OPERATORS.BETWEEN && dateValue.length === 2
       ? `${formatDate(new Date(Number(dateValue[0])))} - ${formatDate(
-          new Date(Number(dateValue[1])),
+          new Date(Number(dateValue[1]))
         )}`
       : dateValue[0]
         ? formatDate(new Date(Number(dateValue[0])))
-        : "Pick a date"
+        : "Pick a date";
 
   return (
     <Popover open={showValueSelector} onOpenChange={setShowValueSelector}>
-      <PopoverTrigger asChild>
-        <Button
-          id={inputId}
-          aria-controls={inputListboxId}
-          aria-label={`${columnMeta?.label} date filter`}
-          variant="outline"
-          size="sm"
-          className={cn(
-            "w-full justify-start rounded text-left font-normal",
-            !filter.value && "text-muted-foreground",
-          )}
-          title={`Select ${columnMeta?.label?.toLowerCase() ?? FILTER_VARIANTS.DATE}${filter.operator === FILTER_OPERATORS.BETWEEN ? " range" : ""}`}
-        >
-          <CalendarIcon />
-          <span className="truncate">{displayValue}</span>
-        </Button>
+      <PopoverTrigger
+        render={
+          <Button
+            id={inputId}
+            aria-controls={inputListboxId}
+            aria-label={`${columnMeta?.label} date filter`}
+            variant="outline"
+            size="sm"
+            className={cn(
+              "w-full justify-start rounded text-left font-normal",
+              !filter.value && "text-muted-foreground"
+            )}
+            title={`Select ${columnMeta?.label?.toLowerCase() ?? FILTER_VARIANTS.DATE}${filter.operator === FILTER_OPERATORS.BETWEEN ? " range" : ""}`}
+          />
+        }
+      >
+        <CalendarIcon />
+        <span className="truncate">{displayValue}</span>
       </PopoverTrigger>
       <PopoverContent
         id={inputListboxId}
@@ -1476,7 +1488,7 @@ function FilterDatePicker<TData>({
                     to: new Date(),
                   }
             }
-            onSelect={date => {
+            onSelect={(date) => {
               onFilterUpdate(filter.filterId, {
                 value: date
                   ? [
@@ -1484,7 +1496,7 @@ function FilterDatePicker<TData>({
                       (date.to?.getTime() ?? "").toString(),
                     ]
                   : [],
-              })
+              });
             }}
           />
         ) : (
@@ -1493,30 +1505,30 @@ function FilterDatePicker<TData>({
             mode="single"
             captionLayout="dropdown"
             selected={dateValue[0] ? new Date(Number(dateValue[0])) : undefined}
-            onSelect={date => {
+            onSelect={(date) => {
               onFilterUpdate(filter.filterId, {
                 value: (date?.getTime() ?? "").toString(),
-              })
+              });
             }}
           />
         )}
       </PopoverContent>
     </Popover>
-  )
+  );
 }
 
 /**
  * Main filter input renderer - delegates to specific input components
  */
 function FilterValueInput<TData>(props: FilterInputProps<TData>) {
-  const { filter, column, inputId, onFilterUpdate } = props
+  const { filter, column, inputId, onFilterUpdate } = props;
 
   // Empty state for isEmpty/isNotEmpty operators
   if (
     filter.operator === FILTER_OPERATORS.EMPTY ||
     filter.operator === FILTER_OPERATORS.NOT_EMPTY
   ) {
-    return <FilterEmptyInput {...props} />
+    return <FilterEmptyInput {...props} />;
   }
 
   // Variant-specific inputs
@@ -1537,30 +1549,30 @@ function FilterValueInput<TData>(props: FilterInputProps<TData>) {
             inputId={inputId}
             onFilterUpdate={onFilterUpdate}
           />
-        )
+        );
       }
 
-      return <FilterTextNumberInput {...props} />
+      return <FilterTextNumberInput {...props} />;
     }
 
     case FILTER_VARIANTS.BOOLEAN:
-      return <FilterBooleanSelect {...props} />
+      return <FilterBooleanSelect {...props} />;
 
     case FILTER_VARIANTS.SELECT:
     case FILTER_VARIANTS.MULTI_SELECT:
-      return <FilterFacetedSelect {...props} />
+      return <FilterFacetedSelect {...props} />;
 
     case FILTER_VARIANTS.DATE:
     case FILTER_VARIANTS.DATE_RANGE:
-      return <FilterDatePicker {...props} />
+      return <FilterDatePicker {...props} />;
 
     default:
-      return null
+      return null;
   }
 }
-FilterValueInput.displayName = "FilterValueInput"
-FilterFacetedSelect.displayName = "FilterFacetedSelect"
-FilterDatePicker.displayName = "FilterDatePicker"
+FilterValueInput.displayName = "FilterValueInput";
+FilterFacetedSelect.displayName = "FilterFacetedSelect";
+FilterDatePicker.displayName = "FilterDatePicker";
 
 /* ----------------------- Filter Item Sub-Components ----------------------- */
 
@@ -1573,22 +1585,22 @@ function FilterJoinOperator<TData>({
   filterItemId,
   onFilterUpdate,
 }: {
-  filter: ExtendedColumnFilter<TData>
-  index: number
-  filterItemId: string
+  filter: ExtendedColumnFilter<TData>;
+  index: number;
+  filterItemId: string;
   onFilterUpdate: (
     filterId: string,
-    updates: Partial<Omit<ExtendedColumnFilter<TData>, "filterId">>,
-  ) => void
+    updates: Partial<Omit<ExtendedColumnFilter<TData>, "filterId">>
+  ) => void;
 }) {
-  const joinOperatorListboxId = `${filterItemId}-join-operator-listbox`
+  const joinOperatorListboxId = `${filterItemId}-join-operator-listbox`;
 
   if (index === 0) {
     return (
       <div className="min-w-[72px] text-center">
         <span className="text-sm text-muted-foreground">Where</span>
       </div>
-    )
+    );
   }
 
   return (
@@ -1615,7 +1627,7 @@ function FilterJoinOperator<TData>({
           id={joinOperatorListboxId}
           className="min-w-(--radix-select-trigger-width) lowercase"
         >
-          {dataTableConfig.joinOperators.map(operator => (
+          {dataTableConfig.joinOperators.map((operator) => (
             <SelectItem key={operator} value={operator}>
               {operator}
             </SelectItem>
@@ -1623,9 +1635,9 @@ function FilterJoinOperator<TData>({
         </SelectContent>
       </Select>
     </div>
-  )
+  );
 }
-FilterJoinOperator.displayName = "FilterJoinOperator"
+FilterJoinOperator.displayName = "FilterJoinOperator";
 
 /**
  * Field selector for choosing which column to filter
@@ -1638,34 +1650,36 @@ function FilterFieldSelector<TData>({
   showFieldSelector,
   setShowFieldSelector,
 }: {
-  filter: ExtendedColumnFilter<TData>
-  filterItemId: string
-  columns: Column<TData>[]
+  filter: ExtendedColumnFilter<TData>;
+  filterItemId: string;
+  columns: Column<TData>[];
   onFilterUpdate: (
     filterId: string,
-    updates: Partial<Omit<ExtendedColumnFilter<TData>, "filterId">>,
-  ) => void
-  showFieldSelector: boolean
-  setShowFieldSelector: (value: boolean) => void
+    updates: Partial<Omit<ExtendedColumnFilter<TData>, "filterId">>
+  ) => void;
+  showFieldSelector: boolean;
+  setShowFieldSelector: (value: boolean) => void;
 }) {
-  const fieldListboxId = `${filterItemId}-field-listbox`
+  const fieldListboxId = `${filterItemId}-field-listbox`;
 
   return (
     <Popover open={showFieldSelector} onOpenChange={setShowFieldSelector}>
-      <PopoverTrigger asChild>
-        <Button
-          aria-controls={fieldListboxId}
-          variant="outline"
-          size="sm"
-          className="w-32 justify-between rounded font-normal"
-          title="Select field to filter"
-        >
-          <span className="truncate">
-            {columns.find(column => column.id === filter.id)?.columnDef.meta
-              ?.label ?? "Select field"}
-          </span>
-          <ChevronsUpDown className="opacity-50" />
-        </Button>
+      <PopoverTrigger
+        render={
+          <Button
+            aria-controls={fieldListboxId}
+            variant="outline"
+            size="sm"
+            className="w-32 justify-between rounded font-normal"
+            title="Select field to filter"
+          />
+        }
+      >
+        <span className="truncate">
+          {columns.find((column) => column.id === filter.id)?.columnDef.meta
+            ?.label ?? "Select field"}
+        </span>
+        <ChevronsUpDown className="opacity-50" />
       </PopoverTrigger>
       <PopoverContent
         id={fieldListboxId}
@@ -1677,22 +1691,22 @@ function FilterFieldSelector<TData>({
           <CommandList>
             <CommandEmpty>No fields found.</CommandEmpty>
             <CommandGroup>
-              {columns.map(column => (
+              {columns.map((column) => (
                 <CommandItem
                   key={column.id}
                   value={column.id}
-                  onSelect={value => {
+                  onSelect={(value) => {
                     onFilterUpdate(filter.filterId, {
                       id: value as Extract<keyof TData, string>,
                       variant:
                         column.columnDef.meta?.variant ?? FILTER_VARIANTS.TEXT,
                       operator: getDefaultFilterOperator(
-                        column.columnDef.meta?.variant ?? FILTER_VARIANTS.TEXT,
+                        column.columnDef.meta?.variant ?? FILTER_VARIANTS.TEXT
                       ),
                       value: "",
-                    })
+                    });
 
-                    setShowFieldSelector(false)
+                    setShowFieldSelector(false);
                   }}
                 >
                   <span className="truncate">
@@ -1701,7 +1715,7 @@ function FilterFieldSelector<TData>({
                   <Check
                     className={cn(
                       "ml-auto",
-                      column.id === filter.id ? "opacity-100" : "opacity-0",
+                      column.id === filter.id ? "opacity-100" : "opacity-0"
                     )}
                   />
                 </CommandItem>
@@ -1711,9 +1725,9 @@ function FilterFieldSelector<TData>({
         </Command>
       </PopoverContent>
     </Popover>
-  )
+  );
 }
-FilterFieldSelector.displayName = "FilterFieldSelector"
+FilterFieldSelector.displayName = "FilterFieldSelector";
 
 /**
  * Operator selector for choosing filter operation (equals, contains, etc.)
@@ -1725,17 +1739,17 @@ function FilterOperatorSelector<TData>({
   showOperatorSelector,
   setShowOperatorSelector,
 }: {
-  filter: ExtendedColumnFilter<TData>
-  filterItemId: string
+  filter: ExtendedColumnFilter<TData>;
+  filterItemId: string;
   onFilterUpdate: (
     filterId: string,
-    updates: Partial<Omit<ExtendedColumnFilter<TData>, "filterId">>,
-  ) => void
-  showOperatorSelector: boolean
-  setShowOperatorSelector: (value: boolean) => void
+    updates: Partial<Omit<ExtendedColumnFilter<TData>, "filterId">>
+  ) => void;
+  showOperatorSelector: boolean;
+  setShowOperatorSelector: (value: boolean) => void;
 }) {
-  const operatorListboxId = `${filterItemId}-operator-listbox`
-  const filterOperators = getFilterOperators(filter.variant)
+  const operatorListboxId = `${filterItemId}-operator-listbox`;
+  const filterOperators = getFilterOperators(filter.variant);
 
   return (
     <Select
@@ -1744,8 +1758,8 @@ function FilterOperatorSelector<TData>({
       value={filter.operator}
       onValueChange={(value: string | null) => {
         // Base UI selects pass null on clear; Radix never does
-        if (!value) return
-        const operator = value as FilterOperator
+        if (!value) return;
+        const operator = value as FilterOperator;
         onFilterUpdate(filter.filterId, {
           operator,
           value:
@@ -1753,7 +1767,7 @@ function FilterOperatorSelector<TData>({
             operator === FILTER_OPERATORS.NOT_EMPTY
               ? ""
               : filter.value,
-        })
+        });
       }}
     >
       <SelectTrigger
@@ -1769,7 +1783,7 @@ function FilterOperatorSelector<TData>({
         id={operatorListboxId}
         className="origin-(--radix-select-content-transform-origin)"
       >
-        {filterOperators.map(operator => (
+        {filterOperators.map((operator) => (
           <SelectItem
             key={operator.value}
             value={operator.value}
@@ -1780,23 +1794,23 @@ function FilterOperatorSelector<TData>({
         ))}
       </SelectContent>
     </Select>
-  )
+  );
 }
-FilterOperatorSelector.displayName = "FilterOperatorSelector"
+FilterOperatorSelector.displayName = "FilterOperatorSelector";
 
 /* ----------------------------- Main Components ---------------------------- */
 
 // Add displayName to DataTableFilterItem for React DevTools
 interface DataTableFilterItemType {
-  <TData>(props: TableFilterItemProps<TData>): React.JSX.Element | null
-  displayName?: string
+  <TData>(props: TableFilterItemProps<TData>): React.JSX.Element | null;
+  displayName?: string;
 }
 
-;(TableFilterItem as DataTableFilterItemType).displayName =
-  "DataTableFilterItem"
+(TableFilterItem as DataTableFilterItemType).displayName =
+  "DataTableFilterItem";
 
 /**
  * @required displayName is required for auto feature detection
  * @see src/components/niko-table/config/feature-detection.ts
  */
-TableFilterMenu.displayName = "TableFilterMenu"
+TableFilterMenu.displayName = "TableFilterMenu";

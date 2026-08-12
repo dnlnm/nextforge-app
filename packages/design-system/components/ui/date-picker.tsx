@@ -32,21 +32,18 @@ function DatePicker({
 
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          className={cn(
+      <PopoverTrigger
+      render={<Button className={cn(
             "justify-start font-normal text-left w-full",
             !date && "text-muted-foreground",
             className
           )}
           id={id}
-          variant="outline"
-        >
-          <CalendarIcon className="size-4" />
+          variant="outline" />}>
+      <CalendarIcon className="size-4" />
           <span className="min-w-0 truncate">
             {date ? format(date, "dd/MM/yy") : placeholder}
           </span>
-        </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar

@@ -166,11 +166,15 @@ const Navbar1 = ({
             </div>
           </div>
           <div className="flex gap-2">
-            <Button asChild size="sm" variant="outline">
-              <a href={auth.login.url}>{auth.login.title}</a>
+            <Button
+              size="sm"
+              variant="outline"
+              render={<a href={auth.login.url} />}
+            >
+              {auth.login.title}
             </Button>
-            <Button asChild size="sm">
-              <a href={auth.signup.url}>{auth.signup.title}</a>
+            <Button size="sm" render={<a href={auth.signup.url} />}>
+              {auth.signup.title}
             </Button>
           </div>
         </nav>
@@ -187,10 +191,8 @@ const Navbar1 = ({
               />
             </a>
             <Sheet>
-              <SheetTrigger asChild>
-                <Button size="icon" variant="outline">
-                  <Menu className="size-4" />
-                </Button>
+              <SheetTrigger render={<Button size="icon" variant="outline" />}>
+                <Menu className="size-4" />
               </SheetTrigger>
               <SheetContent className="overflow-y-auto">
                 <SheetHeader>
@@ -205,20 +207,19 @@ const Navbar1 = ({
                   </SheetTitle>
                 </SheetHeader>
                 <div className="flex flex-col gap-6 p-4">
-                  <Accordion
-                    className="flex w-full flex-col gap-4"
-                    collapsible
-                    type="single"
-                  >
+                  <Accordion className="flex w-full flex-col gap-4">
                     {menu.map((item) => renderMobileMenuItem(item))}
                   </Accordion>
 
                   <div className="flex flex-col gap-3">
-                    <Button asChild variant="outline">
-                      <a href={auth.login.url}>{auth.login.title}</a>
+                    <Button
+                      variant="outline"
+                      render={<a href={auth.login.url} />}
+                    >
+                      {auth.login.title}
                     </Button>
-                    <Button asChild>
-                      <a href={auth.signup.url}>{auth.signup.title}</a>
+                    <Button render={<a href={auth.signup.url} />}>
+                      {auth.signup.title}
                     </Button>
                   </div>
                 </div>

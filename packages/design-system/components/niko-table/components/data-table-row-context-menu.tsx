@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuTrigger,
-} from "@repo/design-system/components/ui/context-menu"
+} from "@repo/design-system/components/ui/context-menu";
 
-import { DataTableRowMenuScope } from "./data-table-row-menu"
+import { DataTableRowMenuScope } from "./data-table-row-menu";
 
 export interface DataTableRowContextMenuProps {
   /**
@@ -16,13 +16,13 @@ export interface DataTableRowContextMenuProps {
    * `DataTableRowMenuScope` so a declarative `<XRowMenu>` can read it with
    * `useDataTableRow()` and render the same items as the kebab dropdown.
    */
-  row: unknown
+  row: unknown;
   /**
    * The `<TableRow>` element the menu anchors to. Radix's `asChild` merges
    * the right-click listener onto this element (via Slot), so no wrapper
    * node is introduced and table markup (`<tbody> > <tr>`) stays valid.
    */
-  trigger: React.ReactElement
+  trigger: React.ReactElement;
   /**
    * The menu items to show on right-click — compose `ContextMenuItem`,
    * `ContextMenuSeparator`, `ContextMenuSub`, etc. The portal + surface
@@ -31,9 +31,9 @@ export interface DataTableRowContextMenuProps {
    * Tip: reuse the same items your row's "…" actions column renders so
    * right-click and the kebab menu stay in sync (write once).
    */
-  children: React.ReactNode
+  children: React.ReactNode;
   /** Extra className for the popup surface. */
-  className?: string
+  className?: string;
 }
 
 /**
@@ -64,24 +64,24 @@ export function DataTableRowContextMenu({
   // user can see which row they're acting on. We stamp `data-context-menu-open`
   // on the row element; the table's row/cell styles react to it the same way
   // they react to `data-state="selected"`.
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = React.useState(false);
   const anchoredTrigger = open
     ? React.cloneElement(
         trigger as React.ReactElement<{ "data-context-menu-open"?: string }>,
-        { "data-context-menu-open": "" },
+        { "data-context-menu-open": "" }
       )
-    : trigger
+    : trigger;
 
   return (
     <ContextMenu onOpenChange={setOpen}>
-      <ContextMenuTrigger asChild>{anchoredTrigger}</ContextMenuTrigger>
+      <ContextMenuTrigger render={anchoredTrigger} />
       <ContextMenuContent className={className}>
         <DataTableRowMenuScope row={row} surface="context">
           {children}
         </DataTableRowMenuScope>
       </ContextMenuContent>
     </ContextMenu>
-  )
+  );
 }
 
-DataTableRowContextMenu.displayName = "DataTableRowContextMenu"
+DataTableRowContextMenu.displayName = "DataTableRowContextMenu";

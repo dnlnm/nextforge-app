@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 /**
  * niko-table — created by Semir N. (Semkoo, https://github.com/Semkoo) with AI assistance.
@@ -16,12 +16,12 @@
  * @description A sort menu component for DataTable that allows users to manage multiple sorting criteria. Users can add, remove, and reorder sorting fields, as well as select sort directions.
  */
 
-import type { ColumnSort, Table } from "@tanstack/react-table"
-import { ArrowDownUp, Trash2, CircleHelp } from "lucide-react"
-import * as React from "react"
+import type { ColumnSort, Table } from "@tanstack/react-table";
+import { ArrowDownUp, Trash2, CircleHelp } from "lucide-react";
+import * as React from "react";
 
-import { Badge } from "@repo/design-system/components/ui/badge"
-import { Button } from "@repo/design-system/components/ui/button"
+import { Badge } from "@repo/design-system/components/ui/badge";
+import { Button } from "@repo/design-system/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -29,48 +29,48 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@repo/design-system/components/ui/command"
+} from "@repo/design-system/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@repo/design-system/components/ui/popover"
+} from "@repo/design-system/components/ui/popover";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@repo/design-system/components/ui/tooltip"
+} from "@repo/design-system/components/ui/tooltip";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@repo/design-system/components/ui/select"
+} from "@repo/design-system/components/ui/select";
 import {
   Sortable,
   SortableContent,
   SortableItem,
   SortableItemHandle,
   SortableOverlay,
-} from "@repo/design-system/components/ui/sortable"
-import { useKeyboardShortcut } from "../hooks/use-keyboard-shortcut"
-import { cn } from "@repo/design-system/lib/utils"
-import { ChevronsUpDown, Grip } from "lucide-react"
+} from "@repo/design-system/components/ui/sortable";
+import { useKeyboardShortcut } from "../hooks/use-keyboard-shortcut";
+import { cn } from "@repo/design-system/lib/utils";
+import { ChevronsUpDown, Grip } from "lucide-react";
 
 // Import sort labels from TableColumnHeader for consistency
-import { SORT_LABELS } from "../config/data-table"
-import { FILTER_VARIANTS } from "../lib/constants"
+import { SORT_LABELS } from "../config/data-table";
+import { FILTER_VARIANTS } from "../lib/constants";
 
 interface TableSortItemProps {
-  sort: ColumnSort
-  sortItemId: string
-  columns: { id: string; label: string }[]
-  columnLabels: Map<string, string>
-  onSortUpdate: (sortId: string, updates: Partial<ColumnSort>) => void
-  onSortRemove: (sortId: string) => void
-  getVariantForColumn?: (id: string) => string | undefined
-  className?: string
+  sort: ColumnSort;
+  sortItemId: string;
+  columns: { id: string; label: string }[];
+  columnLabels: Map<string, string>;
+  onSortUpdate: (sortId: string, updates: Partial<ColumnSort>) => void;
+  onSortRemove: (sortId: string) => void;
+  getVariantForColumn?: (id: string) => string | undefined;
+  className?: string;
 }
 
 /**
@@ -78,7 +78,7 @@ interface TableSortItemProps {
  * codemod doesn't rewrite it to `render` — the sortable component keeps the
  * `asChild` API in both the Radix and Base UI shadcn generations.
  */
-const sortableAsChild = { asChild: true }
+const sortableAsChild = { asChild: true };
 
 function TableSortItem({
   sort,
@@ -89,13 +89,13 @@ function TableSortItem({
   onSortRemove,
   getVariantForColumn,
 }: TableSortItemProps) {
-  const fieldListboxId = `${sortItemId}-field-listbox`
-  const fieldTriggerId = `${sortItemId}-field-trigger`
-  const directionListboxId = `${sortItemId}-direction-listbox`
+  const fieldListboxId = `${sortItemId}-field-listbox`;
+  const fieldTriggerId = `${sortItemId}-field-trigger`;
+  const directionListboxId = `${sortItemId}-direction-listbox`;
 
-  const [showFieldSelector, setShowFieldSelector] = React.useState(false)
+  const [showFieldSelector, setShowFieldSelector] = React.useState(false);
   const [showDirectionSelector, setShowDirectionSelector] =
-    React.useState(false)
+    React.useState(false);
 
   const onItemKeyDown = React.useCallback(
     (event: React.KeyboardEvent<HTMLLIElement>) => {
@@ -103,25 +103,25 @@ function TableSortItem({
         event.target instanceof HTMLInputElement ||
         event.target instanceof HTMLTextAreaElement
       ) {
-        return
+        return;
       }
 
       if (showFieldSelector || showDirectionSelector) {
-        return
+        return;
       }
 
       if (["backspace", "delete"].includes(event.key.toLowerCase())) {
-        event.preventDefault()
-        onSortRemove(sort.id)
+        event.preventDefault();
+        onSortRemove(sort.id);
       }
     },
-    [sort.id, showFieldSelector, showDirectionSelector, onSortRemove],
-  )
+    [sort.id, showFieldSelector, showDirectionSelector, onSortRemove]
+  );
 
   const variant =
     (getVariantForColumn?.(sort.id) as keyof typeof SORT_LABELS | undefined) ??
-    FILTER_VARIANTS.TEXT
-  const labels = SORT_LABELS[variant] || SORT_LABELS[FILTER_VARIANTS.TEXT]
+    FILTER_VARIANTS.TEXT;
+  const labels = SORT_LABELS[variant] || SORT_LABELS[FILTER_VARIANTS.TEXT];
 
   return (
     <SortableItem value={sort.id} {...sortableAsChild}>
@@ -132,16 +132,18 @@ function TableSortItem({
         onKeyDown={onItemKeyDown}
       >
         <Popover open={showFieldSelector} onOpenChange={setShowFieldSelector}>
-          <PopoverTrigger asChild>
-            <Button
-              id={fieldTriggerId}
-              aria-controls={fieldListboxId}
-              variant="outline"
-              className="w-44 justify-between rounded font-normal"
-            >
-              <span className="truncate">{columnLabels.get(sort.id)}</span>
-              <ChevronsUpDown className="opacity-50" />
-            </Button>
+          <PopoverTrigger
+            render={
+              <Button
+                id={fieldTriggerId}
+                aria-controls={fieldListboxId}
+                variant="outline"
+                className="w-44 justify-between rounded font-normal"
+              />
+            }
+          >
+            <span className="truncate">{columnLabels.get(sort.id)}</span>
+            <ChevronsUpDown className="opacity-50" />
           </PopoverTrigger>
           <PopoverContent
             id={fieldListboxId}
@@ -152,11 +154,11 @@ function TableSortItem({
               <CommandList>
                 <CommandEmpty>No fields found.</CommandEmpty>
                 <CommandGroup>
-                  {columns.map(column => (
+                  {columns.map((column) => (
                     <CommandItem
                       key={column.id}
                       value={column.id}
-                      onSelect={value => onSortUpdate(sort.id, { id: value })}
+                      onSelect={(value) => onSortUpdate(sort.id, { id: value })}
                     >
                       <span className="truncate">{column.label}</span>
                     </CommandItem>
@@ -209,22 +211,21 @@ function TableSortItem({
         </SortableItemHandle>
       </li>
     </SortableItem>
-  )
+  );
 }
 
-export interface TableSortMenuProps<TData> extends React.ComponentProps<
-  typeof PopoverContent
-> {
-  table: Table<TData>
-  debounceMs?: number
-  throttleMs?: number
-  shallow?: boolean
-  className?: string
+export interface TableSortMenuProps<TData>
+  extends React.ComponentProps<typeof PopoverContent> {
+  table: Table<TData>;
+  debounceMs?: number;
+  throttleMs?: number;
+  shallow?: boolean;
+  className?: string;
   /**
    * Callback fired when sorting state changes
    * Useful for server-side sorting or external state management
    */
-  onSortingChange?: (sorting: ColumnSort[]) => void
+  onSortingChange?: (sorting: ColumnSort[]) => void;
 }
 
 export function TableSortMenu<TData>({
@@ -235,24 +236,24 @@ export function TableSortMenu<TData>({
 }: TableSortMenuProps<TData>) {
   const getVariantForColumn = React.useCallback(
     (id: string): string | undefined =>
-      table.getAllColumns().find(c => c.id === id)?.columnDef?.meta?.variant,
-    [table],
-  )
+      table.getAllColumns().find((c) => c.id === id)?.columnDef?.meta?.variant,
+    [table]
+  );
   // ============================================================================
   // State & Refs
   // ============================================================================
-  const id = React.useId()
-  const labelId = React.useId()
-  const descriptionId = React.useId()
-  const [open, setOpen] = React.useState(false)
-  const addButtonRef = React.useRef<HTMLButtonElement>(null)
+  const id = React.useId();
+  const labelId = React.useId();
+  const descriptionId = React.useId();
+  const [open, setOpen] = React.useState(false);
+  const addButtonRef = React.useRef<HTMLButtonElement>(null);
 
-  const sorting = table.getState().sorting
+  const sorting = table.getState().sorting;
   // Hide "Add sort" when adding a second entry would silently replace the
   // first (`enableMultiSort: false`). The first sort can still be added
   // from the menu when no sort exists yet.
   const canShowAddSort =
-    table.options.enableMultiSort !== false || sorting.length === 0
+    table.options.enableMultiSort !== false || sorting.length === 0;
 
   // ============================================================================
   // Sorting State Management
@@ -265,78 +266,78 @@ export function TableSortMenu<TData>({
       const nextSorting =
         typeof updater === "function"
           ? updater(table.getState().sorting)
-          : updater
-      table.setSorting(nextSorting)
-      externalOnSortingChange?.(nextSorting)
+          : updater;
+      table.setSorting(nextSorting);
+      externalOnSortingChange?.(nextSorting);
     },
-    [table, externalOnSortingChange],
-  )
+    [table, externalOnSortingChange]
+  );
 
   // ============================================================================
   // Column Labels & Available Columns
   // ============================================================================
   const { columnLabels, columns } = React.useMemo(() => {
-    const labels = new Map<string, string>()
-    const sortingIds = new Set(sorting.map(s => s.id))
-    const availableColumns: { id: string; label: string }[] = []
+    const labels = new Map<string, string>();
+    const sortingIds = new Set(sorting.map((s) => s.id));
+    const availableColumns: { id: string; label: string }[] = [];
 
     for (const column of table.getAllColumns()) {
-      if (!column.getCanSort()) continue
+      if (!column.getCanSort()) continue;
 
-      const label = column.columnDef.meta?.label ?? column.id
-      labels.set(column.id, label)
+      const label = column.columnDef.meta?.label ?? column.id;
+      labels.set(column.id, label);
 
       if (!sortingIds.has(column.id)) {
-        availableColumns.push({ id: column.id, label })
+        availableColumns.push({ id: column.id, label });
       }
     }
 
     return {
       columnLabels: labels,
       columns: availableColumns,
-    }
+    };
     // Depend on the column set, not just the (stable) table ref.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sorting, table, table.options.columns])
+  }, [sorting, table, table.options.columns]);
 
   // ============================================================================
   // Sort Actions
   // ============================================================================
   const onSortAdd = React.useCallback(() => {
-    const firstColumn = columns[0]
-    if (!firstColumn) return
+    const firstColumn = columns[0];
+    if (!firstColumn) return;
 
-    onSortingChange(prevSorting => [
+    onSortingChange((prevSorting) => [
       ...prevSorting,
       { id: firstColumn.id, desc: false },
-    ])
-  }, [columns, onSortingChange])
+    ]);
+  }, [columns, onSortingChange]);
 
   const onSortUpdate = React.useCallback(
     (sortId: string, updates: Partial<ColumnSort>) => {
-      onSortingChange(prevSorting => {
-        if (!prevSorting) return prevSorting
-        return prevSorting.map(sort =>
-          sort.id === sortId ? { ...sort, ...updates } : sort,
-        )
-      })
+      onSortingChange((prevSorting) => {
+        if (!prevSorting) return prevSorting;
+        return prevSorting.map((sort) =>
+          sort.id === sortId ? { ...sort, ...updates } : sort
+        );
+      });
     },
-    [onSortingChange],
-  )
+    [onSortingChange]
+  );
 
   const onSortRemove = React.useCallback(
     (sortId: string) => {
-      onSortingChange(prevSorting =>
-        prevSorting.filter(item => item.id !== sortId),
-      )
+      onSortingChange((prevSorting) =>
+        prevSorting.filter((item) => item.id !== sortId)
+      );
     },
-    [onSortingChange],
-  )
+    [onSortingChange]
+  );
 
   const onSortingReset = React.useCallback(
     () => onSortingChange(table.initialState.sorting),
-    [onSortingChange, table.initialState.sorting],
-  )
+    [onSortingChange, table.initialState.sorting]
+  );
 
   // ============================================================================
   // Keyboard Shortcuts
@@ -344,8 +345,8 @@ export function TableSortMenu<TData>({
   // Toggle sort menu with 'S' key
   useKeyboardShortcut({
     key: "s",
-    onTrigger: () => setOpen(prev => !prev),
-  })
+    onTrigger: () => setOpen((prev) => !prev),
+  });
 
   // Reset sorting with Shift+S
   useKeyboardShortcut({
@@ -353,7 +354,7 @@ export function TableSortMenu<TData>({
     requireShift: true,
     onTrigger: () => onSortingReset(),
     condition: () => sorting.length > 0,
-  })
+  });
 
   // Trigger button keyboard shortcuts (Backspace/Delete to reset)
   const onTriggerKeyDown = React.useCallback(
@@ -362,12 +363,12 @@ export function TableSortMenu<TData>({
         ["backspace", "delete"].includes(event.key.toLowerCase()) &&
         sorting.length > 0
       ) {
-        event.preventDefault()
-        onSortingReset()
+        event.preventDefault();
+        onSortingReset();
       }
     },
-    [sorting.length, onSortingReset],
-  )
+    [sorting.length, onSortingReset]
+  );
 
   // ============================================================================
   // Render
@@ -377,27 +378,29 @@ export function TableSortMenu<TData>({
     <Sortable
       value={sorting}
       onValueChange={onSortingChange}
-      getItemValue={item => item.id}
+      getItemValue={(item) => item.id}
     >
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            onKeyDown={onTriggerKeyDown}
-            className={className}
-          >
-            <ArrowDownUp />
-            Sort
-            {sorting.length > 0 && (
-              <Badge
-                variant="secondary"
-                className="h-[18.24px] rounded-[3.2px] px-[5.12px] font-mono text-[10.4px] font-normal"
-              >
-                {sorting.length}
-              </Badge>
-            )}
-          </Button>
+        <PopoverTrigger
+          render={
+            <Button
+              variant="outline"
+              size="sm"
+              onKeyDown={onTriggerKeyDown}
+              className={className}
+            />
+          }
+        >
+          <ArrowDownUp />
+          Sort
+          {sorting.length > 0 && (
+            <Badge
+              variant="secondary"
+              className="h-[18.24px] rounded-[3.2px] px-[5.12px] font-mono text-[10.4px] font-normal"
+            >
+              {sorting.length}
+            </Badge>
+          )}
         </PopoverTrigger>
         <PopoverContent
           aria-labelledby={labelId}
@@ -412,9 +415,11 @@ export function TableSortMenu<TData>({
               </h4>
               {sorting.length > 1 && (
                 <Tooltip>
-                  <TooltipTrigger asChild>
-                    <CircleHelp className="size-3.5 cursor-help text-muted-foreground" />
-                  </TooltipTrigger>
+                  <TooltipTrigger
+                    render={
+                      <CircleHelp className="size-3.5 cursor-help text-muted-foreground" />
+                    }
+                  ></TooltipTrigger>
                   <TooltipContent side="right">
                     The order of fields determines sort priority
                   </TooltipContent>
@@ -425,7 +430,7 @@ export function TableSortMenu<TData>({
               id={descriptionId}
               className={cn(
                 "text-sm text-muted-foreground",
-                sorting.length > 0 && "sr-only",
+                sorting.length > 0 && "sr-only"
               )}
             >
               {sorting.length > 0
@@ -436,7 +441,7 @@ export function TableSortMenu<TData>({
           {sorting.length > 0 && (
             <SortableContent {...sortableAsChild}>
               <ul className="flex max-h-[300px] flex-col gap-2 overflow-y-auto p-1">
-                {sorting.map(sort => (
+                {sorting.map((sort) => (
                   <TableSortItem
                     key={sort.id}
                     sort={sort}
@@ -485,11 +490,11 @@ export function TableSortMenu<TData>({
         </div>
       </SortableOverlay>
     </Sortable>
-  )
+  );
 }
 
 /**
  * @required displayName is required for auto feature detection
  * @see "feature-detection.ts"
  */
-TableSortMenu.displayName = "TableSortMenu"
+TableSortMenu.displayName = "TableSortMenu";

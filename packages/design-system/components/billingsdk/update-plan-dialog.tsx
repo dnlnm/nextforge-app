@@ -56,8 +56,8 @@ export function UpdatePlanDialog({
 
   return (
     <Dialog onOpenChange={handleOpenChange} open={isOpen}>
-      <DialogTrigger asChild>
-        <Button>{triggerText || "Update Plan"}</Button>
+      <DialogTrigger render={<Button />}>
+        {triggerText || "Update Plan"}
       </DialogTrigger>
       <DialogContent
         className={cn(

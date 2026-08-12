@@ -1,5 +1,5 @@
 import type { ThemeProviderProps } from "next-themes";
-import { Toaster } from "./components/ui/sonner";
+import { AnchoredToastProvider, ToastProvider } from "./components/ui/toast";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { ThemeProvider } from "./providers/theme";
 
@@ -10,7 +10,10 @@ export const DesignSystemProvider = ({
   ...properties
 }: DesignSystemProviderProperties) => (
   <ThemeProvider {...properties}>
-    <TooltipProvider>{children}</TooltipProvider>
-    <Toaster />
+    <ToastProvider>
+      <AnchoredToastProvider>
+        <TooltipProvider>{children}</TooltipProvider>
+      </AnchoredToastProvider>
+    </ToastProvider>
   </ThemeProvider>
 );
