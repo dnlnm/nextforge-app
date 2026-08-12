@@ -8,7 +8,7 @@ function Stat({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="stat"
       className={cn(
-        "grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 rounded-lg border bg-card p-4 text-card-foreground shadow-sm",
+        "relative grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 rounded-2xl border bg-card not-dark:bg-clip-padding p-4 text-card-foreground shadow-xs/5 before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-2xl)-1px)] before:shadow-[0_1px_--theme(--color-black/4%)] dark:before:shadow-[0_-1px_--theme(--color-white/6%)]",
         "**:data-[slot=stat-label]:col-span-1 **:data-[slot=stat-value]:col-span-1",
         "**:data-[slot=stat-indicator]:col-start-2 **:data-[slot=stat-indicator]:row-span-2 **:data-[slot=stat-indicator]:row-start-1 **:data-[slot=stat-indicator]:self-start",
         "**:data-[slot=stat-description]:col-span-2 **:data-[slot=stat-separator]:col-span-2 **:data-[slot=stat-trend]:col-span-2",
@@ -44,10 +44,10 @@ const statIndicatorVariants = cva(
       color: {
         default: "bg-muted text-muted-foreground",
         success:
-          "border-green-500/20 bg-green-500/10 text-green-600 dark:text-green-400",
-        info: "border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-400",
+          "border-success/20 bg-success/10 text-success dark:text-success-foreground",
+        info: "border-info/20 bg-info/10 text-info dark:text-info-foreground",
         warning:
-          "border-orange-500/20 bg-orange-500/10 text-orange-600 dark:text-orange-400",
+          "border-warning/20 bg-warning/10 text-warning dark:text-warning-foreground",
         error: "border-destructive/20 bg-destructive/10 text-destructive",
       },
     },
@@ -83,7 +83,7 @@ function StatValue({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="stat-value"
-      className={cn("font-semibold text-2xl tracking-tight", className)}
+      className={cn("font-heading font-semibold text-2xl tracking-tight", className)}
       {...props}
     />
   );
@@ -101,8 +101,8 @@ function StatTrend({
       className={cn(
         "inline-flex items-center gap-1 font-medium text-xs [&_svg:not([class*='size-'])]:size-3 [&_svg]:pointer-events-none [&_svg]:shrink-0",
         {
-          "text-green-600 dark:text-green-400": trend === "up",
-          "text-red-600 dark:text-red-400": trend === "down",
+          "text-success": trend === "up",
+          "text-destructive": trend === "down",
           "text-muted-foreground": trend === "neutral" || !trend,
         },
         className,
