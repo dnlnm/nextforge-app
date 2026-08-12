@@ -36,7 +36,6 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Slot as SlotPrimitive } from "radix-ui";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { useComposedRefs } from "@repo/design-system/lib/compose-refs";
@@ -59,6 +58,17 @@ const orientationConfig = {
     collisionDetection: closestCorners,
   },
 };
+
+const Slot = React.forwardRef<
+  HTMLElement,
+  React.HTMLAttributes<HTMLElement>
+>(function Slot({ children, ...props }, ref) {
+  const child = React.Children.only(children) as React.ReactElement;
+  return React.cloneElement(child, {
+    ...props,
+    ref,
+  } as React.HTMLAttributes<HTMLElement> & { ref?: React.Ref<HTMLElement> });
+});
 
 const ROOT_NAME = "Sortable";
 const CONTENT_NAME = "SortableContent";
@@ -326,7 +336,7 @@ function SortableContent(props: SortableContentProps) {
 
   const context = useSortableContext(CONTENT_NAME);
 
-  const ContentPrimitive = asChild ? SlotPrimitive.Slot : "div";
+  const ContentPrimitive = asChild ? Slot : "div";
 
   return (
     <SortableContentContext.Provider value={true}>
@@ -440,7 +450,7 @@ function SortableItem(props: SortableItemProps) {
     [id, attributes, listeners, setActivatorNodeRef, isDragging, disabled],
   );
 
-  const ItemPrimitive = asChild ? SlotPrimitive.Slot : "div";
+  const ItemPrimitive = asChild ? Slot : "div";
 
   return (
     <SortableItemContext.Provider value={itemContext}>
@@ -488,7 +498,7 @@ function SortableItemHandle(props: SortableItemHandleProps) {
     itemContext.setActivatorNodeRef(node);
   });
 
-  const HandlePrimitive = asChild ? SlotPrimitive.Slot : "button";
+  const HandlePrimitive = asChild ? Slot : "button";
 
   return (
     <HandlePrimitive

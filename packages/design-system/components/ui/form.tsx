@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { Label as LabelPrimitive, Slot as SlotPrimitive } from "radix-ui"
 
 import {
   Controller,
@@ -15,6 +14,17 @@ import {
 
 import { cn } from "@repo/design-system/lib/utils"
 import { Label } from "@repo/design-system/components/ui/label"
+
+const Slot = React.forwardRef<
+  HTMLElement,
+  React.HTMLAttributes<HTMLElement>
+>(function Slot({ children, ...props }, ref) {
+  const child = React.Children.only(children) as React.ReactElement;
+  return React.cloneElement(child, {
+    ...props,
+    ref,
+  } as React.HTMLAttributes<HTMLElement> & { ref?: React.Ref<HTMLElement> });
+});
 
 const Form = FormProvider
 
@@ -90,7 +100,7 @@ function FormItem({ className, ...props }: React.ComponentProps<"div">) {
 function FormLabel({
   className,
   ...props
-}: React.ComponentProps<typeof LabelPrimitive.Root>) {
+}: React.ComponentProps<typeof Label>) {
   const { error, formItemId } = useFormField()
 
   return (
@@ -104,11 +114,11 @@ function FormLabel({
   )
 }
 
-function FormControl({ ...props }: React.ComponentProps<typeof SlotPrimitive.Slot>) {
+function FormControl({ ...props }: React.ComponentProps<typeof Slot>) {
   const { error, formItemId, formDescriptionId, formMessageId } = useFormField()
 
   return (
-    <SlotPrimitive.Slot
+    <Slot
       data-slot="form-control"
       id={formItemId}
       aria-describedby={
