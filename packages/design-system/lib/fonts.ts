@@ -11,4 +11,12 @@ export const fontSans = localFont({
 /** Same variable font as `fontSans`; aliased in the theme via `--font-heading: var(--font-sans)`. */
 export const fontHeading = fontSans;
 
-export const fonts = `${fontSans.variable} antialiased`;
+/** KLIO.MY wordmark font (Chillax Semibold), used via the `--font-brand` token. */
+export const fontBrand = localFont({
+  display: "swap",
+  src: "./Chillax-Semibold.woff2",
+  variable: "--font-brand",
+  weight: "600",
+});
+
+export const fonts = `${fontSans.variable} ${fontBrand.variable} antialiased`;
