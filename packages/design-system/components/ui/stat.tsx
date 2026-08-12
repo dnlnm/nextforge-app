@@ -1,21 +1,24 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
 import { cn } from "@repo/design-system/lib/utils";
+import { Card } from "@repo/design-system/components/ui/card";
+import { Frame } from "@repo/design-system/components/ui/frame";
 import { Separator } from "@repo/design-system/components/ui/separator";
 
-function Stat({ className, ...props }: React.ComponentProps<"div">) {
+function Stat({ className, children, ...props }: React.ComponentProps<"div">) {
   return (
-    <div
-      data-slot="stat"
-      className={cn(
-        "relative grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 rounded-2xl border bg-card not-dark:bg-clip-padding p-4 text-card-foreground shadow-xs/5 before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-2xl)-1px)] before:shadow-[0_1px_--theme(--color-black/4%)] dark:before:shadow-[0_-1px_--theme(--color-white/6%)]",
-        "**:data-[slot=stat-label]:col-span-1 **:data-[slot=stat-value]:col-span-1",
-        "**:data-[slot=stat-indicator]:col-start-2 **:data-[slot=stat-indicator]:row-span-2 **:data-[slot=stat-indicator]:row-start-1 **:data-[slot=stat-indicator]:self-start",
-        "**:data-[slot=stat-description]:col-span-2 **:data-[slot=stat-separator]:col-span-2 **:data-[slot=stat-trend]:col-span-2",
-        className,
-      )}
-      {...props}
-    />
+    <Frame className={cn("h-full", className)} {...props}>
+      <Card
+        className={cn(
+          "grid h-full grid-cols-[1fr_auto] gap-x-4 gap-y-1 p-4",
+          "**:data-[slot=stat-label]:col-span-1 **:data-[slot=stat-value]:col-span-1",
+          "**:data-[slot=stat-indicator]:col-start-2 **:data-[slot=stat-indicator]:row-span-2 **:data-[slot=stat-indicator]:row-start-1 **:data-[slot=stat-indicator]:self-start",
+          "**:data-[slot=stat-description]:col-span-2 **:data-[slot=stat-separator]:col-span-2 **:data-[slot=stat-trend]:col-span-2",
+        )}
+      >
+        {children}
+      </Card>
+    </Frame>
   );
 }
 

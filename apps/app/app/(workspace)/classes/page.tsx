@@ -176,7 +176,7 @@ const ClassesPage = async () => {
           <section className="grid content-start gap-5">
             <section className="grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
               {metrics.map(({ color, detail, Icon, label, value }) => (
-                <Stat className="h-full" key={label}>
+                <Stat key={label}>
                   <StatLabel>{label}</StatLabel>
                   <StatIndicator color={color} variant="icon">
                     <Icon />

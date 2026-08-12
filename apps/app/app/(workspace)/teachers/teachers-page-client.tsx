@@ -154,7 +154,7 @@ export function TeachersPageClient({
       <section className="grid content-start gap-5">
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {stats.map(({ color, detail, icon: Icon, label, value }) => (
-            <Stat className="h-full" key={label}>
+            <Stat key={label}>
               <StatLabel>{label}</StatLabel>
               <StatIndicator color={color} variant="icon">
                 <Icon />
