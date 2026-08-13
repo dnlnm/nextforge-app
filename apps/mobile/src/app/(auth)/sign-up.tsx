@@ -10,7 +10,7 @@ import {
   Typography,
 } from "heroui-native";
 import { useState } from "react";
-import { Alert, View } from "react-native";
+import { Alert, Image, useColorScheme, View } from "react-native";
 
 import { supabase } from "@/lib/supabase";
 
@@ -19,6 +19,8 @@ interface AuthError {
 }
 
 export default function SignUpScreen() {
+  const colorScheme = useColorScheme();
+  const logoColor = colorScheme === "dark" ? "#fafafa" : "#171717";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -67,6 +69,14 @@ export default function SignUpScreen() {
   return (
     <View className="flex-1 justify-center bg-background px-6 py-12">
       <View className="gap-6">
+        <View className="items-center">
+          <Image
+            className="h-16 w-16"
+            resizeMode="contain"
+            source={require("@/assets/images/android-icon-monochrome.png")}
+            tintColor={logoColor}
+          />
+        </View>
         <View className="gap-2">
           <Typography.Heading type="h1">Create your account</Typography.Heading>
           <Typography.Paragraph color="muted" type="body-sm">
