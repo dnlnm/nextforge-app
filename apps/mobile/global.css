@@ -3,3 +3,15 @@
 @import "heroui-native/styles";
 
 @source "./node_modules/heroui-native/lib";
+
+@theme {
+  --font-sans: "CalSans-Regular";
+  --font-heading: "CalSans-SemiBold";
+}
+
+:root {
+  --font-normal: "CalSans-Regular";
+  --font-medium: "CalSans-Medium";
+  --font-semibold: "CalSans-SemiBold";
+  --font-bold: "CalSans-Bold";
+}
