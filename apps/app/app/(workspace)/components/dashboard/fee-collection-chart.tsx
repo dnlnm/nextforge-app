@@ -20,7 +20,7 @@ interface FeeCollectionChartProps {
 }
 
 export const FeeCollectionChart = ({ data }: FeeCollectionChartProps) => (
-  <ResponsiveContainer className="text-xs" height={230} width="100%">
+  <ResponsiveContainer className="min-h-0 flex-1 text-xs" height="100%" width="100%">
     <AreaChart
       accessibilityLayer
       data={data}

@@ -6,9 +6,10 @@ import { Button } from "@repo/design-system/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+  CardFrame,
+  CardFrameAction,
+  CardFrameHeader,
+  CardFrameTitle,
 } from "@repo/design-system/components/ui/card";
 import {
   Stat,
@@ -383,243 +384,265 @@ const App = async () => {
         </section>
 
         <section className="grid items-start gap-5 2xl:grid-cols-[1.15fr_1fr_0.95fr]">
-          <Card className="h-[430px]">
-            <CardHeader className="flex flex-row items-start justify-between gap-4">
-              <div>
-                <CardTitle>Fee Collection Overview</CardTitle>
-                <CardDescription>This month</CardDescription>
-              </div>
-              <Badge variant="outline">This Month</Badge>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-4">
-                <p className="text-muted-foreground text-sm">Total Collected</p>
-                <div className="mt-1 flex flex-wrap items-end gap-3">
-                  <p className="font-semibold text-3xl tracking-tight">
-                    {formatMoney(currentMonthCollectedSen)}
+          <CardFrame className="h-[430px] 2xl:h-[clamp(26.875rem,42dvh,40rem)]">
+            <CardFrameHeader>
+              <CardFrameTitle>Fee Collection Overview</CardFrameTitle>
+              <CardFrameAction>
+                <Badge variant="outline">This Month</Badge>
+              </CardFrameAction>
+            </CardFrameHeader>
+            <Card className="flex-1">
+              <CardContent className="flex min-h-0 flex-col">
+                <div className="mb-4 shrink-0">
+                  <p className="text-muted-foreground text-sm">
+                    Total Collected
                   </p>
-                  <p className="mb-1 flex items-center gap-1 text-muted-foreground text-sm">
-                    {revenueChange > 0 ? (
-                      <ArrowUpIcon className="size-3" />
-                    ) : null}
-                    {revenueChange < 0 ? (
-                      <ArrowDownIcon className="size-3" />
-                    ) : null}
-                    {formatPercentChange(revenueChange)}
-                  </p>
-                </div>
-                <p className="mt-1 text-muted-foreground text-sm">
-                  vs last month ({formatMoney(previousMonthCollectedSen)})
-                </p>
-              </div>
-              <FeeCollectionChart data={feeCollectionData} />
-            </CardContent>
-          </Card>
-
-          <Card className="h-[430px]">
-            <CardHeader className="flex flex-row items-start justify-between gap-4">
-              <div>
-                <CardTitle>Student Attendance Overview</CardTitle>
-                <CardDescription>This month</CardDescription>
-              </div>
-              <Badge variant="outline">This Month</Badge>
-            </CardHeader>
-            <CardContent>
-              {attendanceTotal > 0 ? (
-                <div className="grid gap-5 md:grid-cols-[1fr_0.8fr] 2xl:grid-cols-1">
-                  <AttendanceDonutChart
-                    average={averageAttendance}
-                    data={attendanceData}
-                  />
-                  <div className="grid content-center gap-3">
-                    {attendanceData.map((item) => (
-                      <div
-                        className="flex items-center justify-between gap-3 text-sm"
-                        key={item.status}
-                      >
-                        <span className="flex items-center gap-2">
-                          <span
-                            className="size-2.5 rounded-sm"
-                            style={{ background: item.fill }}
-                          />
-                          {item.label}
-                        </span>
-                        <span className="font-medium tabular-nums">
-                          {item.value} (
-                          {((item.value / attendanceTotal) * 100).toFixed(1)}%)
-                        </span>
-                      </div>
-                    ))}
+                  <div className="mt-1 flex flex-wrap items-end gap-3">
+                    <p className="font-semibold text-3xl tracking-tight">
+                      {formatMoney(currentMonthCollectedSen)}
+                    </p>
+                    <p className="mb-1 flex items-center gap-1 text-muted-foreground text-sm">
+                      {revenueChange > 0 ? (
+                        <ArrowUpIcon className="size-3" />
+                      ) : null}
+                      {revenueChange < 0 ? (
+                        <ArrowDownIcon className="size-3" />
+                      ) : null}
+                      {formatPercentChange(revenueChange)}
+                    </p>
                   </div>
+                  <p className="mt-1 text-muted-foreground text-sm">
+                    vs last month ({formatMoney(previousMonthCollectedSen)})
+                  </p>
                 </div>
-              ) : (
-                <EmptyState
-                  icon={ClipboardListIcon}
-                  text="Attendance records will appear here once classes are marked."
-                  title="No attendance marked this month"
-                />
-              )}
-              <p className="mt-4 text-muted-foreground text-sm">
-                Overall attendance this month
-              </p>
-            </CardContent>
-          </Card>
+                <FeeCollectionChart data={feeCollectionData} />
+              </CardContent>
+            </Card>
+          </CardFrame>
+
+          <CardFrame className="h-[430px] 2xl:h-[clamp(26.875rem,42dvh,40rem)]">
+            <CardFrameHeader>
+              <CardFrameTitle>Student Attendance Overview</CardFrameTitle>
+              <CardFrameAction>
+                <Badge variant="outline">This Month</Badge>
+              </CardFrameAction>
+            </CardFrameHeader>
+            <Card className="flex-1">
+              <CardContent>
+                {attendanceTotal > 0 ? (
+                  <div className="grid gap-5 md:grid-cols-[1fr_0.8fr] 2xl:grid-cols-1">
+                    <AttendanceDonutChart
+                      average={averageAttendance}
+                      data={attendanceData}
+                    />
+                    <div className="grid content-center gap-3">
+                      {attendanceData.map((item) => (
+                        <div
+                          className="flex items-center justify-between gap-3 text-sm"
+                          key={item.status}
+                        >
+                          <span className="flex items-center gap-2">
+                            <span
+                              className="size-2.5 rounded-sm"
+                              style={{ background: item.fill }}
+                            />
+                            {item.label}
+                          </span>
+                          <span className="font-medium tabular-nums">
+                            {item.value} (
+                            {((item.value / attendanceTotal) * 100).toFixed(1)}
+                            %)
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <EmptyState
+                    icon={ClipboardListIcon}
+                    text="Attendance records will appear here once classes are marked."
+                    title="No attendance marked this month"
+                  />
+                )}
+                <p className="mt-4 text-muted-foreground text-sm">
+                  Overall attendance this month
+                </p>
+              </CardContent>
+            </Card>
+          </CardFrame>
 
           <div className="grid gap-5">
-            <Card className="h-[430px]">
-              <CardHeader className="flex flex-row items-center justify-between gap-4">
-                <CardTitle>Today&apos;s Classes</CardTitle>
-                <Button
-                  size="sm"
-                  variant="link"
-                  render={<Link href="/today" />}
-                >
-                  View All
-                </Button>
-              </CardHeader>
-              <CardContent className="grid gap-1">
-                {todaySessions.length > 0 ? (
-                  todaySessions.map((session) => (
-                    <Link
-                      className="grid grid-cols-[4.5rem_1fr_auto] items-start gap-3 border-b py-3 text-sm last:border-b-0"
-                      href="/today"
-                      key={session.id}
+            <CardFrame className="h-[430px] 2xl:h-[clamp(26.875rem,42dvh,40rem)]">
+              <CardFrameHeader>
+                <CardFrameTitle>Today&apos;s Classes</CardFrameTitle>
+                <CardFrameAction>
+                  <Button
+                    size="sm"
+                    variant="link"
+                    render={<Link href="/today" />}
+                  >
+                    View All
+                  </Button>
+                </CardFrameAction>
+              </CardFrameHeader>
+              <Card className="flex-1">
+                <CardContent className="grid gap-1">
+                  {todaySessions.length > 0 ? (
+                    todaySessions.map((session) => (
+                      <Link
+                        className="grid grid-cols-[4.5rem_1fr_auto] items-start gap-3 border-b py-3 text-sm last:border-b-0"
+                        href="/today"
+                        key={session.id}
+                      >
+                        <span className="flex items-center gap-2 text-muted-foreground">
+                          <span className="size-2 rounded-full bg-muted-foreground/40" />
+                          {session.startsAt}
+                        </span>
+                        <span>
+                          <span className="block font-medium">
+                            {session.class.name}
+                          </span>
+                          <span className="block text-muted-foreground">
+                            {session.class.subject.name}
+                            {session.class.schedules.at(0)?.room?.name
+                              ? ` - ${session.class.schedules.at(0)?.room?.name}`
+                              : ""}
+                          </span>
+                        </span>
+                        <Badge variant="outline">{session.status}</Badge>
+                      </Link>
+                    ))
+                  ) : (
+                    <EmptyState
+                      icon={CalendarDaysIcon}
+                      text="Create sessions from the Today page when classes are scheduled."
+                      title="No classes today"
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            </CardFrame>
+          </div>
+        </section>
+
+        <section className="grid items-stretch gap-5 xl:grid-cols-[1.1fr_0.95fr_0.9fr]">
+          <CardFrame className="h-full xl:min-h-[clamp(16rem,28dvh,27.5rem)]">
+            <CardFrameHeader>
+              <CardFrameTitle>Recent Activities</CardFrameTitle>
+            </CardFrameHeader>
+            <Card className="flex-1">
+              <CardContent className="flex min-h-0 flex-col gap-1">
+                {recentActivities.length > 0 ? (
+                  recentActivities.map((activity) => (
+                    <div
+                      className="grid grid-cols-[2.5rem_1fr_auto] items-start gap-4 border-b py-3 text-sm last:border-b-0"
+                      key={activity.id}
                     >
-                      <span className="flex items-center gap-2 text-muted-foreground">
-                        <span className="size-2 rounded-full bg-muted-foreground/40" />
-                        {session.startsAt}
-                      </span>
-                      <span>
-                        <span className="block font-medium">
-                          {session.class.name}
-                        </span>
-                        <span className="block text-muted-foreground">
-                          {session.class.subject.name}
-                          {session.class.schedules.at(0)?.room?.name
-                            ? ` - ${session.class.schedules.at(0)?.room?.name}`
-                            : ""}
-                        </span>
-                      </span>
-                      <Badge variant="outline">{session.status}</Badge>
-                    </Link>
+                      <div className="flex size-9 items-center justify-center rounded-md border bg-muted/40 text-muted-foreground">
+                        <ReceiptTextIcon className="size-4" />
+                      </div>
+                      <p className="font-medium leading-6">
+                        {activity.summary}
+                      </p>
+                      <p className="whitespace-nowrap text-muted-foreground text-xs">
+                        {formatRelativeTime(activity.createdAt)}
+                      </p>
+                    </div>
                   ))
                 ) : (
                   <EmptyState
-                    icon={CalendarDaysIcon}
-                    text="Create sessions from the Today page when classes are scheduled."
-                    title="No classes today"
+                    icon={ReceiptTextIcon}
+                    text="Audit events will appear here as centre activity is recorded."
+                    title="No recent activity"
                   />
                 )}
               </CardContent>
             </Card>
-          </div>
-        </section>
+          </CardFrame>
 
-        <section className="grid items-start gap-5 xl:grid-cols-[1.1fr_0.95fr_0.9fr]">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Activities</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-1">
-              {recentActivities.length > 0 ? (
-                recentActivities.map((activity) => (
-                  <div
-                    className="grid grid-cols-[2.5rem_1fr_auto] items-start gap-4 border-b py-3 text-sm last:border-b-0"
-                    key={activity.id}
-                  >
-                    <div className="flex size-9 items-center justify-center rounded-md border bg-muted/40 text-muted-foreground">
-                      <ReceiptTextIcon className="size-4" />
-                    </div>
-                    <p className="font-medium leading-6">{activity.summary}</p>
-                    <p className="whitespace-nowrap text-muted-foreground text-xs">
-                      {formatRelativeTime(activity.createdAt)}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <EmptyState
-                  icon={ReceiptTextIcon}
-                  text="Audit events will appear here as centre activity is recorded."
-                  title="No recent activity"
-                />
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between gap-4">
-              <CardTitle>Outstanding Fees</CardTitle>
-              <Button
-                size="sm"
-                variant="link"
-                render={<Link href="/invoices" />}
-              >
-                View All
-              </Button>
-            </CardHeader>
-            <CardContent className="grid gap-1">
-              {openInvoices.length > 0 ? (
-                openInvoices.map((invoice) => {
-                  const outstanding = invoice.totalSen - invoice.amountPaidSen;
-
-                  return (
-                    <Link
-                      className="grid grid-cols-[2.5rem_1fr_auto] items-center gap-4 border-b py-3 text-sm last:border-b-0"
-                      href={`/invoices/${invoice.id}`}
-                      key={invoice.id}
-                    >
-                      <span className="flex size-9 items-center justify-center rounded-full border bg-muted/40 font-medium text-xs">
-                        {initials(invoice.student.fullName)}
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block truncate font-medium">
-                          {invoice.student.fullName}
-                        </span>
-                        <span className="block truncate text-muted-foreground text-xs">
-                          {invoice.invoiceNumber} - Due:{" "}
-                          {formatDate(invoice.dueDate)}
-                        </span>
-                      </span>
-                      <span className="font-semibold tabular-nums">
-                        {formatMoney(outstanding)}
-                      </span>
-                    </Link>
-                  );
-                })
-              ) : (
-                <EmptyState
-                  icon={BanknoteIcon}
-                  text="Unpaid issued invoices will appear here."
-                  title="No outstanding fees"
-                />
-              )}
-              {openInvoices.length > 0 ? (
+          <CardFrame className="h-full xl:min-h-[clamp(16rem,28dvh,27.5rem)]">
+            <CardFrameHeader>
+              <CardFrameTitle>Outstanding Fees</CardFrameTitle>
+              <CardFrameAction>
                 <Button
-                  className="mt-4"
-                  variant="outline"
+                  size="sm"
+                  variant="link"
                   render={<Link href="/invoices" />}
                 >
-                  View All Outstanding Fees
+                  View All
                 </Button>
-              ) : null}
-            </CardContent>
-          </Card>
+              </CardFrameAction>
+            </CardFrameHeader>
+            <Card className="flex-1">
+              <CardContent className="flex min-h-0 flex-col gap-1">
+                {openInvoices.length > 0 ? (
+                  openInvoices.map((invoice) => {
+                    const outstanding =
+                      invoice.totalSen - invoice.amountPaidSen;
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between gap-4">
-              <CardTitle>Latest Announcements</CardTitle>
-              <Button disabled size="sm" variant="link">
-                View All
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <EmptyState
-                icon={MegaphoneIcon}
-                text="Announcements are not available yet. Once added, centre notices will show here."
-                title="No announcements"
-              />
-            </CardContent>
-          </Card>
+                    return (
+                      <Link
+                        className="grid grid-cols-[2.5rem_1fr_auto] items-center gap-4 border-b py-3 text-sm last:border-b-0"
+                        href={`/invoices/${invoice.id}`}
+                        key={invoice.id}
+                      >
+                        <span className="flex size-9 items-center justify-center rounded-full border bg-muted/40 font-medium text-xs">
+                          {initials(invoice.student.fullName)}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block truncate font-medium">
+                            {invoice.student.fullName}
+                          </span>
+                          <span className="block truncate text-muted-foreground text-xs">
+                            {invoice.invoiceNumber} - Due:{" "}
+                            {formatDate(invoice.dueDate)}
+                          </span>
+                        </span>
+                        <span className="font-semibold tabular-nums">
+                          {formatMoney(outstanding)}
+                        </span>
+                      </Link>
+                    );
+                  })
+                ) : (
+                  <EmptyState
+                    icon={BanknoteIcon}
+                    text="Unpaid issued invoices will appear here."
+                    title="No outstanding fees"
+                  />
+                )}
+                {openInvoices.length > 0 ? (
+                  <Button
+                    className="mt-4"
+                    variant="outline"
+                    render={<Link href="/invoices" />}
+                  >
+                    View All Outstanding Fees
+                  </Button>
+                ) : null}
+              </CardContent>
+            </Card>
+          </CardFrame>
+
+          <CardFrame className="h-full xl:min-h-[clamp(16rem,28dvh,27.5rem)]">
+            <CardFrameHeader>
+              <CardFrameTitle>Latest Announcements</CardFrameTitle>
+              <CardFrameAction>
+                <Button disabled size="sm" variant="link">
+                  View All
+                </Button>
+              </CardFrameAction>
+            </CardFrameHeader>
+            <Card className="flex-1">
+              <CardContent className="flex min-h-0 flex-col">
+                <EmptyState
+                  icon={MegaphoneIcon}
+                  text="Announcements are not available yet. Once added, centre notices will show here."
+                  title="No announcements"
+                />
+              </CardContent>
+            </Card>
+          </CardFrame>
         </section>
       </main>
     </>
@@ -633,7 +656,7 @@ interface EmptyStateProps {
 }
 
 const EmptyState = ({ icon: Icon, text, title }: EmptyStateProps) => (
-  <div className="flex min-h-36 flex-col items-center justify-center rounded-lg border border-dashed bg-muted/20 p-6 text-center">
+  <div className="flex min-h-36 flex-1 flex-col items-center justify-center rounded-lg border border-dashed bg-muted/20 p-6 text-center">
     <div className="mb-3 flex size-10 items-center justify-center rounded-lg border bg-background text-muted-foreground">
       <Icon className="size-5" />
     </div>
