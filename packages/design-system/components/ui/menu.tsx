@@ -2,8 +2,15 @@
 
 import { Menu as MenuPrimitive } from "@base-ui/react/menu";
 import { ChevronRightIcon } from "lucide-react";
+import { motion, type HTMLMotionProps, useReducedMotion } from "motion/react";
 import type * as React from "react";
 import { cn } from "@repo/design-system/lib/utils";
+import {
+  EASE,
+  INSTANT,
+  LEAVE,
+  SMALL,
+} from "@repo/design-system/lib/motion";
 
 export const MenuCreateHandle: typeof MenuPrimitive.createHandle =
   MenuPrimitive.createHandle;
@@ -28,6 +35,24 @@ export function MenuTrigger({
   );
 }
 
+type MenuPopupSide = NonNullable<MenuPrimitive.Positioner.Props["side"]>;
+
+const getClosedOffset = (side: MenuPopupSide) => {
+  switch (side) {
+    case "top":
+      return { y: 6 };
+    case "right":
+    case "inline-end":
+      return { x: -6 };
+    case "left":
+    case "inline-start":
+      return { x: 6 };
+    case "bottom":
+    default:
+      return { y: -6 };
+  }
+};
+
 export function MenuPopup({
   children,
   className,
@@ -46,8 +71,10 @@ export function MenuPopup({
   anchor?: MenuPrimitive.Positioner.Props["anchor"];
   portalProps?: MenuPrimitive.Portal.Props;
 }): React.ReactElement {
+  const reduced = useReducedMotion();
+
   return (
-    <MenuPortal {...portalProps}>
+    <MenuPortal {...portalProps} keepMounted>
       <MenuPrimitive.Positioner
         align={align}
         alignOffset={alignOffset}
@@ -58,6 +85,27 @@ export function MenuPopup({
         sideOffset={sideOffset}
       >
         <MenuPrimitive.Popup
+          render={(popupProps, state) => (
+            <motion.div
+              {...(popupProps as HTMLMotionProps<"div">)}
+              initial={false}
+              animate={
+                state.open
+                  ? { opacity: 1, scale: 1, x: 0, y: 0 }
+                  : { opacity: 0, scale: 0.97, ...getClosedOffset(state.side) }
+              }
+              transition={
+                reduced || state.instant
+                  ? INSTANT
+                  : state.open
+                    ? {
+                        ...SMALL,
+                        opacity: { duration: 0.18, ease: EASE },
+                      }
+                    : { duration: 0.14, ease: LEAVE }
+              }
+            />
+          )}
           className={cn(
             "relative flex not-[class*='w-']:min-w-32 origin-(--transform-origin) rounded-lg border bg-popover not-dark:bg-clip-padding shadow-lg/5 outline-none before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-lg)-1px)] before:shadow-[0_1px_--theme(--color-black/4%)] focus:outline-none dark:before:shadow-[0_-1px_--theme(--color-white/6%)]",
             className,
