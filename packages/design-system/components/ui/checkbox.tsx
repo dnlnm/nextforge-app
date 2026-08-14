@@ -1,13 +1,22 @@
 "use client";
 
 import { Checkbox as CheckboxPrimitive } from "@base-ui/react/checkbox";
+import { motion, type HTMLMotionProps, useReducedMotion } from "motion/react";
 import type React from "react";
 import { cn } from "@repo/design-system/lib/utils";
+import {
+  EASE,
+  INSTANT,
+  LEAVE,
+  SMALL,
+} from "@repo/design-system/lib/motion";
 
 export function Checkbox({
   className,
   ...props
 }: CheckboxPrimitive.Root.Props): React.ReactElement {
+  const reduced = useReducedMotion();
+
   return (
     <CheckboxPrimitive.Root
       className={cn(
@@ -18,48 +27,88 @@ export function Checkbox({
       {...props}
     >
       <CheckboxPrimitive.Indicator
-        className="absolute -inset-px flex items-center justify-center rounded-[.25rem] text-primary-foreground data-unchecked:hidden data-checked:bg-primary data-indeterminate:text-foreground"
+        keepMounted
+        className="absolute -inset-px flex items-center justify-center rounded-[.25rem] text-primary-foreground data-checked:bg-primary data-indeterminate:text-foreground"
         data-slot="checkbox-indicator"
         render={(
           props: React.ComponentProps<"span">,
           state: CheckboxPrimitive.Indicator.State,
-        ) => (
-          <span {...props}>
-            {state.indeterminate ? (
-              <svg
-                aria-hidden="true"
-                className="size-3.5 sm:size-3"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="3"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M5.252 12h13.496" />
-              </svg>
-            ) : (
-              <svg
-                aria-hidden="true"
-                className="size-3.5 sm:size-3"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="3"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M5.252 12.7 10.2 18.63 18.748 5.37" />
-              </svg>
-            )}
-          </span>
-        )}
+        ) => {
+          const visible = state.checked || state.indeterminate;
+
+          return (
+            <motion.span
+              {...(props as HTMLMotionProps<"span">)}
+              initial={false}
+              animate={
+                visible ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.94 }
+              }
+              transition={
+                reduced
+                  ? INSTANT
+                  : visible
+                    ? { ...SMALL, opacity: { duration: 0.18, ease: EASE } }
+                    : { duration: 0.14, ease: LEAVE }
+              }
+            >
+              {state.indeterminate ? (
+                <svg
+                  aria-hidden="true"
+                  className="size-3.5 sm:size-3"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="3"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <motion.path
+                    d="M5.252 12h13.496"
+                    initial={false}
+                    animate={{ pathLength: visible ? 1 : 0 }}
+                    transition={
+                      reduced
+                        ? INSTANT
+                        : visible
+                          ? SMALL
+                          : { duration: 0.12, ease: LEAVE }
+                    }
+                  />
+                </svg>
+              ) : (
+                <svg
+                  aria-hidden="true"
+                  className="size-3.5 sm:size-3"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="3"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <motion.path
+                    d="M5.252 12.7 10.2 18.63 18.748 5.37"
+                    initial={false}
+                    animate={{ pathLength: visible ? 1 : 0 }}
+                    transition={
+                      reduced
+                        ? INSTANT
+                        : visible
+                          ? SMALL
+                          : { duration: 0.12, ease: LEAVE }
+                    }
+                  />
+                </svg>
+              )}
+            </motion.span>
+          );
+        }}
       />
     </CheckboxPrimitive.Root>
   );
