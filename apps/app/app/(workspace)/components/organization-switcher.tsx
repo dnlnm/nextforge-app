@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@repo/design-system/components/ui/dropdown-menu";
+import { Skeleton } from "@repo/design-system/components/ui/skeleton";
 import { ChevronDownIcon, PlusCircleIcon, Settings2Icon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -40,6 +41,7 @@ export const OrganizationSwitcher = () => {
   const [activeOrganizationId, setActiveOrganizationId] = useState<
     string | null
   >(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
@@ -54,12 +56,20 @@ export const OrganizationSwitcher = () => {
           | undefined) ?? null
       );
     };
-    load().catch(() => undefined);
+    load()
+      .catch(() => undefined)
+      .finally(() => setIsLoading(false));
   }, []);
 
   const activeMembership = memberships.find(
     (membership) => membership.organization.id === activeOrganizationId
   );
+
+  if (isLoading) {
+    return (
+      <Skeleton className="h-9 w-full rounded-md bg-background" />
+    );
+  }
 
   if (!memberships.length) {
     return (

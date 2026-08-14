@@ -14,8 +14,10 @@ import { Separator } from "@repo/design-system/components/ui/separator";
 import {
   Stat,
   StatDescription,
+  StatFooter,
   StatIndicator,
   StatLabel,
+  StatPanel,
   StatValue,
 } from "@repo/design-system/components/ui/stat";
 import {
@@ -187,38 +189,54 @@ const SubjectMetrics = ({
 }) => (
   <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
     <Stat>
-      <StatLabel>Classes</StatLabel>
-      <StatIndicator color="info" variant="icon">
-        <BookOpenIcon />
-      </StatIndicator>
-      <StatValue>{classes}</StatValue>
-      <StatDescription>Active classes</StatDescription>
+      <StatPanel>
+        <StatLabel>Classes</StatLabel>
+        <StatIndicator color="info" variant="icon">
+          <BookOpenIcon />
+        </StatIndicator>
+        <StatValue>{classes}</StatValue>
+      </StatPanel>
+      <StatFooter>
+        <StatDescription>Active classes</StatDescription>
+      </StatFooter>
     </Stat>
     <Stat>
-      <StatLabel>Students</StatLabel>
-      <StatIndicator color="success" variant="icon">
-        <UsersRoundIcon />
-      </StatIndicator>
-      <StatValue>{students}</StatValue>
-      <StatDescription>Actively enrolled</StatDescription>
+      <StatPanel>
+        <StatLabel>Students</StatLabel>
+        <StatIndicator color="success" variant="icon">
+          <UsersRoundIcon />
+        </StatIndicator>
+        <StatValue>{students}</StatValue>
+      </StatPanel>
+      <StatFooter>
+        <StatDescription>Actively enrolled</StatDescription>
+      </StatFooter>
     </Stat>
     <Stat>
-      <StatLabel>Teachers</StatLabel>
-      <StatIndicator color="warning" variant="icon">
-        <UserRoundIcon />
-      </StatIndicator>
-      <StatValue>{teachers}</StatValue>
-      <StatDescription>Teaching this subject</StatDescription>
+      <StatPanel>
+        <StatLabel>Teachers</StatLabel>
+        <StatIndicator color="warning" variant="icon">
+          <UserRoundIcon />
+        </StatIndicator>
+        <StatValue>{teachers}</StatValue>
+      </StatPanel>
+      <StatFooter>
+        <StatDescription>Teaching this subject</StatDescription>
+      </StatFooter>
     </Stat>
     <Stat>
-      <StatLabel>Attendance</StatLabel>
-      <StatIndicator color="default" variant="icon">
-        <CalendarDaysIcon />
-      </StatIndicator>
-      <StatValue>
-        {attendanceRate === null ? "No data" : `${attendanceRate}%`}
-      </StatValue>
-      <StatDescription>This academic year</StatDescription>
+      <StatPanel>
+        <StatLabel>Attendance</StatLabel>
+        <StatIndicator color="default" variant="icon">
+          <CalendarDaysIcon />
+        </StatIndicator>
+        <StatValue>
+          {attendanceRate === null ? "No data" : `${attendanceRate}%`}
+        </StatValue>
+      </StatPanel>
+      <StatFooter>
+        <StatDescription>This academic year</StatDescription>
+      </StatFooter>
     </Stat>
   </section>
 );

@@ -1,24 +1,50 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
 import { cn } from "@repo/design-system/lib/utils";
-import { Card } from "@repo/design-system/components/ui/card";
-import { Frame } from "@repo/design-system/components/ui/frame";
-import { Separator } from "@repo/design-system/components/ui/separator";
+import {
+  Card,
+  CardFrame,
+  CardFrameFooter,
+} from "@repo/design-system/components/ui/card";
 
-function Stat({ className, children, ...props }: React.ComponentProps<"div">) {
+function Stat({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <Frame className={cn("h-full", className)} {...props}>
-      <Card
-        className={cn(
-          "grid h-full grid-cols-[1fr_auto] gap-x-4 gap-y-1 p-4",
-          "**:data-[slot=stat-label]:col-span-1 **:data-[slot=stat-value]:col-span-1",
-          "**:data-[slot=stat-indicator]:col-start-2 **:data-[slot=stat-indicator]:row-span-2 **:data-[slot=stat-indicator]:row-start-1 **:data-[slot=stat-indicator]:self-start",
-          "**:data-[slot=stat-description]:col-span-2 **:data-[slot=stat-separator]:col-span-2 **:data-[slot=stat-trend]:col-span-2",
-        )}
-      >
-        {children}
-      </Card>
-    </Frame>
+    <CardFrame
+      className={cn("h-full", className)}
+      data-slot="stat"
+      {...props}
+    />
+  );
+}
+
+function StatPanel({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <Card
+      className={cn(
+        "grid flex-1 grid-cols-[auto_1fr] gap-x-3 gap-y-2 p-4",
+        "**:data-[slot=stat-indicator]:col-start-1 **:data-[slot=stat-indicator]:row-start-1 **:data-[slot=stat-indicator]:self-center",
+        "**:data-[slot=stat-label]:col-start-2 **:data-[slot=stat-label]:row-start-1 **:data-[slot=stat-label]:self-center",
+        "**:data-[slot=stat-value]:col-span-2 **:data-[slot=stat-value]:row-start-2",
+        className,
+      )}
+      data-slot="stat-panel"
+      {...props}
+    />
+  );
+}
+
+function StatFooter({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <CardFrameFooter
+      className={cn(
+        "flex min-h-12 flex-wrap items-center justify-between gap-2 px-4 py-3",
+        "**:data-[slot=stat-description]:min-w-0 **:data-[slot=stat-description]:flex-1",
+        "**:data-[slot=stat-trend]:min-w-0 **:data-[slot=stat-trend]:flex-1",
+        className,
+      )}
+      data-slot="stat-footer"
+      {...props}
+    />
   );
 }
 
@@ -38,20 +64,22 @@ const statIndicatorVariants = cva(
     variants: {
       variant: {
         default: "text-muted-foreground [&_svg:not([class*='size-'])]:size-5",
-        icon: "size-8 rounded-md border [&_svg:not([class*='size-'])]:size-3.5",
+        icon: "size-8 rounded-lg border [&_svg:not([class*='size-'])]:size-3.5",
         badge:
-          "h-6 min-w-6 rounded-sm border px-1.5 font-medium text-xs [&_svg:not([class*='size-'])]:size-3",
+          "h-6 min-w-6 rounded-md border px-1.5 font-medium text-xs [&_svg:not([class*='size-'])]:size-3",
         action:
           "size-8 cursor-pointer rounded-md transition-colors hover:bg-muted/50 [&_svg:not([class*='size-'])]:size-4",
       },
       color: {
-        default: "bg-muted text-muted-foreground",
+        default:
+          "border-transparent bg-linear-to-b from-primary to-[oklch(from_var(--color-primary)_calc(l-0.08)_c_h)] text-primary-foreground",
         success:
-          "border-success/20 bg-success/10 text-success dark:text-success-foreground",
-        info: "border-info/20 bg-info/10 text-info dark:text-info-foreground",
+          "border-transparent bg-linear-to-b from-success to-[oklch(from_var(--color-success)_calc(l-0.08)_c_h)] text-white",
+        info: "border-transparent bg-linear-to-b from-info to-[oklch(from_var(--color-info)_calc(l-0.08)_c_h)] text-white",
         warning:
-          "border-warning/20 bg-warning/10 text-warning dark:text-warning-foreground",
-        error: "border-destructive/20 bg-destructive/10 text-destructive",
+          "border-transparent bg-linear-to-b from-warning to-[oklch(from_var(--color-warning)_calc(l-0.08)_c_h)] text-neutral-950",
+        error:
+          "border-transparent bg-linear-to-b from-destructive to-[oklch(from_var(--color-destructive)_calc(l-0.08)_c_h)] text-white",
       },
     },
     defaultVariants: {
@@ -86,7 +114,10 @@ function StatValue({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="stat-value"
-      className={cn("font-heading font-semibold text-2xl tracking-tight", className)}
+      className={cn(
+        "font-heading font-semibold text-2xl tabular-nums tracking-tight",
+        className,
+      )}
       {...props}
     />
   );
@@ -115,8 +146,14 @@ function StatTrend({
   );
 }
 
-function StatSeparator({ ...props }: React.ComponentProps<typeof Separator>) {
-  return <Separator data-slot="stat-separator" className="my-2" {...props} />;
+function StatAction({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="stat-action"
+      className={cn("inline-flex shrink-0", className)}
+      {...props}
+    />
+  );
 }
 
 function StatDescription({ className, ...props }: React.ComponentProps<"div">) {
@@ -131,10 +168,12 @@ function StatDescription({ className, ...props }: React.ComponentProps<"div">) {
 
 export {
   Stat,
+  StatAction,
   StatDescription,
+  StatFooter,
   StatIndicator,
   StatLabel,
-  StatSeparator,
+  StatPanel,
   StatTrend,
   StatValue,
 };

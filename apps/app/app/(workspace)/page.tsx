@@ -12,9 +12,12 @@ import {
 } from "@repo/design-system/components/ui/card";
 import {
   Stat,
+  StatAction,
   StatDescription,
+  StatFooter,
   StatIndicator,
   StatLabel,
+  StatPanel,
   StatTrend,
   StatValue,
 } from "@repo/design-system/components/ui/stat";
@@ -28,6 +31,7 @@ import {
   ClipboardListIcon,
   FileTextIcon,
   MegaphoneIcon,
+  PlusIcon,
   ReceiptTextIcon,
   UserRoundIcon,
   UsersRoundIcon,
@@ -276,6 +280,7 @@ const App = async () => {
   );
   const stats = [
     {
+      action: { href: "/students/new", label: "Student" },
       color: "info" as const,
       detail: `+ ${studentsAddedThisMonth} this month`,
       href: "/students",
@@ -284,6 +289,7 @@ const App = async () => {
       value: activeStudents.toLocaleString(),
     },
     {
+      action: { href: "/classes/new", label: "Class" },
       color: "default" as const,
       detail: `+ ${classesAddedThisMonth} this month`,
       href: "/classes",
@@ -292,6 +298,7 @@ const App = async () => {
       value: activeClasses.toLocaleString(),
     },
     {
+      action: { href: "/teachers/new", label: "Teacher" },
       color: "info" as const,
       detail: `+ ${teachersAddedThisMonth} this month`,
       href: "/teachers",
@@ -324,32 +331,54 @@ const App = async () => {
       <main className="grid gap-5 p-4 pt-4">
         <section className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
           {stats.map((stat) => (
-            <Link className="block h-full" href={stat.href} key={stat.label}>
+            <div className="relative h-full" key={stat.label}>
               <Stat className="h-full">
-                <StatLabel>{stat.label}</StatLabel>
-                <StatIndicator color={stat.color} variant="icon">
-                  <stat.icon />
-                </StatIndicator>
-                <StatValue>{stat.value}</StatValue>
-                {typeof stat.trend === "number" ? (
-                  <StatTrend
-                    trend={
-                      stat.trend > 0
-                        ? "up"
-                        : stat.trend < 0
-                          ? "down"
-                          : "neutral"
-                    }
-                  >
-                    {stat.trend > 0 ? <ArrowUpIcon /> : null}
-                    {stat.trend < 0 ? <ArrowDownIcon /> : null}
-                    {stat.detail}
-                  </StatTrend>
-                ) : (
-                  <StatDescription>{stat.detail}</StatDescription>
-                )}
+                <StatPanel>
+                  <StatLabel>{stat.label}</StatLabel>
+                  <StatIndicator color={stat.color} variant="icon">
+                    <stat.icon />
+                  </StatIndicator>
+                  <StatValue>{stat.value}</StatValue>
+                </StatPanel>
+                <StatFooter>
+                  {typeof stat.trend === "number" ? (
+                    <StatTrend
+                      trend={
+                        stat.trend > 0
+                          ? "up"
+                          : stat.trend < 0
+                            ? "down"
+                            : "neutral"
+                      }
+                    >
+                      {stat.trend > 0 ? <ArrowUpIcon /> : null}
+                      {stat.trend < 0 ? <ArrowDownIcon /> : null}
+                      {stat.detail}
+                    </StatTrend>
+                  ) : (
+                    <StatDescription>{stat.detail}</StatDescription>
+                  )}
+                  {stat.action ? (
+                    <StatAction>
+                      <Button
+                        className="relative z-10"
+                        size="sm"
+                        variant="outline"
+                        render={<Link href={stat.action.href} />}
+                      >
+                        <PlusIcon aria-hidden="true" />
+                        {stat.action.label}
+                      </Button>
+                    </StatAction>
+                  ) : null}
+                </StatFooter>
               </Stat>
-            </Link>
+              <Link
+                aria-label={stat.label}
+                className="absolute inset-0 rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                href={stat.href}
+              />
+            </div>
           ))}
         </section>
 

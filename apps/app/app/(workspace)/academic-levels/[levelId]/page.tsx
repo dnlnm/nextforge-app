@@ -13,8 +13,10 @@ import {
 import {
   Stat,
   StatDescription,
+  StatFooter,
   StatIndicator,
   StatLabel,
+  StatPanel,
   StatValue,
 } from "@repo/design-system/components/ui/stat";
 import { getLevelDashboard } from "@repo/domain/levels/dashboard";
@@ -122,36 +124,52 @@ const LevelPage = async ({ params }: LevelPageProperties) => {
 
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <Stat>
-            <StatLabel>Students</StatLabel>
-            <StatIndicator color="info" variant="icon">
-              <UsersRoundIcon />
-            </StatIndicator>
-            <StatValue>{dashboard?.studentCount ?? 0}</StatValue>
-            <StatDescription>Assigned to this level</StatDescription>
+            <StatPanel>
+              <StatLabel>Students</StatLabel>
+              <StatIndicator color="info" variant="icon">
+                <UsersRoundIcon />
+              </StatIndicator>
+              <StatValue>{dashboard?.studentCount ?? 0}</StatValue>
+            </StatPanel>
+            <StatFooter>
+              <StatDescription>Assigned to this level</StatDescription>
+            </StatFooter>
           </Stat>
           <Stat>
-            <StatLabel>Classes</StatLabel>
-            <StatIndicator color="success" variant="icon">
-              <CalendarDaysIcon />
-            </StatIndicator>
-            <StatValue>{dashboard?.activeClassCount ?? 0}</StatValue>
-            <StatDescription>Active classes</StatDescription>
+            <StatPanel>
+              <StatLabel>Classes</StatLabel>
+              <StatIndicator color="success" variant="icon">
+                <CalendarDaysIcon />
+              </StatIndicator>
+              <StatValue>{dashboard?.activeClassCount ?? 0}</StatValue>
+            </StatPanel>
+            <StatFooter>
+              <StatDescription>Active classes</StatDescription>
+            </StatFooter>
           </Stat>
           <Stat>
-            <StatLabel>Subjects</StatLabel>
-            <StatIndicator color="warning" variant="icon">
-              <BookOpenIcon />
-            </StatIndicator>
-            <StatValue>{dashboard?.distinctSubjectCount ?? 0}</StatValue>
-            <StatDescription>Distinct subjects</StatDescription>
+            <StatPanel>
+              <StatLabel>Subjects</StatLabel>
+              <StatIndicator color="warning" variant="icon">
+                <BookOpenIcon />
+              </StatIndicator>
+              <StatValue>{dashboard?.distinctSubjectCount ?? 0}</StatValue>
+            </StatPanel>
+            <StatFooter>
+              <StatDescription>Distinct subjects</StatDescription>
+            </StatFooter>
           </Stat>
           <Stat>
-            <StatLabel>Teachers</StatLabel>
-            <StatIndicator color="default" variant="icon">
-              <UserRoundIcon />
-            </StatIndicator>
-            <StatValue>{dashboard?.distinctTeacherCount ?? 0}</StatValue>
-            <StatDescription>Distinct teachers</StatDescription>
+            <StatPanel>
+              <StatLabel>Teachers</StatLabel>
+              <StatIndicator color="default" variant="icon">
+                <UserRoundIcon />
+              </StatIndicator>
+              <StatValue>{dashboard?.distinctTeacherCount ?? 0}</StatValue>
+            </StatPanel>
+            <StatFooter>
+              <StatDescription>Distinct teachers</StatDescription>
+            </StatFooter>
           </Stat>
         </section>
 

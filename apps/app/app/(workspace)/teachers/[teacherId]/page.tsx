@@ -13,8 +13,10 @@ import {
 import {
   Stat,
   StatDescription,
+  StatFooter,
   StatIndicator,
   StatLabel,
+  StatPanel,
   StatValue,
 } from "@repo/design-system/components/ui/stat";
 import { getTeacherTrends } from "@repo/domain/analytics";
@@ -182,51 +184,71 @@ const TeacherPage = async ({ params }: TeacherPageProperties) => {
 
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
           <Stat>
-            <StatLabel>Students</StatLabel>
-            <StatIndicator color="info" variant="icon">
-              <UsersRoundIcon />
-            </StatIndicator>
-            <StatValue>{dashboard?.distinctStudentCount ?? 0}</StatValue>
-            <StatDescription>Distinct active students</StatDescription>
+            <StatPanel>
+              <StatLabel>Students</StatLabel>
+              <StatIndicator color="info" variant="icon">
+                <UsersRoundIcon />
+              </StatIndicator>
+              <StatValue>{dashboard?.distinctStudentCount ?? 0}</StatValue>
+            </StatPanel>
+            <StatFooter>
+              <StatDescription>Distinct active students</StatDescription>
+            </StatFooter>
           </Stat>
           <Stat>
-            <StatLabel>Classes</StatLabel>
-            <StatIndicator color="success" variant="icon">
-              <CalendarDaysIcon />
-            </StatIndicator>
-            <StatValue>{dashboard?.activeClassCount ?? 0}</StatValue>
-            <StatDescription>Active classes</StatDescription>
+            <StatPanel>
+              <StatLabel>Classes</StatLabel>
+              <StatIndicator color="success" variant="icon">
+                <CalendarDaysIcon />
+              </StatIndicator>
+              <StatValue>{dashboard?.activeClassCount ?? 0}</StatValue>
+            </StatPanel>
+            <StatFooter>
+              <StatDescription>Active classes</StatDescription>
+            </StatFooter>
           </Stat>
           <Stat>
-            <StatLabel>Weekly hours</StatLabel>
-            <StatIndicator color="warning" variant="icon">
-              <ClockIcon />
-            </StatIndicator>
-            <StatValue>{dashboard?.weeklyTeachingHours ?? 0}h</StatValue>
-            <StatDescription>Per week</StatDescription>
+            <StatPanel>
+              <StatLabel>Weekly hours</StatLabel>
+              <StatIndicator color="warning" variant="icon">
+                <ClockIcon />
+              </StatIndicator>
+              <StatValue>{dashboard?.weeklyTeachingHours ?? 0}h</StatValue>
+            </StatPanel>
+            <StatFooter>
+              <StatDescription>Per week</StatDescription>
+            </StatFooter>
           </Stat>
           <Stat>
-            <StatLabel>Subjects</StatLabel>
-            <StatIndicator color="default" variant="icon">
-              <BookOpenIcon />
-            </StatIndicator>
-            <StatValue>{dashboard?.distinctSubjectCount ?? 0}</StatValue>
-            <StatDescription>
-              {subjectNames.join(", ") || "None"}
-            </StatDescription>
+            <StatPanel>
+              <StatLabel>Subjects</StatLabel>
+              <StatIndicator color="default" variant="icon">
+                <BookOpenIcon />
+              </StatIndicator>
+              <StatValue>{dashboard?.distinctSubjectCount ?? 0}</StatValue>
+            </StatPanel>
+            <StatFooter>
+              <StatDescription>
+                {subjectNames.join(", ") || "None"}
+              </StatDescription>
+            </StatFooter>
           </Stat>
           <Stat>
-            <StatLabel>Completion</StatLabel>
-            <StatIndicator color="default" variant="icon">
-              <CalendarDaysIcon />
-            </StatIndicator>
-            <StatValue>
-              {trends?.attendanceCompletionRate === null ||
-              trends?.attendanceCompletionRate === undefined
-                ? "No data"
-                : `${trends.attendanceCompletionRate}%`}
-            </StatValue>
-            <StatDescription>For created sessions</StatDescription>
+            <StatPanel>
+              <StatLabel>Completion</StatLabel>
+              <StatIndicator color="default" variant="icon">
+                <CalendarDaysIcon />
+              </StatIndicator>
+              <StatValue>
+                {trends?.attendanceCompletionRate === null ||
+                trends?.attendanceCompletionRate === undefined
+                  ? "No data"
+                  : `${trends.attendanceCompletionRate}%`}
+              </StatValue>
+            </StatPanel>
+            <StatFooter>
+              <StatDescription>For created sessions</StatDescription>
+            </StatFooter>
           </Stat>
         </section>
 

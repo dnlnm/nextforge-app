@@ -11,8 +11,10 @@ import {
 import {
   Stat,
   StatDescription,
+  StatFooter,
   StatIndicator,
   StatLabel,
+  StatPanel,
   StatTrend,
   StatValue,
 } from "@repo/design-system/components/ui/stat";
@@ -143,51 +145,67 @@ export function StudentsPageClient({
       <section className="grid content-start gap-5">
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <Stat>
-            <StatLabel>Total Students</StatLabel>
-            <StatIndicator color="info" variant="icon">
-              <UsersRoundIcon />
-            </StatIndicator>
-            <StatValue>{totalStudents.toLocaleString()}</StatValue>
-            <StatTrend trend="up">
-              <ArrowUp />
-              +12 from last month
-            </StatTrend>
+            <StatPanel>
+              <StatLabel>Total Students</StatLabel>
+              <StatIndicator color="info" variant="icon">
+                <UsersRoundIcon />
+              </StatIndicator>
+              <StatValue>{totalStudents.toLocaleString()}</StatValue>
+            </StatPanel>
+            <StatFooter>
+              <StatTrend trend="up">
+                <ArrowUp />
+                +12 from last month
+              </StatTrend>
+            </StatFooter>
           </Stat>
 
           <Stat>
-            <StatLabel>Active Students</StatLabel>
-            <StatIndicator color="success" variant="icon">
-              <UserCheckIcon />
-            </StatIndicator>
-            <StatValue>{activeStudents.toLocaleString()}</StatValue>
-            <StatDescription>
-              {totalStudents > 0
-                ? `${Math.round((activeStudents / totalStudents) * 100)}% of total`
-                : "0% of total"}
-            </StatDescription>
+            <StatPanel>
+              <StatLabel>Active Students</StatLabel>
+              <StatIndicator color="success" variant="icon">
+                <UserCheckIcon />
+              </StatIndicator>
+              <StatValue>{activeStudents.toLocaleString()}</StatValue>
+            </StatPanel>
+            <StatFooter>
+              <StatDescription>
+                {totalStudents > 0
+                  ? `${Math.round((activeStudents / totalStudents) * 100)}% of total`
+                  : "0% of total"}
+              </StatDescription>
+            </StatFooter>
           </Stat>
 
           <Stat>
-            <StatLabel>New Students ({monthLabel})</StatLabel>
-            <StatIndicator color="info" variant="icon">
-              <UserPlusIcon />
-            </StatIndicator>
-            <StatValue>{newStudentsThisMonth.toLocaleString()}</StatValue>
-            <StatTrend trend="up">
-              <ArrowUp />
-              +4 from last month
-            </StatTrend>
+            <StatPanel>
+              <StatLabel>New Students ({monthLabel})</StatLabel>
+              <StatIndicator color="info" variant="icon">
+                <UserPlusIcon />
+              </StatIndicator>
+              <StatValue>{newStudentsThisMonth.toLocaleString()}</StatValue>
+            </StatPanel>
+            <StatFooter>
+              <StatTrend trend="up">
+                <ArrowUp />
+                +4 from last month
+              </StatTrend>
+            </StatFooter>
           </Stat>
 
           <Stat>
-            <StatLabel>Outstanding Fees</StatLabel>
-            <StatIndicator color="warning" variant="icon">
-              <LandmarkIcon />
-            </StatIndicator>
-            <StatValue>{formatMoney(outstandingSen)}</StatValue>
-            <StatDescription>
-              {studentsWithOutstanding} students
-            </StatDescription>
+            <StatPanel>
+              <StatLabel>Outstanding Fees</StatLabel>
+              <StatIndicator color="warning" variant="icon">
+                <LandmarkIcon />
+              </StatIndicator>
+              <StatValue>{formatMoney(outstandingSen)}</StatValue>
+            </StatPanel>
+            <StatFooter>
+              <StatDescription>
+                {studentsWithOutstanding} students
+              </StatDescription>
+            </StatFooter>
           </Stat>
         </section>
 

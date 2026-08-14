@@ -11,8 +11,10 @@ import {
 import {
   Stat,
   StatDescription,
+  StatFooter,
   StatIndicator,
   StatLabel,
+  StatPanel,
   StatValue,
 } from "@repo/design-system/components/ui/stat";
 import {
@@ -155,12 +157,16 @@ export function TeachersPageClient({
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {stats.map(({ color, detail, icon: Icon, label, value }) => (
             <Stat key={label}>
-              <StatLabel>{label}</StatLabel>
-              <StatIndicator color={color} variant="icon">
-                <Icon />
-              </StatIndicator>
-              <StatValue>{value}</StatValue>
-              <StatDescription>{detail}</StatDescription>
+              <StatPanel>
+                <StatLabel>{label}</StatLabel>
+                <StatIndicator color={color} variant="icon">
+                  <Icon />
+                </StatIndicator>
+                <StatValue>{value}</StatValue>
+              </StatPanel>
+              <StatFooter>
+                <StatDescription>{detail}</StatDescription>
+              </StatFooter>
             </Stat>
           ))}
         </section>

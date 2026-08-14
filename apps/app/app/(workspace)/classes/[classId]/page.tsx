@@ -12,8 +12,10 @@ import {
 import {
   Stat,
   StatDescription,
+  StatFooter,
   StatIndicator,
   StatLabel,
+  StatPanel,
   StatValue,
 } from "@repo/design-system/components/ui/stat";
 import {
@@ -237,50 +239,68 @@ const ClassPage = async ({ params }: ClassPageProperties) => {
 
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <Stat>
-            <StatLabel>Enrollment</StatLabel>
-            <StatIndicator color="info" variant="icon">
-              <UsersRoundIcon />
-            </StatIndicator>
-            <StatValue>
-              {dashboard?.activeEnrollmentCount ?? 0} /{" "}
-              {dashboard?.capacity.capacity ?? "∞"}
-            </StatValue>
-            <StatDescription>
-              {dashboard?.capacity.isFull
-                ? "Class is full"
-                : `${dashboard?.capacity.percentFull ?? 0}% utilized`}
-            </StatDescription>
+            <StatPanel>
+              <StatLabel>Enrollment</StatLabel>
+              <StatIndicator color="info" variant="icon">
+                <UsersRoundIcon />
+              </StatIndicator>
+              <StatValue>
+                {dashboard?.activeEnrollmentCount ?? 0} /{" "}
+                {dashboard?.capacity.capacity ?? "∞"}
+              </StatValue>
+            </StatPanel>
+            <StatFooter>
+              <StatDescription>
+                {dashboard?.capacity.isFull
+                  ? "Class is full"
+                  : `${dashboard?.capacity.percentFull ?? 0}% utilized`}
+              </StatDescription>
+            </StatFooter>
           </Stat>
           <Stat>
-            <StatLabel>Attendance</StatLabel>
-            <StatIndicator color="success" variant="icon">
-              <CalendarDaysIcon />
-            </StatIndicator>
-            <StatValue>
-              {dashboard?.attendanceRate === null ||
-              dashboard?.attendanceRate === undefined
-                ? "No data"
-                : `${dashboard.attendanceRate}%`}
-            </StatValue>
-            <StatDescription>This academic year</StatDescription>
+            <StatPanel>
+              <StatLabel>Attendance</StatLabel>
+              <StatIndicator color="success" variant="icon">
+                <CalendarDaysIcon />
+              </StatIndicator>
+              <StatValue>
+                {dashboard?.attendanceRate === null ||
+                dashboard?.attendanceRate === undefined
+                  ? "No data"
+                  : `${dashboard.attendanceRate}%`}
+              </StatValue>
+            </StatPanel>
+            <StatFooter>
+              <StatDescription>This academic year</StatDescription>
+            </StatFooter>
           </Stat>
           <Stat>
-            <StatLabel>Billed revenue</StatLabel>
-            <StatIndicator color="warning" variant="icon">
-              <CircleDollarSignIcon />
-            </StatIndicator>
-            <StatValue>
-              {formatMoney(dashboard?.billedRevenueSen ?? 0)}
-            </StatValue>
-            <StatDescription>Billed, not collected</StatDescription>
+            <StatPanel>
+              <StatLabel>Billed revenue</StatLabel>
+              <StatIndicator color="warning" variant="icon">
+                <CircleDollarSignIcon />
+              </StatIndicator>
+              <StatValue>
+                {formatMoney(dashboard?.billedRevenueSen ?? 0)}
+              </StatValue>
+            </StatPanel>
+            <StatFooter>
+              <StatDescription>Billed, not collected</StatDescription>
+            </StatFooter>
           </Stat>
           <Stat>
-            <StatLabel>Outstanding fees</StatLabel>
-            <StatIndicator color="default" variant="icon">
-              <ReceiptTextIcon />
-            </StatIndicator>
-            <StatValue>{formatMoney(dashboard?.outstandingSen ?? 0)}</StatValue>
-            <StatDescription>Unpaid invoice balance</StatDescription>
+            <StatPanel>
+              <StatLabel>Outstanding fees</StatLabel>
+              <StatIndicator color="default" variant="icon">
+                <ReceiptTextIcon />
+              </StatIndicator>
+              <StatValue>
+                {formatMoney(dashboard?.outstandingSen ?? 0)}
+              </StatValue>
+            </StatPanel>
+            <StatFooter>
+              <StatDescription>Unpaid invoice balance</StatDescription>
+            </StatFooter>
           </Stat>
         </section>
 

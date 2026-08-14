@@ -1,3 +1,8 @@
+import {
+  Card,
+  CardFrame,
+  CardFrameFooter,
+} from "@repo/design-system/components/ui/card";
 import { Skeleton } from "@repo/design-system/components/ui/skeleton";
 
 const HeaderSkeleton = () => (
@@ -38,14 +43,16 @@ const StatCardsSkeleton = ({
 }) => (
   <section className={`grid gap-3 ${className}`}>
     {Array.from({ length: count }).map((_, index) => (
-      <div className="grid gap-2 rounded-lg border p-4" key={index}>
-        <div className="flex items-center gap-2">
-          <Skeleton className="size-8 rounded-full" />
-          <Skeleton className="h-3 w-20" />
-        </div>
-        <Skeleton className="h-7 w-24" />
-        <Skeleton className="h-3 w-32" />
-      </div>
+      <CardFrame className="h-full" key={index}>
+        <Card className="grid flex-1 grid-cols-[auto_1fr] gap-x-3 gap-y-2 p-4">
+          <Skeleton className="size-8 rounded-md" />
+          <Skeleton className="h-3 w-20 self-center" />
+          <Skeleton className="col-span-2 h-7 w-24" />
+        </Card>
+        <CardFrameFooter className="flex min-h-12 items-center justify-between gap-2 px-4 py-3">
+          <Skeleton className="h-3 w-32" />
+        </CardFrameFooter>
+      </CardFrame>
     ))}
   </section>
 );

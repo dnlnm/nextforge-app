@@ -6,8 +6,10 @@ import { Card, CardContent } from "@repo/design-system/components/ui/card";
 import {
   Stat,
   StatDescription,
+  StatFooter,
   StatIndicator,
   StatLabel,
+  StatPanel,
   StatValue,
 } from "@repo/design-system/components/ui/stat";
 import type { LucideIcon } from "lucide-react";
@@ -177,12 +179,16 @@ const ClassesPage = async () => {
             <section className="grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
               {metrics.map(({ color, detail, Icon, label, value }) => (
                 <Stat key={label}>
-                  <StatLabel>{label}</StatLabel>
-                  <StatIndicator color={color} variant="icon">
-                    <Icon />
-                  </StatIndicator>
-                  <StatValue>{value}</StatValue>
-                  <StatDescription>{detail}</StatDescription>
+                  <StatPanel>
+                    <StatLabel>{label}</StatLabel>
+                    <StatIndicator color={color} variant="icon">
+                      <Icon />
+                    </StatIndicator>
+                    <StatValue>{value}</StatValue>
+                  </StatPanel>
+                  <StatFooter>
+                    <StatDescription>{detail}</StatDescription>
+                  </StatFooter>
                 </Stat>
               ))}
             </section>
