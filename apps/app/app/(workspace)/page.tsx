@@ -336,7 +336,7 @@ const App = async () => {
               <Stat className="h-full">
                 <StatPanel>
                   <StatLabel>{stat.label}</StatLabel>
-                  <StatIndicator color={stat.color} variant="icon">
+                  <StatIndicator color={stat.color} variant="stacked">
                     <stat.icon />
                   </StatIndicator>
                   <StatValue>{stat.value}</StatValue>

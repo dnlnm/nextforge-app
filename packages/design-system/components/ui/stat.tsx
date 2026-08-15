@@ -65,6 +65,7 @@ const statIndicatorVariants = cva(
       variant: {
         default: "text-muted-foreground [&_svg:not([class*='size-'])]:size-5",
         icon: "size-8 rounded-lg border [&_svg:not([class*='size-'])]:size-3.5",
+        stacked: "",
         badge:
           "h-6 min-w-6 rounded-md border px-1.5 font-medium text-xs [&_svg:not([class*='size-'])]:size-3",
         action:
@@ -97,8 +98,64 @@ function StatIndicator({
   className,
   variant = "default",
   color = "default",
+  children,
   ...props
 }: StatIndicatorProps) {
+  if (variant === "stacked") {
+    const cardClassName =
+      "relative flex size-8 shrink-0 items-center justify-center rounded-md border bg-card not-dark:bg-clip-padding text-foreground before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-md)-1px)] before:shadow-[0_1px_--theme(--color-black/4%)] dark:before:shadow-[0_-1px_--theme(--color-white/6%)] [&_svg:not([class*='size-'])]:size-4";
+    const frontColorClassName = {
+      default: "border-transparent bg-primary text-primary-foreground",
+      error: "border-transparent bg-destructive text-white",
+      info: "border-transparent bg-info text-white",
+      success: "border-transparent bg-success text-white",
+      warning: "border-transparent bg-warning text-neutral-950",
+    }[color ?? "default"];
+    const backColorClassName = {
+      default: "border-primary/24 bg-primary/16 dark:border-primary/32 dark:bg-primary/24",
+      error:
+        "border-destructive/24 bg-destructive/16 dark:border-destructive/32 dark:bg-destructive/24",
+      info: "border-info/24 bg-info/16 dark:border-info/32 dark:bg-info/24",
+      success:
+        "border-success/24 bg-success/16 dark:border-success/32 dark:bg-success/24",
+      warning:
+        "border-warning/24 bg-warning/16 dark:border-warning/32 dark:bg-warning/24",
+    }[color ?? "default"];
+
+    return (
+      <div
+        {...props}
+        aria-hidden="true"
+        className={cn("pointer-events-none relative isolate size-8", className)}
+        data-color={color}
+        data-slot="stat-indicator"
+        data-variant={variant}
+      >
+        <div
+          aria-hidden="true"
+          className={cn(
+            cardClassName,
+            backColorClassName,
+            "absolute inset-x-0 bottom-px origin-bottom-left -translate-x-0.5 -rotate-10 scale-84 shadow-none",
+          )}
+        />
+        <div
+          aria-hidden="true"
+          className={cn(
+            cardClassName,
+            backColorClassName,
+            "absolute inset-x-0 bottom-px origin-bottom-right translate-x-0.5 rotate-10 scale-84 shadow-none",
+          )}
+        />
+        <div
+          className={cn(cardClassName, frontColorClassName, "z-1 shadow-sm/5")}
+        >
+          {children}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       data-slot="stat-indicator"
@@ -106,7 +163,9 @@ function StatIndicator({
       data-color={color}
       className={cn(statIndicatorVariants({ variant, color, className }))}
       {...props}
-    />
+    >
+      {children}
+    </div>
   );
 }
 
