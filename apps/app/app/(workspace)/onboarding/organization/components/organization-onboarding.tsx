@@ -3,7 +3,7 @@
 import { Button } from "@repo/design-system/components/ui/button";
 import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
-import { uploadToR2 } from "@repo/storage/client";
+import { optimizeImageFile, uploadToR2 } from "@repo/storage/client";
 import { ImageUpIcon, Loader2Icon } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -52,7 +52,14 @@ export const OrganizationOnboarding = () => {
       let imageUrl: string | undefined;
 
       if (logo) {
-        const { url } = await uploadToR2(logo, "/api/uploads/centre-logo");
+        // Resize and recompress the logo before it leaves the browser so R2
+        // stores a small object; the original type is kept for transparency.
+        const optimized = await optimizeImageFile(logo, {
+          maxSizeMB: 1,
+          maxWidthOrHeight: 512,
+        });
+
+        const { url } = await uploadToR2(optimized, "/api/uploads/centre-logo");
         imageUrl = url;
       }
 
@@ -106,7 +113,8 @@ export const OrganizationOnboarding = () => {
                 {logo ? logo.name : "Upload a logo"}
               </p>
               <p className="text-muted-foreground text-xs">
-                Optional. PNG, JPG, or WebP up to 2MB.
+                Optional. PNG, JPG, or WebP. Auto-resized and compressed on
+                upload.
               </p>
             </div>
           </div>

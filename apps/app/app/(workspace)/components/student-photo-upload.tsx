@@ -2,7 +2,11 @@
 
 import { Button } from "@repo/design-system/components/ui/button";
 import { cn } from "@repo/design-system/lib/utils";
-import { privateFileUrl, uploadToR2 } from "@repo/storage/client";
+import {
+  optimizeImageFile,
+  privateFileUrl,
+  uploadToR2,
+} from "@repo/storage/client";
 import { CloudUploadIcon, ImageIcon, Loader2Icon, XIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { StudentAvatar } from "./student-avatar";
@@ -60,15 +64,22 @@ export const StudentPhotoUpload = ({
     setError(null);
     setIsUploading(true);
 
-    // Show an immediate local preview while the upload completes.
-    if (preview) {
-      URL.revokeObjectURL(preview);
-    }
-    const localPreview = URL.createObjectURL(file);
-    setPreview(localPreview);
-
     try {
-      const { key } = await uploadToR2(file, "/api/uploads/student-photo");
+      // Resize and recompress the photo before it leaves the browser so R2
+      // stores a small object. The preview shows exactly what gets uploaded.
+      const optimized = await optimizeImageFile(file, {
+        maxSizeMB: 0.5,
+        maxWidthOrHeight: 512,
+        fileType: "image/webp",
+      });
+
+      if (preview) {
+        URL.revokeObjectURL(preview);
+      }
+      const localPreview = URL.createObjectURL(optimized);
+      setPreview(localPreview);
+
+      const { key } = await uploadToR2(optimized, "/api/uploads/student-photo");
       setPhotoKey(key);
     } catch (uploadError) {
       const message =
@@ -139,7 +150,7 @@ export const StudentPhotoUpload = ({
           {hasPhoto ? "Student photo uploaded" : "Upload student photo"}
         </p>
         <p className="mt-1 text-muted-foreground text-xs">
-          JPG, PNG or up to 2MB
+          Auto-resized and compressed on upload
         </p>
       </div>
       <input

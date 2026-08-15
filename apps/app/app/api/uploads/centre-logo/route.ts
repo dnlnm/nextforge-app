@@ -2,7 +2,7 @@ import { currentUser } from "@repo/auth/server";
 import { createPresignedUploadUrl } from "@repo/storage";
 import { NextResponse } from "next/server";
 
-const maxLogoSizeBytes = 2 * 1024 * 1024;
+const maxLogoSizeBytes = 1024 * 1024;
 
 const sanitizeFileName = (value: string) =>
   value.replace(/[^a-zA-Z0-9._-]/g, "-");
@@ -30,7 +30,7 @@ export const POST = async (request: Request) => {
 
     if (fileSize > maxLogoSizeBytes) {
       return NextResponse.json(
-        { error: "Logo must be 2MB or smaller." },
+        { error: "Logo must be 1MB or smaller." },
         { status: 400 }
       );
     }

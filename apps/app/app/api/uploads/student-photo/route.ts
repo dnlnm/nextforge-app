@@ -2,7 +2,7 @@ import { requireTenantRole } from "@repo/auth/authorization";
 import { createPresignedUploadUrl } from "@repo/storage";
 import { NextResponse } from "next/server";
 
-const maxPhotoSizeBytes = 2 * 1024 * 1024;
+const maxPhotoSizeBytes = 512 * 1024;
 
 const sanitizeFileName = (value: string) =>
   value.replace(/[^a-zA-Z0-9._-]/g, "-");
@@ -33,7 +33,7 @@ export const POST = async (request: Request) => {
 
     if (fileSize > maxPhotoSizeBytes) {
       return NextResponse.json(
-        { error: "Photo must be 2MB or smaller." },
+        { error: "Photo must be 0.5MB or smaller." },
         { status: 400 }
       );
     }

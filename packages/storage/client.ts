@@ -1,9 +1,46 @@
+import imageCompression from "browser-image-compression";
+
 interface SignResponse {
   error?: string;
   key?: string;
   uploadUrl?: string;
   url?: string;
 }
+
+export interface OptimizeImageOptions {
+  // Overrides the output type (e.g. "image/jpeg"); defaults to the input type.
+  fileType?: string;
+  // Initial encode quality between 0 and 1.
+  initialQuality?: number;
+  // Target output size; compression iterates until the result fits.
+  maxSizeMB?: number;
+  // Downscales the image so the longest side never exceeds this value.
+  maxWidthOrHeight?: number;
+}
+
+/**
+ * Resizes and recompresses an image in the browser before upload. Keeps the
+ * direct-to-R2 presigned flow intact while storing far smaller objects:
+ * camera photos are downscaled, EXIF metadata is dropped, and the file is
+ * iteratively re-encoded until it fits `maxSizeMB`.
+ */
+export const optimizeImageFile = async (
+  file: File,
+  {
+    maxSizeMB = 0.5,
+    maxWidthOrHeight = 512,
+    fileType,
+    initialQuality = 0.8,
+  }: OptimizeImageOptions = {}
+): Promise<File> =>
+  imageCompression(file, {
+    maxSizeMB,
+    maxWidthOrHeight,
+    fileType,
+    initialQuality,
+    useWebWorker: true,
+    preserveExif: false,
+  });
 
 // Builds the authenticated proxy URL that streams a private R2 object.
 // Private objects are never publicly addressable, so the browser loads them

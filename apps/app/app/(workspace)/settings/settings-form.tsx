@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@repo/design-system/components/ui/select";
 import { Textarea } from "@repo/design-system/components/ui/textarea";
-import { uploadToR2 } from "@repo/storage/client";
+import { optimizeImageFile, uploadToR2 } from "@repo/storage/client";
 import { ImageUpIcon, Loader2Icon } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -91,7 +91,14 @@ export const SettingsForm = ({ organization }: SettingsFormProps) => {
       if (logo) {
         setUploading(true);
 
-        const { url } = await uploadToR2(logo, "/api/uploads/centre-logo");
+        // Resize and recompress the logo before it leaves the browser so R2
+        // stores a small object; the original type is kept for transparency.
+        const optimized = await optimizeImageFile(logo, {
+          maxSizeMB: 1,
+          maxWidthOrHeight: 512,
+        });
+
+        const { url } = await uploadToR2(optimized, "/api/uploads/centre-logo");
 
         if (!url) {
           throw new Error("Upload completed without an image URL.");
@@ -152,8 +159,8 @@ export const SettingsForm = ({ organization }: SettingsFormProps) => {
             <div className="min-w-0">
               <p className="font-medium text-sm">{imageActionLabel}</p>
               <p className="text-muted-foreground text-xs">
-                PNG, JPG, or WebP up to 2MB. Used as the centre image across the
-                app.
+                PNG, JPG, or WebP. Auto-resized and compressed on upload. Used
+                as the centre image across the app.
               </p>
             </div>
           </div>
