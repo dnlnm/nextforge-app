@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMoneyValue } from "@repo/money";
 import {
   Area,
   AreaChart,
@@ -16,10 +17,14 @@ interface FeeCollectionPoint {
 }
 
 interface FeeCollectionChartProps {
+  currency: string;
   data: FeeCollectionPoint[];
 }
 
-export const FeeCollectionChart = ({ data }: FeeCollectionChartProps) => (
+export const FeeCollectionChart = ({
+  currency,
+  data,
+}: FeeCollectionChartProps) => (
   <ResponsiveContainer className="min-h-0 flex-1 text-xs" height="100%" width="100%">
     <AreaChart
       accessibilityLayer
@@ -42,7 +47,7 @@ export const FeeCollectionChart = ({ data }: FeeCollectionChartProps) => (
       <YAxis
         axisLine={false}
         stroke="var(--muted-foreground)"
-        tickFormatter={(value) => `RM ${Number(value).toLocaleString()}`}
+        tickFormatter={(value) => formatMoneyValue(Number(value), { currency })}
         tickLine={false}
         tickMargin={8}
         width={62}
@@ -50,7 +55,7 @@ export const FeeCollectionChart = ({ data }: FeeCollectionChartProps) => (
       <Tooltip
         cursor={false}
         formatter={(value) => [
-          `RM ${Number(value ?? 0).toLocaleString()}`,
+          formatMoneyValue(Number(value ?? 0), { currency }),
           "Collected",
         ]}
       />

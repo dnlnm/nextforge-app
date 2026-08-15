@@ -19,10 +19,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/design-system/components/ui/select";
+import { toastManager } from "@repo/design-system/components/ui/toast";
+import { formatMoney as formatMoneyShared } from "@repo/money";
 import { Loader2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
-import { toastManager } from "@repo/design-system/components/ui/toast";
 import { enrollStudentAction } from "../../enrollment/actions";
 
 export interface EnrollableClass {
@@ -46,15 +47,19 @@ const parseMoney = (value: string): number | null => {
 
 export const EnrollStudentDialog = ({
   classes,
+  currency,
   onOpenChange,
   open,
   studentId,
 }: {
   readonly classes: EnrollableClass[];
+  readonly currency: string;
   readonly onOpenChange: (open: boolean) => void;
   readonly open: boolean;
   readonly studentId: string;
 }) => {
+  const formatMoney = (amountSen: number) =>
+    formatMoneyShared(amountSen, { currency });
   const [classId, setClassId] = useState<string>("");
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
@@ -154,7 +159,7 @@ export const EnrollStudentDialog = ({
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Monthly fee</span>
-                <span>RM {(selectedClass.monthlyFeeSen / 100).toFixed(2)}</span>
+                <span>{formatMoney(selectedClass.monthlyFeeSen)}</span>
               </div>
               {selectedClass.capacity !== null ? (
                 <div className="flex items-center justify-between">

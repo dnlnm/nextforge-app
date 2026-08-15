@@ -18,22 +18,18 @@ import {
   TableHeader,
   TableRow,
 } from "@repo/design-system/components/ui/table";
+import { formatMoney as formatMoneyShared } from "@repo/money";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PrintButton } from "@/components/print-button";
+import { getOrganizationCurrency } from "@/lib/currency";
 import { Header } from "../../components/header";
 import { reversePayment } from "../actions";
 
 interface PaymentPageProperties {
   readonly params: Promise<{ paymentId: string }>;
 }
-
-const formatMoney = (amountSen: number) =>
-  new Intl.NumberFormat("en-MY", {
-    currency: "MYR",
-    style: "currency",
-  }).format(amountSen / 100);
 
 const formatDate = (date: Date) => formatShortDate(date);
 
@@ -48,6 +44,9 @@ export const generateMetadata = async ({
 const PaymentPage = async ({ params }: PaymentPageProperties) => {
   const tenant = await requireTenantRole(["ADMIN"]);
   const { paymentId } = await params;
+  const currency = await getOrganizationCurrency(tenant.organizationId);
+  const formatMoney = (amountSen: number) =>
+    formatMoneyShared(amountSen, { currency });
   const payment = await database.payment.findFirst({
     where: { id: paymentId, organizationId: tenant.organizationId },
     include: {

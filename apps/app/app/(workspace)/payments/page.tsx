@@ -26,7 +26,9 @@ import {
   TableHeader,
   TableRow,
 } from "@repo/design-system/components/ui/table";
+import { formatMoney as formatMoneyShared } from "@repo/money";
 import Link from "next/link";
+import { getOrganizationCurrency } from "@/lib/currency";
 import { Header } from "../components/header";
 import { recordPayment } from "./actions";
 
@@ -39,14 +41,11 @@ const methods = [
   ["OTHER", "Other"],
 ] as const;
 
-const formatMoney = (amountSen: number) =>
-  new Intl.NumberFormat("en-MY", {
-    currency: "MYR",
-    style: "currency",
-  }).format(amountSen / 100);
-
 const PaymentsPage = async () => {
   const tenant = await requireTenantRole(["ADMIN"]);
+  const currency = await getOrganizationCurrency(tenant.organizationId);
+  const formatMoney = (amountSen: number) =>
+    formatMoneyShared(amountSen, { currency });
   const [openInvoices, payments] = await Promise.all([
     database.invoice.findMany({
       where: {

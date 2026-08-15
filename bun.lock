@@ -69,6 +69,7 @@
         "@repo/design-system": "workspace:*",
         "@repo/domain": "workspace:*",
         "@repo/feature-flags": "workspace:*",
+        "@repo/money": "workspace:*",
         "@repo/next-config": "workspace:*",
         "@repo/notifications": "workspace:*",
         "@repo/observability": "workspace:*",
@@ -553,6 +554,15 @@
         "@types/react": "19.2.14",
         "@types/react-dom": "19.2.3",
         "next": "16.1.6",
+      },
+    },
+    "packages/money": {
+      "name": "@repo/money",
+      "version": "0.0.0",
+      "devDependencies": {
+        "@repo/typescript-config": "workspace:*",
+        "typescript": "^5.9.3",
+        "vitest": "^4.0.18",
       },
     },
     "packages/next-config": {
@@ -1820,6 +1830,8 @@
     "@repo/feature-flags": ["@repo/feature-flags@workspace:packages/feature-flags"],
 
     "@repo/internationalization": ["@repo/internationalization@workspace:packages/internationalization"],
+
+    "@repo/money": ["@repo/money@workspace:packages/money"],
 
     "@repo/next-config": ["@repo/next-config@workspace:packages/next-config"],
 

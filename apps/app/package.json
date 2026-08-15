@@ -20,6 +20,7 @@
     "@repo/design-system": "workspace:*",
     "@repo/domain": "workspace:*",
     "@repo/feature-flags": "workspace:*",
+    "@repo/money": "workspace:*",
     "@repo/next-config": "workspace:*",
     "@repo/notifications": "workspace:*",
     "@repo/observability": "workspace:*",

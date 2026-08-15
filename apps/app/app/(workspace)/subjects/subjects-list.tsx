@@ -11,6 +11,7 @@ import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import { Card } from "@repo/design-system/components/ui/card";
 import { Input } from "@repo/design-system/components/ui/input";
+import { formatMoneyWhole as formatMoneyShared } from "@repo/money";
 import { BookOpenIcon, Edit3Icon, SearchIcon } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -57,13 +58,6 @@ const dayLabel: Record<string, string> = {
   WEDNESDAY: "Wed",
 };
 
-const formatMoney = (amountSen: number) =>
-  new Intl.NumberFormat("en-MY", {
-    currency: "MYR",
-    maximumFractionDigits: 0,
-    style: "currency",
-  }).format(amountSen / 100);
-
 const formatTime = (time: string) => formatWallClockTime(time);
 
 const formatSchedule = (subjectClass: SubjectClassSummary) =>
@@ -76,7 +70,10 @@ const formatSchedule = (subjectClass: SubjectClassSummary) =>
         .join(", ")
     : "No schedule";
 
-const formatFeeRange = (subject: SubjectSummary) => {
+const formatFeeRange = (
+  subject: SubjectSummary,
+  formatMoney: (amountSen: number) => string
+) => {
   if (subject.feeMinSen === null || subject.feeMaxSen === null) {
     return "—";
   }
@@ -88,7 +85,13 @@ const formatFeeRange = (subject: SubjectSummary) => {
   return `${formatMoney(subject.feeMinSen)}–${formatMoney(subject.feeMaxSen)}/mo`;
 };
 
-const SubjectRow = ({ subject }: { readonly subject: SubjectSummary }) => (
+const SubjectRow = ({
+  formatMoney,
+  subject,
+}: {
+  readonly formatMoney: (amountSen: number) => string;
+  readonly subject: SubjectSummary;
+}) => (
   <span className="flex w-full min-w-0 flex-col gap-1 text-left sm:flex-row sm:items-center sm:justify-between sm:gap-4">
     <span className="flex min-w-0 items-center gap-3">
       <span className="flex size-9 shrink-0 items-center justify-center rounded-md border bg-muted text-muted-foreground">
@@ -106,13 +109,19 @@ const SubjectRow = ({ subject }: { readonly subject: SubjectSummary }) => (
       <span aria-hidden="true">·</span>
       <span>{subject.teacherCount} teachers</span>
       <span className="font-medium text-foreground tabular-nums">
-        {formatFeeRange(subject)}
+        {formatFeeRange(subject, formatMoney)}
       </span>
     </span>
   </span>
 );
 
-const SubjectDetail = ({ subject }: { readonly subject: SubjectSummary }) => (
+const SubjectDetail = ({
+  formatMoney,
+  subject,
+}: {
+  readonly formatMoney: (amountSen: number) => string;
+  readonly subject: SubjectSummary;
+}) => (
   <div className="grid gap-3 pl-12">
     <div className="grid gap-3">
       {subject.classes.length === 0 ? (
@@ -202,10 +211,14 @@ const EmptyState = ({ query }: { readonly query: string }) => (
 );
 
 const SubjectsList = ({
+  currency,
   subjects,
 }: {
+  readonly currency: string;
   readonly subjects: SubjectSummary[];
 }) => {
+  const formatMoney = (amountSen: number) =>
+    formatMoneyShared(amountSen, { currency });
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
@@ -249,10 +262,10 @@ const SubjectsList = ({
           {filtered.map((subject) => (
             <AccordionItem key={subject.id} value={subject.id}>
               <AccordionTrigger className="items-center gap-4 py-3 hover:no-underline">
-                <SubjectRow subject={subject} />
+                <SubjectRow formatMoney={formatMoney} subject={subject} />
               </AccordionTrigger>
               <AccordionContent>
-                <SubjectDetail subject={subject} />
+                <SubjectDetail formatMoney={formatMoney} subject={subject} />
               </AccordionContent>
             </AccordionItem>
           ))}

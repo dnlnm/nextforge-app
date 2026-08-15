@@ -18,21 +18,17 @@ import {
   TableHeader,
   TableRow,
 } from "@repo/design-system/components/ui/table";
+import { formatMoney as formatMoneyShared } from "@repo/money";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PrintButton } from "@/components/print-button";
+import { getOrganizationCurrency } from "@/lib/currency";
 import { Header } from "../../components/header";
 
 interface InvoicePageProperties {
   readonly params: Promise<{ invoiceId: string }>;
 }
-
-const formatMoney = (amountSen: number) =>
-  new Intl.NumberFormat("en-MY", {
-    currency: "MYR",
-    style: "currency",
-  }).format(amountSen / 100);
 
 const formatDate = (date: Date) => formatShortDate(date);
 
@@ -47,6 +43,9 @@ export const generateMetadata = async ({
 const InvoicePage = async ({ params }: InvoicePageProperties) => {
   const tenant = await requireTenantRole(["ADMIN"]);
   const { invoiceId } = await params;
+  const currency = await getOrganizationCurrency(tenant.organizationId);
+  const formatMoney = (amountSen: number) =>
+    formatMoneyShared(amountSen, { currency });
   const invoice = await database.invoice.findFirst({
     where: { id: invoiceId, organizationId: tenant.organizationId },
     include: {

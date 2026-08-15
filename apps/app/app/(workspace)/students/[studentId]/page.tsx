@@ -24,6 +24,7 @@ import {
   getStudentOverview,
   listStudentActivity,
 } from "@repo/domain/students/dashboard";
+import { formatMoneyWhole as formatMoneyShared } from "@repo/money";
 import { privateFileUrl } from "@repo/storage/client";
 import {
   BookOpenIcon,
@@ -40,6 +41,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getOrganizationCurrency } from "@/lib/currency";
 import Balancer from "react-wrap-balancer";
 import { Header } from "../../components/header";
 import { StudentAvatar } from "../../components/student-avatar";
@@ -60,13 +62,6 @@ const attendanceLabels: Record<AttendanceStatus, string> = {
 };
 
 const formatDate = (date: Date) => formatShortDate(date);
-
-const formatMoney = (amountSen: number) =>
-  new Intl.NumberFormat("en-MY", {
-    currency: "MYR",
-    maximumFractionDigits: 0,
-    style: "currency",
-  }).format(amountSen / 100);
 
 const formatTime = (value: string) => formatWallClockTime(value);
 
@@ -235,12 +230,14 @@ const StudentHeader = ({
 const StudentMetrics = ({
   attendanceRate,
   activeEnrollments,
+  formatMoney,
   outstandingSen,
   totalBilledSen,
   totalPaidSen,
 }: {
   readonly activeEnrollments: number;
   readonly attendanceRate: number;
+  readonly formatMoney: (amountSen: number) => string;
   readonly outstandingSen: number;
   readonly totalBilledSen: number;
   readonly totalPaidSen: number;
@@ -328,8 +325,10 @@ const StudentOverviewTab = ({ student }: { readonly student: StudentData }) => (
 );
 
 const StudentAcademicsTab = ({
+  formatMoney,
   student,
 }: {
+  readonly formatMoney: (amountSen: number) => string;
   readonly student: StudentData;
 }) => (
   <Card>
@@ -456,7 +455,13 @@ const StudentGuardiansTab = ({
   </Card>
 );
 
-const StudentBillingTab = ({ student }: { readonly student: StudentData }) => {
+const StudentBillingTab = ({
+  formatMoney,
+  student,
+}: {
+  readonly formatMoney: (amountSen: number) => string;
+  readonly student: StudentData;
+}) => {
   const totalBilledSen = student.invoices.reduce(
     (total, invoice) => total + invoice.totalSen,
     0
@@ -620,12 +625,14 @@ const StudentNotesTab = ({ student }: { readonly student: StudentData }) => (
 );
 
 const StudentSidebar = ({
+  formatMoney,
   primaryGuardian,
   student,
   totalBilledSen,
   totalPaidSen,
   outstandingSen,
 }: {
+  readonly formatMoney: (amountSen: number) => string;
   readonly primaryGuardian?: StudentData["guardians"][number]["guardian"];
   readonly outstandingSen: number;
   readonly student: StudentData;
@@ -712,6 +719,9 @@ const StudentSidebar = ({
 const StudentProfilePage = async ({ params }: StudentPageProperties) => {
   const tenant = await requireTenantRole(["ADMIN"]);
   const { studentId } = await params;
+  const currency = await getOrganizationCurrency(tenant.organizationId);
+  const formatMoney = (amountSen: number) =>
+    formatMoneyShared(amountSen, { currency });
   const [student, dashboard, _overview, activities, trends, enrollableClasses] =
     await Promise.all([
       getStudentData(studentId, tenant.organizationId),
@@ -773,12 +783,14 @@ const StudentProfilePage = async ({ params }: StudentPageProperties) => {
             <StudentQuickActions
               activeEnrollments={activeEnrollmentOptions}
               classes={enrollableClasses}
+              currency={currency}
               studentId={student.id}
             />
 
             <StudentMetrics
               activeEnrollments={activeEnrollments}
               attendanceRate={attendanceRate}
+              formatMoney={formatMoney}
               outstandingSen={outstandingSen}
               totalBilledSen={totalBilledSen}
               totalPaidSen={totalPaidSen}
@@ -803,16 +815,18 @@ const StudentProfilePage = async ({ params }: StudentPageProperties) => {
                 <StudentActivityTimeline activities={activities} />
               </TabsContent>
               <TabsContent className="grid gap-5" value="analytics">
-                {trends ? <StudentAnalyticsTab trends={trends} /> : null}
+                {trends ? (
+                  <StudentAnalyticsTab currency={currency} trends={trends} />
+                ) : null}
               </TabsContent>
               <TabsContent className="grid gap-5" value="academics">
-                <StudentAcademicsTab student={student} />
+                <StudentAcademicsTab formatMoney={formatMoney} student={student} />
               </TabsContent>
               <TabsContent className="grid gap-5" value="guardians">
                 <StudentGuardiansTab student={student} />
               </TabsContent>
               <TabsContent className="grid gap-5" value="billing">
-                <StudentBillingTab student={student} />
+                <StudentBillingTab formatMoney={formatMoney} student={student} />
               </TabsContent>
               <TabsContent className="grid gap-5" value="attendance">
                 <StudentAttendanceTab student={student} />
@@ -824,6 +838,7 @@ const StudentProfilePage = async ({ params }: StudentPageProperties) => {
           </section>
 
           <StudentSidebar
+            formatMoney={formatMoney}
             outstandingSen={outstandingSen}
             primaryGuardian={primaryGuardian}
             student={student}

@@ -1,13 +1,15 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
+import { getOrganizationCurrency } from "@/lib/currency";
 import { Header } from "../components/header";
 import { EnrollmentCenter } from "./enrollment-center";
 
 const EnrollmentPage = async () => {
   const tenant = await requireTenantRole(["ADMIN"]);
 
-  const [students, classes, enrollments] = await Promise.all([
+  const [currency, students, classes, enrollments] = await Promise.all([
+    getOrganizationCurrency(tenant.organizationId),
     database.student.findMany({
       where: {
         archivedAt: null,
@@ -101,6 +103,7 @@ const EnrollmentPage = async () => {
             subjectName: learningClass.subject.name,
             teacherName: learningClass.teacher?.fullName ?? null,
           }))}
+          currency={currency}
           enrollments={enrollments.map((enrollment) => ({
             className: enrollment.class.name,
             id: enrollment.id,

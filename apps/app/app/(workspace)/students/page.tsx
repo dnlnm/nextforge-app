@@ -4,6 +4,7 @@ import { database } from "@repo/database";
 import { Button } from "@repo/design-system/components/ui/button";
 import { ChevronDownIcon, PlusIcon, UploadIcon } from "lucide-react";
 import Link from "next/link";
+import { getOrganizationCurrency } from "@/lib/currency";
 import { Header } from "../components/header";
 import { getStudentFilterOptions, getStudentsForTable } from "./actions";
 import { StudentsPageClient } from "./students-page-client";
@@ -15,27 +16,29 @@ const StudentsPage = async () => {
     Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1)
   );
 
-  const [allStudents, initialTableData, filterOptions] = await Promise.all([
-    database.student.findMany({
-      where: { organizationId: tenant.organizationId, archivedAt: null },
-      include: {
-        invoices: {
-          where: { status: { in: ["ISSUED", "PARTIALLY_PAID", "OVERDUE"] } },
+  const [currency, allStudents, initialTableData, filterOptions] =
+    await Promise.all([
+      getOrganizationCurrency(tenant.organizationId),
+      database.student.findMany({
+        where: { organizationId: tenant.organizationId, archivedAt: null },
+        include: {
+          invoices: {
+            where: { status: { in: ["ISSUED", "PARTIALLY_PAID", "OVERDUE"] } },
+          },
+          guardians: {
+            where: { isPrimary: true },
+            include: { guardian: true },
+            take: 1,
+          },
+          level: true,
         },
-        guardians: {
-          where: { isPrimary: true },
-          include: { guardian: true },
-          take: 1,
-        },
-        level: true,
-      },
-    }),
-    getStudentsForTable({
-      page: 0,
-      pageSize: 10,
-    }),
-    getStudentFilterOptions(),
-  ]);
+      }),
+      getStudentsForTable({
+        page: 0,
+        pageSize: 10,
+      }),
+      getStudentFilterOptions(),
+    ]);
 
   const activeStudents = allStudents.filter(
     (student) => student.status === "ACTIVE"
@@ -96,6 +99,7 @@ const StudentsPage = async () => {
           activeStudents={activeStudents.length}
           allStudents={allStudents}
           classOptions={filterOptions.classes}
+          currency={currency}
           initialData={initialTableData.data}
           initialTotalCount={initialTableData.totalCount}
           levelOptions={filterOptions.levels}

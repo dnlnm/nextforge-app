@@ -1,13 +1,12 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { database } from "@repo/database";
+import { formatMoneyCsv as formatMoney } from "@repo/money";
 import { notFound } from "next/navigation";
 import { csvResponse } from "../csv";
 
 interface ExportRouteProperties {
   readonly params: Promise<unknown>;
 }
-
-const formatMoney = (amountSen: number) => (amountSen / 100).toFixed(2);
 
 const exportStudents = async (organizationId: string) => {
   const students = await database.student.findMany({

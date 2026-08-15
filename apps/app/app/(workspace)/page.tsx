@@ -1,8 +1,7 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
-import { formatRelativeTime } from "@repo/date";
-import { formatShortDate } from "@repo/date";
+import { formatRelativeTime, formatShortDate } from "@repo/date";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
@@ -24,6 +23,7 @@ import {
   StatTrend,
   StatValue,
 } from "@repo/design-system/components/ui/stat";
+import { formatMoneyWhole as formatMoneyShared } from "@repo/money";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -41,6 +41,7 @@ import {
 } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getOrganizationCurrency } from "@/lib/currency";
 import { AttendanceDonutChart } from "./components/dashboard/attendance-donut-chart";
 import { FeeCollectionChart } from "./components/dashboard/fee-collection-chart";
 import { Header } from "./components/header";
@@ -49,13 +50,6 @@ export const metadata: Metadata = {
   description: "Tuition centre administration dashboard.",
   title: `Dashboard - ${appName}`,
 };
-
-const formatMoney = (amountSen: number) =>
-  new Intl.NumberFormat("en-MY", {
-    currency: "MYR",
-    maximumFractionDigits: 0,
-    style: "currency",
-  }).format(amountSen / 100);
 
 const formatDate = (date: Date) => formatShortDate(date);
 
@@ -97,6 +91,9 @@ const initials = (name: string) =>
 
 const App = async () => {
   const tenant = await requireTenantRole(["ADMIN"]);
+  const currency = await getOrganizationCurrency(tenant.organizationId);
+  const formatMoney = (amountSen: number) =>
+    formatMoneyShared(amountSen, { currency });
   const today = todayDate();
   const monthStart = startOfMonth(today);
   const nextMonthStart = startOfNextMonth(today);
@@ -391,7 +388,7 @@ const App = async () => {
                     vs last month ({formatMoney(previousMonthCollectedSen)})
                   </p>
                 </div>
-                <FeeCollectionChart data={feeCollectionData} />
+                <FeeCollectionChart currency={currency} data={feeCollectionData} />
               </CardContent>
             </Card>
           </CardFrame>

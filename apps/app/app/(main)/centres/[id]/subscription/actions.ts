@@ -5,6 +5,7 @@ import { appName } from "@repo/config/brand";
 import { database, type SubscriptionPlan } from "@repo/database";
 import { formatLongMonthYear } from "@repo/date";
 import type { InvoiceItem } from "@repo/design-system/components/billingsdk/invoice-history";
+import { formatMoneyRm as formatRM } from "@repo/money";
 import { stripe } from "@repo/payments";
 import {
   type BillablePlan,
@@ -155,9 +156,6 @@ const mapStripeStatus = (status: string | null | undefined): InvoiceStatus => {
       return "open";
   }
 };
-
-const formatRM = (amountCents: number): string =>
-  `RM${(amountCents / 100).toFixed(2)}`;
 
 export const getStripeInvoices = async (
   organizationId: string

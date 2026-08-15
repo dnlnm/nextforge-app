@@ -35,6 +35,7 @@ import {
 } from "@repo/design-system/components/ui/tabs";
 import { getClassTrends } from "@repo/domain/analytics";
 import { getClassDashboard } from "@repo/domain/classes/dashboard";
+import { formatMoneyWhole as formatMoneyShared } from "@repo/money";
 import {
   CalendarDaysIcon,
   CircleDollarSignIcon,
@@ -43,6 +44,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getOrganizationCurrency } from "@/lib/currency";
 import { Header } from "../../components/header";
 import { endEnrollment, updateEnrollment } from "../actions";
 import { ClassEditForm } from "../components/class-edit-form";
@@ -73,16 +75,12 @@ const dayShortLabel: Record<DayOfWeek, string> = {
   WEDNESDAY: "Wed",
 };
 
-const formatMoney = (amountSen: number) =>
-  new Intl.NumberFormat("en-MY", {
-    currency: "MYR",
-    maximumFractionDigits: 0,
-    style: "currency",
-  }).format(amountSen / 100);
-
 const ClassPage = async ({ params }: ClassPageProperties) => {
   const tenant = await requireTenantRole(["ADMIN"]);
   const { classId } = await params;
+  const currency = await getOrganizationCurrency(tenant.organizationId);
+  const formatMoney = (amountSen: number) =>
+    formatMoneyShared(amountSen, { currency });
   const [
     learningClass,
     subjects,

@@ -28,6 +28,7 @@ import {
   TabsTrigger,
 } from "@repo/design-system/components/ui/tabs";
 import { getSubjectDashboard } from "@repo/domain/subjects/dashboard";
+import { formatMoneyWhole as formatMoneyShared } from "@repo/money";
 import {
   ArchiveIcon,
   BookOpenIcon,
@@ -39,6 +40,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getOrganizationCurrency } from "@/lib/currency";
 import Balancer from "react-wrap-balancer";
 import { Header } from "../../components/header";
 import { archiveSubject } from "../actions";
@@ -60,13 +62,6 @@ const dayLabel: Record<string, string> = {
 const whitespaceRegex = /\s+/;
 
 const formatDate = (date: Date) => formatShortDate(date);
-
-const formatMoney = (amountSen: number) =>
-  new Intl.NumberFormat("en-MY", {
-    currency: "MYR",
-    maximumFractionDigits: 0,
-    style: "currency",
-  }).format(amountSen / 100);
 
 const formatTime = (time: string) => formatWallClockTime(time);
 
@@ -261,7 +256,13 @@ const SubjectOverviewTab = ({ subject }: { readonly subject: SubjectData }) => (
   </Card>
 );
 
-const SubjectClassesTab = ({ subject }: { readonly subject: SubjectData }) => (
+const SubjectClassesTab = ({
+  formatMoney,
+  subject,
+}: {
+  readonly formatMoney: (amountSen: number) => string;
+  readonly subject: SubjectData;
+}) => (
   <Card>
     <CardHeader>
       <CardTitle>Classes</CardTitle>
@@ -493,6 +494,9 @@ const SubjectSidebar = ({ subject }: { readonly subject: SubjectData }) => (
 const SubjectProfilePage = async ({ params }: SubjectPageProperties) => {
   const tenant = await requireTenantRole(["ADMIN"]);
   const { subjectId } = await params;
+  const currency = await getOrganizationCurrency(tenant.organizationId);
+  const formatMoney = (amountSen: number) =>
+    formatMoneyShared(amountSen, { currency });
   const [subject, dashboard] = await Promise.all([
     getSubjectData(subjectId, tenant.organizationId),
     getSubjectDashboard(database, {
@@ -557,7 +561,10 @@ const SubjectProfilePage = async ({ params }: SubjectPageProperties) => {
                 <SubjectOverviewTab subject={subject} />
               </TabsContent>
               <TabsContent className="grid gap-5" value="classes">
-                <SubjectClassesTab subject={subject} />
+                <SubjectClassesTab
+                  formatMoney={formatMoney}
+                  subject={subject}
+                />
               </TabsContent>
               <TabsContent className="grid gap-5" value="students">
                 <SubjectStudentsTab subject={subject} />

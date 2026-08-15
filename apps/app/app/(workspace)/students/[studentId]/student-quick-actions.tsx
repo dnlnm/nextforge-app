@@ -16,10 +16,12 @@ import {
 export const StudentQuickActions = ({
   activeEnrollments,
   classes,
+  currency,
   studentId,
 }: {
   readonly activeEnrollments: ActiveEnrollmentOption[];
   readonly classes: EnrollableClass[];
+  readonly currency: string;
   readonly studentId: string;
 }) => {
   const [isEnrollOpen, setIsEnrollOpen] = useState(false);
@@ -51,6 +53,7 @@ export const StudentQuickActions = ({
       </div>
       <EnrollStudentDialog
         classes={classes}
+        currency={currency}
         onOpenChange={setIsEnrollOpen}
         open={isEnrollOpen}
         studentId={studentId}

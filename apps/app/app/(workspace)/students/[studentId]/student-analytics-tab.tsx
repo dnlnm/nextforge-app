@@ -6,21 +6,21 @@ import {
   CardTitle,
 } from "@repo/design-system/components/ui/card";
 import type { StudentTrends } from "@repo/domain/analytics";
+import { formatMoneyWhole as formatMoneyShared } from "@repo/money";
 import { TrendChart } from "../../components/dashboard/trend-chart";
 
-const formatMoney = (amountSen: number) =>
-  new Intl.NumberFormat("en-MY", {
-    currency: "MYR",
-    maximumFractionDigits: 0,
-    style: "currency",
-  }).format(amountSen / 100);
-
 export const StudentAnalyticsTab = ({
+  currency,
   trends,
 }: {
+  readonly currency: string;
   readonly trends: StudentTrends;
-}) => (
-  <div className="grid gap-5 lg:grid-cols-2">
+}) => {
+  const formatMoney = (amountSen: number) =>
+    formatMoneyShared(amountSen, { currency });
+
+  return (
+    <div className="grid gap-5 lg:grid-cols-2">
     <Card>
       <CardHeader>
         <CardTitle>Attendance by month</CardTitle>
@@ -70,4 +70,5 @@ export const StudentAnalyticsTab = ({
       </CardContent>
     </Card>
   </div>
-);
+  );
+};

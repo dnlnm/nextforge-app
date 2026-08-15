@@ -19,6 +19,7 @@ import {
   StatTrend,
   StatValue,
 } from "@repo/design-system/components/ui/stat";
+import { formatMoneyWhole as formatMoneyShared } from "@repo/money";
 import { privateFileUrl } from "@repo/storage/client";
 import {
   ArrowUp,
@@ -75,6 +76,7 @@ type StudentsPageClientProps = {
   activeStudents: number;
   allStudents: Student[];
   classOptions: FilterOption[];
+  currency: string;
   initialData: Student[];
   initialTotalCount: number;
   levelOptions: FilterOption[];
@@ -87,19 +89,13 @@ type StudentsPageClientProps = {
   tutorOptions: FilterOption[];
 };
 
-const formatMoney = (amountSen: number) =>
-  new Intl.NumberFormat("en-MY", {
-    currency: "MYR",
-    maximumFractionDigits: 0,
-    style: "currency",
-  }).format(amountSen / 100);
-
 const formatDate = (date: Date) => formatShortDate(date);
 
 export function StudentsPageClient({
   activeStudents,
   allStudents,
   classOptions,
+  currency,
   initialData,
   initialTotalCount,
   levelOptions,
@@ -111,6 +107,8 @@ export function StudentsPageClient({
   totalStudents,
   tutorOptions,
 }: StudentsPageClientProps) {
+  const formatMoney = (amountSen: number) =>
+    formatMoneyShared(amountSen, { currency });
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
     allStudents[0]?.id ?? null
   );

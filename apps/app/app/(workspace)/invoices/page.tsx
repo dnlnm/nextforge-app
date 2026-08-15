@@ -19,20 +19,19 @@ import {
   TableHeader,
   TableRow,
 } from "@repo/design-system/components/ui/table";
+import { formatMoney as formatMoneyShared } from "@repo/money";
 import Link from "next/link";
+import { getOrganizationCurrency } from "@/lib/currency";
 import { Header } from "../components/header";
 import { generateMonthlyInvoices } from "./actions";
-
-const formatMoney = (amountSen: number) =>
-  new Intl.NumberFormat("en-MY", {
-    currency: "MYR",
-    style: "currency",
-  }).format(amountSen / 100);
 
 const currentBillingMonth = () => new Date().toISOString().slice(0, 7);
 
 const InvoicesPage = async () => {
   const tenant = await requireTenantRole(["ADMIN"]);
+  const currency = await getOrganizationCurrency(tenant.organizationId);
+  const formatMoney = (amountSen: number) =>
+    formatMoneyShared(amountSen, { currency });
   const invoices = await database.invoice.findMany({
     where: { organizationId: tenant.organizationId },
     orderBy: [{ billingMonth: "desc" }, { invoiceNumber: "desc" }],

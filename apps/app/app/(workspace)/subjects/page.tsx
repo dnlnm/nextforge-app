@@ -1,6 +1,7 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
+import { getOrganizationCurrency } from "@/lib/currency";
 import { Header } from "../components/header";
 import { AddSubjectDialog } from "./add-subject-dialog";
 import SubjectsList, { type SubjectSummary } from "./subjects-list";
@@ -10,6 +11,7 @@ const CONTRACT_COMMENT =
 
 const SubjectsPage = async () => {
   const tenant = await requireTenantRole(["ADMIN"]);
+  const currency = await getOrganizationCurrency(tenant.organizationId);
   const rawSubjects = await database.subject.findMany({
     where: { organizationId: tenant.organizationId, status: "ACTIVE" },
     orderBy: { name: "asc" },
@@ -100,7 +102,7 @@ const SubjectsPage = async () => {
           <AddSubjectDialog />
         </div>
 
-        <SubjectsList subjects={subjects} />
+        <SubjectsList currency={currency} subjects={subjects} />
       </main>
     </>
   );

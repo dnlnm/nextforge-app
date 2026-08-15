@@ -24,10 +24,11 @@ import {
   TabsList,
   TabsTrigger,
 } from "@repo/design-system/components/ui/tabs";
+import { toastManager } from "@repo/design-system/components/ui/toast";
+import { formatMoneyWhole as formatMoneyShared } from "@repo/money";
 import { Loader2Icon, SearchIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
-import { toastManager } from "@repo/design-system/components/ui/toast";
 import {
   bulkEnrollStudentsAction,
   endEnrollmentAction,
@@ -64,6 +65,7 @@ export interface EnrollmentCenterEnrollment {
 
 interface EnrollmentCenterProps {
   readonly classes: EnrollmentCenterClass[];
+  readonly currency: string;
   readonly enrollments: EnrollmentCenterEnrollment[];
   readonly students: EnrollmentCenterStudent[];
 }
@@ -75,13 +77,6 @@ const parseMoney = (value: string): number | null => {
     ? null
     : Math.round(parsed * 100);
 };
-
-const formatMoney = (amountSen: number) =>
-  new Intl.NumberFormat("en-MY", {
-    currency: "MYR",
-    maximumFractionDigits: 0,
-    style: "currency",
-  }).format(amountSen / 100);
 
 const useFilteredStudents = (students: EnrollmentCenterStudent[]) => {
   const [query, setQuery] = useState("");
@@ -105,9 +100,12 @@ const useFilteredStudents = (students: EnrollmentCenterStudent[]) => {
 
 export const EnrollmentCenter = ({
   classes,
+  currency,
   enrollments,
   students,
 }: EnrollmentCenterProps) => {
+  const formatMoney = (amountSen: number) =>
+    formatMoneyShared(amountSen, { currency });
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -342,7 +340,10 @@ export const EnrollmentCenter = ({
 
             <div className="grid content-start gap-4">
               {selectedEnrollClass ? (
-                <ClassSummaryCard learningClass={selectedEnrollClass} />
+                <ClassSummaryCard
+                  formatMoney={formatMoney}
+                  learningClass={selectedEnrollClass}
+                />
               ) : (
                 <Card className="border-dashed">
                   <CardContent className="grid gap-1 p-4 text-muted-foreground text-sm">
@@ -659,8 +660,10 @@ const StudentSearch = ({
 };
 
 const ClassSummaryCard = ({
+  formatMoney,
   learningClass,
 }: {
+  readonly formatMoney: (amountSen: number) => string;
   readonly learningClass: EnrollmentCenterClass;
 }) => (
   <Card>
