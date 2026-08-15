@@ -1,17 +1,17 @@
 {
-  "name": "@repo/domain",
+  "name": "@repo/date",
   "version": "0.0.0",
   "private": true,
+  "main": "./index.ts",
+  "types": "./index.ts",
   "scripts": {
     "clean": "git clean -xdf .cache .turbo dist node_modules",
-    "test": "NODE_ENV=test vitest run",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
-    "@repo/database": "workspace:*",
-    "@repo/date": "workspace:*",
-    "@repo/schemas": "workspace:*",
-    "server-only": "^0.0.1"
+    "@date-fns/tz": "^1.5.0",
+    "date-fns": "^4.1.0"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",

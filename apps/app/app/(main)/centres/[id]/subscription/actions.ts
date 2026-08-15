@@ -3,6 +3,7 @@
 import { ensureLocalUser } from "@repo/auth/organizations";
 import { appName } from "@repo/config/brand";
 import { database, type SubscriptionPlan } from "@repo/database";
+import { formatLongMonthYear } from "@repo/date";
 import type { InvoiceItem } from "@repo/design-system/components/billingsdk/invoice-history";
 import { stripe } from "@repo/payments";
 import {
@@ -197,7 +198,7 @@ export const getStripeInvoices = async (
         status: mapStripeStatus(invoice.status),
         description:
           invoice.description ??
-          `${planName} plan - ${date.toLocaleDateString("en-MY", { month: "long", year: "numeric" })}`,
+          `${planName} plan - ${formatLongMonthYear(date)}`,
         invoiceUrl: invoice.invoice_pdf ?? undefined,
       };
     });

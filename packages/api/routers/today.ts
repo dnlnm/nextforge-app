@@ -1,10 +1,11 @@
 import { database } from "@repo/database";
-import { createClassSessionInputSchema } from "@repo/schemas/attendance";
-import { todaySessionsInputSchema } from "@repo/schemas/today";
 import {
   getMalaysiaDateParts,
-  getMalaysiaDayOfWeek,
-} from "../lib/malaysia-date";
+  getMalaysiaWeekday,
+  parseCalendarDate,
+} from "@repo/date";
+import { createClassSessionInputSchema } from "@repo/schemas/attendance";
+import { todaySessionsInputSchema } from "@repo/schemas/today";
 import { getTeacherProfileId } from "../lib/teacher-profile";
 import { roleProcedure } from "../middleware";
 import { createTRPCRouter, TRPCError } from "../trpc";
@@ -14,15 +15,14 @@ export const todayRouter = createTRPCRouter({
     .input(todaySessionsInputSchema)
     .query(async ({ ctx, input }) => {
       const today = getMalaysiaDateParts();
-      const date = input.date
-        ? new Date(`${input.date}T00:00:00.000Z`)
-        : today.date;
+      const date = input.date ? parseCalendarDate(input.date) : today.date;
+      const dayOfWeek = input.date ? getMalaysiaWeekday(date) : today.dayOfWeek;
       const teacherProfileId = await getTeacherProfileId(ctx);
 
       const [todayClassCount, sessions] = await Promise.all([
         database.classSchedule.count({
           where: {
-            dayOfWeek: today.dayOfWeek,
+            dayOfWeek,
             class: {
               organizationId: ctx.organizationId,
               status: "ACTIVE",
@@ -106,13 +106,7 @@ export const todayRouter = createTRPCRouter({
   createClassSession: roleProcedure(["ADMIN"])
     .input(createClassSessionInputSchema)
     .mutation(async ({ ctx, input }) => {
-      const sessionDate = new Date(`${input.sessionDate}T00:00:00.000Z`);
-      if (Number.isNaN(sessionDate.getTime())) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Invalid session date.",
-        });
-      }
+      const sessionDate = parseCalendarDate(input.sessionDate);
 
       const learningClass = await database.learningClass.findFirst({
         where: { id: input.classId, organizationId: ctx.organizationId },
@@ -123,7 +117,7 @@ export const todayRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND", message: "Class not found." });
       }
 
-      const dayOfWeek = getMalaysiaDayOfWeek(sessionDate);
+      const dayOfWeek = getMalaysiaWeekday(sessionDate);
       const schedule = await database.classSchedule.findFirst({
         where: {
           classId: learningClass.id,

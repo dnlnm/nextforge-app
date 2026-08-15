@@ -6,6 +6,7 @@ import {
   CardTitle,
 } from "@repo/design-system/components/ui/card";
 import type { listStudentActivity } from "@repo/domain/students/activity";
+import { formatDateTime } from "@repo/date";
 import {
   ActivityIcon,
   ArrowLeftRightIcon,
@@ -39,14 +40,7 @@ const eventMeta: Record<
 
 const fallbackMeta = { icon: ActivityIcon, label: "Activity" };
 
-const formatDate = (date: Date) =>
-  new Intl.DateTimeFormat("en-MY", {
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(date);
+const formatDate = (date: Date) => formatDateTime(date);
 
 const getActorName = (
   actor: {

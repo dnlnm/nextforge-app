@@ -10,6 +10,7 @@
     "@repo/auth": "workspace:*",
     "@repo/config": "workspace:*",
     "@repo/database": "workspace:*",
+    "@repo/date": "workspace:*",
     "@stripe/agent-toolkit": "^0.9.0",
     "@t3-oss/env-nextjs": "^0.13.10",
     "server-only": "^0.0.1",

@@ -1,6 +1,7 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
+import { formatDateTime } from "@repo/date";
 import {
   Alert,
   AlertDescription,
@@ -82,7 +83,7 @@ const ImportDetailPage = async ({
               </Badge>
             </div>
             <p className="text-muted-foreground text-sm">
-              Created {studentImport.createdAt.toLocaleString("en-MY")}
+              Created {formatDateTime(studentImport.createdAt)}
             </p>
           </div>
           <Button variant="outline" render={<Link href="/students/import" />}>

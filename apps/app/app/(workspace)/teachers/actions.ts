@@ -4,6 +4,10 @@ import { randomBytes } from "node:crypto";
 import { requireTenant, requireTenantRole } from "@repo/auth/authorization";
 import { buildWorkspaceUrl } from "@repo/auth/domain";
 import { database, type Prisma } from "@repo/database";
+import {
+  addMalaysiaCalendarDays,
+  differenceInMalaysiaCalendarDays,
+} from "@repo/date";
 import { sendTeacherInvitation } from "@repo/email/teacher-invite";
 import { revalidatePath } from "next/cache";
 import { assertWithinPlanLimit } from "../billing/limits";
@@ -101,8 +105,10 @@ export const inviteTeacher = async (formData: FormData) => {
   }
 
   const token = randomBytes(32).toString("base64url");
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + INVITATION_TTL_DAYS);
+  const expiresAt = addMalaysiaCalendarDays(
+    new Date(),
+    INVITATION_TTL_DAYS
+  );
 
   const [organization, reusableInvitation] = await Promise.all([
     database.organization.findFirst({
@@ -254,9 +260,7 @@ export const getPendingInvitations = async () => {
     ...invitation,
     expiresInDays: Math.max(
       0,
-      Math.ceil(
-        (invitation.expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-      )
+      differenceInMalaysiaCalendarDays(invitation.expiresAt, now)
     ),
   }));
 };

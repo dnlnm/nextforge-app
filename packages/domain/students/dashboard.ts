@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { PrismaClient } from "@repo/database";
+import { getAcademicYearStart } from "@repo/date";
 import { attendanceRate, summarizeInvoices } from "../metrics";
 
 export { listStudentActivity } from "./activity";
@@ -52,7 +53,7 @@ export const getStudentDashboard = async (
           studentId,
           session: {
             sessionDate: {
-              gte: academicYearStart(new Date()),
+              gte: getAcademicYearStart(),
             },
           },
         },
@@ -72,12 +73,6 @@ export const getStudentDashboard = async (
     totalBilledSen: money.totalBilledSen,
     totalPaidSen: money.totalPaidSen,
   };
-};
-
-/** First of July of the current year: the default academic-year window. */
-export const academicYearStart = (now: Date): Date => {
-  const year = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
-  return new Date(Date.UTC(year, 6, 1));
 };
 
 export interface StudentOverview {

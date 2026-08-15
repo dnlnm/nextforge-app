@@ -22,7 +22,7 @@ const Contact = async ({ params }: ContactProps) => {
   const { locale } = await params;
   const dictionary = await getDictionary(locale);
 
-  return <ContactForm dictionary={dictionary} />;
+  return <ContactForm dictionary={dictionary} locale={locale} />;
 };
 
 export default Contact;

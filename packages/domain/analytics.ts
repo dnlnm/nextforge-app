@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { PrismaClient } from "@repo/database";
-import { academicYearStart } from "./students/dashboard";
+import { formatMonthLabel, getAcademicYearStart } from "@repo/date";
 
 export interface MonthBucket {
   readonly key: string;
@@ -12,12 +12,9 @@ export interface MonthBucket {
 const monthKey = (date: Date): string =>
   `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
 
-const monthLabel = (key: string): string => {
+export const monthLabel = (key: string): string => {
   const [year, month] = key.split("-").map(Number);
-  return new Intl.DateTimeFormat("en-MY", {
-    month: "short",
-    year: "2-digit",
-  }).format(new Date(Date.UTC(year, (month ?? 1) - 1, 1)));
+  return formatMonthLabel(new Date(Date.UTC(year, (month ?? 1) - 1, 1)));
 };
 
 const lastSixMonthKeys = (now: Date): string[] => {
@@ -84,7 +81,7 @@ export const getStudentTrends = async (
       where: {
         organizationId,
         studentId,
-        session: { sessionDate: { gte: academicYearStart(now) } },
+        session: { sessionDate: { gte: getAcademicYearStart(now) } },
       },
       select: {
         session: { select: { sessionDate: true } },
@@ -96,7 +93,7 @@ export const getStudentTrends = async (
         organizationId,
         studentId,
         reversedAt: null,
-        paidAt: { gte: academicYearStart(now) },
+        paidAt: { gte: getAcademicYearStart(now) },
       },
       select: { amountSen: true, paidAt: true },
     }),
@@ -247,7 +244,7 @@ export const getClassTrends = async (
         organizationId,
         session: {
           classId,
-          sessionDate: { gte: academicYearStart(now) },
+          sessionDate: { gte: getAcademicYearStart(now) },
         },
       },
       select: {

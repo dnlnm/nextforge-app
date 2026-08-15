@@ -1,6 +1,7 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
+import { formatWallClockTime } from "@repo/date";
 import { Button } from "@repo/design-system/components/ui/button";
 import { Card, CardContent } from "@repo/design-system/components/ui/card";
 import {
@@ -35,16 +36,7 @@ const dayLabel: Record<string, string> = {
   WEDNESDAY: "Wed",
 };
 
-const formatTime = (time: string) => {
-  const [hour = "0", minute = "0"] = time.split(":");
-  const date = new Date();
-  date.setHours(Number.parseInt(hour, 10), Number.parseInt(minute, 10), 0, 0);
-
-  return new Intl.DateTimeFormat("en-MY", {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(date);
-};
+const formatTime = (time: string) => formatWallClockTime(time);
 
 interface ScheduleSummaryItem {
   readonly dayOfWeek: string;

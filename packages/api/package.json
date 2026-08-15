@@ -11,6 +11,7 @@
   "dependencies": {
     "@repo/auth": "workspace:*",
     "@repo/database": "workspace:*",
+    "@repo/date": "workspace:*",
     "@repo/domain": "workspace:*",
     "@repo/schemas": "workspace:*",
     "@supabase/supabase-js": "^2.99.0",

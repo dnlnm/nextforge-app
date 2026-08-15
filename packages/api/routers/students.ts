@@ -1,4 +1,5 @@
 import { database, type Prisma } from "@repo/database";
+import { parseCalendarDate } from "@repo/date";
 import { type StudentStatus, studentStatuses } from "@repo/schemas/enums";
 import {
   createStudentInputSchema,
@@ -281,10 +282,10 @@ export const studentsRouter = createTRPCRouter({
             code,
             levelId,
             dateOfBirth: input.dateOfBirth
-              ? new Date(`${input.dateOfBirth}T00:00:00.000Z`)
+              ? parseCalendarDate(input.dateOfBirth)
               : undefined,
             enrolledAt: input.enrolledAt
-              ? new Date(`${input.enrolledAt}T00:00:00.000Z`)
+              ? parseCalendarDate(input.enrolledAt)
               : new Date(),
             gender: input.gender,
             phone: input.studentPhone,
@@ -358,10 +359,10 @@ export const studentsRouter = createTRPCRouter({
             fullName: input.fullName,
             levelId,
             dateOfBirth: input.dateOfBirth
-              ? new Date(`${input.dateOfBirth}T00:00:00.000Z`)
+              ? parseCalendarDate(input.dateOfBirth)
               : undefined,
             enrolledAt: input.enrolledAt
-              ? new Date(`${input.enrolledAt}T00:00:00.000Z`)
+              ? parseCalendarDate(input.enrolledAt)
               : undefined,
             gender: input.gender,
             phone: input.studentPhone,

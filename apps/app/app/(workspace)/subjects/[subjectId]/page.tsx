@@ -1,6 +1,7 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
+import { formatShortDate, formatWallClockTime } from "@repo/date";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
@@ -58,12 +59,7 @@ const dayLabel: Record<string, string> = {
 
 const whitespaceRegex = /\s+/;
 
-const formatDate = (date: Date) =>
-  new Intl.DateTimeFormat("en-MY", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(date);
+const formatDate = (date: Date) => formatShortDate(date);
 
 const formatMoney = (amountSen: number) =>
   new Intl.NumberFormat("en-MY", {
@@ -72,16 +68,7 @@ const formatMoney = (amountSen: number) =>
     style: "currency",
   }).format(amountSen / 100);
 
-const formatTime = (time: string) => {
-  const [hour = "0", minute = "0"] = time.split(":");
-  const date = new Date();
-  date.setHours(Number.parseInt(hour, 10), Number.parseInt(minute, 10), 0, 0);
-
-  return new Intl.DateTimeFormat("en-MY", {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(date);
-};
+const formatTime = (time: string) => formatWallClockTime(time);
 
 const teacherInitials = (name?: string | null) =>
   name

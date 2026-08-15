@@ -1,5 +1,6 @@
 "use client";
 
+import { formatWallClockTime } from "@repo/date";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Card, CardContent } from "@repo/design-system/components/ui/card";
 import { Input } from "@repo/design-system/components/ui/input";
@@ -54,11 +55,7 @@ const DAY_LABEL: Record<string, string> = {
   WEDNESDAY: "Wed",
 };
 
-const formatTime = (value: string) =>
-  new Intl.DateTimeFormat("en-MY", {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(`1970-01-01T${value}:00`));
+const formatTime = (value: string) => formatWallClockTime(value);
 
 const matchesFilters = (
   block: ScheduleBlock,

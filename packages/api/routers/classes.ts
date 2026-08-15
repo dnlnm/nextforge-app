@@ -1,4 +1,5 @@
 import { database, Prisma } from "@repo/database";
+import { parseCalendarDate } from "@repo/date";
 import {
   classesListInputSchema,
   classIdInputSchema,
@@ -15,8 +16,6 @@ import {
 import { getTeacherProfileId } from "../lib/teacher-profile";
 import { assertWithinPlanLimit, roleProcedure } from "../middleware";
 import { createTRPCRouter, TRPCError } from "../trpc";
-
-const parseDate = (value: string) => new Date(`${value}T00:00:00.000Z`);
 
 export const classesRouter = createTRPCRouter({
   /** Paginated list of active classes for the workspace. */
@@ -129,8 +128,10 @@ export const classesRouter = createTRPCRouter({
   create: roleProcedure(["ADMIN"])
     .input(createClassInputSchema)
     .mutation(async ({ ctx, input }) => {
-      const startsOn = parseDate(input.startDate);
-      const endsOn = input.endDate ? parseDate(input.endDate) : undefined;
+      const startsOn = parseCalendarDate(input.startDate);
+      const endsOn = input.endDate
+        ? parseCalendarDate(input.endDate)
+        : undefined;
 
       await assertSchedulesValid(ctx.organizationId, input.schedules);
 
@@ -250,8 +251,10 @@ export const classesRouter = createTRPCRouter({
         });
       }
 
-      const startsOn = parseDate(input.startDate);
-      const endsOn = input.endDate ? parseDate(input.endDate) : undefined;
+      const startsOn = parseCalendarDate(input.startDate);
+      const endsOn = input.endDate
+        ? parseCalendarDate(input.endDate)
+        : undefined;
 
       await assertSchedulesValid(ctx.organizationId, input.schedules);
 
@@ -381,7 +384,9 @@ export const classesRouter = createTRPCRouter({
             organizationId: ctx.organizationId,
             classId: learningClass.id,
             customFeeSen: input.customFeeSen,
-            startsOn: input.startsOn ? parseDate(input.startsOn) : new Date(),
+            startsOn: input.startsOn
+              ? parseCalendarDate(input.startsOn)
+              : new Date(),
             studentId: student.id,
           },
         });

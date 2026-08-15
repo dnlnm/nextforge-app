@@ -1,6 +1,7 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
+import { formatShortDate } from "@repo/date";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
@@ -33,12 +34,7 @@ const formatMoney = (amountSen: number) =>
     style: "currency",
   }).format(amountSen / 100);
 
-const formatDate = (date: Date) =>
-  new Intl.DateTimeFormat("en-MY", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(date);
+const formatDate = (date: Date) => formatShortDate(date);
 
 export const generateMetadata = async ({
   params,

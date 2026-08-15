@@ -1,4 +1,8 @@
 import type { SubscriptionPlan } from "@repo/database";
+import {
+  differenceInMalaysiaCalendarDays,
+  formatMediumDate,
+} from "@repo/date";
 
 export const paidPlanRank: Record<SubscriptionPlan, number> = {
   PRO: 2,
@@ -7,17 +11,14 @@ export const paidPlanRank: Record<SubscriptionPlan, number> = {
 };
 
 export const formatDate = (date?: Date | null) =>
-  date
-    ? new Intl.DateTimeFormat("en-MY", { dateStyle: "medium" }).format(date)
-    : "-";
+  date ? formatMediumDate(date) : "-";
 
-export const daysUntil = (date?: Date | null) => {
+export const daysUntil = (date?: Date | null, now = new Date()) => {
   if (!date) {
     return null;
   }
-  const now = new Date();
-  const diff = date.getTime() - now.getTime();
-  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+
+  return differenceInMalaysiaCalendarDays(date, now);
 };
 
 export const getUsagePercentage = (value: number, limit: number) => {

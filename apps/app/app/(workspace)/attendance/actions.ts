@@ -2,11 +2,11 @@
 
 import { requireTenantRole } from "@repo/auth/authorization";
 import { database } from "@repo/database";
+import { getMalaysiaWeekday, tryParseCalendarDate } from "@repo/date";
 import { attendanceMarkedEvent } from "@repo/domain/students/activity";
 import {
   type AttendanceStatus,
   attendanceStatuses,
-  type DayOfWeek,
 } from "@repo/schemas/enums";
 import { revalidatePath } from "next/cache";
 import { getTeacherProfileId } from "@/lib/teacher-profile";
@@ -24,19 +24,7 @@ const parseSessionDate = (value?: string) => {
     return null;
   }
 
-  const date = new Date(`${value}T00:00:00.000Z`);
-
-  return Number.isNaN(date.getTime()) ? null : date;
-};
-
-const getMalaysiaDayOfWeek = (date: Date): DayOfWeek => {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Kuala_Lumpur",
-    weekday: "long",
-  }).formatToParts(date);
-
-  return (parts.find((part) => part.type === "weekday")?.value.toUpperCase() ??
-    "MONDAY") as DayOfWeek;
+  return tryParseCalendarDate(value) ?? null;
 };
 
 const getScheduleForDate = async (
@@ -47,7 +35,7 @@ const getScheduleForDate = async (
   const schedule = await database.classSchedule.findFirst({
     where: {
       classId,
-      dayOfWeek: getMalaysiaDayOfWeek(sessionDate),
+      dayOfWeek: getMalaysiaWeekday(sessionDate),
       class: { organizationId: tenant.organizationId },
     },
     select: { endsAt: true, startsAt: true },

@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { PrismaClient } from "@repo/database";
+import { tryParseCalendarDate } from "@repo/date";
 import { capacityInfo } from "../metrics";
 
 type TransactionClient = Parameters<
@@ -54,9 +55,9 @@ const parseDate = (value?: string | null): Date => {
     return new Date();
   }
 
-  const date = new Date(`${value}T00:00:00.000Z`);
+  const date = tryParseCalendarDate(value);
 
-  if (Number.isNaN(date.getTime())) {
+  if (!date) {
     throw new EnrollmentValidationError("Enrollment start date is invalid.");
   }
 

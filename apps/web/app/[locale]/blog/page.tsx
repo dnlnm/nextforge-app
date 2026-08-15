@@ -1,6 +1,7 @@
 import { blog } from "@repo/cms";
 import { Feed } from "@repo/cms/components/feed";
 import { Image } from "@repo/cms/components/image";
+import { formatLongDate } from "@repo/date";
 import { cn } from "@repo/design-system/lib/utils";
 import { getDictionary, localizePath } from "@repo/internationalization";
 import type { Blog, WithContext } from "@repo/seo/json-ld";
@@ -69,11 +70,7 @@ const BlogIndex = async ({ params }: BlogProps) => {
                     />
                     <div className="flex flex-row items-center gap-4">
                       <p className="text-muted-foreground text-sm">
-                        {new Date(post.date).toLocaleDateString("en-US", {
-                          month: "long",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
+                        {formatLongDate(new Date(post.date), locale)}
                       </p>
                     </div>
                     <div className="flex flex-col gap-2">

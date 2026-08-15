@@ -1,5 +1,6 @@
 "use client";
 
+import { formatWallClockTime } from "@repo/date";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import { Input } from "@repo/design-system/components/ui/input";
@@ -59,16 +60,7 @@ const dayLabel: Record<string, string> = {
 
 const whitespaceRegex = /\s+/;
 
-const formatTime = (time: string) => {
-  const [hour = "0", minute = "0"] = time.split(":");
-  const date = new Date();
-  date.setHours(Number.parseInt(hour, 10), Number.parseInt(minute, 10), 0, 0);
-
-  return new Intl.DateTimeFormat("en-MY", {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(date);
-};
+const formatTime = (time: string) => formatWallClockTime(time);
 
 const teacherInitials = (name?: string | null) =>
   name

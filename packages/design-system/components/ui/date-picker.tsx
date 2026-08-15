@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { parseLocalCalendarDate } from "@repo/date"
 import { format } from "date-fns"
 
 import { Button } from "@repo/design-system/components/ui/button"
@@ -27,7 +28,7 @@ function DatePicker({
   placeholder?: string
 }) {
   const [date, setDate] = React.useState<Date | undefined>(
-    defaultValue ? new Date(`${defaultValue}T00:00:00.000Z`) : undefined
+    defaultValue ? parseLocalCalendarDate(defaultValue) : undefined
   )
 
   return (

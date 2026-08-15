@@ -3,6 +3,7 @@ import type {
   Plan,
 } from "@repo/payments/billingsdk-plans";
 import { billingSDKPlans } from "@repo/payments/billingsdk-plans";
+import { formatLongDate } from "@repo/date";
 
 interface BillingState {
   subscription: {
@@ -31,12 +32,7 @@ const statusMap: Record<
   UNPAID: "past_due",
 };
 
-const formatDate = (date: Date): string =>
-  date.toLocaleDateString("en-MY", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+const formatDate = (date: Date): string => formatLongDate(date, "ms-MY");
 
 export const mapToCurrentPlan = (
   state: BillingState,

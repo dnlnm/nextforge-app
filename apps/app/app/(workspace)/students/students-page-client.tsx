@@ -1,5 +1,6 @@
 "use client";
 
+import { formatShortDate } from "@repo/date";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
@@ -93,12 +94,7 @@ const formatMoney = (amountSen: number) =>
     style: "currency",
   }).format(amountSen / 100);
 
-const formatDate = (date: Date) =>
-  new Intl.DateTimeFormat("en-MY", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(date);
+const formatDate = (date: Date) => formatShortDate(date);
 
 export function StudentsPageClient({
   activeStudents,

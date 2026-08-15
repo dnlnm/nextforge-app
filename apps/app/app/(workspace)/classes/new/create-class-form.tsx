@@ -1,6 +1,7 @@
 "use client";
 
 import type { DayOfWeek } from "@repo/database";
+import { formatWallClockTime } from "@repo/date";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
   Card,
@@ -88,13 +89,7 @@ const formatTime = (time: string) => {
     return time;
   }
 
-  const date = new Date();
-  date.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
-
-  return new Intl.DateTimeFormat("en-MY", {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(date);
+  return formatWallClockTime(time);
 };
 
 const newScheduleId = () => crypto.randomUUID();

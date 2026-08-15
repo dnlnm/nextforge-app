@@ -1,6 +1,7 @@
 import { requireTenant } from "@repo/auth/authorization";
 import { appName } from "@repo/config/brand";
 import { type AttendanceStatus, database } from "@repo/database";
+import { formatWeekdayDate, getMalaysiaCalendarDate } from "@repo/date";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
@@ -37,14 +38,9 @@ const statusLabels: Record<AttendanceStatus, string> = {
   PRESENT: "Present",
 };
 
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => getMalaysiaCalendarDate();
 
-const formatDate = (date: Date) =>
-  new Intl.DateTimeFormat("en-MY", {
-    day: "numeric",
-    month: "short",
-    weekday: "short",
-  }).format(date);
+const formatDate = (date: Date) => formatWeekdayDate(date);
 
 const AttendancePage = async () => {
   const tenant = await requireTenant();

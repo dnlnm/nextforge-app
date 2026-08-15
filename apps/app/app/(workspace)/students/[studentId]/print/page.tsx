@@ -1,5 +1,6 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { database } from "@repo/database";
+import { formatShortDate, formatWallClockTime } from "@repo/date";
 import {
   Card,
   CardContent,
@@ -13,18 +14,9 @@ interface PrintStudentPageProperties {
   readonly params: Promise<{ studentId: string }>;
 }
 
-const formatDate = (date: Date) =>
-  new Intl.DateTimeFormat("en-MY", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(date);
+const formatDate = (date: Date) => formatShortDate(date);
 
-const formatTime = (value: string) =>
-  new Intl.DateTimeFormat("en-MY", {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(`1970-01-01T${value}:00`));
+const formatTime = (value: string) => formatWallClockTime(value);
 
 const PrintStudentPage = async ({ params }: PrintStudentPageProperties) => {
   const tenant = await requireTenantRole(["ADMIN"]);

@@ -4,6 +4,10 @@ import { randomBytes } from "node:crypto";
 import { requireTenantRole } from "@repo/auth/authorization";
 import { buildWorkspaceUrl } from "@repo/auth/domain";
 import { database } from "@repo/database";
+import {
+  addMalaysiaCalendarDays,
+  differenceInMalaysiaCalendarDays,
+} from "@repo/date";
 import { sendAdminInvitation } from "@repo/email/admin-invite";
 import { revalidatePath } from "next/cache";
 import { assertAdminWithinPlanLimit } from "../billing/limits";
@@ -56,8 +60,10 @@ export const inviteAdmin = async (formData: FormData) => {
   }
 
   const token = randomBytes(32).toString("base64url");
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + INVITATION_TTL_DAYS);
+  const expiresAt = addMalaysiaCalendarDays(
+    new Date(),
+    INVITATION_TTL_DAYS
+  );
 
   const [organization, reusableInvitation] = await Promise.all([
     database.organization.findFirst({
@@ -209,9 +215,7 @@ export const getPendingAdminInvitations = async () => {
     ...invitation,
     expiresInDays: Math.max(
       0,
-      Math.ceil(
-        (invitation.expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-      )
+      differenceInMalaysiaCalendarDays(invitation.expiresAt, now)
     ),
   }));
 };

@@ -2,6 +2,7 @@
 
 import { requireTenantRole } from "@repo/auth/authorization";
 import { database } from "@repo/database";
+import { formatCalendarDate, tryParseCalendarDate } from "@repo/date";
 import {
   EnrollmentValidationError,
   endEnrollment as endEnrollmentCommand,
@@ -45,9 +46,13 @@ const getDate = (formData: FormData, key: string) => {
     return undefined;
   }
 
-  const date = new Date(`${value}T00:00:00.000Z`);
+  return tryParseCalendarDate(value);
+};
 
-  return Number.isNaN(date.getTime()) ? undefined : date;
+const getDateString = (formData: FormData, key: string) => {
+  const date = getDate(formData, key);
+
+  return date ? formatCalendarDate(date) : undefined;
 };
 const getMoneySen = (formData: FormData, key: string) => {
   const value = getString(formData, key);
@@ -415,7 +420,7 @@ export const enrollStudent = async (formData: FormData) => {
       {
         classId,
         customFeeSen: getMoneySen(formData, "customFee"),
-        startsOn: getDate(formData, "startsOn")?.toISOString().slice(0, 10),
+        startsOn: getDateString(formData, "startsOn"),
         studentId,
       }
     );
@@ -554,7 +559,7 @@ export const updateEnrollment = async (formData: FormData) => {
       {
         customFeeSen: getMoneySen(formData, "customFee"),
         enrollmentId,
-        startsOn: getDate(formData, "startsOn")?.toISOString().slice(0, 10),
+        startsOn: getDateString(formData, "startsOn"),
       }
     );
   } catch (error) {

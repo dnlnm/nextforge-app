@@ -77,6 +77,7 @@ const LegalPage = async ({ params }: LegalPageProperties) => {
               <div className="sticky top-24 hidden shrink-0 md:block">
                 <Sidebar
                   date={new Date()}
+                  locale={locale}
                   readingTime={`${page.body.readingTime} min read`}
                   toc={<TableOfContents data={page.body.json.toc} />}
                 />

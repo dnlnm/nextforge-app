@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 interface SidebarProperties {
   readonly date: Date;
+  readonly locale?: string;
   readonly readingTime: string;
   readonly tags?: string[];
   readonly toc?: ReactNode;
@@ -10,6 +11,7 @@ interface SidebarProperties {
 
 export const Sidebar = async ({
   date,
+  locale = "en",
   readingTime,
   tags,
   toc: Toc,
@@ -18,12 +20,15 @@ export const Sidebar = async ({
     <div className="grid gap-2">
       <p className="text-muted-foreground text-sm">Published</p>
       <p className="rounded-sm text-foreground text-sm">
-        {new Intl.DateTimeFormat("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-          timeZone: "America/New_York",
-        }).format(date)}
+        {new Intl.DateTimeFormat(
+          locale.split("-")[0] === "ms" ? "ms-MY" : "en-US",
+          {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+            timeZone: "America/New_York",
+          }
+        ).format(date)}
       </p>
     </div>
     <div className="grid gap-2">

@@ -1,6 +1,7 @@
 import { isSuperadminUserId } from "@repo/auth/shared";
 import { appName } from "@repo/config/brand";
 import { database, type SubscriptionPlan } from "@repo/database";
+import { addMalaysiaCalendarDays, isExpired } from "@repo/date";
 import {
   activeSubscriptionStatuses,
   type PlanDefinition,
@@ -14,8 +15,7 @@ export type LimitResource =
   | "teachers";
 
 export const getOrCreateSubscription = (organizationId: string) => {
-  const trialEndsAt = new Date();
-  trialEndsAt.setDate(trialEndsAt.getDate() + 14);
+  const trialEndsAt = addMalaysiaCalendarDays(new Date(), 14);
 
   return database.organizationSubscription.upsert({
     where: { organizationId },
@@ -63,7 +63,9 @@ export const getBillingState = async (organizationId: string) => {
   const now = new Date();
   const trialExpired =
     subscription.status === "TRIALING" &&
-    Boolean(subscription.trialEndsAt && subscription.trialEndsAt < now);
+    Boolean(
+      subscription.trialEndsAt && isExpired(subscription.trialEndsAt, now)
+    );
   const canUsePaidFeatures =
     activeSubscriptionStatuses.has(subscription.status) && !trialExpired;
 

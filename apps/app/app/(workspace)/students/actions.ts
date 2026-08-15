@@ -2,6 +2,7 @@
 
 import { requireTenant, requireTenantRole } from "@repo/auth/authorization";
 import { database, type Prisma } from "@repo/database";
+import { tryParseCalendarDate } from "@repo/date";
 import {
   studentArchivedEvent,
   studentCreatedEvent,
@@ -47,9 +48,7 @@ const getDate = (formData: FormData, key: string) => {
     return undefined;
   }
 
-  const date = new Date(`${value}T00:00:00.000Z`);
-
-  return Number.isNaN(date.getTime()) ? undefined : date;
+  return tryParseCalendarDate(value);
 };
 
 const phoneStripRegex = /[-\s]/g;

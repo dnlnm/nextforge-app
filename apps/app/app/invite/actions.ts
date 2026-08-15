@@ -3,6 +3,7 @@
 import { ensureLocalUser, switchOrganization } from "@repo/auth/organizations";
 import { currentUser } from "@repo/auth/server";
 import { database } from "@repo/database";
+import { isExpired } from "@repo/date";
 import { revalidatePath } from "next/cache";
 
 const formatCode = (prefix: string, sequence: number) =>
@@ -59,7 +60,7 @@ export const acceptInvitation = async (
     };
   }
 
-  if (invitation.expiresAt <= new Date()) {
+  if (isExpired(invitation.expiresAt)) {
     if (kind === "TEACHER") {
       await database.teacherInvitation.update({
         where: { id: invitation.id },

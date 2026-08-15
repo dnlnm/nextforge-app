@@ -124,7 +124,7 @@ export function Calendar({
     "data-slot": "calendar",
     formatters: {
       formatMonthDropdown: (date: Date) =>
-        date.toLocaleString("default", { month: "short" }),
+        date.toLocaleString("en-MY", { month: "short" }),
     } as React.ComponentProps<typeof DayPicker>["formatters"],
     mode,
     showOutsideDays,

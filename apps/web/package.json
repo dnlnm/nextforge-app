@@ -14,6 +14,7 @@
     "@repo/analytics": "workspace:*",
     "@repo/cms": "workspace:*",
     "@repo/config": "workspace:*",
+    "@repo/date": "workspace:*",
     "@repo/design-system": "workspace:*",
     "@repo/email": "workspace:*",
     "@repo/feature-flags": "workspace:*",

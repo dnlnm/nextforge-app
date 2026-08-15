@@ -1,3 +1,4 @@
+import { getMalaysiaCalendarDate } from "@repo/date";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Button, Chip, Spinner, Typography } from "heroui-native";
 import { useEffect } from "react";
@@ -23,7 +24,7 @@ export default function ClassDetailScreen() {
     if (!data) {
       return;
     }
-    const today = new Date().toISOString().slice(0, 10);
+    const today = getMalaysiaCalendarDate();
     try {
       await createSession.mutateAsync({
         classId: data.id,

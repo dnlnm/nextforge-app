@@ -16,6 +16,7 @@
     "@repo/collaboration": "workspace:*",
     "@repo/config": "workspace:*",
     "@repo/database": "workspace:*",
+    "@repo/date": "workspace:*",
     "@repo/design-system": "workspace:*",
     "@repo/domain": "workspace:*",
     "@repo/feature-flags": "workspace:*",

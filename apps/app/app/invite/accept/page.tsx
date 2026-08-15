@@ -1,5 +1,6 @@
 import { currentUser } from "@repo/auth/server";
 import { database } from "@repo/database";
+import { isExpired } from "@repo/date";
 import type { InvitationKind } from "../actions";
 import { InviteAcceptClient } from "./invite-accept-client";
 
@@ -45,7 +46,7 @@ const InviteAcceptPage = async ({ searchParams }: InviteAcceptPageProps) => {
     invitationKind = "ADMIN";
   }
 
-  if (invitation && invitation.expiresAt <= new Date()) {
+  if (invitation && isExpired(invitation.expiresAt)) {
     await database.teacherInvitation.updateMany({
       where: { token },
       data: { status: "EXPIRED" },

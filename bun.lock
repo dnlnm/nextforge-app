@@ -65,6 +65,7 @@
         "@repo/collaboration": "workspace:*",
         "@repo/config": "workspace:*",
         "@repo/database": "workspace:*",
+        "@repo/date": "workspace:*",
         "@repo/design-system": "workspace:*",
         "@repo/domain": "workspace:*",
         "@repo/feature-flags": "workspace:*",
@@ -139,6 +140,7 @@
       "dependencies": {
         "@repo/api": "workspace:*",
         "@repo/auth": "workspace:*",
+        "@repo/date": "workspace:*",
         "@supabase/supabase-js": "^2.99.0",
         "@tanstack/react-query": "^5.91.0",
         "@trpc/client": "^11.18.0",
@@ -226,6 +228,7 @@
         "@repo/analytics": "workspace:*",
         "@repo/cms": "workspace:*",
         "@repo/config": "workspace:*",
+        "@repo/date": "workspace:*",
         "@repo/design-system": "workspace:*",
         "@repo/email": "workspace:*",
         "@repo/feature-flags": "workspace:*",
@@ -307,6 +310,7 @@
       "dependencies": {
         "@repo/auth": "workspace:*",
         "@repo/database": "workspace:*",
+        "@repo/date": "workspace:*",
         "@repo/domain": "workspace:*",
         "@repo/schemas": "workspace:*",
         "@supabase/supabase-js": "^2.99.0",
@@ -412,6 +416,19 @@
         "typescript": "^5.9.3",
       },
     },
+    "packages/date": {
+      "name": "@repo/date",
+      "version": "0.0.0",
+      "dependencies": {
+        "@date-fns/tz": "^1.5.0",
+        "date-fns": "^4.1.0",
+      },
+      "devDependencies": {
+        "@repo/typescript-config": "workspace:*",
+        "typescript": "^5.9.3",
+        "vitest": "^4.0.18",
+      },
+    },
     "packages/design-system": {
       "name": "@repo/design-system",
       "version": "0.0.0",
@@ -425,6 +442,7 @@
         "@fontsource-variable/geist-mono": "^5.3.0",
         "@hookform/resolvers": "^5.2.2",
         "@repo/auth": "workspace:*",
+        "@repo/date": "workspace:*",
         "@repo/observability": "workspace:*",
         "@tanstack/react-table": "^8.21.3",
         "class-variance-authority": "^0.7.1",
@@ -456,6 +474,7 @@
         "postcss": "^8.5.8",
         "tailwindcss": "^4.2.1",
         "typescript": "^5.9.3",
+        "vitest": "^4.0.18",
       },
     },
     "packages/domain": {
@@ -463,6 +482,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@repo/database": "workspace:*",
+        "@repo/date": "workspace:*",
         "@repo/schemas": "workspace:*",
         "server-only": "^0.0.1",
       },
@@ -593,6 +613,7 @@
         "@repo/auth": "workspace:*",
         "@repo/config": "workspace:*",
         "@repo/database": "workspace:*",
+        "@repo/date": "workspace:*",
         "@stripe/agent-toolkit": "^0.9.0",
         "@t3-oss/env-nextjs": "^0.13.10",
         "server-only": "^0.0.1",
@@ -1787,6 +1808,8 @@
     "@repo/config": ["@repo/config@workspace:packages/config"],
 
     "@repo/database": ["@repo/database@workspace:packages/database"],
+
+    "@repo/date": ["@repo/date@workspace:packages/date"],
 
     "@repo/design-system": ["@repo/design-system@workspace:packages/design-system"],
 

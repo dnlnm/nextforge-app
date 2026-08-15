@@ -1,5 +1,6 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { type DayOfWeek, database } from "@repo/database";
+import { formatShortDate, formatWallClockTime } from "@repo/date";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
@@ -78,19 +79,6 @@ const formatMoney = (amountSen: number) =>
     maximumFractionDigits: 0,
     style: "currency",
   }).format(amountSen / 100);
-
-const formatDate = (date: Date) =>
-  new Intl.DateTimeFormat("en-MY", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(date);
-
-const formatTime = (value: string) =>
-  new Intl.DateTimeFormat("en-MY", {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(`1970-01-01T${value}:00`));
 
 const ClassPage = async ({ params }: ClassPageProperties) => {
   const tenant = await requireTenantRole(["ADMIN"]);
@@ -227,7 +215,7 @@ const ClassPage = async ({ params }: ClassPageProperties) => {
               </h1>
               <p className="text-muted-foreground text-sm">
                 {learningClass.level?.name ?? "No level"} · {capacityLabel} ·
-                Starts {formatDate(learningClass.startsOn)}
+                Starts {formatShortDate(learningClass.startsOn)}
               </p>
             </div>
             <ClassEnrollmentActions
@@ -423,8 +411,8 @@ const ClassPage = async ({ params }: ClassPageProperties) => {
                         {dayShortLabel[schedule.dayOfWeek]}
                       </span>
                       <span className="text-muted-foreground">
-                        {formatTime(schedule.startsAt)} -{" "}
-                        {formatTime(schedule.endsAt)}
+                        {formatWallClockTime(schedule.startsAt)} -{" "}
+                        {formatWallClockTime(schedule.endsAt)}
                         {schedule.room ? ` · ${schedule.room.name}` : ""}
                       </span>
                     </div>

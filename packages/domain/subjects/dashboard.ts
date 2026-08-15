@@ -1,8 +1,8 @@
 import "server-only";
 
 import type { PrismaClient } from "@repo/database";
+import { getAcademicYearStart } from "@repo/date";
 import { attendanceRate } from "../metrics";
-import { academicYearStart } from "../students/dashboard";
 
 export interface SubjectDashboardInput {
   readonly organizationId: string;
@@ -63,7 +63,7 @@ export const getSubjectDashboard = async (
             organizationId,
             session: {
               classId: { in: classIds },
-              sessionDate: { gte: academicYearStart(new Date()) },
+              sessionDate: { gte: getAcademicYearStart() },
             },
           },
           select: { status: true },

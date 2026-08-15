@@ -1,6 +1,8 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
+import { formatRelativeTime } from "@repo/date";
+import { formatShortDate } from "@repo/date";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
@@ -55,12 +57,7 @@ const formatMoney = (amountSen: number) =>
     style: "currency",
   }).format(amountSen / 100);
 
-const formatDate = (date: Date) =>
-  new Intl.DateTimeFormat("en-MY", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(date);
+const formatDate = (date: Date) => formatShortDate(date);
 
 const todayDate = () => new Date(new Date().toISOString().slice(0, 10));
 
@@ -87,27 +84,6 @@ const formatPercentChange = (change: number) => {
   }
 
   return `${change > 0 ? "+" : ""}${change.toFixed(1)}% from last month`;
-};
-
-const formatRelativeTime = (date: Date) => {
-  const seconds = Math.max(1, Math.floor((Date.now() - date.getTime()) / 1000));
-  const units = [
-    ["year", 31_536_000],
-    ["month", 2_592_000],
-    ["day", 86_400],
-    ["hour", 3600],
-    ["minute", 60],
-  ] as const;
-
-  for (const [unit, value] of units) {
-    const amount = Math.floor(seconds / value);
-
-    if (amount >= 1) {
-      return `${amount} ${unit}${amount > 1 ? "s" : ""} ago`;
-    }
-  }
-
-  return "Just now";
 };
 
 const initials = (name: string) =>

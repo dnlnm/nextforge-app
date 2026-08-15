@@ -127,6 +127,7 @@ const BlogPost = async ({ params }: BlogPostProperties) => {
                 <div className="sticky top-24 hidden shrink-0 md:block">
                   <Sidebar
                     date={new Date(page.date)}
+                    locale={locale}
                     readingTime={`${page.body.readingTime} min read`}
                     toc={<TableOfContents data={page.body.json.toc} />}
                   />

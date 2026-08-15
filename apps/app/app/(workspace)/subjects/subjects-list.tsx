@@ -1,5 +1,6 @@
 "use client";
 
+import { formatWallClockTime } from "@repo/date";
 import {
   Accordion,
   AccordionContent,
@@ -63,16 +64,7 @@ const formatMoney = (amountSen: number) =>
     style: "currency",
   }).format(amountSen / 100);
 
-const formatTime = (time: string) => {
-  const [hour = "0", minute = "0"] = time.split(":");
-  const date = new Date();
-  date.setHours(Number.parseInt(hour, 10), Number.parseInt(minute, 10), 0, 0);
-
-  return new Intl.DateTimeFormat("en-MY", {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(date);
-};
+const formatTime = (time: string) => formatWallClockTime(time);
 
 const formatSchedule = (subjectClass: SubjectClassSummary) =>
   subjectClass.schedules.length > 0

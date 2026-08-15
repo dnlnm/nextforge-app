@@ -1,6 +1,7 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { appName } from "@repo/config/brand";
 import { type AttendanceStatus, database } from "@repo/database";
+import { formatShortDate, formatWallClockTime } from "@repo/date";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
@@ -58,12 +59,7 @@ const attendanceLabels: Record<AttendanceStatus, string> = {
   PRESENT: "Present",
 };
 
-const formatDate = (date: Date) =>
-  new Intl.DateTimeFormat("en-MY", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(date);
+const formatDate = (date: Date) => formatShortDate(date);
 
 const formatMoney = (amountSen: number) =>
   new Intl.NumberFormat("en-MY", {
@@ -72,11 +68,7 @@ const formatMoney = (amountSen: number) =>
     style: "currency",
   }).format(amountSen / 100);
 
-const formatTime = (value: string) =>
-  new Intl.DateTimeFormat("en-MY", {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(`1970-01-01T${value}:00`));
+const formatTime = (value: string) => formatWallClockTime(value);
 
 const genderLabels: Record<string, string> = {
   MALE: "Male",

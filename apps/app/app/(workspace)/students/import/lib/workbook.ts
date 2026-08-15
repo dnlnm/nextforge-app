@@ -1,5 +1,9 @@
 import { createHash } from "node:crypto";
 import type { Gender, GuardianRelationship } from "@repo/database";
+import {
+  formatCalendarDate,
+  tryParseCalendarDate,
+} from "@repo/date";
 import ExcelJS from "exceljs";
 
 export const MAX_IMPORT_BYTES = 10 * 1024 * 1024;
@@ -94,7 +98,7 @@ const textValue = (cell: ExcelJS.Cell) => {
     return "";
   }
   if (cell.value instanceof Date) {
-    return cell.value.toISOString().slice(0, 10);
+    return formatCalendarDate(cell.value);
   }
   return cell.text.trim();
 };
@@ -107,11 +111,8 @@ const parseDate = (value: string, label: string, errors: string[]) => {
     errors.push(`${label} must use YYYY-MM-DD.`);
     return undefined;
   }
-  const date = new Date(`${value}T00:00:00.000Z`);
-  if (
-    Number.isNaN(date.getTime()) ||
-    date.toISOString().slice(0, 10) !== value
-  ) {
+  const date = tryParseCalendarDate(value);
+  if (!date) {
     errors.push(`${label} is not a valid date.`);
     return undefined;
   }

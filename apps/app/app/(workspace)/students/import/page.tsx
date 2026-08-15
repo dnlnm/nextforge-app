@@ -1,6 +1,7 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
+import { formatShortDate } from "@repo/date";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
@@ -105,7 +106,7 @@ const StudentImportPage = async () => {
                   history.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell>
-                        {item.createdAt.toLocaleDateString("en-MY")}
+                        {formatShortDate(item.createdAt)}
                       </TableCell>
                       <TableCell>
                         <Link
