@@ -3,6 +3,13 @@
 import { Button } from "@repo/design-system/components/ui/button";
 import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@repo/design-system/components/ui/select";
 import { Textarea } from "@repo/design-system/components/ui/textarea";
 import { uploadToR2 } from "@repo/storage/client";
 import { ImageUpIcon, Loader2Icon } from "lucide-react";
@@ -10,6 +17,12 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { updateCentreSettings } from "./actions";
+
+const currencyOptions = [
+  { label: "MYR (RM) - Malaysian Ringgit", value: "MYR" },
+  { label: "SGD (S$) - Singapore Dollar", value: "SGD" },
+  { label: "USD ($) - US Dollar", value: "USD" },
+] as const;
 
 interface SettingsFormProps {
   readonly organization: {
@@ -19,6 +32,7 @@ interface SettingsFormProps {
       readonly addressLine1: string | null;
       readonly addressLine2: string | null;
       readonly city: string | null;
+      readonly currency: string;
       readonly defaultInvoiceDueDay: number;
       readonly email: string | null;
       readonly invoicePrefix: string;
@@ -256,6 +270,27 @@ export const SettingsForm = ({ organization }: SettingsFormProps) => {
             type="number"
           />
         </div>
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="currency">Currency</Label>
+        <Select
+          defaultValue={organization?.settings?.currency ?? "MYR"}
+          name="currency"
+        >
+          <SelectTrigger id="currency">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {currencyOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-muted-foreground text-xs">
+          Used to display fees, invoices, and payment amounts.
+        </p>
       </div>
       <div className="grid gap-2">
         <Label htmlFor="paymentInstructions">Payment instructions</Label>

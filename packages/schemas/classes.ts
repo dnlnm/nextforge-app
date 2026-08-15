@@ -36,7 +36,7 @@ const classFields = {
     .optional(),
   endDate: dateStringSchema.optional(),
   levelId: entityIdSchema.optional(),
-  monthlyFeeSen: moneySenSchema.or(z.literal(0)),
+  monthlyFeeSen: moneySenSchema,
   name: z.string().trim().min(1),
   schedules: z.array(classScheduleInputSchema).min(1),
   startDate: dateStringSchema,

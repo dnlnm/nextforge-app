@@ -32,6 +32,7 @@ const SettingsPage = async () => {
           addressLine1: true,
           addressLine2: true,
           city: true,
+          currency: true,
           defaultInvoiceDueDay: true,
           email: true,
           invoicePrefix: true,

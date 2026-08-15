@@ -2,12 +2,19 @@
 
 import { requireTenantRole } from "@repo/auth/authorization";
 import { database } from "@repo/database";
+import { isSupportedCurrency } from "@repo/money";
 import { refresh, revalidatePath } from "next/cache";
 
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);
 
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
+};
+
+const getCurrency = (formData: FormData) => {
+  const value = getString(formData, "currency") ?? "MYR";
+
+  return isSupportedCurrency(value) ? value : "MYR";
 };
 
 const getDueDay = (formData: FormData) => {
@@ -43,6 +50,7 @@ export const updateCentreSettings = async (formData: FormData) => {
         addressLine1: getString(formData, "addressLine1"),
         addressLine2: getString(formData, "addressLine2"),
         city: getString(formData, "city"),
+        currency: getCurrency(formData),
         defaultInvoiceDueDay: getDueDay(formData),
         email: getString(formData, "email"),
         invoicePrefix: getString(formData, "invoicePrefix") ?? "INV",
@@ -56,6 +64,7 @@ export const updateCentreSettings = async (formData: FormData) => {
         addressLine1: getString(formData, "addressLine1"),
         addressLine2: getString(formData, "addressLine2"),
         city: getString(formData, "city"),
+        currency: getCurrency(formData),
         defaultInvoiceDueDay: getDueDay(formData),
         email: getString(formData, "email"),
         invoicePrefix: getString(formData, "invoicePrefix") ?? "INV",

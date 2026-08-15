@@ -8,7 +8,9 @@ export const timeStringSchema = z
   .string()
   .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Time must use the HH:MM format.");
 
-export const moneySenSchema = z.int().positive();
+export const moneySenSchema = z.int().nonnegative();
+
+export const positiveMoneySenSchema = z.int().positive();
 
 export const paginationSchema = z.strictObject({
   page: z.int().nonnegative(),

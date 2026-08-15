@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { entityIdSchema, moneySenSchema } from "./common";
+import { entityIdSchema, positiveMoneySenSchema } from "./common";
 import { paymentMethodSchema } from "./enums";
 
 export const recordPaymentInputSchema = z.strictObject({
-  amountSen: moneySenSchema,
+  amountSen: positiveMoneySenSchema,
   invoiceId: entityIdSchema,
   method: paymentMethodSchema,
   notes: z.string().trim().min(1).optional(),
