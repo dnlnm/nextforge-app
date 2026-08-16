@@ -291,3 +291,6 @@ apps/mobile/android/
 *.jks
 *.keystore
 *.mobileprovision
+
+# reference codes
+/ref_code/
