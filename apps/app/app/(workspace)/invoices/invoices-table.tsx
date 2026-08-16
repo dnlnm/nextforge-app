@@ -252,6 +252,8 @@ export function InvoicesTable({
     [setUrlParams]
   );
 
+  const getRowId = useCallback((row: Invoice) => row.id, []);
+
   const clearSelection = useCallback(() => {
     setRowSelection({});
     setSelectedInvoices([]);
@@ -289,7 +291,7 @@ export function InvoicesTable({
             pageCount: Math.ceil(totalCount / urlParams.pageSize),
           }}
           data={data}
-          getRowId={(row) => row.id}
+          getRowId={getRowId}
           initialState={{ columnVisibility: { billingMonth: false } }}
           isLoading={isLoading}
           onColumnFiltersChange={handleColumnFiltersChange}
