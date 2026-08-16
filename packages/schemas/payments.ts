@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  dateStringSchema,
   entityIdSchema,
   filterSchema,
   paginationSchema,
@@ -13,6 +14,7 @@ export const recordPaymentInputSchema = z.strictObject({
   invoiceId: entityIdSchema,
   method: paymentMethodSchema,
   notes: z.string().trim().min(1).optional(),
+  paidAt: dateStringSchema.optional(),
   reference: z.string().trim().min(1).optional(),
 });
 

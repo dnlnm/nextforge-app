@@ -19,6 +19,8 @@ import {
   TableRow,
 } from "@repo/design-system/components/ui/table";
 import { formatMoney as formatMoneyShared } from "@repo/money";
+import { privateFileUrl } from "@repo/storage/client";
+import { PaperclipIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -52,6 +54,7 @@ const PaymentPage = async ({ params }: PaymentPageProperties) => {
     where: { id: paymentId, organizationId: tenant.organizationId },
     include: {
       allocations: { include: { invoice: true } },
+      attachments: true,
       organization: { include: { settings: true } },
       student: true,
     },
@@ -71,7 +74,7 @@ const PaymentPage = async ({ params }: PaymentPageProperties) => {
       <div className="print:hidden">
         <Header page={payment.receiptNumber} pages={["Payments"]}>
           <div className="flex gap-2 pr-4">
-            <Button variant="outline" render={<Link href="/payments" />}>
+            <Button render={<Link href="/payments" />} variant="outline">
               Back
             </Button>
             <PrintButton />
@@ -153,6 +156,30 @@ const PaymentPage = async ({ params }: PaymentPageProperties) => {
                 <span>{formatMoney(payment.amountSen - allocatedSen)}</span>
               </div>
             </section>
+            {payment.attachments.length > 0 ? (
+              <section>
+                <h2 className="mb-2 font-medium">Attachments</h2>
+                <div className="grid gap-2">
+                  {payment.attachments.map((attachment) => (
+                    <a
+                      className="flex items-center justify-between gap-2 rounded-lg border p-3 text-sm transition-colors hover:bg-accent/50"
+                      href={privateFileUrl(attachment.objectKey) ?? "#"}
+                      key={attachment.id}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      <span className="flex min-w-0 items-center gap-2">
+                        <PaperclipIcon className="size-4 shrink-0 text-muted-foreground" />
+                        <span className="truncate">{attachment.fileName}</span>
+                      </span>
+                      <span className="shrink-0 text-muted-foreground">
+                        {(attachment.fileSize / 1024).toFixed(0)} KB
+                      </span>
+                    </a>
+                  ))}
+                </div>
+              </section>
+            ) : null}
           </CardContent>
         </Card>
       </main>

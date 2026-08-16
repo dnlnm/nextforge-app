@@ -18,18 +18,33 @@ function DatePicker({
   className,
   defaultValue,
   id,
+  maxDate,
+  minDate,
   name,
   placeholder = "Select date",
 }: {
   className?: string
   defaultValue?: string
   id?: string
+  maxDate?: string
+  minDate?: string
   name: string
   placeholder?: string
 }) {
   const [date, setDate] = React.useState<Date | undefined>(
     defaultValue ? parseLocalCalendarDate(defaultValue) : undefined
   )
+  const max = maxDate ? parseLocalCalendarDate(maxDate) : undefined
+  const min = minDate ? parseLocalCalendarDate(minDate) : undefined
+  const disabled = (day: Date) => {
+    if (max && day.getTime() > max.getTime()) {
+      return true
+    }
+    if (min && day.getTime() < min.getTime()) {
+      return true
+    }
+    return false
+  }
 
   return (
     <Popover>
@@ -49,6 +64,7 @@ function DatePicker({
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar
           captionLayout="dropdown"
+          disabled={disabled}
           mode="single"
           onSelect={setDate}
           selected={date}

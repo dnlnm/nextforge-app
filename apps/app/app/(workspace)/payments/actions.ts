@@ -53,9 +53,49 @@ export const recordPayment = async (formData: FormData) => {
   const invoiceId = getString(formData, "invoiceId");
   const amountSen = getMoneySen(formData, "amount");
   const method = getString(formData, "method") as PaymentMethod | undefined;
+  const paidAtValue = getString(formData, "paidAt");
+  const paidAt = paidAtValue ? tryParseCalendarDate(paidAtValue) : undefined;
 
   if (!(invoiceId && amountSen && method && methods.has(method))) {
     throw new Error("Invoice, amount, and payment method are required.");
+  }
+
+  if (paidAtValue && !paidAt) {
+    throw new Error("Payment date is invalid.");
+  }
+
+  const attachmentsValue = getString(formData, "attachments");
+  let attachments: Array<{
+    key: string;
+    name: string;
+    size: number;
+    type: string;
+  }> = [];
+
+  if (attachmentsValue) {
+    try {
+      const parsed = JSON.parse(attachmentsValue) as unknown;
+
+      if (
+        !Array.isArray(parsed) ||
+        parsed.length > 3 ||
+        !parsed.every(
+          (attachment) =>
+            typeof attachment === "object" &&
+            attachment !== null &&
+            typeof (attachment as Record<string, unknown>).key === "string" &&
+            typeof (attachment as Record<string, unknown>).name === "string" &&
+            typeof (attachment as Record<string, unknown>).type === "string" &&
+            typeof (attachment as Record<string, unknown>).size === "number"
+        )
+      ) {
+        throw new Error("Invalid attachment data.");
+      }
+
+      attachments = parsed as typeof attachments;
+    } catch {
+      throw new Error("Invalid attachment data.");
+    }
   }
 
   const settings = await database.organizationSettings.findUnique({
@@ -63,108 +103,268 @@ export const recordPayment = async (formData: FormData) => {
     select: { receiptPrefix: true },
   });
 
-  await database.$transaction(async (tx) => {
-    // Reserve the receipt number inside the transaction so two simultaneous
-    // payments never produce the same number (count(...) + 1 was both racy and
-    // non-monotonic).
-    const receiptNumberValue = await reserveNextSequence(
-      tx,
-      tenant.organizationId,
-      "RECEIPT"
-    );
-    const receiptNumber = formatSequenceNumber(
-      settings?.receiptPrefix ?? "RCP",
-      receiptNumberValue
-    );
-    // Read the invoice inside the transaction so `outstandingSen` reflects the
-    // latest committed state. Reading it before the tx (and reusing the value
-    // here) allowed two concurrent payments to the same invoice to both apply
-    // against the same stale `amountPaidSen`, silently dropping one allocation.
-    const invoice = await tx.invoice.findFirst({
-      where: { id: invoiceId, organizationId: tenant.organizationId },
-      select: {
-        amountPaidSen: true,
-        id: true,
-        studentId: true,
-        totalSen: true,
-      },
-    });
+  const { paymentId, receiptNumber } = await database.$transaction(
+    async (tx) => {
+      // Reserve the receipt number inside the transaction so two simultaneous
+      // payments never produce the same number (count(...) + 1 was both racy and
+      // non-monotonic).
+      const receiptNumberValue = await reserveNextSequence(
+        tx,
+        tenant.organizationId,
+        "RECEIPT"
+      );
+      const receiptNumber = formatSequenceNumber(
+        settings?.receiptPrefix ?? "RCP",
+        receiptNumberValue
+      );
+      // Read the invoice inside the transaction so `outstandingSen` reflects the
+      // latest committed state. Reading it before the tx (and reusing the value
+      // here) allowed two concurrent payments to the same invoice to both apply
+      // against the same stale `amountPaidSen`, silently dropping one allocation.
+      const invoice = await tx.invoice.findFirst({
+        where: { id: invoiceId, organizationId: tenant.organizationId },
+        select: {
+          amountPaidSen: true,
+          id: true,
+          studentId: true,
+          totalSen: true,
+        },
+      });
 
-    if (!invoice) {
-      throw new Error("Invoice not found.");
-    }
+      if (!invoice) {
+        throw new Error("Invoice not found.");
+      }
 
-    const outstandingSen = invoice.totalSen - invoice.amountPaidSen;
-    const allocationSen = Math.min(amountSen, outstandingSen);
+      const outstandingSen = invoice.totalSen - invoice.amountPaidSen;
+      const allocationSen = Math.min(amountSen, outstandingSen);
 
-    if (allocationSen <= 0) {
-      throw new Error("Invoice is already paid.");
-    }
+      if (allocationSen <= 0) {
+        throw new Error("Invoice is already paid.");
+      }
 
-    const payment = await tx.payment.create({
-      data: {
-        organizationId: tenant.organizationId,
+      const payment = await tx.payment.create({
+        data: {
+          organizationId: tenant.organizationId,
+          amountSen,
+          method,
+          notes: getString(formData, "notes"),
+          paidAt,
+          receiptNumber,
+          recordedByUserId: tenant.userId,
+          reference: getString(formData, "reference"),
+          studentId: invoice.studentId,
+        },
+        select: { id: true },
+      });
+
+      await tx.paymentAllocation.create({
+        data: {
+          amountSen: allocationSen,
+          invoiceId: invoice.id,
+          paymentId: payment.id,
+        },
+      });
+
+      if (attachments.length > 0) {
+        await tx.paymentAttachment.createMany({
+          data: attachments.map((attachment) => ({
+            fileName: attachment.name,
+            fileSize: attachment.size,
+            fileType: attachment.type,
+            objectKey: attachment.key,
+            paymentId: payment.id,
+          })),
+        });
+      }
+
+      // Use an atomic increment so a concurrent payment against the same invoice
+      // accumulates rather than losing an allocation to a lost update.
+      const updated = await tx.invoice.update({
+        where: { id: invoice.id },
+        data: { amountPaidSen: { increment: allocationSen } },
+        select: { amountPaidSen: true, totalSen: true },
+      });
+
+      if (updated.amountPaidSen > updated.totalSen) {
+        throw new Error("Payment would overpay this invoice.");
+      }
+
+      await tx.invoice.update({
+        where: { id: invoice.id },
+        data: {
+          status:
+            updated.amountPaidSen >= updated.totalSen
+              ? "PAID"
+              : "PARTIALLY_PAID",
+        },
+      });
+
+      const studentName = await tx.student
+        .findFirst({
+          where: {
+            id: invoice.studentId,
+            organizationId: tenant.organizationId,
+          },
+          select: { fullName: true },
+        })
+        .then((student) => student?.fullName ?? "student");
+
+      const event = paymentRecordedEvent(
+        tenant.organizationId,
+        invoice.studentId,
+        studentName,
+        payment.id,
         amountSen,
-        method,
-        notes: getString(formData, "notes"),
-        receiptNumber,
-        recordedByUserId: tenant.userId,
-        reference: getString(formData, "reference"),
-        studentId: invoice.studentId,
-      },
-      select: { id: true },
-    });
+        tenant.userId
+      );
 
-    await tx.paymentAllocation.create({
-      data: {
-        amountSen: allocationSen,
-        invoiceId: invoice.id,
-        paymentId: payment.id,
-      },
-    });
+      await tx.auditEvent.create({ data: event });
 
-    // Use an atomic increment so a concurrent payment against the same invoice
-    // accumulates rather than losing an allocation to a lost update.
-    const updated = await tx.invoice.update({
-      where: { id: invoice.id },
-      data: { amountPaidSen: { increment: allocationSen } },
-      select: { amountPaidSen: true, totalSen: true },
-    });
-
-    if (updated.amountPaidSen > updated.totalSen) {
-      throw new Error("Payment would overpay this invoice.");
+      return { paymentId: payment.id, receiptNumber };
     }
-
-    await tx.invoice.update({
-      where: { id: invoice.id },
-      data: {
-        status:
-          updated.amountPaidSen >= updated.totalSen ? "PAID" : "PARTIALLY_PAID",
-      },
-    });
-
-    const studentName = await tx.student
-      .findFirst({
-        where: { id: invoice.studentId, organizationId: tenant.organizationId },
-        select: { fullName: true },
-      })
-      .then((student) => student?.fullName ?? "student");
-
-    const event = paymentRecordedEvent(
-      tenant.organizationId,
-      invoice.studentId,
-      studentName,
-      payment.id,
-      amountSen,
-      tenant.userId
-    );
-
-    await tx.auditEvent.create({ data: event });
-  });
+  );
 
   revalidatePath("/invoices");
   revalidatePath("/payments");
+
+  return { paymentId, receiptNumber };
 };
+
+// Students with an open (partially paid) invoice, matched by name, guardian,
+// or invoice number. Each result carries the student's oldest outstanding
+// invoice, which the record-payment page allocates payments to.
+export async function searchStudentsForPayment(query: string) {
+  const tenant = await requireTenant();
+  const search = query.trim();
+
+  if (!search) {
+    return [];
+  }
+
+  const students = await database.student.findMany({
+    where: {
+      archivedAt: null,
+      organizationId: tenant.organizationId,
+      status: "ACTIVE",
+      OR: [
+        { fullName: { contains: search, mode: "insensitive" } },
+        {
+          guardians: {
+            some: {
+              guardian: { fullName: { contains: search, mode: "insensitive" } },
+            },
+          },
+        },
+        {
+          guardians: {
+            some: {
+              guardian: { phone: { contains: search, mode: "insensitive" } },
+            },
+          },
+        },
+        {
+          invoices: {
+            some: {
+              invoiceNumber: { contains: search, mode: "insensitive" },
+            },
+          },
+        },
+      ],
+    },
+    select: {
+      fullName: true,
+      guardians: {
+        include: { guardian: { select: { fullName: true, phone: true } } },
+        take: 1,
+        where: { isPrimary: true },
+      },
+      id: true,
+      invoices: {
+        orderBy: { billingMonth: "asc" },
+        select: {
+          amountPaidSen: true,
+          billingMonth: true,
+          id: true,
+          invoiceNumber: true,
+          totalSen: true,
+        },
+        take: 1,
+        where: { status: { in: ["ISSUED", "PARTIALLY_PAID", "OVERDUE"] } },
+      },
+      level: { select: { name: true } },
+    },
+    orderBy: { fullName: "asc" },
+    take: 20,
+  });
+
+  return students
+    .map((student) => {
+      const invoice = student.invoices[0];
+
+      if (!invoice) {
+        return null;
+      }
+
+      const outstandingSen = invoice.totalSen - invoice.amountPaidSen;
+
+      if (outstandingSen <= 0) {
+        return null;
+      }
+
+      return {
+        fullName: student.fullName,
+        guardian: student.guardians[0]?.guardian ?? null,
+        id: student.id,
+        invoice: {
+          billingMonth: invoice.billingMonth,
+          id: invoice.id,
+          invoiceNumber: invoice.invoiceNumber,
+          outstandingSen,
+        },
+        level: student.level?.name ?? null,
+      };
+    })
+    .filter(
+      (student): student is NonNullable<typeof student> => student !== null
+    );
+}
+
+// Most recent payments for a student, shown in the record-payment page's
+// "Recent Payments" panel.
+export async function getStudentPaymentHistory(studentId: string) {
+  const tenant = await requireTenant();
+
+  const payments = await database.payment.findMany({
+    where: { organizationId: tenant.organizationId, studentId },
+    orderBy: { paidAt: "desc" },
+    take: 5,
+    include: {
+      allocations: {
+        include: { invoice: { select: { invoiceNumber: true } } },
+      },
+      recordedBy: { select: { firstName: true, lastName: true } },
+    },
+  });
+
+  return payments.map((payment) => ({
+    amountSen: payment.amountSen,
+    id: payment.id,
+    invoiceNumbers: payment.allocations.map(
+      (allocation) => allocation.invoice.invoiceNumber
+    ),
+    method: payment.method,
+    paidAt: payment.paidAt,
+    receiptNumber: payment.receiptNumber,
+    recordedByName: [
+      payment.recordedBy?.firstName,
+      payment.recordedBy?.lastName,
+    ]
+      .filter(Boolean)
+      .join(" "),
+    reference: payment.reference,
+    status: payment.status,
+  }));
+}
 
 export const reversePayment = async (formData: FormData) => {
   const tenant = await requireTenantRole(["ADMIN"]);

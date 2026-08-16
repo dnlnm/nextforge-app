@@ -18,6 +18,7 @@ import {
   CircleDollarSignIcon,
   ClockIcon,
   DownloadIcon,
+  PlusIcon,
   RotateCcwIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -25,7 +26,6 @@ import { getOrganizationCurrency } from "@/lib/currency";
 import { Header } from "../components/header";
 import { getPaymentFilterOptions, getPaymentsForTable } from "./actions";
 import { PaymentsPageClient } from "./payments-page-client";
-import { RecordPaymentDialog } from "./record-payment-dialog";
 
 const startOfMonth = (date: Date) =>
   new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
@@ -44,43 +44,29 @@ const PaymentsPage = async () => {
   const monthStart = startOfMonth(today);
   const nextMonthStart = startOfNextMonth(today);
 
-  const [
-    initialTableData,
-    filterOptions,
-    monthAgg,
-    statusCounts,
-    avgAgg,
-    openInvoices,
-  ] = await Promise.all([
-    getPaymentsForTable({ page: 0, pageSize: 10 }),
-    getPaymentFilterOptions(),
-    database.payment.aggregate({
-      _count: { id: true },
-      _sum: { amountSen: true },
-      where: {
-        organizationId: tenant.organizationId,
-        paidAt: { gte: monthStart, lt: nextMonthStart },
-        status: { in: ["RECORDED", "VERIFIED"] },
-      },
-    }),
-    database.payment.groupBy({
-      _count: { id: true },
-      by: ["status"],
-      where: { organizationId: tenant.organizationId },
-    }),
-    database.payment.aggregate({
-      _avg: { amountSen: true },
-      where: { organizationId: tenant.organizationId },
-    }),
-    database.invoice.findMany({
-      where: {
-        organizationId: tenant.organizationId,
-        status: { in: ["ISSUED", "PARTIALLY_PAID", "OVERDUE"] },
-      },
-      orderBy: [{ billingMonth: "desc" }, { invoiceNumber: "asc" }],
-      include: { student: true },
-    }),
-  ]);
+  const [initialTableData, filterOptions, monthAgg, statusCounts, avgAgg] =
+    await Promise.all([
+      getPaymentsForTable({ page: 0, pageSize: 10 }),
+      getPaymentFilterOptions(),
+      database.payment.aggregate({
+        _count: { id: true },
+        _sum: { amountSen: true },
+        where: {
+          organizationId: tenant.organizationId,
+          paidAt: { gte: monthStart, lt: nextMonthStart },
+          status: { in: ["RECORDED", "VERIFIED"] },
+        },
+      }),
+      database.payment.groupBy({
+        _count: { id: true },
+        by: ["status"],
+        where: { organizationId: tenant.organizationId },
+      }),
+      database.payment.aggregate({
+        _avg: { amountSen: true },
+        where: { organizationId: tenant.organizationId },
+      }),
+    ]);
 
   const collectedSen = monthAgg._sum?.amountSen ?? 0;
   const collectedCount = monthAgg._count.id;
@@ -110,10 +96,13 @@ const PaymentsPage = async () => {
               <DownloadIcon className="size-4" />
               Export
             </Button>
-            <RecordPaymentDialog
-              currency={currency}
-              openInvoices={openInvoices}
-            />
+            <Button
+              className="flex-1 md:flex-none"
+              render={<Link href="/payments/new" />}
+            >
+              <PlusIcon className="size-4" />
+              Record payment
+            </Button>
           </div>
         </div>
 
