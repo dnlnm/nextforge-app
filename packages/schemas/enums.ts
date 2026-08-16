@@ -49,6 +49,17 @@ export const paymentMethods = [
 export const paymentMethodSchema = z.enum(paymentMethods);
 export type PaymentMethod = z.infer<typeof paymentMethodSchema>;
 
+export const invoiceStatuses = [
+  "DRAFT",
+  "ISSUED",
+  "PARTIALLY_PAID",
+  "PAID",
+  "OVERDUE",
+  "VOID",
+] as const;
+export const invoiceStatusSchema = z.enum(invoiceStatuses);
+export type InvoiceStatus = z.infer<typeof invoiceStatusSchema>;
+
 export const paymentStatuses = ["RECORDED", "VERIFIED", "REVERSED"] as const;
 export const paymentStatusSchema = z.enum(paymentStatuses);
 export type PaymentStatus = z.infer<typeof paymentStatusSchema>;

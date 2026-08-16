@@ -1,15 +1,21 @@
 "use server";
 
-import { requireTenantRole } from "@repo/auth/authorization";
-import { database } from "@repo/database";
+import { requireTenant, requireTenantRole } from "@repo/auth/authorization";
+import { database, type Prisma } from "@repo/database";
 import { invoiceGeneratedEvent } from "@repo/domain/students/activity";
-import { billingMonthSchema } from "@repo/schemas/invoices";
+import { type InvoiceStatus, invoiceStatuses } from "@repo/schemas/enums";
+import {
+  billingMonthSchema,
+  type InvoicesQueryParams,
+  voidInvoicesInputSchema,
+} from "@repo/schemas/invoices";
 import { revalidatePath } from "next/cache";
 import { assertWithinPlanLimitTx } from "../billing/limits";
 import {
   formatSequenceNumber,
   reserveNextSequence,
 } from "../billing/sequences";
+import { formatBillingMonthLabel, STATUS_LABELS } from "./invoices-labels";
 
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);
@@ -166,4 +172,187 @@ export const generateMonthlyInvoices = async (formData: FormData) => {
 
   revalidatePath("/invoices");
   revalidatePath("/payments");
+};
+
+// ─── Invoices table (server-side pagination, filtering, sorting) ─────────────
+
+const invoiceStatusSet = new Set<InvoiceStatus>(invoiceStatuses);
+
+// Build the Prisma where clause for the table: global search (student, guardian,
+// invoice number), status tab, and billing-month filter.
+const invoiceWhereInput = (
+  params: InvoicesQueryParams,
+  organizationId: string
+): Prisma.InvoiceWhereInput => {
+  const where: Prisma.InvoiceWhereInput = { organizationId };
+
+  if (params.search) {
+    where.OR = [
+      { invoiceNumber: { contains: params.search, mode: "insensitive" } },
+      {
+        student: { fullName: { contains: params.search, mode: "insensitive" } },
+      },
+      {
+        student: {
+          guardians: {
+            some: {
+              guardian: {
+                fullName: { contains: params.search, mode: "insensitive" },
+              },
+            },
+          },
+        },
+      },
+    ];
+  }
+
+  if (params.filters && params.filters.length > 0) {
+    const values = (filterId: string) => {
+      const filter = params.filters?.find((f) => f.id === filterId);
+      return Array.isArray(filter?.value) ? filter.value : [filter?.value];
+    };
+
+    const statusValues = values("status").filter(
+      (v): v is InvoiceStatus =>
+        typeof v === "string" && invoiceStatusSet.has(v as InvoiceStatus)
+    );
+    if (statusValues.length > 0) {
+      where.status = { in: statusValues };
+    }
+
+    const monthValues = values("billingMonth").filter(
+      (v): v is string => typeof v === "string"
+    );
+    if (monthValues.length > 0) {
+      where.billingMonth = { in: monthValues };
+    }
+  }
+
+  return where;
+};
+
+const SORT_BUILDERS: Record<
+  string,
+  (sort: {
+    id: string;
+    desc: boolean;
+  }) => Prisma.InvoiceOrderByWithRelationInput
+> = {
+  issuedDate: (sort) => ({ issueDate: sort.desc ? "desc" : "asc" }),
+  dueDate: (sort) => ({ dueDate: sort.desc ? "desc" : "asc" }),
+  total: (sort) => ({ totalSen: sort.desc ? "desc" : "asc" }),
+  studentName: (sort) => ({
+    student: { fullName: sort.desc ? "desc" : "asc" },
+  }),
+  status: (sort) => ({ status: sort.desc ? "desc" : "asc" }),
+};
+
+const invoiceOrderByInput = (
+  params: InvoicesQueryParams
+): Prisma.InvoiceOrderByWithRelationInput[] => {
+  if (!params.sorting || params.sorting.length === 0) {
+    // Default: newest billing month first, then invoice number.
+    return [{ billingMonth: "desc" }, { invoiceNumber: "desc" }];
+  }
+
+  return params.sorting.flatMap((sort) => {
+    const build = SORT_BUILDERS[sort.id];
+    return build ? [build(sort)] : [];
+  });
+};
+
+export async function getInvoicesForTable(params: InvoicesQueryParams) {
+  const tenant = await requireTenant();
+
+  const where = invoiceWhereInput(params, tenant.organizationId);
+  const orderBy = invoiceOrderByInput(params);
+
+  const [invoices, totalCount] = await Promise.all([
+    database.invoice.findMany({
+      where,
+      orderBy,
+      skip: params.page * params.pageSize,
+      take: params.pageSize,
+      include: {
+        lineItems: true,
+        student: {
+          include: {
+            guardians: {
+              where: { isPrimary: true },
+              include: { guardian: true },
+              take: 1,
+            },
+            level: { select: { name: true } },
+          },
+        },
+      },
+    }),
+    database.invoice.count({ where }),
+  ]);
+
+  return {
+    data: invoices,
+    totalCount,
+  };
+}
+
+// Distinct billing months for the table's month filter (newest first).
+export async function getInvoiceFilterOptions() {
+  const tenant = await requireTenant();
+
+  const months = await database.invoice.findMany({
+    where: { organizationId: tenant.organizationId },
+    distinct: ["billingMonth"],
+    select: { billingMonth: true },
+    orderBy: { billingMonth: "desc" },
+  });
+
+  return {
+    months: months.map((month) => ({
+      label: formatBillingMonthLabel(month.billingMonth),
+      value: month.billingMonth,
+    })),
+    statuses: invoiceStatuses.map((status) => ({
+      label: STATUS_LABELS[status],
+      value: status,
+    })),
+  };
+}
+
+// Void one or more invoices (bulk action from the table or the detail sheet).
+export const voidInvoices = async (formData: FormData) => {
+  const tenant = await requireTenantRole(["ADMIN"]);
+  const raw = getString(formData, "invoiceIds");
+
+  if (!raw) {
+    throw new Error("Select at least one invoice to void.");
+  }
+
+  let invoiceIds: unknown;
+
+  try {
+    invoiceIds = JSON.parse(raw);
+  } catch {
+    throw new Error("Invalid invoice selection.");
+  }
+
+  const parsed = voidInvoicesInputSchema.safeParse({ invoiceIds });
+
+  if (!parsed.success) {
+    throw new Error("Invalid invoice selection.");
+  }
+
+  const result = await database.invoice.updateMany({
+    where: {
+      organizationId: tenant.organizationId,
+      id: { in: parsed.data.invoiceIds },
+      status: { notIn: ["VOID", "PAID"] },
+    },
+    data: { status: "VOID", voidedAt: new Date() },
+  });
+
+  revalidatePath("/invoices");
+  revalidatePath("/payments");
+
+  return { count: result.count };
 };
