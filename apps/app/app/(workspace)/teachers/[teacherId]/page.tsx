@@ -34,7 +34,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import Balancer from "react-wrap-balancer";
 import { Header } from "../../components/header";
 
 interface TeacherPageProperties {
@@ -134,7 +133,7 @@ const TeacherPage = async ({ params }: TeacherPageProperties) => {
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h1 className="font-semibold text-2xl tracking-tight md:text-3xl">
-                    <Balancer>{teacher.fullName}</Balancer>
+                    <span className="text-balance">{teacher.fullName}</span>
                   </h1>
                   <Badge variant="outline">{teacher.code}</Badge>
                 </div>

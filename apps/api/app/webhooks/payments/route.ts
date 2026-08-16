@@ -1,10 +1,6 @@
 import { analytics } from "@repo/analytics/server";
 import { appName } from "@repo/config/brand";
-import {
-  database,
-  type SubscriptionPlan,
-  type SubscriptionStatus,
-} from "@repo/database";
+import { database, Prisma, type SubscriptionPlan, type SubscriptionStatus } from "@repo/database";
 import { parseError } from "@repo/observability/error";
 import { log } from "@repo/observability/log";
 import type { Stripe } from "@repo/payments";
@@ -204,6 +200,47 @@ const handleSubscriptionScheduleCanceled = async (
   });
 };
 
+/**
+ * Stripe redelivers webhooks until it receives a 2xx. Without deduplication a
+ * lost response causes the same event to be handled again (double-firing
+ * analytics or double-applying a side effect). We record each event id once and
+ * treat a re-delivery as a no-op, making every handler idempotent by default.
+ */
+const tryClaimWebhookEvent = async (
+  eventId: string,
+  eventType: string
+): Promise<boolean> => {
+  try {
+    await database.webhookEvent.create({
+      data: {
+        eventId,
+        eventType,
+        provider: "stripe",
+        status: "PROCESSING",
+      },
+    });
+
+    return true;
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      // Duplicate unique (provider, eventId): already processed this event.
+      return false;
+    }
+
+    throw error;
+  }
+};
+
+const markWebhookEventProcessed = async (eventId: string) => {
+  await database.webhookEvent.updateMany({
+    where: { eventId, provider: "stripe" },
+    data: { processedAt: new Date(), status: "PROCESSED" },
+  });
+};
+
 export const POST = async (request: Request): Promise<Response> => {
   if (!(stripe && env.STRIPE_WEBHOOK_SECRET)) {
     // Return a server error so Stripe retries once the webhook is configured.
@@ -214,20 +251,29 @@ export const POST = async (request: Request): Promise<Response> => {
     );
   }
 
-  try {
-    const body = await request.text();
-    const headerPayload = await headers();
-    const signature = headerPayload.get("stripe-signature");
+  const body = await request.text();
+  const headerPayload = await headers();
+  const signature = headerPayload.get("stripe-signature");
+  let event: Stripe.Event | undefined;
 
+  try {
     if (!signature) {
       throw new Error("missing stripe-signature header");
     }
 
-    const event = stripe.webhooks.constructEvent(
+    event = stripe.webhooks.constructEvent(
       body,
       signature,
       env.STRIPE_WEBHOOK_SECRET
     );
+
+    // Idempotency guard: return 200 for a re-delivered event without
+    // re-processing it.
+    if (!(await tryClaimWebhookEvent(event.id, event.type))) {
+      log.info(`Deduplicated Stripe event ${event.id} (${event.type})`);
+
+      return NextResponse.json({ deduplicated: true, ok: true });
+    }
 
     switch (event.type) {
       case "checkout.session.completed": {
@@ -249,6 +295,7 @@ export const POST = async (request: Request): Promise<Response> => {
       }
     }
 
+    await markWebhookEventProcessed(event.id);
     await analytics?.shutdown();
 
     return NextResponse.json({ result: event, ok: true });
@@ -256,6 +303,19 @@ export const POST = async (request: Request): Promise<Response> => {
     const message = parseError(error);
 
     log.error(message);
+
+    // Release the claim (best-effort) so a Stripe retry re-processes the event.
+    // Returning 500 without releasing would let a transient mid-handler failure
+    // be silently dropped as a "duplicate" on the next delivery.
+    if (event?.id) {
+      try {
+        await database.webhookEvent.deleteMany({
+          where: { eventId: event.id, provider: "stripe" },
+        });
+      } catch {
+        // Ignore cleanup errors; the primary failure is already being reported.
+      }
+    }
 
     return NextResponse.json(
       {

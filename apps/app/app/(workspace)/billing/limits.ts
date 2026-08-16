@@ -6,9 +6,11 @@
 export {
   assertAdminWithinPlanLimit,
   assertWithinPlanLimit,
+  assertWithinPlanLimitTx,
   getBillingState,
   getOrCreateSubscription,
   getPlanUsageRows,
   getSubscriptionUsage,
   type LimitResource,
+  type UsageClient,
 } from "@repo/payments/subscription";

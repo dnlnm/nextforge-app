@@ -28,7 +28,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import Balancer from "react-wrap-balancer";
 import { Header } from "../../components/header";
 
 interface LevelPageProperties {
@@ -105,7 +104,7 @@ const LevelPage = async ({ params }: LevelPageProperties) => {
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h1 className="font-semibold text-2xl tracking-tight md:text-3xl">
-                    <Balancer>{level.name}</Balancer>
+                    <span className="text-balance">{level.name}</span>
                   </h1>
                   <Badge variant="outline">{level.code}</Badge>
                   <Badge variant="secondary">{level.stage}</Badge>

@@ -3,7 +3,7 @@
 import { ensureLocalUser } from "@repo/auth/organizations";
 import { appName } from "@repo/config/brand";
 import { database, type SubscriptionPlan } from "@repo/database";
-import { formatLongMonthYear } from "@repo/date";
+import { formatLongMonthYear, getMalaysiaCalendarDate } from "@repo/date";
 import type { InvoiceItem } from "@repo/design-system/components/billingsdk/invoice-history";
 import { formatMoneyRm as formatRM } from "@repo/money";
 import { stripe } from "@repo/payments";
@@ -180,7 +180,10 @@ export const getStripeInvoices = async (
 
     return invoices.data.map((invoice) => {
       const date = new Date(invoice.created * 1000);
-      const formattedDate = date.toISOString().split("T")[0];
+      // The calendar day of a Stripe invoice's creation instant, as seen in
+      // Malaysia (an instant → MYT calendar date), per the @repo/date
+      // convention. `toISOString().split("T")[0]` would give the UTC day.
+      const formattedDate = getMalaysiaCalendarDate(date);
       const priceDetail = invoice.lines?.data[0]?.pricing?.price_details?.price;
       const priceId =
         typeof priceDetail === "string" ? priceDetail : priceDetail?.id;

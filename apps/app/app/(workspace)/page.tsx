@@ -1,7 +1,12 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
-import { formatRelativeTime, formatShortDate } from "@repo/date";
+import {
+  formatMonthShort,
+  formatRelativeTime,
+  formatShortDate,
+  getMalaysiaToday,
+} from "@repo/date";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
@@ -53,8 +58,6 @@ export const metadata: Metadata = {
 
 const formatDate = (date: Date) => formatShortDate(date);
 
-const todayDate = () => new Date(new Date().toISOString().slice(0, 10));
-
 const startOfMonth = (date: Date) =>
   new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
 
@@ -94,7 +97,8 @@ const App = async () => {
   const currency = await getOrganizationCurrency(tenant.organizationId);
   const formatMoney = (amountSen: number) =>
     formatMoneyShared(amountSen, { currency });
-  const today = todayDate();
+  // "Business today" is the Asia/Kuala_Lumpur calendar day, per AGENTS.md.
+  const today = getMalaysiaToday();
   const monthStart = startOfMonth(today);
   const nextMonthStart = startOfNextMonth(today);
   const previousMonthStart = startOfPreviousMonth(today);
@@ -239,11 +243,21 @@ const App = async () => {
 
     return {
       collected: Math.round(cumulativeCollectedSen / 100),
-      day: `${day} ${today.toLocaleString("en-MY", { month: "short" })}`,
+      day: `${day} ${formatMonthShort(today)}`,
     };
   });
+  // Map each attendance status to an existing semantic token so the chart slices
+  // render in both light and dark mode. (The previous `--color-present/...`
+  // variables were never defined, so the chart was invisible.)
+  const attendanceFillByStatus: Record<string, string> = {
+    PRESENT: "var(--success)",
+    ABSENT: "var(--destructive)",
+    LATE: "var(--warning)",
+    EXCUSED: "var(--info)",
+  };
   const attendanceData = currentMonthAttendance.map((item) => ({
-    fill: `var(--color-${item.status.toLowerCase()})`,
+    fill:
+      attendanceFillByStatus[item.status] ?? "var(--muted-foreground)",
     label: item.status[0] + item.status.slice(1).toLowerCase(),
     status: item.status.toLowerCase(),
     value: item._count.id,

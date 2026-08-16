@@ -1,6 +1,5 @@
 "use client";
 
-import type { DayOfWeek } from "@repo/database";
 import { formatWallClockTime } from "@repo/date";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
@@ -91,8 +90,6 @@ const formatTime = (time: string) => {
 
   return formatWallClockTime(time);
 };
-
-const newScheduleId = () => crypto.randomUUID();
 
 const SubmitButton = () => {
   const { pending } = useFormStatus();
@@ -206,15 +203,7 @@ export const CreateClassForm = ({
   );
   const [capacity, setCapacity] = useState("");
   const [monthlyFee, setMonthlyFee] = useState("");
-  const [schedules, setSchedules] = useState<ScheduleEntry[]>([
-    {
-      dayOfWeek: "" as DayOfWeek,
-      endsAt: "",
-      id: newScheduleId(),
-      roomId: "",
-      startsAt: "",
-    },
-  ]);
+  const [schedules, setSchedules] = useState<ScheduleEntry[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const selectedSubject = subjects.find((subject) => subject.id === subjectId);

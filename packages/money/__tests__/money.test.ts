@@ -62,11 +62,20 @@ describe("formatMoneyCsv", () => {
     expect(formatMoneyCsv(99)).toBe("0.99");
     expect(formatMoneyCsv(0)).toBe("0.00");
   });
+
+  test("pads cents and stays exact for large sen values", () => {
+    expect(formatMoneyCsv(5)).toBe("0.05");
+    expect(formatMoneyCsv(1_505)).toBe("15.05");
+    // A very large integer-sen value must not round to a float artifact like
+    // `...0.999999` (this is the reason the split formatter avoids division).
+    expect(formatMoneyCsv(9_007_199_254_740_993)).not.toContain("0.99");
+  });
 });
 
 describe("formatMoneyRm", () => {
   test("returns a compact RM string", () => {
     expect(formatMoneyRm(9900)).toBe("RM99.00");
     expect(formatMoneyRm(0)).toBe("RM0.00");
+    expect(formatMoneyRm(1_505)).toBe("RM15.05");
   });
 });

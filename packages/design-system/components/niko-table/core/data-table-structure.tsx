@@ -230,8 +230,11 @@ const BodyRow = React.memo(function BodyRow({
       data-state={isSelected ? "selected" : undefined}
       className={cn(
         isClickable && "cursor-pointer",
+        isClickable &&
+          "focus-visible:bg-muted/40 focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-[-2px]",
         "group data-[context-menu-open]:bg-muted/50",
       )}
+      tabIndex={isClickable ? 0 : undefined}
     >
       {visibleCells.map(cell => {
         const flashing =
@@ -405,6 +408,25 @@ export function DataTableBody<TData>({
     [onRowClick, table],
   )
 
+  // Let keyboard users activate a clickable row with Enter/Space (rows are
+  // focusable via tabIndex when the body has `onRowClick`).
+  const handleBodyKeyDown = React.useCallback(
+    (event: React.KeyboardEvent<HTMLTableSectionElement>) => {
+      if (!onRowClick) return
+      if (event.key !== "Enter" && event.key !== " ") return
+      const target = event.target as HTMLElement
+      const row = resolveRowFromClick(target, table)
+      if (!row) return
+      // Prevent the page from scrolling and Space from any default action.
+      event.preventDefault()
+      onRowClick(
+        row.original,
+        event as unknown as React.MouseEvent<HTMLElement>,
+      )
+    },
+    [onRowClick, table],
+  )
+
   // Hoist expand-column lookup above the row map (was O(rows × cols) per render).
   // `columns` is in deps because the table reference is too stable on its own.
   const expandColumnId = React.useMemo(
@@ -562,6 +584,7 @@ export function DataTableBody<TData>({
       ref={containerRef}
       className={className}
       onClick={onRowClick ? handleBodyClick : undefined}
+      onKeyDown={onRowClick ? handleBodyKeyDown : undefined}
     >
       {/* Only show rows when not loading */}
       {!isLoading && rows?.length

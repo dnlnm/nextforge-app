@@ -200,9 +200,20 @@ export const getAcademicYearStart = (now = new Date()): Date => {
   return new Date(Date.UTC(academicYear, 6, 1));
 };
 
+const monthShortFormatter = new Intl.DateTimeFormat("en-MY", {
+  month: "short",
+  timeZone: "UTC",
+});
+
+const monthLabelFormatter = new Intl.DateTimeFormat("en-MY", {
+  month: "short",
+  year: "2-digit",
+  timeZone: "UTC",
+});
+
+/** e.g. `formatMonthShort(...)` -> "Aug" (no year), in the UTC calendar day. */
+export const formatMonthShort = (date: Date): string =>
+  monthShortFormatter.format(date);
+
 export const formatMonthLabel = (date: Date): string =>
-  new Intl.DateTimeFormat("en-MY", {
-    month: "short",
-    year: "2-digit",
-    timeZone: "UTC",
-  }).format(date);
+  monthLabelFormatter.format(date);

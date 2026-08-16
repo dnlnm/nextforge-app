@@ -35,7 +35,7 @@ import {
 } from "@repo/design-system/components/ui/tabs";
 import { getClassTrends } from "@repo/domain/analytics";
 import { getClassDashboard } from "@repo/domain/classes/dashboard";
-import { formatMoneyWhole as formatMoneyShared } from "@repo/money";
+import { formatMoneyCsv as formatMoneyInput, formatMoneyWhole as formatMoneyShared } from "@repo/money";
 import {
   CalendarDaysIcon,
   CircleDollarSignIcon,
@@ -352,7 +352,7 @@ const ClassPage = async ({ params }: ClassPageProperties) => {
                                 defaultValue={
                                   enrollment.customFeeSen === null
                                     ? ""
-                                    : (enrollment.customFeeSen / 100).toFixed(2)
+                                    : formatMoneyInput(enrollment.customFeeSen)
                                 }
                                 min="0"
                                 name="customFee"

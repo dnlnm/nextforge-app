@@ -16,13 +16,11 @@ import {
   StatIndicator,
   StatLabel,
   StatPanel,
-  StatTrend,
   StatValue,
 } from "@repo/design-system/components/ui/stat";
 import { formatMoneyWhole as formatMoneyShared } from "@repo/money";
 import { privateFileUrl } from "@repo/storage/client";
 import {
-  ArrowUp,
   ChevronRightIcon,
   LandmarkIcon,
   MoreHorizontalIcon,
@@ -32,32 +30,33 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import Balancer from "react-wrap-balancer";
 import { StudentAvatar } from "../components/student-avatar";
+import { getStudentDetail } from "./actions";
+import type { Student } from "./columns";
 import { StudentsTable } from "./students-table";
 
-type Student = {
-  id: string;
-  fullName: string;
-  status: string;
+type StudentDetail = {
   code: string;
   dateOfBirth: Date | null;
-  gender: string | null;
-  phone: string | null;
   email: string | null;
+  enrolledAt: Date;
+  fullName: string;
+  gender: string | null;
+  id: string;
+  phone: string | null;
   photoKey: string | null;
+  status: string;
   level: {
     name: string;
   } | null;
-  enrolledAt: Date;
   guardians: Array<{
     guardian: {
-      fullName: string | null;
-      phone: string | null;
-      email: string | null;
       addressLine1: string | null;
       addressLine2: string | null;
       city: string | null;
+      email: string | null;
+      fullName: string | null;
+      phone: string | null;
       state: string | null;
     };
   }>;
@@ -74,9 +73,9 @@ type FilterOption = {
 
 type StudentsPageClientProps = {
   activeStudents: number;
-  allStudents: Student[];
   classOptions: FilterOption[];
   currency: string;
+  defaultStudentDetail: StudentDetail | null;
   initialData: Student[];
   initialTotalCount: number;
   levelOptions: FilterOption[];
@@ -93,9 +92,9 @@ const formatDate = (date: Date) => formatShortDate(date);
 
 export function StudentsPageClient({
   activeStudents,
-  allStudents,
   classOptions,
   currency,
+  defaultStudentDetail,
   initialData,
   initialTotalCount,
   levelOptions,
@@ -109,11 +108,21 @@ export function StudentsPageClient({
 }: StudentsPageClientProps) {
   const formatMoney = (amountSen: number) =>
     formatMoneyShared(amountSen, { currency });
-  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
-    allStudents[0]?.id ?? null
+  const [selectedStudent, setSelectedStudent] = useState<StudentDetail | null>(
+    defaultStudentDetail
   );
 
-  const selectedStudent = allStudents.find((s) => s.id === selectedStudentId);
+  // When the user selects a row that isn't the default, hydrate its detail
+  // (primary guardian + invoices) on demand instead of shipping every student.
+  const onSelectStudent = async (studentId: string) => {
+    if (selectedStudent?.id === studentId) {
+      return;
+    }
+
+    const detail = await getStudentDetail(studentId);
+    setSelectedStudent(detail as StudentDetail | null);
+  };
+
   const selectedGuardian = selectedStudent?.guardians[0]?.guardian;
 
   const selectedInvoices = selectedStudent?.invoices ?? [];
@@ -147,10 +156,7 @@ export function StudentsPageClient({
               <StatValue>{totalStudents.toLocaleString()}</StatValue>
             </StatPanel>
             <StatFooter>
-              <StatTrend trend="up">
-                <ArrowUp />
-                +12 from last month
-              </StatTrend>
+              <StatDescription>All registered students</StatDescription>
             </StatFooter>
           </Stat>
 
@@ -180,10 +186,7 @@ export function StudentsPageClient({
               <StatValue>{newStudentsThisMonth.toLocaleString()}</StatValue>
             </StatPanel>
             <StatFooter>
-              <StatTrend trend="up">
-                <ArrowUp />
-                +4 from last month
-              </StatTrend>
+              <StatDescription>Added this month</StatDescription>
             </StatFooter>
           </Stat>
 
@@ -208,7 +211,7 @@ export function StudentsPageClient({
           initialData={initialData}
           initialTotalCount={initialTotalCount}
           levelOptions={levelOptions}
-          onRowClick={(studentId) => setSelectedStudentId(studentId)}
+          onRowClick={(studentId) => onSelectStudent(studentId)}
           statusOptions={statusOptions}
           tutorOptions={tutorOptions}
         />
@@ -232,7 +235,7 @@ export function StudentsPageClient({
                 </div>
                 <div className="min-w-0">
                   <CardTitle className="text-xl">
-                    <Balancer>{selectedStudent.fullName}</Balancer>
+                    <span className="text-balance">{selectedStudent.fullName}</span>
                   </CardTitle>
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-muted-foreground text-sm">
                     <span>{selectedStudent.code}</span>

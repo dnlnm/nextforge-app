@@ -9,7 +9,7 @@ import {
 } from "@repo/schemas/students";
 import { getTeacherProfileId } from "../lib/teacher-profile";
 import {
-  assertWithinPlanLimit,
+  assertWithinPlanLimitTx,
   orgProcedure,
   roleProcedure,
 } from "../middleware";
@@ -255,8 +255,6 @@ export const studentsRouter = createTRPCRouter({
   create: roleProcedure(["ADMIN"])
     .input(createStudentInputSchema)
     .mutation(async ({ ctx, input }) => {
-      await assertWithinPlanLimit(ctx, "students");
-
       const levelId =
         input.levelId === "none" || input.levelId === undefined
           ? null
@@ -268,6 +266,10 @@ export const studentsRouter = createTRPCRouter({
       };
 
       const student = await database.$transaction(async (tx) => {
+        // Check the plan limit inside the same transaction as the create so the
+        // check and the write commit (or roll back) together.
+        await assertWithinPlanLimitTx(ctx, tx, "students");
+
         const organization = await tx.organization.update({
           where: { id: ctx.organizationId },
           data: { studentCodeSequence: { increment: 1 } },

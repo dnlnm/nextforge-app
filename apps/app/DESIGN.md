@@ -143,6 +143,8 @@ The system is compact and dependable rather than expressive for its own sake. Fa
 
 The palette is a cool operational neutral field with one assured indigo voice and localized semantic status color.
 
+> **Implementation note (token drift — DECISION NEEDED):** the frontmatter tokens below and the sections that follow specify **Control Indigo** as the primary action color, focus ring, and chart palette. As currently implemented in `packages/design-system/styles/globals.css`, `--primary`/`--ring`/`--chart-1..5` are **neutral/grayscale** (not indigo). This is either a deliberate "calm neutral" pivot that supersedes this spec, or an unintended drift. Until a confirm-and-reconcile decision is made, treat the **implemented tokens in `globals.css` as the source of truth** for new UI work and do not re-apply indigo primaries/focus-rings.
+
 ### Primary
 
 - **Control Indigo:** Main actions, checked controls, links, the brand mark, focus rings, and selected emphasis. It should signal authority and progress, not wash entire routine surfaces.

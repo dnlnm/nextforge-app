@@ -5,7 +5,11 @@ import { database } from "@repo/database";
 import { invoiceGeneratedEvent } from "@repo/domain/students/activity";
 import { billingMonthSchema } from "@repo/schemas/invoices";
 import { revalidatePath } from "next/cache";
-import { assertWithinPlanLimit } from "../billing/limits";
+import { assertWithinPlanLimitTx } from "../billing/limits";
+import {
+  formatSequenceNumber,
+  reserveNextSequence,
+} from "../billing/sequences";
 
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);
@@ -23,12 +27,6 @@ const getDueDate = (billingMonth: string, dueDay: number) => {
   const [year, month] = billingMonth.split("-").map(Number);
 
   return new Date(Date.UTC(year, month - 1, Math.min(Math.max(dueDay, 1), 28)));
-};
-
-const nextInvoiceNumber = async (organizationId: string, prefix: string) => {
-  const count = await database.invoice.count({ where: { organizationId } });
-
-  return `${prefix}-${String(count + 1).padStart(5, "0")}`;
 };
 
 export const generateMonthlyInvoices = async (formData: FormData) => {
@@ -81,76 +79,90 @@ export const generateMonthlyInvoices = async (formData: FormData) => {
     enrollmentsByStudent.size -
     new Set(existingInvoices.map((invoice) => invoice.studentId)).size;
 
-  await assertWithinPlanLimit({
-    increment: newInvoiceCount,
-    organizationId: tenant.organizationId,
-    resource: "invoicesPerMonth",
-    userId: tenant.authUserId,
-  });
+  // Run the whole batch inside one transaction so invoice numbers are reserved
+  // atomically, the plan-limit check and creates commit (or roll back)
+  // together, and a mid-batch failure no longer leaves a partial set of
+  // students invoiced.
+  await database.$transaction(async (tx) => {
+    await assertWithinPlanLimitTx(tx, {
+      increment: newInvoiceCount,
+      organizationId: tenant.organizationId,
+      resource: "invoicesPerMonth",
+      userId: tenant.authUserId,
+    });
 
-  for (const [studentId, studentEnrollments] of enrollmentsByStudent) {
-    const existing = await database.invoice.findUnique({
-      where: {
-        organizationId_studentId_billingMonth: {
-          billingMonth,
-          organizationId: tenant.organizationId,
-          studentId,
+    for (const [studentId, studentEnrollments] of enrollmentsByStudent) {
+      const existing = await tx.invoice.findUnique({
+        where: {
+          organizationId_studentId_billingMonth: {
+            billingMonth,
+            organizationId: tenant.organizationId,
+            studentId,
+          },
         },
-      },
-      select: { id: true },
-    });
+        select: { id: true },
+      });
 
-    if (existing) {
-      continue;
-    }
+      if (existing) {
+        continue;
+      }
 
-    const lineItems = studentEnrollments.map((enrollment) => {
-      const amountSen =
-        enrollment.customFeeSen ?? enrollment.class.monthlyFeeSen ?? 0;
+      const lineItems = studentEnrollments.map((enrollment) => {
+        const amountSen =
+          enrollment.customFeeSen ?? enrollment.class.monthlyFeeSen ?? 0;
 
-      return {
-        classId: enrollment.classId,
-        description: `${enrollment.class.subject.name} - ${enrollment.class.name}`,
-        quantity: 1,
-        totalSen: amountSen,
-        unitPriceSen: amountSen,
-      };
-    });
-    const totalSen = lineItems.reduce((sum, item) => sum + item.totalSen, 0);
+        return {
+          classId: enrollment.classId,
+          description: `${enrollment.class.subject.name} - ${enrollment.class.name}`,
+          quantity: 1,
+          totalSen: amountSen,
+          unitPriceSen: amountSen,
+        };
+      });
+      const totalSen = lineItems.reduce((sum, item) => sum + item.totalSen, 0);
 
-    const invoiceNumber = await nextInvoiceNumber(
-      tenant.organizationId,
-      settings?.invoicePrefix ?? "INV"
-    );
+      const invoiceNumberValue = await reserveNextSequence(
+        tx,
+        tenant.organizationId,
+        "INVOICE"
+      );
+      const invoiceNumber = formatSequenceNumber(
+        settings?.invoicePrefix ?? "INV",
+        invoiceNumberValue
+      );
 
-    const invoice = await database.invoice.create({
-      data: {
-        organizationId: tenant.organizationId,
-        billingMonth,
-        dueDate: getDueDate(billingMonth, settings?.defaultInvoiceDueDay ?? 7),
-        invoiceNumber,
-        lineItems: { create: lineItems },
-        status: "ISSUED",
+      const invoice = await tx.invoice.create({
+        data: {
+          organizationId: tenant.organizationId,
+          billingMonth,
+          dueDate: getDueDate(
+            billingMonth,
+            settings?.defaultInvoiceDueDay ?? 7
+          ),
+          invoiceNumber,
+          lineItems: { create: lineItems },
+          status: "ISSUED",
+          studentId,
+          subtotalSen: totalSen,
+          totalSen,
+        },
+        select: { id: true },
+      });
+
+      const student = studentEnrollments[0]?.student;
+
+      const event = invoiceGeneratedEvent(
+        tenant.organizationId,
         studentId,
-        subtotalSen: totalSen,
-        totalSen,
-      },
-      select: { id: true },
-    });
+        student?.fullName ?? "student",
+        invoice.id,
+        invoiceNumber,
+        tenant.userId
+      );
 
-    const student = studentEnrollments[0]?.student;
-
-    const event = invoiceGeneratedEvent(
-      tenant.organizationId,
-      studentId,
-      student?.fullName ?? "student",
-      invoice.id,
-      invoiceNumber,
-      tenant.userId
-    );
-
-    await database.auditEvent.create({ data: event });
-  }
+      await tx.auditEvent.create({ data: event });
+    }
+  });
 
   revalidatePath("/invoices");
   revalidatePath("/payments");

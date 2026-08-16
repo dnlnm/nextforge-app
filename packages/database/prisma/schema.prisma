@@ -66,6 +66,7 @@ model Organization {
   teachers            TeacherProfile[]
   studentImports      StudentImport[]
   studentImportRows   StudentImportRow[]
+  sequences           OrganizationSequence[]
   studentCodeSequence Int                       @default(0)
 
   @@index([slug])
@@ -78,6 +79,23 @@ model ReservedSlug {
   slug      String   @unique
   reason    String?
   createdAt DateTime @default(now())
+}
+
+/**
+ * Per-organization monotonic counters used to generate sequential human-facing
+ * numbers (invoice numbers, receipt numbers). Using a counter row instead of
+ * `count(...) + 1` keeps numbers monotonic, gap-free, and race-safe under
+ * concurrency.
+ */
+model OrganizationSequence {
+  id             String       @id @default(cuid())
+  organizationId String
+  kind           String
+  value          Int          @default(0)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, kind])
+  @@index([organizationId])
 }
 
 model OrganizationSubscription {

@@ -1,64 +1,106 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
+import { formatMonthShort, getMalaysiaToday } from "@repo/date";
 import { Button } from "@repo/design-system/components/ui/button";
 import { ChevronDownIcon, PlusIcon, UploadIcon } from "lucide-react";
 import Link from "next/link";
 import { getOrganizationCurrency } from "@/lib/currency";
 import { Header } from "../components/header";
-import { getStudentFilterOptions, getStudentsForTable } from "./actions";
+import {
+  getStudentDetail,
+  getStudentFilterOptions,
+  getStudentsForTable,
+} from "./actions";
 import { StudentsPageClient } from "./students-page-client";
+
+import type { InvoiceStatus } from "@repo/database";
+
+const openInvoiceStatuses: InvoiceStatus[] = [
+  "ISSUED",
+  "PARTIALLY_PAID",
+  "OVERDUE",
+];
 
 const StudentsPage = async () => {
   const tenant = await requireTenantRole(["ADMIN"]);
-  const today = new Date();
+  // "Today" is the Asia/Kuala_Lumpur calendar day; derive the month start from
+  // it using its UTC-midnight representation (a UTC-midnight calendar date).
+  const today = getMalaysiaToday();
   const startOfMonth = new Date(
     Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1)
   );
 
-  const [currency, allStudents, initialTableData, filterOptions] =
-    await Promise.all([
-      getOrganizationCurrency(tenant.organizationId),
-      database.student.findMany({
-        where: { organizationId: tenant.organizationId, archivedAt: null },
-        include: {
-          invoices: {
-            where: { status: { in: ["ISSUED", "PARTIALLY_PAID", "OVERDUE"] } },
-          },
-          guardians: {
-            where: { isPrimary: true },
-            include: { guardian: true },
-            take: 1,
-          },
-          level: true,
-        },
-      }),
-      getStudentsForTable({
-        page: 0,
-        pageSize: 10,
-      }),
-      getStudentFilterOptions(),
-    ]);
+  const [
+    currency,
+    totalStudents,
+    activeStudents,
+    newStudentsThisMonth,
+    outstanding,
+    initialTableData,
+    filterOptions,
+  ] = await Promise.all([
+    getOrganizationCurrency(tenant.organizationId),
+    database.student.count({
+      where: { organizationId: tenant.organizationId, archivedAt: null },
+    }),
+    database.student.count({
+      where: {
+        archivedAt: null,
+        organizationId: tenant.organizationId,
+        status: "ACTIVE",
+      },
+    }),
+    database.student.count({
+      where: {
+        archivedAt: null,
+        createdAt: { gte: startOfMonth },
+        organizationId: tenant.organizationId,
+      },
+    }),
+    // Aggregate the outstanding balance in SQL instead of loading every student
+    // with nested invoices just to sum it.
+    database.invoice.aggregate({
+      _sum: { amountPaidSen: true, totalSen: true },
+      where: {
+        organizationId: tenant.organizationId,
+        status: { in: openInvoiceStatuses },
+      },
+    }),
+    getStudentsForTable({
+      page: 0,
+      pageSize: 10,
+    }),
+    getStudentFilterOptions(),
+  ]);
 
-  const activeStudents = allStudents.filter(
-    (student) => student.status === "ACTIVE"
+  // Fields set by InvoiceStatus.PAID/voided rows never factor into outstanding
+  // (they're excluded above); open invoices are never overpaid, so the balance
+  // is a plain difference.
+  const outstandingSum = outstanding._sum ?? {
+    amountPaidSen: 0,
+    totalSen: 0,
+  };
+  const totalOutstandingSen = Math.max(
+    0,
+    (outstandingSum.totalSen ?? 0) - (outstandingSum.amountPaidSen ?? 0)
   );
-  const newStudentsThisMonth = allStudents.filter(
-    (student) => student.createdAt >= startOfMonth
-  );
-  const totalOutstandingSen = allStudents.reduce(
-    (total, student) =>
-      total +
-      student.invoices.reduce(
-        (invoiceTotal, invoice) =>
-          invoiceTotal + Math.max(0, invoice.totalSen - invoice.amountPaidSen),
-        0
-      ),
-    0
-  );
-  const studentsWithOutstanding = allStudents.filter((student) =>
-    student.invoices.some((invoice) => invoice.totalSen > invoice.amountPaidSen)
-  );
+
+  // Count how many distinct students owe something (have an open invoice).
+  const studentsWithInvoiceBalance = await database.invoice.groupBy({
+    by: ["studentId"],
+    where: {
+      organizationId: tenant.organizationId,
+      status: { in: openInvoiceStatuses },
+    },
+  });
+
+  // Detail of the first table row, used to seed the aside panel. The full list
+  // of students + invoices is no longer shipped to the client.
+  const firstStudent = initialTableData.data[0];
+  const defaultStudentDetail = firstStudent
+    ? await getStudentDetail(firstStudent.id)
+    : null;
 
   return (
     <>
@@ -96,19 +138,19 @@ const StudentsPage = async () => {
         </div>
 
         <StudentsPageClient
-          activeStudents={activeStudents.length}
-          allStudents={allStudents}
+          activeStudents={activeStudents}
           classOptions={filterOptions.classes}
           currency={currency}
+          defaultStudentDetail={defaultStudentDetail}
           initialData={initialTableData.data}
           initialTotalCount={initialTableData.totalCount}
           levelOptions={filterOptions.levels}
-          monthLabel={today.toLocaleString("en-MY", { month: "short" })}
-          newStudentsThisMonth={newStudentsThisMonth.length}
+          monthLabel={formatMonthShort(today)}
+          newStudentsThisMonth={newStudentsThisMonth}
           outstandingSen={totalOutstandingSen}
           statusOptions={filterOptions.statuses}
-          studentsWithOutstanding={studentsWithOutstanding.length}
-          totalStudents={allStudents.length}
+          studentsWithOutstanding={studentsWithInvoiceBalance.length}
+          totalStudents={totalStudents}
           tutorOptions={filterOptions.tutors}
         />
       </main>

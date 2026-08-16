@@ -10,9 +10,8 @@ import {
   PopoverTrigger,
 } from "@repo/design-system/components/ui/popover";
 import { cn } from "@repo/design-system/lib/utils";
-import { getDateFormatLocale } from "@repo/date";
+import { formatLongDate } from "@repo/date";
 import type { Dictionary } from "@repo/internationalization";
-import { format } from "date-fns";
 import { CalendarIcon, Check, MoveRight } from "lucide-react";
 import { useState } from "react";
 
@@ -76,7 +75,7 @@ export const ContactForm = ({ dictionary, locale }: ContactFormProps) => {
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {date ? (
-                      format(date, "PPP", { locale: getDateFormatLocale(locale) })
+                      formatLongDate(date, locale)
                     ) : (
                       <span>{dictionary.web.contact.hero.form.date}</span>
                     )}

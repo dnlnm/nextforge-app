@@ -1,6 +1,7 @@
 "use client";
 
 import type { DayOfWeek } from "@repo/database";
+import { formatMoneyCsv } from "@repo/money";
 import { Button } from "@repo/design-system/components/ui/button";
 import { DatePicker } from "@repo/design-system/components/ui/date-picker";
 import { Input } from "@repo/design-system/components/ui/input";
@@ -217,7 +218,7 @@ export const ClassEditForm = ({
         <div className="grid gap-2">
           <Label htmlFor="monthlyFee">Monthly fee</Label>
           <Input
-            defaultValue={(initialValues.monthlyFeeSen / 100).toFixed(2)}
+            defaultValue={formatMoneyCsv(initialValues.monthlyFeeSen)}
             id="monthlyFee"
             min="0"
             name="monthlyFee"

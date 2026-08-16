@@ -7,12 +7,15 @@ export type { TenantRole } from "@repo/auth/shared";
 
 import {
   database,
+  type Prisma,
   type SubscriptionPlan,
   type SubscriptionStatus,
 } from "@repo/database";
 import { activeSubscriptionStatuses } from "@repo/payments/plans";
+import { planDefinitions } from "@repo/payments/plans";
 import {
   assertWithinPlanLimit as assertWithinPlanLimitShared,
+  getSubscriptionUsage,
   type LimitResource,
 } from "@repo/payments/subscription";
 import { createSupabaseClient } from "./context";
@@ -202,6 +205,39 @@ export const assertWithinPlanLimit = async (
         error instanceof Error
           ? error.message
           : "Your trial or subscription is not active.",
+    });
+  }
+};
+
+/**
+ * Transaction-scoped plan-limit check that reuses the subscription snapshot
+ * captured in `orgProcedure` (`ctx.subscription`), instead of re-running the
+ * subscription upsert + full usage query on every counted mutation. Usage is
+ * re-counted *inside the same transaction* as the create so the check and the
+ * write commit (or roll back) together.
+ */
+export const assertWithinPlanLimitTx = async (
+  ctx: OrganizationContext,
+  tx: Prisma.TransactionClient,
+  resource: LimitResource,
+  increment = 1
+) => {
+  if (!ctx.subscription.canUsePaidFeatures) {
+    throw new TRPCError({
+      code: "PAYMENT_REQUIRED",
+      message:
+        "Your trial or subscription is not active. Open Billing to upgrade or manage your plan.",
+    });
+  }
+
+  const plan = planDefinitions[ctx.subscription.plan];
+  const usage = await getSubscriptionUsage(ctx.organizationId, tx);
+  const current = usage[resource];
+
+  if (current + increment > plan[resource]) {
+    throw new TRPCError({
+      code: "PAYMENT_REQUIRED",
+      message: `${plan.name} allows ${plan[resource]} ${resource}. Open Billing to upgrade your plan.`,
     });
   }
 };

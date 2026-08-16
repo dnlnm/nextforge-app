@@ -42,7 +42,6 @@ import {
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getOrganizationCurrency } from "@/lib/currency";
-import Balancer from "react-wrap-balancer";
 import { Header } from "../../components/header";
 import { StudentAvatar } from "../../components/student-avatar";
 import { StudentProfileActions } from "../../components/student-profile-actions";
@@ -181,7 +180,7 @@ const StudentHeader = ({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="font-semibold text-2xl tracking-tight md:text-3xl">
-              <Balancer>{student.fullName}</Balancer>
+              <span className="text-balance">{student.fullName}</span>
             </h1>
             <Badge variant="outline">
               {student.status === "ACTIVE" ? "Active" : "Archived"}

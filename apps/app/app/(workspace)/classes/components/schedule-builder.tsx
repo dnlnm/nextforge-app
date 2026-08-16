@@ -11,17 +11,28 @@ import {
   AlertDialogTitle,
 } from "@repo/design-system/components/ui/alert-dialog";
 import { Button } from "@repo/design-system/components/ui/button";
-import { Input } from "@repo/design-system/components/ui/input";
+import {
+  Combobox,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxPopup,
+  ComboboxTrigger,
+  ComboboxValue,
+} from "@repo/design-system/components/ui/combobox";
 import { Label } from "@repo/design-system/components/ui/label";
 import {
   Select,
+  SelectButton,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@repo/design-system/components/ui/select";
+import { Switch } from "@repo/design-system/components/ui/switch";
 import { cn } from "@repo/design-system/lib/utils";
-import { PlusIcon, Trash2Icon } from "lucide-react";
+import { SearchIcon } from "lucide-react";
 import { useState } from "react";
 
 export interface ScheduleEntry {
@@ -56,18 +67,69 @@ const dayOptions: ReadonlyArray<readonly [DayOfWeek, string]> = [
   ["SUNDAY", "Sunday"],
 ];
 
-const newScheduleId = () => crypto.randomUUID();
-
-const emptySchedule = (): ScheduleEntry => ({
-  dayOfWeek: "",
-  endsAt: "",
-  id: newScheduleId(),
-  roomId: "",
-  startsAt: "",
+const timeOptions = Array.from({ length: 96 }, (_, i) => {
+  const hours = Math.floor(i / 4);
+  const minutes = (i % 4) * 15;
+  return `${hours.toString().padStart(2, "0")}:${minutes
+    .toString()
+    .padStart(2, "0")}`;
 });
+
+const timeIndex = (time: string) => timeOptions.indexOf(time);
+
+const newScheduleId = () => crypto.randomUUID();
 
 const getRoomCapacity = (rooms: RoomOption[], roomId: string): number | null =>
   rooms.find((room) => room.id === roomId)?.capacity ?? null;
+
+const TimeCombobox = ({
+  ariaLabel,
+  items,
+  onChange,
+  value,
+}: {
+  ariaLabel: string;
+  items: string[];
+  onChange: (time: string) => void;
+  value: string;
+}) => (
+  <Combobox
+    autoHighlight
+    items={items}
+    onValueChange={(time) => {
+      if (typeof time === "string") {
+        onChange(time);
+      }
+    }}
+    value={value}
+  >
+    <ComboboxTrigger
+      aria-label={ariaLabel}
+      render={<SelectButton className="w-27 tabular-nums" size="sm" />}
+    >
+      <ComboboxValue />
+    </ComboboxTrigger>
+    <ComboboxPopup aria-label={ariaLabel} className="min-w-44">
+      <div className="border-b p-2">
+        <ComboboxInput
+          className="rounded-md before:rounded-[calc(var(--radius-md)-1px)]"
+          placeholder="Search time"
+          showTrigger={false}
+          size="sm"
+          startAddon={<SearchIcon />}
+        />
+      </div>
+      <ComboboxEmpty>No times found.</ComboboxEmpty>
+      <ComboboxList>
+        {(time: string) => (
+          <ComboboxItem key={time} value={time}>
+            <span className="tabular-nums">{time}</span>
+          </ComboboxItem>
+        )}
+      </ComboboxList>
+    </ComboboxPopup>
+  </Combobox>
+);
 
 export const ScheduleBuilder = ({
   classCapacity,
@@ -77,54 +139,55 @@ export const ScheduleBuilder = ({
   schedules,
 }: ScheduleBuilderProperties) => {
   const [pendingRoom, setPendingRoom] = useState<{
-    scheduleId: string;
+    day: DayOfWeek;
     roomId: string;
   } | null>(null);
 
-  const updateSchedule = (
-    scheduleId: string,
-    patch: Partial<ScheduleEntry>
-  ) => {
+  const sortByDay = (list: ScheduleEntry[]) =>
+    [...list].sort((a, b) => {
+      const indexA = dayOptions.findIndex(([value]) => value === a.dayOfWeek);
+      const indexB = dayOptions.findIndex(([value]) => value === b.dayOfWeek);
+      return indexA - indexB;
+    });
+
+  const toggleDay = (day: DayOfWeek, enabled: boolean) => {
+    if (enabled) {
+      const entry: ScheduleEntry = {
+        dayOfWeek: day,
+        endsAt: "17:00",
+        id: newScheduleId(),
+        roomId: "",
+        startsAt: "09:00",
+      };
+      onSchedulesChange(sortByDay([...schedules, entry]));
+    } else {
+      onSchedulesChange(
+        schedules.filter((schedule) => schedule.dayOfWeek !== day)
+      );
+    }
+  };
+
+  const updateSchedule = (day: DayOfWeek, patch: Partial<ScheduleEntry>) => {
     onSchedulesChange(
       schedules.map((schedule) =>
-        schedule.id === scheduleId ? { ...schedule, ...patch } : schedule
+        schedule.dayOfWeek === day ? { ...schedule, ...patch } : schedule
       )
     );
   };
 
-  const addSchedule = () => {
-    onSchedulesChange([...schedules, emptySchedule()]);
-  };
-
-  const removeSchedule = (scheduleId: string) => {
-    if (schedules.length <= 1) {
-      return;
-    }
-
-    onSchedulesChange(
-      schedules.filter((schedule) => schedule.id !== scheduleId)
-    );
-  };
-
-  const usedDays = new Set(
-    schedules
-      .map((schedule) => schedule.dayOfWeek)
-      .filter((day): day is DayOfWeek => Boolean(day))
-  );
-
-  const handleRoomSelect = (scheduleId: string, roomId: string) => {
+  const handleRoomSelect = (day: DayOfWeek, roomId: string) => {
     const capacity = getRoomCapacity(rooms, roomId);
 
     if (capacity !== null && classCapacity > 0 && classCapacity > capacity) {
-      setPendingRoom({ roomId, scheduleId });
+      setPendingRoom({ day, roomId });
     } else {
-      updateSchedule(scheduleId, { roomId });
+      updateSchedule(day, { roomId });
     }
   };
 
   const confirmRoomSelection = () => {
     if (pendingRoom) {
-      updateSchedule(pendingRoom.scheduleId, { roomId: pendingRoom.roomId });
+      updateSchedule(pendingRoom.day, { roomId: pendingRoom.roomId });
     }
 
     setPendingRoom(null);
@@ -139,125 +202,101 @@ export const ScheduleBuilder = ({
     : null;
 
   return (
-    <div className="grid gap-3">
-      {schedules.map((schedule, index) => {
-        const availableDays = dayOptions.filter(
-          ([value]) => value === schedule.dayOfWeek || !usedDays.has(value)
+    <div className="divide-y">
+      {dayOptions.map(([day, label]) => {
+        const entry = schedules.find((schedule) => schedule.dayOfWeek === day);
+        const index = schedules.findIndex(
+          (schedule) => schedule.dayOfWeek === day
         );
+        const timeError = entry
+          ? errors[`schedule_${index}_start`] ||
+            errors[`schedule_${index}_end`] ||
+            errors[`schedule_${index}_time`] ||
+            undefined
+          : undefined;
+        const roomError = entry ? errors[`schedule_${index}_room`] : undefined;
 
         return (
           <div
-            className="grid gap-3 rounded-lg border p-3 md:grid-cols-[1.2fr_1fr_1fr_1.2fr_auto]"
-            key={schedule.id}
+            className="flex flex-col gap-4 py-3 first:pt-0 last:pb-0 md:flex-row md:flex-wrap md:items-start"
+            key={day}
           >
-            <div className="grid gap-1.5">
-              <Label htmlFor={`schedule-${schedule.id}-day`}>
-                Day {index + 1}
-              </Label>
-              <Select
-                onValueChange={(value) =>
-                  updateSchedule(schedule.id, {
-                    dayOfWeek: value as DayOfWeek,
-                  })
-                }
-                value={schedule.dayOfWeek || undefined}
-              >
-                <SelectTrigger
-                  className={cn(
-                    Boolean(errors[`schedule_${index}_day`]) &&
-                      "border-destructive focus-visible:ring-destructive/50"
-                  )}
-                  id={`schedule-${schedule.id}-day`}
-                >
-                  <SelectValue placeholder="Select day" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableDays.map(([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor={`schedule-${schedule.id}-start`}>
-                Start time
-              </Label>
-              <Input
-                id={`schedule-${schedule.id}-start`}
-                onChange={(event) =>
-                  updateSchedule(schedule.id, {
-                    startsAt: event.target.value,
-                  })
-                }
-                type="time"
-                value={schedule.startsAt}
+            <Label className="flex h-8 w-30 shrink-0 items-center gap-2.5 sm:h-7">
+              <Switch
+                checked={Boolean(entry)}
+                onCheckedChange={(checked) => toggleDay(day, checked)}
               />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor={`schedule-${schedule.id}-end`}>End time</Label>
-              <Input
-                id={`schedule-${schedule.id}-end`}
-                onChange={(event) =>
-                  updateSchedule(schedule.id, { endsAt: event.target.value })
-                }
-                type="time"
-                value={schedule.endsAt}
-              />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor={`schedule-${schedule.id}-room`}>Room</Label>
-              <Select
-                onValueChange={(value) =>
-                  handleRoomSelect(schedule.id, value ?? "")
-                }
-                value={schedule.roomId || undefined}
-              >
-                <SelectTrigger
-                  className={cn(
-                    Boolean(errors[`schedule_${index}_room`]) &&
-                      "border-destructive focus-visible:ring-destructive/50"
-                  )}
-                  id={`schedule-${schedule.id}-room`}
-                >
-                  <SelectValue placeholder="Select room" />
-                </SelectTrigger>
-                <SelectContent>
-                  {rooms.map((room) => (
-                    <SelectItem key={room.id} value={room.id}>
-                      {room.name}
-                      {room.capacity ? ` (max ${room.capacity})` : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-end">
-              <Button
-                aria-label="Remove schedule"
-                disabled={schedules.length <= 1}
-                onClick={() => removeSchedule(schedule.id)}
-                size="icon"
-                type="button"
-                variant="ghost"
-              >
-                <Trash2Icon className="size-4" />
-              </Button>
+              {label}
+            </Label>
+            <div className="flex w-full min-w-0 items-start gap-4 md:flex-1">
+              {entry ? (
+                <div className="flex w-full flex-wrap items-start gap-3 md:flex-nowrap md:items-center">
+                  <div className="grid gap-1.5">
+                    <div className="flex items-center gap-2">
+                      <TimeCombobox
+                        ariaLabel={`${label} start time`}
+                        items={timeOptions}
+                        onChange={(start) =>
+                          updateSchedule(day, { startsAt: start })
+                        }
+                        value={entry.startsAt}
+                      />
+                      <span
+                        aria-hidden="true"
+                        className="text-muted-foreground"
+                      >
+                        –
+                      </span>
+                      <TimeCombobox
+                        ariaLabel={`${label} end time`}
+                        items={timeOptions.slice(timeIndex(entry.startsAt) + 1)}
+                        onChange={(end) => updateSchedule(day, { endsAt: end })}
+                        value={entry.endsAt}
+                      />
+                    </div>
+                    {timeError ? (
+                      <p className="text-destructive text-xs">{timeError}</p>
+                    ) : null}
+                  </div>
+                  <div className="grid w-full min-w-0 flex-1 gap-1.5 md:w-auto">
+                    <Select
+                      onValueChange={(value) =>
+                        handleRoomSelect(day, value ?? "")
+                      }
+                      value={entry.roomId || undefined}
+                    >
+                      <SelectTrigger
+                        className={cn(
+                          roomError &&
+                            "border-destructive focus-visible:ring-destructive/50"
+                        )}
+                        id={`schedule-${entry.id}-room`}
+                      >
+                        <SelectValue placeholder="Select room" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {rooms.map((room) => (
+                          <SelectItem key={room.id} value={room.id}>
+                            {room.name}
+                            {room.capacity ? ` (max ${room.capacity})` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {roomError ? (
+                      <p className="text-destructive text-xs">{roomError}</p>
+                    ) : null}
+                  </div>
+                </div>
+              ) : (
+                <p className="flex h-8 items-center text-muted-foreground sm:h-7 sm:text-sm">
+                  Unavailable
+                </p>
+              )}
             </div>
           </div>
         );
       })}
-
-      <Button
-        disabled={schedules.length >= dayOptions.length}
-        onClick={addSchedule}
-        type="button"
-        variant="outline"
-      >
-        <PlusIcon className="size-4" />
-        Add Another Schedule
-      </Button>
 
       {pendingRoom ? (
         <AlertDialog
@@ -283,8 +322,8 @@ export const ScheduleBuilder = ({
                 Go back
               </AlertDialogClose>
               <AlertDialogClose
-                render={<Button />}
                 onClick={confirmRoomSelection}
+                render={<Button />}
               >
                 Continue anyway
               </AlertDialogClose>

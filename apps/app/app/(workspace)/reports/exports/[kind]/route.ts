@@ -1,5 +1,6 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { database } from "@repo/database";
+import { formatCalendarDate } from "@repo/date";
 import { formatMoneyCsv as formatMoney } from "@repo/money";
 import { notFound } from "next/navigation";
 import { csvResponse } from "../csv";
@@ -108,8 +109,8 @@ const exportInvoices = async (organizationId: string) => {
       invoice.billingMonth,
       invoice.student.fullName,
       invoice.status,
-      invoice.issueDate,
-      invoice.dueDate,
+      formatCalendarDate(invoice.issueDate),
+      formatCalendarDate(invoice.dueDate),
       formatMoney(invoice.totalSen),
       formatMoney(invoice.amountPaidSen),
       formatMoney(invoice.totalSen - invoice.amountPaidSen),
@@ -163,7 +164,7 @@ const exportAttendance = async (organizationId: string) => {
   return csvResponse("attendance.csv", [
     ["Date", "Class", "Student", "Status", "Marked At"],
     ...attendance.map((record) => [
-      record.session.sessionDate,
+      formatCalendarDate(record.session.sessionDate),
       record.session.class.name,
       record.student.fullName,
       record.status,

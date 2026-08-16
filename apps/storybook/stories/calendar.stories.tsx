@@ -1,7 +1,10 @@
 import { Calendar } from "@repo/design-system/components/ui/calendar";
+import { addMalaysiaCalendarDays } from "@repo/date";
 import type { Meta, StoryObj } from "@storybook/react";
-import { addDays } from "date-fns";
 import { action } from "storybook/actions";
+
+/** Two Malaysia-calendar-days from now, for story demos. */
+const inDays = (days: number) => addMalaysiaCalendarDays(new Date(), days);
 
 /**
  * A date field component that allows users to enter and edit date.
@@ -37,7 +40,7 @@ export const Default: Story = {};
 export const Multiple: Story = {
   args: {
     min: 1,
-    selected: [new Date(), addDays(new Date(), 2), addDays(new Date(), 8)],
+    selected: [new Date(), inDays(2), inDays(8)],
     mode: "multiple",
   },
 };
@@ -49,7 +52,7 @@ export const Range: Story = {
   args: {
     selected: {
       from: new Date(),
-      to: addDays(new Date(), 7),
+      to: inDays(7),
     },
     mode: "range",
   },
@@ -60,12 +63,7 @@ export const Range: Story = {
  */
 export const Disabled: Story = {
   args: {
-    disabled: [
-      addDays(new Date(), 1),
-      addDays(new Date(), 2),
-      addDays(new Date(), 3),
-      addDays(new Date(), 5),
-    ],
+    disabled: [inDays(1), inDays(2), inDays(3), inDays(5)],
   },
 };
 

@@ -55,6 +55,11 @@ function parseHeightFromClassName(className?: string) {
 export interface DataTableContainerProps {
   children: React.ReactNode
   /**
+   * Accessible name for the table (WCAG 1.3.1 / 4.1.2). When omitted, screen
+   * readers announce an unnamed table role.
+   */
+  "aria-label"?: string
+  /**
    * Additional CSS classes for the container.
    * Arbitrary height values (e.g., h-[600px], max-h-[400px]) are automatically extracted
    * and applied as inline styles to ensure scroll event callbacks work reliably.
@@ -158,6 +163,7 @@ export function DataTable({
   className,
   height,
   maxHeight,
+  "aria-label": ariaLabel,
 }: DataTableContainerProps) {
   // Parse height from className if not provided via props
   const parsed = React.useMemo(
@@ -195,7 +201,7 @@ export function DataTable({
         maxHeight: finalMaxHeight,
       }}
     >
-      <TableComponent>{children}</TableComponent>
+      <TableComponent aria-label={ariaLabel}>{children}</TableComponent>
       <ColumnResizePreviewLine />
     </div>
   )

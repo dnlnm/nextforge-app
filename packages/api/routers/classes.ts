@@ -14,7 +14,7 @@ import {
   resolveClassCode,
 } from "../lib/classes";
 import { getTeacherProfileId } from "../lib/teacher-profile";
-import { assertWithinPlanLimit, roleProcedure } from "../middleware";
+import { assertWithinPlanLimitTx, roleProcedure } from "../middleware";
 import { createTRPCRouter, TRPCError } from "../trpc";
 
 export const classesRouter = createTRPCRouter({
@@ -87,7 +87,7 @@ export const classesRouter = createTRPCRouter({
           archivedAt: null,
         },
         include: {
-          subject: true,
+          subject: { select: { name: true } },
           teacher: { select: { fullName: true, id: true } },
           level: { select: { id: true, name: true } },
           schedules: {
@@ -189,8 +189,6 @@ export const classesRouter = createTRPCRouter({
         });
       }
 
-      await assertWithinPlanLimit(ctx, "classes");
-
       const code = await resolveClassCode(ctx.organizationId, {
         academicYear: input.academicYear,
         levelCode: level?.code ?? "GEN",
@@ -199,6 +197,10 @@ export const classesRouter = createTRPCRouter({
       });
 
       const created = await database.$transaction(async (tx) => {
+        // Check the plan limit inside the same transaction as the create so the
+        // check and the write commit (or roll back) together.
+        await assertWithinPlanLimitTx(ctx, tx, "classes");
+
         const learningClass = await tx.learningClass.create({
           data: {
             academicYear: input.academicYear,

@@ -667,3 +667,53 @@ export async function getStudentFilterOptions() {
     ],
   };
 }
+
+/**
+ * Full detail for a single student's aside panel (primary guardian + open
+ * invoices), tenant-scoped. Loaded on demand instead of the page prefetching
+ * every student's invoices to render one panel.
+ */
+export async function getStudentDetail(studentId: string) {
+  const tenant = await requireTenant();
+
+  return database.student.findFirst({
+    where: { id: studentId, organizationId: tenant.organizationId },
+    select: {
+      code: true,
+      createdAt: true,
+      dateOfBirth: true,
+      email: true,
+      enrolledAt: true,
+      fullName: true,
+      gender: true,
+      id: true,
+      phone: true,
+      photoKey: true,
+      status: true,
+      guardians: {
+        where: { isPrimary: true },
+        select: {
+          guardian: {
+            select: {
+              addressLine1: true,
+              addressLine2: true,
+              city: true,
+              email: true,
+              fullName: true,
+              phone: true,
+              state: true,
+            },
+          },
+        },
+        take: 1,
+      },
+      invoices: {
+        where: {
+          status: { in: ["ISSUED", "PARTIALLY_PAID", "OVERDUE"] },
+        },
+        select: { amountPaidSen: true, totalSen: true },
+      },
+      level: { select: { name: true } },
+    },
+  });
+}

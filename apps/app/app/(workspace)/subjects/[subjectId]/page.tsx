@@ -41,7 +41,6 @@ import {
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getOrganizationCurrency } from "@/lib/currency";
-import Balancer from "react-wrap-balancer";
 import { Header } from "../../components/header";
 import { archiveSubject } from "../actions";
 
@@ -121,7 +120,7 @@ const SubjectHeader = ({ subject }: { readonly subject: SubjectData }) => (
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="font-semibold text-2xl tracking-tight md:text-3xl">
-              <Balancer>{subject.name}</Balancer>
+              <span className="text-balance">{subject.name}</span>
             </h1>
             <Badge variant="outline">{subject.code}</Badge>
             <Badge variant="outline">

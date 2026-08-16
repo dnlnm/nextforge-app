@@ -1,7 +1,11 @@
 import { isSuperadminUserId } from "@repo/auth/shared";
 import { appName } from "@repo/config/brand";
-import { database, type SubscriptionPlan } from "@repo/database";
-import { addMalaysiaCalendarDays, isExpired } from "@repo/date";
+import { database, type Prisma, type SubscriptionPlan } from "@repo/database";
+import {
+  addMalaysiaCalendarDays,
+  getMalaysiaCalendarDate,
+  isExpired,
+} from "@repo/date";
 import {
   activeSubscriptionStatuses,
   type PlanDefinition,
@@ -14,6 +18,29 @@ export type LimitResource =
   | "students"
   | "teachers";
 
+/**
+ * The subset of the Prisma client / transaction client that usage counting
+ * needs. Both the base `PrismaClient` and a `Prisma.TransactionClient` are
+ * structurally compatible, so counting can happen against either.
+ */
+export type UsageClient = {
+  invoice: {
+    count(args: Prisma.InvoiceCountArgs): Promise<number>;
+  };
+  learningClass: {
+    count(args: Prisma.LearningClassCountArgs): Promise<number>;
+  };
+  student: {
+    count(args: Prisma.StudentCountArgs): Promise<number>;
+  };
+  teacherInvitation: {
+    count(args: Prisma.TeacherInvitationCountArgs): Promise<number>;
+  };
+  teacherProfile: {
+    count(args: Prisma.TeacherProfileCountArgs): Promise<number>;
+  };
+};
+
 export const getOrCreateSubscription = (organizationId: string) => {
   const trialEndsAt = addMalaysiaCalendarDays(new Date(), 14);
 
@@ -24,25 +51,31 @@ export const getOrCreateSubscription = (organizationId: string) => {
   });
 };
 
-export const getSubscriptionUsage = async (organizationId: string) => {
+export const getSubscriptionUsage = async (
+  organizationId: string,
+  client: UsageClient = database
+) => {
+  // The billing-month key is the Asia/Kuala_Lumpur calendar month (per
+  // AGENTS.md), not the server/UTC month, so plan-cap accounting and labels
+  // agree with Malaysian business days around midnight.
+  const billingMonth = getMalaysiaCalendarDate().slice(0, 7);
   const now = new Date();
-  const billingMonth = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
 
   const [students, teachers, pendingTeacherInvites, classes, invoicesPerMonth] =
     await Promise.all([
-      database.student.count({
+      client.student.count({
         where: { organizationId, archivedAt: null, status: "ACTIVE" },
       }),
-      database.teacherProfile.count({
+      client.teacherProfile.count({
         where: { organizationId, archivedAt: null },
       }),
-      database.teacherInvitation.count({
+      client.teacherInvitation.count({
         where: { organizationId, status: "PENDING", expiresAt: { gt: now } },
       }),
-      database.learningClass.count({
+      client.learningClass.count({
         where: { organizationId, archivedAt: null, status: "ACTIVE" },
       }),
-      database.invoice.count({ where: { organizationId, billingMonth } }),
+      client.invoice.count({ where: { organizationId, billingMonth } }),
     ]);
 
   return {
@@ -72,37 +105,124 @@ export const getBillingState = async (organizationId: string) => {
   return { canUsePaidFeatures, plan, subscription, trialExpired, usage };
 };
 
-export const assertWithinPlanLimit = async ({
-  increment = 1,
-  organizationId,
-  resource,
-  userId,
-}: {
-  readonly increment?: number;
+interface PlanLimitCheck {
+  readonly increment: number;
   readonly organizationId: string;
   readonly resource: LimitResource;
   readonly userId: string;
-}) => {
-  if (isSuperadminUserId(userId)) {
-    return;
+}
+
+const throwOutOfLimitOrInactive = (
+  resource: LimitResource,
+  planName: string,
+  limit: number
+): never => {
+  throw new Error(
+    `${planName} allows ${limit} ${resource}. Open Billing to upgrade your plan.`
+  );
+};
+
+const assertPlanLimit = (
+  check: PlanLimitCheck,
+  {
+    canUsePaidFeatures,
+    limit,
+    planName,
+    usage,
+  }: {
+    canUsePaidFeatures: boolean;
+    limit: number;
+    planName: string;
+    usage: number;
   }
-
-  const state = await getBillingState(organizationId);
-
-  if (!state.canUsePaidFeatures) {
+) => {
+  if (!canUsePaidFeatures) {
     throw new Error(
       `Your ${appName} trial or subscription is not active. Open Billing to upgrade or manage your plan.`
     );
   }
 
-  const current = state.usage[resource];
-  const limit = state.plan[resource];
-
-  if (current + increment > limit) {
-    throw new Error(
-      `${state.plan.name} allows ${limit} ${resource}. Open Billing to upgrade your plan.`
-    );
+  if (usage + check.increment > limit) {
+    throwOutOfLimitOrInactive(check.resource, planName, limit);
   }
+};
+
+type AssertWithinPlanLimitArgs = {
+  readonly increment?: number;
+  readonly organizationId: string;
+  readonly resource: LimitResource;
+  readonly userId: string;
+};
+
+export const assertWithinPlanLimit = async (input: AssertWithinPlanLimitArgs) => {
+  if (isSuperadminUserId(input.userId)) {
+    return;
+  }
+
+  const state = await getBillingState(input.organizationId);
+
+  assertPlanLimit(
+    { ...input, increment: input.increment ?? 1 },
+    {
+      canUsePaidFeatures: state.canUsePaidFeatures,
+      limit: state.plan[input.resource],
+      planName: state.plan.name,
+      usage: state.usage[input.resource],
+    }
+  );
+};
+
+/**
+ * Transaction-scoped plan-limit check. Re-counts current usage and re-derives
+ * the plan *inside the same transaction* as the resource create so the check
+ * and the write commit (or roll back) together. This makes the limit a hard
+ * invariant for writes that wrap their create in a `$transaction`: the plan
+ * / usage cannot silently change between the check and the write the way a
+ * separate `assertWithinPlanLimit` + later `create` can.
+ *
+ * Note on concurrency: under Postgres `Read Committed` two *fully concurrent*
+ * creates of the same resource can still both observe a count below the limit
+ * and both pass. Combine this with a unique constraint / atomic counter on the
+ * resource to close that residual window; this helper removes the far more
+ * common check-then-act window where the create is a separate transaction.
+ */
+export const assertWithinPlanLimitTx = async (
+  tx: Prisma.TransactionClient,
+  input: AssertWithinPlanLimitArgs
+) => {
+  if (isSuperadminUserId(input.userId)) {
+    return;
+  }
+
+  const { increment = 1, organizationId, resource } = input;
+
+  // Read the subscription directly from the transaction (no upsert) so the
+  // check does not write on the read path.
+  const subscription = await tx.organizationSubscription.findUnique({
+    where: { organizationId },
+  });
+
+  const now = new Date();
+  const trialExpired =
+    subscription?.status === "TRIALING" &&
+    Boolean(
+      subscription.trialEndsAt && isExpired(subscription.trialEndsAt, now)
+    );
+  const canUsePaidFeatures =
+    activeSubscriptionStatuses.has(subscription?.status ?? "TRIALING") &&
+    !trialExpired;
+  const plan = planDefinitions[subscription?.plan ?? "TRIAL"];
+  const usage = await getSubscriptionUsage(organizationId, tx);
+
+  assertPlanLimit(
+    { increment, organizationId, resource, userId: input.userId },
+    {
+      canUsePaidFeatures,
+      limit: plan[resource],
+      planName: plan.name,
+      usage: usage[resource],
+    }
+  );
 };
 
 export const getPlanUsageRows = (

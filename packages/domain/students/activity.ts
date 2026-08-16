@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { AuditAction, Prisma, PrismaClient } from "@repo/database";
+import { formatMoneyRm } from "@repo/money";
 
 export const EVENT_TYPES = {
   studentCreated: "student.created",
@@ -228,7 +229,7 @@ export const paymentRecordedEvent = (
     paymentId,
   },
   organizationId,
-  summary: `Payment of RM${(amountSen / 100).toFixed(2)} recorded`,
+  summary: `Payment of ${formatMoneyRm(amountSen)} recorded`,
   targetId,
   targetType: "Student",
   userId,
@@ -249,7 +250,7 @@ export const paymentReversedEvent = (
     paymentId,
   },
   organizationId,
-  summary: `Payment of RM${(amountSen / 100).toFixed(2)} reversed`,
+  summary: `Payment of ${formatMoneyRm(amountSen)} reversed`,
   targetId,
   targetType: "Student",
   userId,

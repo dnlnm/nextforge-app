@@ -23,7 +23,7 @@ export const getClassDashboard = async (
     return null;
   }
 
-  const [activeEnrollmentCount, attendanceStatuses, billedLines, invoiceIds] =
+  const [activeEnrollmentCount, attendanceStatuses, lineItems] =
     await Promise.all([
       db.enrollment.count({
         where: {
@@ -43,38 +43,36 @@ export const getClassDashboard = async (
         },
         select: { status: true },
       }),
+      // One query covers both billed revenue (sum of line totals) and the
+      // distinct invoiced set (for the outstanding balance) instead of three
+      // scans over the same line items.
       db.invoiceLineItem.findMany({
         where: {
           classId,
           invoice: { voidedAt: null },
         },
-        select: { totalSen: true },
-      }),
-      db.invoiceLineItem.findMany({
-        where: { classId, invoice: { voidedAt: null } },
-        distinct: ["invoiceId"],
-        select: { invoiceId: true },
+        select: {
+          invoice: {
+            select: { amountPaidSen: true, id: true, totalSen: true },
+          },
+          totalSen: true,
+        },
       }),
     ]);
 
-  const billedRevenueSen = billedLines.reduce(
+  const billedRevenueSen = lineItems.reduce(
     (total, line) => total + line.totalSen,
     0
   );
 
-  const invoices = await db.invoice.findMany({
-    where: {
-      id: { in: invoiceIds.map((item) => item.invoiceId) },
-      organizationId,
-      voidedAt: null,
-    },
-    select: { amountPaidSen: true, totalSen: true },
-  });
+  // Outstanding is the sum of each distinct invoice's balance (a class can
+  // have several line items per invoice, so dedup by invoice id).
+  const outstandingInvoiceIds = new Set(lineItems.map((line) => line.invoice.id));
+  const outstandingSen = Array.from(outstandingInvoiceIds).reduce((total, id) => {
+    const invoice = lineItems.find((line) => line.invoice.id === id)?.invoice;
 
-  const outstandingSen = invoices.reduce(
-    (total, invoice) => total + invoiceBalanceSen(invoice),
-    0
-  );
+    return invoice ? total + invoiceBalanceSen(invoice) : total;
+  }, 0);
 
   return {
     activeEnrollmentCount,

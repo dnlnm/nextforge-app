@@ -35,8 +35,8 @@ const ReportsPage = async () => {
   const currency = await getOrganizationCurrency(tenant.organizationId);
   const formatMoney = (amountSen: number) =>
     formatMoneyShared(amountSen, { currency });
-  const [students, classes, attendance, invoices, payments] = await Promise.all(
-    [
+  const [students, classes, attendance, invoiceTotals, payments] =
+    await Promise.all([
       database.student.findMany({
         where: { organizationId: tenant.organizationId, status: "ACTIVE" },
         orderBy: { fullName: "asc" },
@@ -58,11 +58,11 @@ const ReportsPage = async () => {
         where: { organizationId: tenant.organizationId },
         _count: { id: true },
       }),
-      database.invoice.findMany({
+      // Aggregate the true invoiced/collected/outstanding figures in SQL rather
+      // than summing a bounded sample of the most recent invoices.
+      database.invoice.aggregate({
+        _sum: { amountPaidSen: true, totalSen: true },
         where: { organizationId: tenant.organizationId },
-        orderBy: [{ billingMonth: "desc" }, { invoiceNumber: "desc" }],
-        include: { student: true },
-        take: 50,
       }),
       database.payment.groupBy({
         by: ["method"],
@@ -70,16 +70,10 @@ const ReportsPage = async () => {
         _sum: { amountSen: true },
         _count: { id: true },
       }),
-    ]
-  );
-  const invoicedSen = invoices.reduce(
-    (sum, invoice) => sum + invoice.totalSen,
-    0
-  );
-  const paidSen = invoices.reduce(
-    (sum, invoice) => sum + invoice.amountPaidSen,
-    0
-  );
+    ]);
+  const totals = invoiceTotals._sum ?? { amountPaidSen: 0, totalSen: 0 };
+  const invoicedSen = totals.totalSen ?? 0;
+  const paidSen = totals.amountPaidSen ?? 0;
 
   return (
     <>
@@ -109,7 +103,7 @@ const ReportsPage = async () => {
           <Card>
             <CardHeader>
               <CardTitle>Invoiced</CardTitle>
-              <CardDescription>Latest 50 invoices</CardDescription>
+              <CardDescription>All invoiced amounts</CardDescription>
             </CardHeader>
             <CardContent className="font-semibold text-3xl">
               {formatMoney(invoicedSen)}
@@ -118,7 +112,7 @@ const ReportsPage = async () => {
           <Card>
             <CardHeader>
               <CardTitle>Collected</CardTitle>
-              <CardDescription>Allocated invoice payments</CardDescription>
+              <CardDescription>All allocated invoice payments</CardDescription>
             </CardHeader>
             <CardContent className="font-semibold text-3xl">
               {formatMoney(paidSen)}
@@ -127,7 +121,7 @@ const ReportsPage = async () => {
           <Card>
             <CardHeader>
               <CardTitle>Outstanding</CardTitle>
-              <CardDescription>From latest 50 invoices</CardDescription>
+              <CardDescription>Across all invoices</CardDescription>
             </CardHeader>
             <CardContent className="font-semibold text-3xl">
               {formatMoney(invoicedSen - paidSen)}

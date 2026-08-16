@@ -3,6 +3,7 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { database } from "@repo/database";
 import { formatCalendarDate, tryParseCalendarDate } from "@repo/date";
+import { parseMoneyToSen } from "@repo/money";
 import {
   EnrollmentValidationError,
   endEnrollment as endEnrollmentCommand,
@@ -54,17 +55,8 @@ const getDateString = (formData: FormData, key: string) => {
 
   return date ? formatCalendarDate(date) : undefined;
 };
-const getMoneySen = (formData: FormData, key: string) => {
-  const value = getString(formData, key);
-
-  if (!value) {
-    return undefined;
-  }
-
-  const parsed = Number.parseFloat(value);
-
-  return Number.isNaN(parsed) ? undefined : Math.round(parsed * 100);
-};
+const getMoneySen = (formData: FormData, key: string) =>
+  parseMoneyToSen(getString(formData, key));
 
 const getAcademicYear = (formData: FormData) => {
   const value = getInt(formData, "academicYear");

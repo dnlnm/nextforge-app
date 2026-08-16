@@ -40,16 +40,24 @@ export const todayRouter = createTRPCRouter({
           },
           orderBy: { startsAt: "asc" },
           include: {
-            attendance: true,
+            // `attendance` and `class.enrollments` are consumed for their
+            // length on the mobile Today screen; narrow the projected columns
+            // for subject/teacher to the names actually rendered.
+            attendance: {
+              select: { id: true, status: true, studentId: true },
+            },
             class: {
               include: {
                 enrollments: {
                   where: { status: "ACTIVE" },
-                  include: { student: true },
+                  select: {
+                    id: true,
+                    student: { select: { code: true, fullName: true, id: true } },
+                  },
                   orderBy: { student: { fullName: "asc" } },
                 },
-                subject: true,
-                teacher: true,
+                subject: { select: { name: true } },
+                teacher: { select: { fullName: true } },
               },
             },
           },
@@ -78,27 +86,31 @@ export const todayRouter = createTRPCRouter({
       },
     });
 
-    for (const schedule of schedules) {
-      await database.classSession.upsert({
-        where: {
-          classId_sessionDate: {
-            classId: schedule.classId,
-            sessionDate: today.date,
+    // Create/refresh today's sessions atomically so a partial failure can't
+    // leave some classes with sessions and others without.
+    await database.$transaction(async (tx) => {
+      for (const schedule of schedules) {
+        await tx.classSession.upsert({
+          where: {
+            classId_sessionDate: {
+              classId: schedule.classId,
+              sessionDate: today.date,
+            },
           },
-        },
-        create: {
-          organizationId: ctx.organizationId,
-          classId: schedule.classId,
-          endsAt: schedule.endsAt,
-          sessionDate: today.date,
-          startsAt: schedule.startsAt,
-        },
-        update: {
-          endsAt: schedule.endsAt,
-          startsAt: schedule.startsAt,
-        },
-      });
-    }
+          create: {
+            organizationId: ctx.organizationId,
+            classId: schedule.classId,
+            endsAt: schedule.endsAt,
+            sessionDate: today.date,
+            startsAt: schedule.startsAt,
+          },
+          update: {
+            endsAt: schedule.endsAt,
+            startsAt: schedule.startsAt,
+          },
+        });
+      }
+    });
 
     return { created: schedules.length };
   }),

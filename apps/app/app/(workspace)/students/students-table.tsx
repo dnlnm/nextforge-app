@@ -87,26 +87,43 @@ export function StudentsTable({
     [urlParams]
   );
 
-  // Fetch data when URL params change
+  // Fetch data when URL params change. A request id guards against out-of-order
+  // responses (the newest request always wins), and the search term is debounced
+  // so the DB isn't hammered on every keystroke.
+  const requestIdRef = useRef(0);
+  const [debouncedSearch, setDebouncedSearch] = useState(urlParams.search);
+
+  useEffect(() => {
+    const handle = window.setTimeout(() => setDebouncedSearch(urlParams.search), 250);
+    return () => window.clearTimeout(handle);
+  }, [urlParams.search]);
+
   const fetchStudents = useCallback(async () => {
+    const requestId = ++requestIdRef.current;
     setIsLoading(true);
     try {
       const params: StudentsQueryParams = {
         page: urlParams.page,
         pageSize: urlParams.pageSize,
-        search: urlParams.search || undefined,
+        search: debouncedSearch || undefined,
         filters: urlParams.filters.length > 0 ? urlParams.filters : undefined,
       };
 
       const result = await getStudentsForTable(params);
+
+      if (requestId !== requestIdRef.current) {
+        return; // A newer request superseded this one.
+      }
       setData(result.data);
       setTotalCount(result.totalCount);
     } catch (error) {
       console.error("Failed to fetch students:", error);
     } finally {
-      setIsLoading(false);
+      if (requestId === requestIdRef.current) {
+        setIsLoading(false);
+      }
     }
-  }, [urlParams]);
+  }, [debouncedSearch, urlParams]);
 
   useEffect(() => {
     fetchStudents();
@@ -219,7 +236,7 @@ export function StudentsTable({
           </div>
 
           <div className="overflow-x-auto px-4">
-            <DataTable>
+            <DataTable aria-label="Students">
               <DataTableHeader />
               <DataTableBody onRowClick={handleRowClick}>
                 <DataTableSkeleton />

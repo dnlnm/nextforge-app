@@ -1,5 +1,6 @@
 "use client";
 
+import { getMalaysiaCalendarDate } from "@repo/date";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
   Card,
@@ -236,7 +237,7 @@ export const StudentCreateForm = ({
                 </Label>
                 <DatePicker
                   className="!justify-center !text-center w-40"
-                  defaultValue={new Date().toISOString().slice(0, 10)}
+                  defaultValue={getMalaysiaCalendarDate()}
                   id="enrolledAt"
                   name="enrolledAt"
                   placeholder="Select enrollment date"

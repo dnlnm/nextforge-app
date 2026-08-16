@@ -77,15 +77,56 @@ export const formatMoneyValue = (
 ): string => formatCurrency(value, { maximumFractionDigits: 0, ...options });
 
 /**
+ * Formats integer sen as an exact two-decimal major-unit string without
+ * floating-point division, so very large sen values never round to a trailing
+ * `...0.999999`. e.g. `formatSenExact(15000)` -> `"150.00"`.
+ */
+const formatSenExact = (amountSen: number): string => {
+  const sign = amountSen < 0 ? "-" : "";
+  const abs = Math.abs(Math.trunc(amountSen));
+  const whole = Math.trunc(abs / 100);
+  const cents = abs % 100;
+
+  return `${sign}${String(whole)}.${String(cents).padStart(2, "0")}`;
+};
+
+/**
  * Formats an amount stored in integer sen as a bare two-decimal string for
  * machine-readable exports, e.g. `formatMoneyCsv(15000)` -> `"150.00"`.
  */
 export const formatMoneyCsv = (amountSen: number): string =>
-  (amountSen / 100).toFixed(2);
+  formatSenExact(amountSen);
 
 /**
  * Formats an amount stored in integer sen as a compact `RM` string for
  * receipts and invoices, e.g. `formatMoneyRm(9900)` -> `"RM99.00"`.
  */
 export const formatMoneyRm = (amountSen: number): string =>
-  `RM${(amountSen / 100).toFixed(2)}`;
+  `RM${formatSenExact(amountSen)}`;
+
+/**
+ * Parses a user-entered major-unit money string (e.g. "49.50") into integer
+ * sen, or returns `undefined` when the input is empty/not a number. Rounds to
+ * the nearest sen; inputs with more than 2 decimal places are rejected to avoid
+ * silently shaving precision on the write path.
+ */
+export const parseMoneyToSen = (value: string | null | undefined): number | undefined => {
+  if (!value || value.trim() === "") {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  const decimalPlaces = trimmed.split(".")[1]?.length ?? 0;
+
+  if (decimalPlaces > 2) {
+    return undefined;
+  }
+
+  const parsed = Number.parseFloat(trimmed);
+
+  if (Number.isNaN(parsed) || parsed < 0) {
+    return undefined;
+  }
+
+  return Math.round(parsed * 100);
+};
