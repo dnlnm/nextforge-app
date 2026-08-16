@@ -48,3 +48,7 @@ export const paymentMethods = [
 ] as const;
 export const paymentMethodSchema = z.enum(paymentMethods);
 export type PaymentMethod = z.infer<typeof paymentMethodSchema>;
+
+export const paymentStatuses = ["RECORDED", "VERIFIED", "REVERSED"] as const;
+export const paymentStatusSchema = z.enum(paymentStatuses);
+export type PaymentStatus = z.infer<typeof paymentStatusSchema>;

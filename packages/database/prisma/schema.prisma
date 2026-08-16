@@ -154,9 +154,9 @@ model OrganizationMembership {
   user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, userId])
+  @@unique([userId], where: { role: "OWNER", status: "ACTIVE" })
   @@index([organizationId, role])
   @@index([userId, status])
-  @@unique([userId], where: { role: "OWNER", status: "ACTIVE" })
 }
 
 model Branch {
@@ -815,6 +815,7 @@ enum PaymentMethod {
 
 enum PaymentStatus {
   RECORDED
+  VERIFIED
   REVERSED
 }
 

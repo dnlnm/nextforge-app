@@ -1,52 +1,77 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
+import { getMalaysiaToday } from "@repo/date";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@repo/design-system/components/ui/card";
-import { Input } from "@repo/design-system/components/ui/input";
-import { Label } from "@repo/design-system/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@repo/design-system/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@repo/design-system/components/ui/table";
+  Stat,
+  StatDescription,
+  StatFooter,
+  StatIndicator,
+  StatLabel,
+  StatPanel,
+  StatValue,
+} from "@repo/design-system/components/ui/stat";
 import { formatMoney as formatMoneyShared } from "@repo/money";
+import {
+  ArrowUpRightIcon,
+  CircleDollarSignIcon,
+  ClockIcon,
+  DownloadIcon,
+  RotateCcwIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { getOrganizationCurrency } from "@/lib/currency";
 import { Header } from "../components/header";
-import { recordPayment } from "./actions";
+import { getPaymentFilterOptions, getPaymentsForTable } from "./actions";
+import { PaymentsPageClient } from "./payments-page-client";
+import { RecordPaymentDialog } from "./record-payment-dialog";
 
-const methods = [
-  ["CASH", "Cash"],
-  ["BANK_TRANSFER", "Bank transfer"],
-  ["DUITNOW", "DuitNow"],
-  ["FPX", "FPX"],
-  ["CARD", "Card"],
-  ["OTHER", "Other"],
-] as const;
+const startOfMonth = (date: Date) =>
+  new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
+
+const startOfNextMonth = (date: Date) =>
+  new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 1));
 
 const PaymentsPage = async () => {
   const tenant = await requireTenantRole(["ADMIN"]);
   const currency = await getOrganizationCurrency(tenant.organizationId);
   const formatMoney = (amountSen: number) =>
     formatMoneyShared(amountSen, { currency });
-  const [openInvoices, payments] = await Promise.all([
+  // "Business today" is the Asia/Kuala_Lumpur calendar day; month bounds are
+  // the UTC-midnight instants of the Malaysia calendar month (AGENTS.md).
+  const today = getMalaysiaToday();
+  const monthStart = startOfMonth(today);
+  const nextMonthStart = startOfNextMonth(today);
+
+  const [
+    initialTableData,
+    filterOptions,
+    monthAgg,
+    statusCounts,
+    avgAgg,
+    openInvoices,
+  ] = await Promise.all([
+    getPaymentsForTable({ page: 0, pageSize: 10 }),
+    getPaymentFilterOptions(),
+    database.payment.aggregate({
+      _count: { id: true },
+      _sum: { amountSen: true },
+      where: {
+        organizationId: tenant.organizationId,
+        paidAt: { gte: monthStart, lt: nextMonthStart },
+        status: { in: ["RECORDED", "VERIFIED"] },
+      },
+    }),
+    database.payment.groupBy({
+      _count: { id: true },
+      by: ["status"],
+      where: { organizationId: tenant.organizationId },
+    }),
+    database.payment.aggregate({
+      _avg: { amountSen: true },
+      where: { organizationId: tenant.organizationId },
+    }),
     database.invoice.findMany({
       where: {
         organizationId: tenant.organizationId,
@@ -55,123 +80,107 @@ const PaymentsPage = async () => {
       orderBy: [{ billingMonth: "desc" }, { invoiceNumber: "asc" }],
       include: { student: true },
     }),
-    database.payment.findMany({
-      where: { organizationId: tenant.organizationId },
-      orderBy: { paidAt: "desc" },
-      include: { allocations: { include: { invoice: true } }, student: true },
-      take: 100,
-    }),
   ]);
+
+  const collectedSen = monthAgg._sum?.amountSen ?? 0;
+  const collectedCount = monthAgg._count.id;
+  const countByStatus = Object.fromEntries(
+    statusCounts.map((group) => [group.status, group._count.id])
+  );
+  const avgSen = Math.round(avgAgg._avg?.amountSen ?? 0);
 
   return (
     <>
       <Header page="Payments" pages={[`${appName}`]} />
-      <main className="grid gap-4 p-4 pt-0 xl:grid-cols-[380px_1fr]">
-        <Card className="h-fit">
-          <CardHeader>
-            <CardTitle>Record payment</CardTitle>
-            <CardDescription>
-              Record cash, transfer, DuitNow, FPX, card, or other payments
-              received outside {appName}.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form action={recordPayment} className="grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="invoiceId">Invoice</Label>
-                <Select name="invoiceId" required>
-                  <SelectTrigger id="invoiceId">
-                    <SelectValue placeholder="Select invoice" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {openInvoices.map((invoice) => (
-                      <SelectItem key={invoice.id} value={invoice.id}>
-                        {invoice.invoiceNumber} - {invoice.student.fullName} -{" "}
-                        {formatMoney(invoice.totalSen - invoice.amountPaidSen)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="amount">Amount</Label>
-                <Input
-                  id="amount"
-                  min="0.01"
-                  name="amount"
-                  required
-                  step="0.01"
-                  type="number"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="method">Method</Label>
-                <Select name="method" required>
-                  <SelectTrigger id="method">
-                    <SelectValue placeholder="Select method" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {methods.map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="reference">Reference</Label>
-                <Input id="reference" name="reference" />
-              </div>
-              <Button disabled={openInvoices.length === 0} type="submit">
-                Record payment
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent payments</CardTitle>
-            <CardDescription>
-              {payments.length} payments recorded
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Receipt</TableHead>
-                  <TableHead>Student</TableHead>
-                  <TableHead>Method</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Invoice</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {payments.map((payment) => (
-                  <TableRow key={payment.id}>
-                    <TableCell className="font-medium">
-                      <Link
-                        className="underline-offset-4 hover:underline"
-                        href={`/payments/${payment.id}`}
-                      >
-                        {payment.receiptNumber}
-                      </Link>
-                    </TableCell>
-                    <TableCell>{payment.student.fullName}</TableCell>
-                    <TableCell>{payment.method}</TableCell>
-                    <TableCell>{formatMoney(payment.amountSen)}</TableCell>
-                    <TableCell>
-                      {payment.allocations
-                        .map((allocation) => allocation.invoice.invoiceNumber)
-                        .join(", ") || "-"}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+      <main className="grid gap-5 p-4 pt-4">
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+          <div>
+            <h1 className="font-semibold text-2xl tracking-tight">Payments</h1>
+            <p className="text-muted-foreground text-sm">
+              All manually recorded payments — cash, transfers, DuitNow, FPX,
+              and card.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              className="flex-1 md:flex-none"
+              render={<Link href="/reports/exports/payments" />}
+              variant="outline"
+            >
+              <DownloadIcon className="size-4" />
+              Export
+            </Button>
+            <RecordPaymentDialog
+              currency={currency}
+              openInvoices={openInvoices}
+            />
+          </div>
+        </div>
+
+        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <Stat>
+            <StatPanel>
+              <StatLabel>Collected</StatLabel>
+              <StatIndicator color="success" variant="icon">
+                <CircleDollarSignIcon />
+              </StatIndicator>
+              <StatValue>{formatMoney(collectedSen)}</StatValue>
+            </StatPanel>
+            <StatFooter>
+              <StatDescription>
+                {collectedCount} transactions this month
+              </StatDescription>
+            </StatFooter>
+          </Stat>
+          <Stat>
+            <StatPanel>
+              <StatLabel>Pending Verification</StatLabel>
+              <StatIndicator color="warning" variant="icon">
+                <ClockIcon />
+              </StatIndicator>
+              <StatValue>
+                {(countByStatus.RECORDED ?? 0).toLocaleString()}
+              </StatValue>
+            </StatPanel>
+            <StatFooter>
+              <StatDescription>Awaiting review</StatDescription>
+            </StatFooter>
+          </Stat>
+          <Stat>
+            <StatPanel>
+              <StatLabel>Reversed</StatLabel>
+              <StatIndicator color="default" variant="icon">
+                <RotateCcwIcon />
+              </StatIndicator>
+              <StatValue>
+                {(countByStatus.REVERSED ?? 0).toLocaleString()}
+              </StatValue>
+            </StatPanel>
+            <StatFooter>
+              <StatDescription>Voided payments</StatDescription>
+            </StatFooter>
+          </Stat>
+          <Stat>
+            <StatPanel>
+              <StatLabel>Avg. Payment</StatLabel>
+              <StatIndicator color="info" variant="icon">
+                <ArrowUpRightIcon />
+              </StatIndicator>
+              <StatValue>{formatMoney(avgSen)}</StatValue>
+            </StatPanel>
+            <StatFooter>
+              <StatDescription>Per transaction</StatDescription>
+            </StatFooter>
+          </Stat>
+        </section>
+
+        <PaymentsPageClient
+          currency={currency}
+          filterOptions={filterOptions}
+          initialData={initialTableData.data}
+          initialTotalCount={initialTableData.totalCount}
+          statusCounts={countByStatus}
+        />
       </main>
     </>
   );

@@ -13,6 +13,7 @@ export const EVENT_TYPES = {
   attendanceMarked: "attendance.marked",
   invoiceGenerated: "invoice.generated",
   paymentRecorded: "payment.recorded",
+  paymentVerified: "payment.verified",
   paymentReversed: "payment.reversed",
 } as const;
 
@@ -230,6 +231,27 @@ export const paymentRecordedEvent = (
   },
   organizationId,
   summary: `Payment of ${formatMoneyRm(amountSen)} recorded`,
+  targetId,
+  targetType: "Student",
+  userId,
+});
+
+export const paymentVerifiedEvent = (
+  organizationId: string,
+  targetId: string,
+  _studentName: string,
+  paymentId: string,
+  amountSen: number,
+  userId?: string | null
+): ActivityEventInput => ({
+  action: "UPDATE",
+  metadata: {
+    amountSen,
+    eventType: EVENT_TYPES.paymentVerified,
+    paymentId,
+  },
+  organizationId,
+  summary: `Payment of ${formatMoneyRm(amountSen)} verified`,
   targetId,
   targetType: "Student",
   userId,

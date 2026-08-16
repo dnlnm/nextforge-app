@@ -1,0 +1,11 @@
+-- Add the VERIFIED status to the PaymentStatus enum.
+--
+-- Payments move RECORDED -> VERIFIED once the recorded amount is confirmed
+-- by an admin, and RECORDED -> REVERSED when voided. Verified payments count
+-- towards collected totals but can no longer be reversed.
+--
+-- `BEFORE 'REVERSED'` keeps the enum ordering in sync with schema.prisma
+-- (RECORDED, VERIFIED, REVERSED) so Prisma enum comparisons and `ORDER BY`
+-- behave identically to a fresh deploy. Adding a value never rewrites the
+-- "Payment" table, so this is safe to run on live environments.
+ALTER TYPE "PaymentStatus" ADD VALUE 'VERIFIED' BEFORE 'REVERSED';

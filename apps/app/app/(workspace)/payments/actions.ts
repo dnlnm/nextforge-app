@@ -1,20 +1,32 @@
 "use server";
 
-import { requireTenantRole } from "@repo/auth/authorization";
-import { database } from "@repo/database";
+import { requireTenant, requireTenantRole } from "@repo/auth/authorization";
+import { database, type Prisma } from "@repo/database";
+import { addMalaysiaCalendarDays, tryParseCalendarDate } from "@repo/date";
 import {
   paymentRecordedEvent,
   paymentReversedEvent,
+  paymentVerifiedEvent,
 } from "@repo/domain/students/activity";
 import { parseMoneyToSen } from "@repo/money";
-import { type PaymentMethod, paymentMethods } from "@repo/schemas/enums";
+import {
+  type PaymentMethod,
+  type PaymentStatus,
+  paymentMethods,
+  paymentStatuses,
+} from "@repo/schemas/enums";
+import type { PaymentsQueryParams } from "@repo/schemas/payments";
 import { revalidatePath } from "next/cache";
 import {
   formatSequenceNumber,
   reserveNextSequence,
 } from "../billing/sequences";
+import { METHOD_LABELS, STATUS_LABELS } from "./payments-labels";
+
+export type { PaymentsQueryParams } from "@repo/schemas/payments";
 
 const methods = new Set<PaymentMethod>(paymentMethods);
+const statuses = new Set<PaymentStatus>(paymentStatuses);
 
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);
@@ -172,7 +184,9 @@ export const reversePayment = async (formData: FormData) => {
       allocations: {
         select: {
           amountSen: true,
-          invoice: { select: { amountPaidSen: true, id: true, totalSen: true } },
+          invoice: {
+            select: { amountPaidSen: true, id: true, totalSen: true },
+          },
           invoiceId: true,
         },
       },
@@ -245,3 +259,234 @@ export const reversePayment = async (formData: FormData) => {
   revalidatePath("/invoices");
   revalidatePath("/payments");
 };
+
+export const verifyPayment = async (formData: FormData) => {
+  const tenant = await requireTenantRole(["ADMIN"]);
+  const paymentId = getString(formData, "paymentId");
+
+  if (!paymentId) {
+    throw new Error("Payment is required.");
+  }
+
+  const payment = await database.payment.findFirst({
+    where: {
+      id: paymentId,
+      organizationId: tenant.organizationId,
+      status: "RECORDED",
+    },
+    select: {
+      amountSen: true,
+      id: true,
+      studentId: true,
+    },
+  });
+
+  if (!payment) {
+    throw new Error("Payment not found or already processed.");
+  }
+
+  await database.$transaction(async (tx) => {
+    await tx.payment.update({
+      where: { id: payment.id },
+      data: { status: "VERIFIED" },
+    });
+
+    const studentName = await tx.student
+      .findFirst({
+        where: { id: payment.studentId, organizationId: tenant.organizationId },
+        select: { fullName: true },
+      })
+      .then((student) => student?.fullName ?? "student");
+
+    const event = paymentVerifiedEvent(
+      tenant.organizationId,
+      payment.studentId,
+      studentName,
+      payment.id,
+      payment.amountSen,
+      tenant.userId
+    );
+
+    await tx.auditEvent.create({ data: event });
+  });
+
+  revalidatePath("/payments");
+};
+
+// Fetch payments for the table with server-side pagination, filtering, and
+// sorting, mirroring the students table pattern.
+const paymentWhereInput = (
+  params: PaymentsQueryParams,
+  organizationId: string
+): Prisma.PaymentWhereInput => {
+  const where: Prisma.PaymentWhereInput = {
+    organizationId,
+  };
+
+  // Apply global search (student, receipt, reference, or invoice number).
+  if (params.search) {
+    where.OR = [
+      { receiptNumber: { contains: params.search, mode: "insensitive" } },
+      { reference: { contains: params.search, mode: "insensitive" } },
+      {
+        student: {
+          fullName: { contains: params.search, mode: "insensitive" },
+        },
+      },
+      {
+        allocations: {
+          some: {
+            invoice: {
+              invoiceNumber: { contains: params.search, mode: "insensitive" },
+            },
+          },
+        },
+      },
+    ];
+  }
+
+  if (params.filters && params.filters.length > 0) {
+    applyPaymentFilters(where, params.filters);
+  }
+
+  return where;
+};
+
+// Apply column filters (status, method, date range). Filter values arrive
+// untyped from the URL, so validate them against the enum sets before use.
+const applyPaymentFilters = (
+  where: Prisma.PaymentWhereInput,
+  filters: NonNullable<PaymentsQueryParams["filters"]>
+) => {
+  const values = (filterId: string) => {
+    const filter = filters.find((f) => f.id === filterId);
+    return Array.isArray(filter?.value) ? filter.value : [filter?.value];
+  };
+
+  const statusValues = values("status").filter(
+    (v): v is PaymentStatus =>
+      typeof v === "string" && statuses.has(v as PaymentStatus)
+  );
+  if (statusValues.length > 0) {
+    where.status = { in: statusValues };
+  }
+
+  const methodValues = values("method").filter(
+    (v): v is PaymentMethod =>
+      typeof v === "string" && methods.has(v as PaymentMethod)
+  );
+  if (methodValues.length > 0) {
+    where.method = { in: methodValues };
+  }
+
+  // Calendar date range (paidAt). The calendar dates are parsed to
+  // UTC-midnight instants; the upper bound is exclusive and "to" is
+  // inclusive, so add one Malaysia calendar day to it.
+  const dateFilter = filters.find((f) => f.id === "date");
+  if (
+    dateFilter &&
+    typeof dateFilter.value === "object" &&
+    dateFilter.value !== null
+  ) {
+    const range = dateFilter.value as { from?: unknown; to?: unknown };
+    const fromDate =
+      typeof range.from === "string"
+        ? tryParseCalendarDate(range.from)
+        : undefined;
+    const toDate =
+      typeof range.to === "string" ? tryParseCalendarDate(range.to) : undefined;
+
+    if (fromDate || toDate) {
+      where.paidAt = {
+        ...(fromDate ? { gte: fromDate } : {}),
+        ...(toDate ? { lt: addMalaysiaCalendarDays(toDate, 1) } : {}),
+      };
+    }
+  }
+};
+
+// Build orderBy from the URL sorting state (date, amount, student, status).
+const SORT_BUILDERS: Record<
+  string,
+  (sort: {
+    id: string;
+    desc: boolean;
+  }) => Prisma.PaymentOrderByWithRelationInput
+> = {
+  amount: (sort) => ({ amountSen: sort.desc ? "desc" : "asc" }),
+  date: (sort) => ({ paidAt: sort.desc ? "desc" : "asc" }),
+  studentName: (sort) => ({
+    student: { fullName: sort.desc ? "desc" : "asc" },
+  }),
+  status: (sort) => ({ status: sort.desc ? "desc" : "asc" }),
+};
+
+const paymentOrderByInput = (
+  params: PaymentsQueryParams
+): Prisma.PaymentOrderByWithRelationInput[] => {
+  if (!params.sorting || params.sorting.length === 0) {
+    // Default: newest payments first.
+    return [{ paidAt: "desc" }];
+  }
+
+  return params.sorting.flatMap((sort) => {
+    const build = SORT_BUILDERS[sort.id];
+    return build ? [build(sort)] : [];
+  });
+};
+
+export async function getPaymentsForTable(params: PaymentsQueryParams) {
+  const tenant = await requireTenant();
+
+  const where = paymentWhereInput(params, tenant.organizationId);
+  const orderBy = paymentOrderByInput(params);
+
+  const [payments, totalCount] = await Promise.all([
+    database.payment.findMany({
+      where,
+      orderBy,
+      skip: params.page * params.pageSize,
+      take: params.pageSize,
+      include: {
+        allocations: { include: { invoice: true } },
+        recordedBy: { select: { firstName: true, lastName: true } },
+        student: {
+          include: {
+            guardians: {
+              where: { isPrimary: true },
+              include: { guardian: true },
+              take: 1,
+            },
+            level: { select: { name: true } },
+          },
+        },
+      },
+    }),
+    database.payment.count({ where }),
+  ]);
+
+  return {
+    data: payments,
+    totalCount,
+  };
+}
+
+// Display labels for payment methods and statuses (shared with the client
+// via payments-labels.ts).
+
+// Static filter options for the payments table toolbar. Exported from a
+// "use server" module, so it must stay async even though it is static.
+export async function getPaymentFilterOptions() {
+  await Promise.resolve();
+
+  return {
+    methods: paymentMethods.map((method) => ({
+      label: METHOD_LABELS[method],
+      value: method,
+    })),
+    statuses: paymentStatuses.map((status) => ({
+      label: STATUS_LABELS[status],
+      value: status,
+    })),
+  };
+}

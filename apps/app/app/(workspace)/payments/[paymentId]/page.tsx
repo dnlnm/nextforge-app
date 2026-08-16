@@ -26,6 +26,7 @@ import { PrintButton } from "@/components/print-button";
 import { getOrganizationCurrency } from "@/lib/currency";
 import { Header } from "../../components/header";
 import { reversePayment } from "../actions";
+import { STATUS_LABELS } from "../payments-labels";
 
 interface PaymentPageProperties {
   readonly params: Promise<{ paymentId: string }>;
@@ -91,7 +92,7 @@ const PaymentPage = async ({ params }: PaymentPageProperties) => {
             <div>
               <CardTitle className="text-2xl">Receipt</CardTitle>
               <p className="mt-2 font-semibold">{payment.receiptNumber}</p>
-              <Badge className="mt-2">{payment.status}</Badge>
+              <Badge className="mt-2">{STATUS_LABELS[payment.status]}</Badge>
             </div>
             <div className="text-left md:text-right">
               <p className="font-semibold">{payment.organization.name}</p>

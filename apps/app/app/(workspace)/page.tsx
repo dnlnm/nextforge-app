@@ -179,14 +179,14 @@ const App = async () => {
       where: {
         organizationId: tenant.organizationId,
         paidAt: { gte: monthStart, lt: nextMonthStart },
-        status: "RECORDED",
+        status: { in: ["RECORDED", "VERIFIED"] },
       },
     }),
     database.payment.findMany({
       where: {
         organizationId: tenant.organizationId,
         paidAt: { gte: previousMonthStart, lt: monthStart },
-        status: "RECORDED",
+        status: { in: ["RECORDED", "VERIFIED"] },
       },
     }),
     database.attendanceRecord.groupBy({

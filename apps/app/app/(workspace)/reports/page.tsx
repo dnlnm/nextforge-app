@@ -66,7 +66,10 @@ const ReportsPage = async () => {
       }),
       database.payment.groupBy({
         by: ["method"],
-        where: { organizationId: tenant.organizationId, status: "RECORDED" },
+        where: {
+          organizationId: tenant.organizationId,
+          status: { in: ["RECORDED", "VERIFIED"] },
+        },
         _sum: { amountSen: true },
         _count: { id: true },
       }),
