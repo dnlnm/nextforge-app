@@ -3,41 +3,28 @@ import { appName } from "@repo/config/brand";
 import { database, type LevelStage } from "@repo/database";
 import { Header } from "../components/header";
 import { AcademicLevelsList } from "./academic-levels-list";
-import { AddLevelDialog } from "./add-level-dialog";
 
-const STAGE_ORDER: LevelStage[] = [
-  "PRIMARY",
-  "LOWER_SECONDARY",
-  "UPPER_SECONDARY",
-  "PRE_UNIVERSITY",
-  "GENERAL",
+const STAGE_GROUPS: { readonly id: string; readonly stages: LevelStage[] }[] = [
+  { id: "PRIMARY", stages: ["PRIMARY"] },
+  { id: "SECONDARY", stages: ["LOWER_SECONDARY", "UPPER_SECONDARY"] },
+  { id: "PRE_UNIVERSITY", stages: ["PRE_UNIVERSITY"] },
+  { id: "GENERAL", stages: ["GENERAL"] },
 ];
 
-const AcademicLevelsPage = async () => {
-  const tenant = await requireTenantRole(["ADMIN"]);
-
-  const levels = await database.level.findMany({
-    where: { organizationId: tenant.organizationId, archivedAt: null },
-    orderBy: { order: "asc" },
-    select: {
-      code: true,
-      id: true,
-      name: true,
-      order: true,
-      stage: true,
-      _count: {
-        select: {
-          classes: { where: { archivedAt: null } },
-          students: { where: { archivedAt: null } },
-        },
-      },
-    },
-  });
-
-  const grouped = STAGE_ORDER.map((stage) => ({
-    stage,
+const groupLevels = (
+  levels: readonly {
+    readonly code: string;
+    readonly id: string;
+    readonly name: string;
+    readonly order: number;
+    readonly stage: LevelStage;
+    readonly _count: { readonly classes: number; readonly students: number };
+  }[]
+) =>
+  STAGE_GROUPS.map((group) => ({
+    id: group.id,
     levels: levels
-      .filter((level) => level.stage === stage)
+      .filter((level) => group.stages.includes(level.stage))
       .map((level) => ({
         classCount: level._count.classes,
         code: level.code,
@@ -49,51 +36,57 @@ const AcademicLevelsPage = async () => {
       })),
   }));
 
-  const archived = await database.level.findMany({
-    where: { organizationId: tenant.organizationId, archivedAt: { not: null } },
-    orderBy: { archivedAt: "desc" },
-    select: {
-      code: true,
-      id: true,
-      name: true,
-      order: true,
-      stage: true,
-      _count: {
-        select: {
-          classes: { where: { archivedAt: null } },
-          students: { where: { archivedAt: null } },
+const AcademicLevelsPage = async () => {
+  const tenant = await requireTenantRole(["ADMIN"]);
+
+  const [active, archived] = await Promise.all([
+    database.level.findMany({
+      where: { organizationId: tenant.organizationId, archivedAt: null },
+      orderBy: { order: "asc" },
+      select: {
+        code: true,
+        id: true,
+        name: true,
+        order: true,
+        stage: true,
+        _count: {
+          select: {
+            classes: { where: { archivedAt: null } },
+            students: { where: { archivedAt: null } },
+          },
         },
       },
-    },
-  });
-
-  const archivedLevels = archived.map((level) => ({
-    classCount: level._count.classes,
-    code: level.code,
-    id: level.id,
-    name: level.name,
-    order: level.order,
-    stage: level.stage,
-    studentCount: level._count.students,
-  }));
+    }),
+    database.level.findMany({
+      where: {
+        organizationId: tenant.organizationId,
+        archivedAt: { not: null },
+      },
+      orderBy: { archivedAt: "desc" },
+      select: {
+        code: true,
+        id: true,
+        name: true,
+        order: true,
+        stage: true,
+        _count: {
+          select: {
+            classes: { where: { archivedAt: null } },
+            students: { where: { archivedAt: null } },
+          },
+        },
+      },
+    }),
+  ]);
 
   return (
     <>
       <Header page="Academic Levels" pages={[`${appName}`]} />
-      <main className="grid gap-5 p-4 pt-4">
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-          <div>
-            <h1 className="font-semibold text-2xl tracking-tight">
-              Academic Levels
-            </h1>
-            <p className="text-muted-foreground text-sm">
-              Manage academic stages and levels for your centre.
-            </p>
-          </div>
-          <AddLevelDialog />
-        </div>
-
-        <AcademicLevelsList archived={archivedLevels} grouped={grouped} />
+      <main className="p-4 pt-4 sm:p-6 sm:pt-4">
+        <AcademicLevelsList
+          archivedGroups={groupLevels(archived)}
+          groups={groupLevels(active)}
+        />
       </main>
     </>
   );

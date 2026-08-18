@@ -8,7 +8,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@repo/design-system/components/ui/dialog";
 import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
@@ -19,69 +18,66 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/design-system/components/ui/select";
-import { PlusIcon } from "lucide-react";
+import { CheckIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { createLevel } from "./actions";
+import type { LevelSummary } from "./academic-levels-list";
+import { updateLevel } from "./actions";
+import { STAGE_OPTIONS } from "./add-level-dialog";
 
-export const STAGE_OPTIONS = [
-  { value: "PRIMARY", label: "Primary (Year 1–6)" },
-  { value: "LOWER_SECONDARY", label: "Lower Secondary (Form 1–3)" },
-  { value: "UPPER_SECONDARY", label: "Upper Secondary (Form 4–5)" },
-  { value: "PRE_UNIVERSITY", label: "Pre-University (Form 6, STPM)" },
-  { value: "GENERAL", label: "General / Other" },
-] as const;
-
-interface AddLevelDialogProps {
-  readonly initialStage?: string;
+interface EditLevelDialogProps {
+  readonly level: LevelSummary | null;
   readonly onOpenChange: (open: boolean) => void;
-  readonly open: boolean;
 }
 
-export const AddLevelDialog = ({
-  initialStage,
+export const EditLevelDialog = ({
+  level,
   onOpenChange,
-  open,
-}: AddLevelDialogProps) => {
+}: EditLevelDialogProps) => {
   const [name, setName] = useState("");
-  const [stage, setStage] = useState(initialStage ?? "PRIMARY");
+  const [code, setCode] = useState("");
+  const [stage, setStage] = useState("PRIMARY");
 
   useEffect(() => {
-    if (open) {
-      setName("");
-      setStage(initialStage ?? "PRIMARY");
+    if (!level) {
+      return;
     }
-  }, [initialStage, open]);
+    setName(level.name);
+    setCode(level.code);
+    setStage(level.stage);
+  }, [level]);
 
   return (
-    <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogTrigger render={<Button className="flex-1 md:flex-none" />}>
-        <PlusIcon className="size-4" />
-        Add New Level
-      </DialogTrigger>
+    <Dialog
+      onOpenChange={(open) => {
+        if (!open) {
+          onOpenChange(false);
+        }
+      }}
+      open={level !== null}
+    >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add a level</DialogTitle>
+          <DialogTitle>Edit {level?.name}</DialogTitle>
           <DialogDescription>
-            Grouped by Malaysian education stage. These appear in class and
-            student forms.
+            Update the level name, code, or education stage.
           </DialogDescription>
         </DialogHeader>
         <form
           action={async (formData) => {
-            await createLevel(formData);
-            setName("");
+            await updateLevel(formData);
             onOpenChange(false);
           }}
           className="grid gap-4"
         >
+          <input name="levelId" type="hidden" value={level?.id ?? ""} />
           <div className="grid gap-2">
-            <Label htmlFor="stage">Stage</Label>
+            <Label htmlFor="edit-stage">Stage</Label>
             <Select
               name="stage"
               onValueChange={(value) => setStage(value ?? "")}
               value={stage}
             >
-              <SelectTrigger id="stage">
+              <SelectTrigger id="edit-stage">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -94,24 +90,25 @@ export const AddLevelDialog = ({
             </Select>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="name">Level name</Label>
+            <Label htmlFor="edit-name">Level name</Label>
             <Input
-              id="name"
+              id="edit-name"
               name="name"
               onChange={(event) => setName(event.target.value)}
-              placeholder="e.g. Year 3"
               required
               value={name}
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="code">Code</Label>
+            <Label htmlFor="edit-code">Code</Label>
             <Input
-              id="code"
+              id="edit-code"
               maxLength={4}
               name="code"
+              onChange={(event) => setCode(event.target.value)}
               placeholder="e.g. Y3"
               required
+              value={code}
             />
             <p className="text-muted-foreground text-xs">
               Max 4 alphanumeric characters. Used to build class codes.
@@ -119,8 +116,8 @@ export const AddLevelDialog = ({
           </div>
           <DialogFooter>
             <Button type="submit">
-              <PlusIcon className="size-4" />
-              Add level
+              <CheckIcon className="size-4" />
+              Save changes
             </Button>
           </DialogFooter>
         </form>

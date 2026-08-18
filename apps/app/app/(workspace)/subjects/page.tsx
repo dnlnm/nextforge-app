@@ -1,7 +1,6 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { appName } from "@repo/config/brand";
-import { database } from "@repo/database";
-import { getOrganizationCurrency } from "@/lib/currency";
+import { database, type LevelStage } from "@repo/database";
 import { Header } from "../components/header";
 import { AddSubjectDialog } from "./add-subject-dialog";
 import SubjectsList, { type SubjectSummary } from "./subjects-list";
@@ -11,7 +10,6 @@ const CONTRACT_COMMENT =
 
 const SubjectsPage = async () => {
   const tenant = await requireTenantRole(["ADMIN"]);
-  const currency = await getOrganizationCurrency(tenant.organizationId);
   const rawSubjects = await database.subject.findMany({
     where: { organizationId: tenant.organizationId, status: "ACTIVE" },
     orderBy: { name: "asc" },
@@ -19,17 +17,12 @@ const SubjectsPage = async () => {
       classes: {
         where: { archivedAt: null },
         include: {
-          branch: { select: { name: true } },
           enrollments: {
             where: { archivedAt: null, status: "ACTIVE" },
             select: { studentId: true },
           },
-          level: { select: { name: true } },
-          schedules: {
-            orderBy: { dayOfWeek: "asc" },
-            include: { room: { select: { name: true } } },
-          },
-          teacher: { select: { fullName: true, id: true } },
+          level: { select: { name: true, stage: true } },
+          teacher: { select: { id: true } },
         },
         orderBy: { name: "asc" },
       },
@@ -39,7 +32,8 @@ const SubjectsPage = async () => {
   const subjects: SubjectSummary[] = rawSubjects.map((subject) => {
     const studentIds = new Set<string>();
     const teacherIds = new Set<string>();
-    const fees: number[] = [];
+    const stages = new Set<LevelStage>();
+    const levelNames = new Set<string>();
 
     for (const cls of subject.classes) {
       for (const enrollment of cls.enrollments) {
@@ -50,33 +44,25 @@ const SubjectsPage = async () => {
         teacherIds.add(cls.teacher.id);
       }
 
-      fees.push(cls.monthlyFeeSen);
+      if (cls.level?.stage) {
+        stages.add(cls.level.stage);
+      }
+
+      if (cls.level?.name) {
+        levelNames.add(cls.level.name);
+      }
     }
 
     return {
-      classes: subject.classes.map((cls) => ({
-        branchName: cls.branch?.name ?? null,
-        capacity: cls.capacity,
-        id: cls.id,
-        levelName: cls.level?.name ?? null,
-        monthlyFeeSen: cls.monthlyFeeSen,
-        name: cls.name,
-        schedules: cls.schedules.map((schedule) => ({
-          dayOfWeek: schedule.dayOfWeek,
-          endsAt: schedule.endsAt,
-          roomName: schedule.room?.name ?? null,
-          startsAt: schedule.startsAt,
-        })),
-        studentCount: cls.enrollments.length,
-        teacherName: cls.teacher?.fullName ?? null,
-      })),
+      category: subject.category,
       classCount: subject.classes.length,
       code: subject.code,
       description: subject.description,
-      feeMaxSen: fees.length > 0 ? Math.max(...fees) : null,
-      feeMinSen: fees.length > 0 ? Math.min(...fees) : null,
+      icon: subject.icon,
       id: subject.id,
+      levelNames: [...levelNames],
       name: subject.name,
+      stages: [...stages],
       studentCount: studentIds.size,
       teacherCount: teacherIds.size,
     };
@@ -102,7 +88,7 @@ const SubjectsPage = async () => {
           <AddSubjectDialog />
         </div>
 
-        <SubjectsList currency={currency} subjects={subjects} />
+        <SubjectsList subjects={subjects} />
       </main>
     </>
   );

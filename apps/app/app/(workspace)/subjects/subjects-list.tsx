@@ -1,277 +1,564 @@
 "use client";
 
-import { formatWallClockTime } from "@repo/date";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@repo/design-system/components/ui/accordion";
+import type { LevelStage, SubjectCategory } from "@repo/database";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
-import { Card } from "@repo/design-system/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@repo/design-system/components/ui/card";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@repo/design-system/components/ui/empty";
 import { Input } from "@repo/design-system/components/ui/input";
-import { formatMoneyWhole as formatMoneyShared } from "@repo/money";
-import { BookOpenIcon, Edit3Icon, SearchIcon } from "lucide-react";
+import { Label } from "@repo/design-system/components/ui/label";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+} from "@repo/design-system/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@repo/design-system/components/ui/select";
+import { Separator } from "@repo/design-system/components/ui/separator";
+import {
+  Tabs,
+  TabsList,
+  TabsTab,
+} from "@repo/design-system/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@repo/design-system/components/ui/tooltip";
+import { cn } from "@repo/design-system/lib/utils";
+import {
+  ArchiveIcon,
+  BookOpenIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  Edit3Icon,
+  SearchIcon,
+  UsersRoundIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { archiveSubject } from "./actions";
 import { AddSubjectDialog } from "./add-subject-dialog";
-
-export interface SubjectClassSummary {
-  branchName: string | null;
-  capacity: number | null;
-  id: string;
-  levelName: string | null;
-  monthlyFeeSen: number;
-  name: string;
-  schedules: Array<{
-    dayOfWeek: string;
-    endsAt: string;
-    roomName: string | null;
-    startsAt: string;
-  }>;
-  studentCount: number;
-  teacherName: string | null;
-}
+import {
+  getSubjectIconOption,
+  SUBJECT_CATEGORIES,
+  SUBJECT_CATEGORY_LABELS,
+} from "./subject-catalog";
 
 export interface SubjectSummary {
+  category: SubjectCategory;
   classCount: number;
-  classes: SubjectClassSummary[];
   code: string;
   description: string | null;
-  feeMaxSen: number | null;
-  feeMinSen: number | null;
+  icon: string;
   id: string;
+  levelNames: string[];
   name: string;
+  stages: LevelStage[];
   studentCount: number;
   teacherCount: number;
 }
 
-const dayLabel: Record<string, string> = {
-  FRIDAY: "Fri",
-  MONDAY: "Mon",
-  SATURDAY: "Sat",
-  SUNDAY: "Sun",
-  THURSDAY: "Thu",
-  TUESDAY: "Tue",
-  WEDNESDAY: "Wed",
-};
+const PAGE_SIZE = 5;
 
-const formatTime = (time: string) => formatWallClockTime(time);
+const STAGE_TABS: readonly {
+  readonly id: string;
+  readonly label: string;
+  readonly stages: readonly LevelStage[];
+}[] = [
+  { id: "ALL", label: "All Stages", stages: [] },
+  { id: "PRIMARY", label: "Primary", stages: ["PRIMARY"] },
+  {
+    id: "SECONDARY",
+    label: "Secondary",
+    stages: ["LOWER_SECONDARY", "UPPER_SECONDARY"],
+  },
+  {
+    id: "PRE_UNIVERSITY",
+    label: "Pre-University",
+    stages: ["PRE_UNIVERSITY"],
+  },
+  { id: "GENERAL", label: "General", stages: ["GENERAL"] },
+];
 
-const formatSchedule = (subjectClass: SubjectClassSummary) =>
-  subjectClass.schedules.length > 0
-    ? subjectClass.schedules
-        .map(
-          (schedule) =>
-            `${dayLabel[schedule.dayOfWeek] ?? schedule.dayOfWeek} ${formatTime(schedule.startsAt)}–${formatTime(schedule.endsAt)}${schedule.roomName ? ` · ${schedule.roomName}` : ""}`
-        )
-        .join(", ")
-    : "No schedule";
-
-const formatFeeRange = (
-  subject: SubjectSummary,
-  formatMoney: (amountSen: number) => string
-) => {
-  if (subject.feeMinSen === null || subject.feeMaxSen === null) {
-    return "—";
+const matchesStage = (subject: SubjectSummary, stage: string) => {
+  if (stage === "ALL") {
+    return true;
   }
 
-  if (subject.feeMinSen === subject.feeMaxSen) {
-    return `${formatMoney(subject.feeMinSen)}/mo`;
-  }
+  const tab = STAGE_TABS.find((option) => option.id === stage);
 
-  return `${formatMoney(subject.feeMinSen)}–${formatMoney(subject.feeMaxSen)}/mo`;
+  return tab
+    ? tab.stages.some((candidate) => subject.stages.includes(candidate))
+    : true;
 };
 
 const SubjectRow = ({
-  formatMoney,
+  onSelect,
+  selected,
   subject,
 }: {
-  readonly formatMoney: (amountSen: number) => string;
+  readonly onSelect: () => void;
+  readonly selected: boolean;
   readonly subject: SubjectSummary;
-}) => (
-  <span className="flex w-full min-w-0 flex-col gap-1 text-left sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-    <span className="flex min-w-0 items-center gap-3">
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-md border bg-muted text-muted-foreground">
-        <BookOpenIcon className="size-4" />
-      </span>
-      <span className="truncate font-medium text-foreground">
-        {subject.name}
-      </span>
-      <Badge variant="outline">{subject.code}</Badge>
-    </span>
-    <span className="flex items-center gap-2 pl-12 text-muted-foreground text-sm sm:gap-3 sm:pl-0">
-      <span>{subject.classCount} classes</span>
-      <span aria-hidden="true">·</span>
-      <span>{subject.studentCount} students</span>
-      <span aria-hidden="true">·</span>
-      <span>{subject.teacherCount} teachers</span>
-      <span className="font-medium text-foreground tabular-nums">
-        {formatFeeRange(subject, formatMoney)}
-      </span>
-    </span>
-  </span>
-);
+}) => {
+  const { Icon } = getSubjectIconOption(subject.icon);
 
-const SubjectDetail = ({
-  formatMoney,
-  subject,
+  return (
+    <button
+      className={cn(
+        "flex w-full cursor-pointer items-center justify-between gap-4 rounded-xl border p-4 text-left transition-colors",
+        selected
+          ? "border-foreground bg-muted/40"
+          : "bg-card hover:border-foreground/40 hover:bg-muted/20"
+      )}
+      onClick={onSelect}
+      type="button"
+    >
+      <div className="flex min-w-0 items-center gap-4">
+        <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-muted text-primary">
+          <Icon className="size-6" />
+        </div>
+        <div className="min-w-0">
+          <p className="truncate font-semibold text-foreground">
+            {subject.name}
+          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <Badge className="font-mono text-xs" variant="outline">
+              {subject.code}
+            </Badge>
+            <span className="text-muted-foreground text-xs">
+              {SUBJECT_CATEGORY_LABELS[subject.category]}
+            </span>
+          </div>
+          <p className="mt-1 text-muted-foreground text-xs">
+            {subject.classCount} class{subject.classCount === 1 ? "" : "es"} ·{" "}
+            {subject.studentCount} student
+            {subject.studentCount === 1 ? "" : "s"}
+          </p>
+        </div>
+      </div>
+      <ChevronRightIcon
+        className={cn(
+          "size-5 shrink-0",
+          selected ? "text-foreground" : "text-muted-foreground"
+        )}
+      />
+    </button>
+  );
+};
+
+const EmptyState = ({
+  hasFilters,
+  query,
 }: {
-  readonly formatMoney: (amountSen: number) => string;
-  readonly subject: SubjectSummary;
-}) => (
-  <div className="grid gap-3 pl-12">
-    <div className="grid gap-3">
-      {subject.classes.length === 0 ? (
-        <p className="py-1 text-muted-foreground text-sm">
-          No classes teach this subject yet.
-        </p>
-      ) : (
-        subject.classes.map((subjectClass) => (
-          <div
-            className="grid gap-1 rounded-md border p-3"
-            key={subjectClass.id}
-          >
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <Link
-                className="font-medium hover:underline"
-                href={`/classes/${subjectClass.id}`}
+  readonly hasFilters: boolean;
+  readonly query: string;
+}) => {
+  let title = "No subjects yet";
+  let message =
+    "Add your first subject to start building classes and monthly fees.";
+
+  if (hasFilters) {
+    title = "No matching subjects";
+    message = query
+      ? "Try a different name or code."
+      : "Try adjusting the category or stage filters.";
+  }
+
+  return (
+    <Empty>
+      <EmptyContent>
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <BookOpenIcon className="size-4.5" />
+          </EmptyMedia>
+          <EmptyTitle>{title}</EmptyTitle>
+          <EmptyDescription>{message}</EmptyDescription>
+        </EmptyHeader>
+        {hasFilters ? null : <AddSubjectDialog />}
+      </EmptyContent>
+    </Empty>
+  );
+};
+
+const SubjectPanel = ({ subject }: { readonly subject: SubjectSummary }) => {
+  const { Icon } = getSubjectIconOption(subject.icon);
+
+  return (
+    <Card className="gap-0 lg:sticky lg:top-4">
+      <CardHeader className="flex-row items-center justify-between space-y-0 py-4">
+        <CardTitle className="text-base">Subject Details</CardTitle>
+        <div className="flex items-center gap-1">
+          <Tooltip>
+            <TooltipTrigger
+              delay={0}
+              render={
+                <Button
+                  aria-label="Edit subject"
+                  render={<Link href={`/subjects/${subject.id}/edit`} />}
+                  size="icon"
+                  variant="ghost"
+                />
+              }
+            >
+              <Edit3Icon className="size-4" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Edit subject</p>
+            </TooltipContent>
+          </Tooltip>
+          <form action={archiveSubject}>
+            <input name="subjectId" type="hidden" value={subject.id} />
+            <Tooltip>
+              <TooltipTrigger
+                delay={0}
+                render={
+                  <Button
+                    aria-label="Archive subject"
+                    className="text-muted-foreground hover:text-destructive"
+                    size="icon"
+                    type="submit"
+                    variant="ghost"
+                  />
+                }
               >
-                {subjectClass.name}
-              </Link>
-              <span className="font-medium text-sm tabular-nums">
-                {formatMoney(subjectClass.monthlyFeeSen)}/month
+                <ArchiveIcon className="size-4" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Archive subject</p>
+              </TooltipContent>
+            </Tooltip>
+          </form>
+        </div>
+      </CardHeader>
+      <CardContent className="grid gap-4">
+        <div className="flex items-center gap-4">
+          <div className="flex size-16 shrink-0 items-center justify-center rounded-xl bg-muted text-primary">
+            <Icon className="size-8" />
+          </div>
+          <div className="min-w-0">
+            <h3 className="truncate font-semibold text-lg">{subject.name}</h3>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              <Badge className="font-mono text-xs" variant="outline">
+                {subject.code}
+              </Badge>
+              <span className="text-muted-foreground text-xs">
+                {SUBJECT_CATEGORY_LABELS[subject.category]}
               </span>
             </div>
-            <p className="text-muted-foreground text-sm">
-              {[
-                subjectClass.levelName ?? "General",
-                subjectClass.branchName ?? "Main branch",
-                subjectClass.teacherName ?? "No teacher",
-                formatSchedule(subjectClass),
-                `${subjectClass.studentCount}/${subjectClass.capacity ?? "–"} students`,
-              ].join(" · ")}
-            </p>
           </div>
-        ))
-      )}
-    </div>
+        </div>
 
-    {subject.description ? (
-      <p className="max-w-2xl text-muted-foreground text-sm">
-        {subject.description}
-      </p>
-    ) : null}
+        {subject.description ? (
+          <>
+            <Separator />
+            <p className="text-muted-foreground text-sm">
+              {subject.description}
+            </p>
+          </>
+        ) : null}
 
-    <div className="flex flex-wrap gap-2 pt-1">
-      <Button
-        size="sm"
-        variant="outline"
-        render={<Link href={`/subjects/${subject.id}`} />}
-      >
-        View profile
-      </Button>
-      <Button
-        size="sm"
-        variant="outline"
-        render={<Link href={`/subjects/${subject.id}/edit`} />}
-      >
-        <Edit3Icon className="size-4" />
-        Edit
-      </Button>
-      <form action={archiveSubject}>
-        <input name="subjectId" type="hidden" value={subject.id} />
-        <Button size="sm" type="submit" variant="outline">
-          Archive
+        <Separator />
+
+        <div className="grid gap-3">
+          <h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+            Academic Levels
+          </h4>
+          {subject.levelNames.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {subject.levelNames.map((levelName) => (
+                <Badge key={levelName} variant="secondary">
+                  {levelName}
+                </Badge>
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-sm">No classes yet.</p>
+          )}
+        </div>
+
+        <Separator />
+
+        <div className="grid gap-3">
+          <h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+            Assigned Teachers
+          </h4>
+          <div className="flex items-center gap-2">
+            <UsersRoundIcon className="size-5 text-primary" />
+            <span className="font-semibold text-lg tabular-nums">
+              {subject.teacherCount}
+            </span>
+            <span className="text-muted-foreground text-sm">
+              Active teacher{subject.teacherCount === 1 ? "" : "s"}
+            </span>
+          </div>
+        </div>
+
+        <Button
+          className="w-full"
+          render={<Link href={`/subjects/${subject.id}`} />}
+          variant="outline"
+        >
+          View profile
         </Button>
-      </form>
-    </div>
-  </div>
-);
+      </CardContent>
+    </Card>
+  );
+};
 
-const EmptyState = ({ query }: { readonly query: string }) => (
-  <div className="grid place-items-center gap-3 p-10 text-center">
-    <div className="flex size-10 items-center justify-center rounded-lg border bg-muted text-muted-foreground">
-      <BookOpenIcon className="size-5" />
-    </div>
-    <div className="grid gap-1">
-      <p className="font-medium text-sm">
-        {query ? "No matching subjects" : "No subjects yet"}
+const PaginationBar = ({
+  onPageChange,
+  page,
+  pageCount,
+  total,
+}: {
+  readonly onPageChange: (page: number) => void;
+  readonly page: number;
+  readonly pageCount: number;
+  readonly total: number;
+}) => {
+  const start = (page - 1) * PAGE_SIZE + 1;
+  const end = Math.min(page * PAGE_SIZE, total);
+
+  return (
+    <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+      <p className="text-muted-foreground text-sm">
+        Showing {start}–{end} of {total} subjects
       </p>
-      <p className="max-w-sm text-muted-foreground text-sm">
-        {query
-          ? "Try a different name or code."
-          : "Add your first subject to start building classes and monthly fees."}
-      </p>
+      <Pagination className="justify-end">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationLink
+              aria-disabled={page === 1 ? true : undefined}
+              aria-label="Go to previous page"
+              className={cn(page === 1 && "pointer-events-none opacity-50")}
+              href="#"
+              onClick={(event) => {
+                event.preventDefault();
+
+                if (page > 1) {
+                  onPageChange(page - 1);
+                }
+              }}
+            >
+              <ChevronLeftIcon />
+            </PaginationLink>
+          </PaginationItem>
+          {Array.from({ length: pageCount }, (_, index) => index + 1).map(
+            (candidate) => (
+              <PaginationItem key={candidate}>
+                <PaginationLink
+                  href="#"
+                  isActive={candidate === page}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    onPageChange(candidate);
+                  }}
+                >
+                  {candidate}
+                </PaginationLink>
+              </PaginationItem>
+            )
+          )}
+          <PaginationItem>
+            <PaginationLink
+              aria-disabled={page === pageCount ? true : undefined}
+              aria-label="Go to next page"
+              className={cn(
+                page === pageCount && "pointer-events-none opacity-50"
+              )}
+              href="#"
+              onClick={(event) => {
+                event.preventDefault();
+
+                if (page < pageCount) {
+                  onPageChange(page + 1);
+                }
+              }}
+            >
+              <ChevronRightIcon />
+            </PaginationLink>
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
     </div>
-    {query ? null : <AddSubjectDialog />}
-  </div>
-);
+  );
+};
 
 const SubjectsList = ({
-  currency,
   subjects,
 }: {
-  readonly currency: string;
   readonly subjects: SubjectSummary[];
 }) => {
-  const formatMoney = (amountSen: number) =>
-    formatMoneyShared(amountSen, { currency });
   const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("ALL");
+  const [stage, setStage] = useState("ALL");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
 
-    if (!normalized) {
-      return subjects;
-    }
+    return subjects.filter((subject) => {
+      if (category !== "ALL" && subject.category !== category) {
+        return false;
+      }
 
-    return subjects.filter(
-      (subject) =>
+      if (!matchesStage(subject, stage)) {
+        return false;
+      }
+
+      if (!normalized) {
+        return true;
+      }
+
+      return (
         subject.name.toLowerCase().includes(normalized) ||
         subject.code.toLowerCase().includes(normalized)
-    );
-  }, [query, subjects]);
+      );
+    });
+  }, [category, query, stage, subjects]);
+
+  const selected =
+    filtered.find((subject) => subject.id === selectedId) ??
+    filtered[0] ??
+    null;
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, pageCount);
+  const visible = filtered.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE
+  );
 
   return (
-    <Card className="gap-0">
-      {subjects.length > 0 ? (
-        <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center">
-          <div className="relative max-w-sm flex-1">
-            <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              aria-label="Search subjects"
-              className="pl-9"
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search by name or code"
-              value={query}
-            />
+    <div className="grid gap-5">
+      <Card className="gap-0">
+        <CardContent className="flex flex-col gap-4 p-4 md:flex-row md:items-end">
+          <div className="min-w-0 flex-1">
+            <Label
+              className="mb-1.5 block font-medium text-muted-foreground text-xs uppercase tracking-wider"
+              htmlFor="subject-search"
+            >
+              Search subjects
+            </Label>
+            <div className="relative">
+              <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                className="pl-9"
+                id="subject-search"
+                onChange={(event) => {
+                  setQuery(event.target.value);
+                  setPage(1);
+                }}
+                placeholder="e.g. Mathematics, BIO..."
+                value={query}
+              />
+            </div>
           </div>
-          <p className="shrink-0 text-muted-foreground text-xs sm:pr-2">
-            {filtered.length} of {subjects.length} subjects
-          </p>
-        </div>
-      ) : null}
+          <div className="w-full md:w-52">
+            <Label
+              className="mb-1.5 block font-medium text-muted-foreground text-xs uppercase tracking-wider"
+              htmlFor="subject-category"
+            >
+              Category
+            </Label>
+            <Select
+              name="subject-category"
+              onValueChange={(value) => {
+                setCategory(value ?? "ALL");
+                setPage(1);
+              }}
+              value={category}
+            >
+              <SelectTrigger id="subject-category">
+                <SelectValue placeholder="All categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All categories</SelectItem>
+                {SUBJECT_CATEGORIES.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
 
-      {filtered.length === 0 ? (
-        <EmptyState query={query} />
-      ) : (
-        <Accordion className="px-4">
-          {filtered.map((subject) => (
-            <AccordionItem key={subject.id} value={subject.id}>
-              <AccordionTrigger className="items-center gap-4 py-3 hover:no-underline">
-                <SubjectRow formatMoney={formatMoney} subject={subject} />
-              </AccordionTrigger>
-              <AccordionContent>
-                <SubjectDetail formatMoney={formatMoney} subject={subject} />
-              </AccordionContent>
-            </AccordionItem>
+      <Tabs
+        onValueChange={(value) => {
+          setStage(value ?? "ALL");
+          setPage(1);
+        }}
+        value={stage}
+      >
+        <TabsList className="gap-4" variant="underline">
+          {STAGE_TABS.map((tab) => (
+            <TabsTab key={tab.id} value={tab.id}>
+              {tab.label}
+            </TabsTab>
           ))}
-        </Accordion>
-      )}
-    </Card>
+        </TabsList>
+      </Tabs>
+
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
+        <div className="w-full lg:w-[60%]">
+          {visible.length === 0 ? (
+            <Card className="gap-0">
+              <EmptyState
+                hasFilters={filtered.length !== subjects.length}
+                query={query}
+              />
+            </Card>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {visible.map((subject) => (
+                <SubjectRow
+                  key={subject.id}
+                  onSelect={() => setSelectedId(subject.id)}
+                  selected={selected?.id === subject.id}
+                  subject={subject}
+                />
+              ))}
+            </div>
+          )}
+
+          {filtered.length > 0 ? (
+            <PaginationBar
+              onPageChange={setPage}
+              page={safePage}
+              pageCount={pageCount}
+              total={filtered.length}
+            />
+          ) : null}
+        </div>
+
+        <div className="w-full lg:w-[40%]">
+          {selected ? <SubjectPanel subject={selected} /> : null}
+        </div>
+      </div>
+    </div>
   );
 };
 

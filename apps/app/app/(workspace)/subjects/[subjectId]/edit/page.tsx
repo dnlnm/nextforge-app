@@ -43,8 +43,10 @@ const SubjectEditPage = async ({ params }: SubjectEditPageProperties) => {
           </CardHeader>
           <CardContent>
             <EditSubjectForm
+              category={subject.category}
               code={subject.code}
               description={subject.description}
+              icon={subject.icon}
               name={subject.name}
               subjectId={subject.id}
             />

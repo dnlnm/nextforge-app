@@ -139,8 +139,8 @@ const SubjectHeader = ({ subject }: { readonly subject: SubjectData }) => (
       </div>
       <div className="grid gap-2 sm:grid-cols-2 md:w-auto md:min-w-[18rem]">
         <Button
-          variant="outline"
           render={<Link href={`/subjects/${subject.id}/edit`} />}
+          variant="outline"
         >
           <Edit3Icon className="size-4" />
           Edit subject
@@ -473,8 +473,8 @@ const SubjectSidebar = ({ subject }: { readonly subject: SubjectData }) => (
             Actions
           </div>
           <Button
-            variant="outline"
             render={<Link href={`/subjects/${subject.id}/edit`} />}
+            variant="outline"
           >
             Edit subject
           </Button>

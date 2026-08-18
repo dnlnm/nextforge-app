@@ -1,10 +1,15 @@
 "use server";
 
 import { requireTenantRole } from "@repo/auth/authorization";
-import { database } from "@repo/database";
+import { database, type SubjectCategory } from "@repo/database";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isValidCode, normalizeCode } from "@/lib/codes";
+import {
+  DEFAULT_SUBJECT_ICON,
+  isSubjectCategoryValue,
+  isSubjectIconKey,
+} from "./subject-catalog";
 
 interface SubjectActionState {
   error?: string;
@@ -21,6 +26,18 @@ const getCode = (formData: FormData): string | undefined => {
   const code = value ? normalizeCode(value) : undefined;
 
   return code && isValidCode(code) ? code : undefined;
+};
+
+const getCategory = (formData: FormData): SubjectCategory | undefined => {
+  const value = getString(formData, "category");
+
+  return value && isSubjectCategoryValue(value) ? value : undefined;
+};
+
+const getIcon = (formData: FormData): string | undefined => {
+  const value = getString(formData, "icon");
+
+  return value && isSubjectIconKey(value) ? value : undefined;
 };
 
 export const createSubject = async (
@@ -50,7 +67,9 @@ export const createSubject = async (
 
   await database.subject.create({
     data: {
+      category: getCategory(formData) ?? "GENERAL",
       code,
+      icon: getIcon(formData) ?? DEFAULT_SUBJECT_ICON,
       organizationId: tenant.organizationId,
       description: getString(formData, "description"),
       name,
@@ -95,9 +114,14 @@ export const updateSubject = async (
     return { error: "A subject with this code already exists." };
   }
 
+  const category = getCategory(formData);
+  const icon = getIcon(formData);
+
   await database.subject.updateMany({
     where: { id: subjectId, organizationId: tenant.organizationId },
     data: {
+      ...(category ? { category } : {}),
+      ...(icon ? { icon } : {}),
       code,
       description: getString(formData, "description"),
       name,
