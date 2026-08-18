@@ -46,6 +46,7 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (queryUserId !== userId) {
       queryClient.clear();
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncs the query scope when the signed-in user changes.
       setQueryUserId(userId);
     }
   }, [queryClient, queryUserId, userId]);

@@ -1,5 +1,5 @@
-import { hasTenantRole } from "@repo/auth/shared";
-import { Redirect, Tabs } from "expo-router";
+import { Redirect } from "expo-router";
+import { NativeTabs } from "expo-router/unstable-native-tabs";
 import { Button, Spinner, Typography } from "heroui-native";
 import { View } from "react-native";
 
@@ -9,7 +9,7 @@ import { useSession } from "@/lib/session-provider";
 
 export default function TabsLayout() {
   const { isInitializing, session, signOut } = useSession();
-  const { activeMembership, isLoading, memberships, role } = useOrganization();
+  const { activeMembership, isLoading, memberships } = useOrganization();
 
   if (isInitializing) {
     return (
@@ -50,28 +50,24 @@ export default function TabsLayout() {
     );
   }
 
-  const isAdmin = role ? hasTenantRole(role, ["ADMIN"]) : false;
-
   return (
-    <Tabs
-      screenOptions={{
-        headerRight: () => (
-          <View className="pr-2">
-            <OrganizationSwitcher />
-          </View>
-        ),
-      }}
-    >
-      <Tabs.Screen name="index" options={{ title: "Today" }} />
-      <Tabs.Screen name="attendance" options={{ title: "Attendance" }} />
-      <Tabs.Screen name="classes" options={{ title: "Classes" }} />
-      <Tabs.Screen name="students" options={{ title: "Students" }} />
-      <Tabs.Protected guard={isAdmin}>
-        <Tabs.Screen name="dashboard" options={{ title: "Dashboard" }} />
-        <Tabs.Screen name="invoices" options={{ title: "Invoices" }} />
-        <Tabs.Screen name="payments" options={{ title: "Payments" }} />
-        <Tabs.Screen name="members" options={{ title: "Members" }} />
-      </Tabs.Protected>
-    </Tabs>
+    <NativeTabs minimizeBehavior="onScrollDown">
+      <NativeTabs.Trigger name="(home)">
+        <NativeTabs.Trigger.Icon sf="calendar" md="calendar_today" />
+        <NativeTabs.Trigger.Label>Today</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="(attendance)">
+        <NativeTabs.Trigger.Icon sf="checkmark.circle" md="fact_check" />
+        <NativeTabs.Trigger.Label>Attendance</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="(classes)">
+        <NativeTabs.Trigger.Icon sf="book.closed" md="menu_book" />
+        <NativeTabs.Trigger.Label>Classes</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="(students)">
+        <NativeTabs.Trigger.Icon sf="person.2" md="group" />
+        <NativeTabs.Trigger.Label>Students</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+    </NativeTabs>
   );
 }

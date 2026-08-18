@@ -22,6 +22,7 @@ export default function SessionAttendanceScreen() {
         initial[entry.student.id] =
           entry.attendanceStatus === "PRESENT" ? "PRESENT" : "ABSENT";
       }
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- records must reset when the session data arrives/changes.
       setRecords(initial);
     }
   }, [data]);
