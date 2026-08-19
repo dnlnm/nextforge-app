@@ -10,7 +10,7 @@ import type { ReactNode } from "react";
 import { env } from "@/env";
 import { NotificationsProvider } from "./components/notifications-provider";
 import { OrganizationProvider } from "./components/organization-context";
-import { GlobalSidebar } from "./components/sidebar";
+import { GlobalSidebar, type SidebarBadges } from "./components/sidebar";
 
 interface WorkspaceLayoutProperties {
   readonly children: ReactNode;
@@ -46,13 +46,39 @@ const WorkspaceLayout = async ({ children }: WorkspaceLayoutProperties) => {
     redirect("/");
   }
 
+  const [students, outstandingInvoices, pendingPayments] = await Promise.all([
+    database.student.count({
+      where: { organizationId: tenant.organizationId, status: "ACTIVE" },
+    }),
+    database.invoice.count({
+      where: {
+        organizationId: tenant.organizationId,
+        status: { in: ["ISSUED", "PARTIALLY_PAID", "OVERDUE"] },
+      },
+    }),
+    database.payment.count({
+      where: {
+        organizationId: tenant.organizationId,
+        status: "RECORDED",
+      },
+    }),
+  ]);
+
+  const badges: SidebarBadges = {
+    outstandingInvoices,
+    pendingPayments,
+    students,
+  };
+
   return (
     <NotificationsProvider userId={user.id}>
       <OrganizationProvider
         organization={{ ...organization, role: tenant.role }}
       >
         <SidebarProvider>
-          <GlobalSidebar role={tenant.role}>{children}</GlobalSidebar>
+          <GlobalSidebar badges={badges} role={tenant.role}>
+            {children}
+          </GlobalSidebar>
         </SidebarProvider>
       </OrganizationProvider>
     </NotificationsProvider>

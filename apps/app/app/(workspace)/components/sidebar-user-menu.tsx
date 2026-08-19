@@ -18,6 +18,8 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@repo/design-system/components/ui/dropdown-menu";
+import { useSidebar } from "@repo/design-system/components/ui/sidebar";
+import { cn } from "@repo/design-system/lib/utils";
 import {
   ChevronsUpDown,
   CreditCardIcon,
@@ -36,6 +38,8 @@ const initials = (email: string) =>
 export const SidebarUserMenu = () => {
   const router = useRouter();
   const { setTheme } = useTheme();
+  const { state } = useSidebar();
+  const collapsed = state === "collapsed";
   const [email, setEmail] = useState<string | null>(null);
   const supabase = createClient();
 
@@ -56,14 +60,26 @@ export const SidebarUserMenu = () => {
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button className="w-full justify-start gap-2 px-2" variant="ghost" />
+          <Button
+            className={cn(
+              "gap-2 px-2",
+              collapsed ? "justify-center" : "w-full justify-start"
+            )}
+            variant="ghost"
+          />
         }
       >
         <Avatar className="size-8">
           <AvatarFallback>{initials(email ?? "")}</AvatarFallback>
         </Avatar>
-        <span className="flex-1 truncate text-left">{email ?? "Account"}</span>
-        <ChevronsUpDown className="ml-auto size-4 shrink-0" />
+        {!collapsed && (
+          <>
+            <span className="flex-1 truncate text-left">
+              {email ?? "Account"}
+            </span>
+            <ChevronsUpDown className="ml-auto size-4 shrink-0" />
+          </>
+        )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56" sideOffset={8}>
         <DropdownMenuLabel className="font-normal">
