@@ -28,6 +28,7 @@ import {
   StatTrend,
   StatValue,
 } from "@repo/design-system/components/ui/stat";
+import { cn } from "@repo/design-system/lib/utils";
 import { formatMoneyWhole as formatMoneyShared } from "@repo/money";
 import {
   ArrowDownIcon,
@@ -317,18 +318,24 @@ const App = async () => {
     <>
       <Header page="Dashboard" pages={[`${appName}`]} />
       <main className="grid gap-5 p-4 pt-4">
-        <section className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
-          {stats.map((stat) => (
-            <div className="relative h-full" key={stat.label}>
+        <section className="grid grid-cols-2 gap-3 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
+          {stats.map((stat, index) => (
+            <div
+              className={cn(
+                "relative h-full",
+                index === stats.length - 1 && "col-span-2 md:col-span-1"
+              )}
+              key={stat.label}
+            >
               <Stat className="h-full">
-                <StatPanel>
+                <StatPanel className="max-md:p-3">
                   <StatLabel>{stat.label}</StatLabel>
                   <StatIndicator color={stat.color} variant="stacked">
                     <stat.icon />
                   </StatIndicator>
                   <StatValue>{stat.value}</StatValue>
                 </StatPanel>
-                <StatFooter>
+                <StatFooter className="max-md:px-3 max-md:py-2">
                   {typeof stat.trend === "number" ? (
                     <StatTrend
                       trend={
@@ -355,7 +362,7 @@ const App = async () => {
                         render={<Link href={stat.action.href} />}
                       >
                         <PlusIcon aria-hidden="true" />
-                        {stat.action.label}
+                        <span className="hidden md:inline">{stat.action.label}</span>
                       </Button>
                     </StatAction>
                   ) : null}
