@@ -223,6 +223,24 @@ export const columns: DataTableColumnDef<Student>[] = [
     enableHiding: false,
   },
   {
+    accessorKey: "gender",
+    header: () => (
+      <DataTableColumnHeader>
+        <DataTableColumnTitle />
+      </DataTableColumnHeader>
+    ),
+    cell: ({ row }) => {
+      const gender = row.original.gender;
+      return gender
+        ? gender.charAt(0).toUpperCase() + gender.slice(1).toLowerCase()
+        : "-";
+    },
+    meta: {
+      label: "Gender",
+    },
+    enableHiding: false,
+  },
+  {
     id: "actions",
     header: () => <div className="text-right">Actions</div>,
     cell: ({ row }) => <StudentRowActions student={row.original} />,

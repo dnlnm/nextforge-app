@@ -2,7 +2,6 @@
 
 import { DataTableClearFilter } from "@repo/design-system/components/niko-table/components/data-table-clear-filter";
 import { DataTableFacetedFilter } from "@repo/design-system/components/niko-table/components/data-table-faceted-filter";
-import { DataTableFilterMenu } from "@repo/design-system/components/niko-table/components/data-table-filter-menu";
 import { DataTablePagination } from "@repo/design-system/components/niko-table/components/data-table-pagination";
 import { DataTableSearchFilter } from "@repo/design-system/components/niko-table/components/data-table-search-filter";
 import { DataTableToolbarSection } from "@repo/design-system/components/niko-table/components/data-table-toolbar-section";
@@ -41,6 +40,7 @@ type StudentsTableProps = {
   classOptions: FilterOption[];
   tutorOptions: FilterOption[];
   statusOptions: FilterOption[];
+  genderOptions: FilterOption[];
   levelOptions: FilterOption[];
   onRowClick?: (studentId: string) => void;
 };
@@ -51,6 +51,7 @@ export function StudentsTable({
   classOptions,
   tutorOptions,
   statusOptions,
+  genderOptions,
   levelOptions,
   onRowClick,
 }: StudentsTableProps) {
@@ -227,12 +228,17 @@ export function StudentsTable({
                 title="Status"
               />
               <DataTableFacetedFilter
+                accessorKey="gender"
+                multiple
+                options={genderOptions}
+                title="Gender"
+              />
+              <DataTableFacetedFilter
                 accessorKey="academicLevel"
                 multiple
                 options={levelOptions}
                 title="Level"
               />
-              <DataTableFilterMenu />
               <DataTableClearFilter />
             </DataTableToolbarSection>
           </div>

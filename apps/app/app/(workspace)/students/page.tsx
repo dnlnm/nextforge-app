@@ -141,6 +141,7 @@ const StudentsPage = async () => {
           classOptions={filterOptions.classes}
           currency={currency}
           defaultStudentDetail={defaultStudentDetail}
+          genderOptions={filterOptions.genders}
           initialData={initialTableData.data}
           initialTotalCount={initialTableData.totalCount}
           levelOptions={filterOptions.levels}

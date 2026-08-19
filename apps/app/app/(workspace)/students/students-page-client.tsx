@@ -38,6 +38,7 @@ type StudentsPageClientProps = {
   classOptions: FilterOption[];
   currency: string;
   defaultStudentDetail: StudentDetail | null;
+  genderOptions: FilterOption[];
   initialData: Student[];
   initialTotalCount: number;
   levelOptions: FilterOption[];
@@ -55,6 +56,7 @@ export function StudentsPageClient({
   classOptions,
   currency,
   defaultStudentDetail,
+  genderOptions,
   initialData,
   initialTotalCount,
   levelOptions,
@@ -167,6 +169,7 @@ export function StudentsPageClient({
 
         <StudentsTable
           classOptions={classOptions}
+          genderOptions={genderOptions}
           initialData={initialData}
           initialTotalCount={initialTotalCount}
           levelOptions={levelOptions}

@@ -557,6 +557,19 @@ export async function getStudentsForTable(params: StudentsQueryParams) {
           };
           break;
         }
+        case "gender": {
+          const values = Array.isArray(filter.value)
+            ? filter.value
+            : [filter.value];
+          const validGenders = values.filter(
+            (v): v is Gender =>
+              typeof v === "string" && genderSet.has(v as Gender)
+          );
+          if (validGenders.length > 0) {
+            where.gender = { in: validGenders };
+          }
+          break;
+        }
         case "academicLevel": {
           const values = Array.isArray(filter.value)
             ? filter.value
@@ -666,6 +679,10 @@ export async function getStudentFilterOptions() {
       { label: "Active", value: "ACTIVE" },
       { label: "Archived", value: "ARCHIVED" },
     ],
+    genders: genders.map((value) => ({
+      label: value.charAt(0).toUpperCase() + value.slice(1).toLowerCase(),
+      value,
+    })),
   };
 }
 
