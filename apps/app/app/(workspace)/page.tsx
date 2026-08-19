@@ -117,6 +117,8 @@ const App = async () => {
     previousMonthPayments,
     currentMonthAttendance,
     recentActivities,
+    currentUser,
+    organization,
   ] = await Promise.all([
     database.student.count({
       where: { organizationId: tenant.organizationId, status: "ACTIVE" },
@@ -202,6 +204,14 @@ const App = async () => {
       orderBy: { createdAt: "desc" },
       take: 5,
       where: { organizationId: tenant.organizationId },
+    }),
+    database.user.findUnique({
+      select: { firstName: true },
+      where: { id: tenant.userId },
+    }),
+    database.organization.findUnique({
+      select: { name: true },
+      where: { id: tenant.organizationId },
     }),
   ]);
 
@@ -314,10 +324,22 @@ const App = async () => {
     },
   ];
 
+  const firstName = currentUser?.firstName?.trim() ?? "";
+  const welcome = firstName ? `Welcome back, ${firstName}!` : "Welcome back!";
+
   return (
     <>
       <Header page="Dashboard" pages={[`${appName}`]} />
       <main className="grid gap-5 p-4 pt-4">
+        <section className="space-y-1">
+          <h1 className="font-heading font-semibold text-2xl tracking-tight sm:text-3xl">
+            {welcome}
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Here&apos;s what&apos;s happening at {organization?.name ?? "your centre"}{" "}
+            today.
+          </p>
+        </section>
         <section className="grid grid-cols-2 gap-3 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
           {stats.map((stat, index) => (
             <div
