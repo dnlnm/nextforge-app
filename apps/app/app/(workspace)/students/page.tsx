@@ -3,7 +3,7 @@ import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { formatMonthShort, getMalaysiaToday } from "@repo/date";
 import { Button } from "@repo/design-system/components/ui/button";
-import { ChevronDownIcon, PlusIcon, UploadIcon } from "lucide-react";
+import { PlusIcon, UploadIcon } from "lucide-react";
 import Link from "next/link";
 import { getOrganizationCurrency } from "@/lib/currency";
 import { Header } from "../components/header";
@@ -13,6 +13,7 @@ import {
   getStudentsForTable,
 } from "./actions";
 import { StudentsPageClient } from "./students-page-client";
+import { KpiToggleButton, KpiVisibilityProvider } from "./kpi-visibility";
 
 import type { InvoiceStatus } from "@repo/database";
 
@@ -103,7 +104,7 @@ const StudentsPage = async () => {
     : null;
 
   return (
-    <>
+    <KpiVisibilityProvider>
       <Header page="Students" pages={[`${appName}`]} />
       <main className="grid gap-5 p-4 pt-4">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
@@ -131,9 +132,7 @@ const StudentsPage = async () => {
               <span className="hidden sm:inline">Add Student</span>
               <span className="sm:hidden">Add</span>
             </Button>
-            <Button size="icon" variant="outline">
-              <ChevronDownIcon className="size-4" />
-            </Button>
+            <KpiToggleButton />
           </div>
         </div>
 
@@ -154,7 +153,7 @@ const StudentsPage = async () => {
           tutorOptions={filterOptions.tutors}
         />
       </main>
-    </>
+    </KpiVisibilityProvider>
   );
 };
 
