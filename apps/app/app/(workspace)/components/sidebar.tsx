@@ -12,6 +12,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@repo/design-system/components/ui/sidebar";
 import {
   BarChart3Icon,
@@ -131,6 +132,7 @@ const getRoleBadgeVariant = (
 export const GlobalSidebar = ({ children, role }: GlobalSidebarProperties) => {
   const pathname = usePathname();
   const organization = useOrganization();
+  const { isMobile, setOpenMobile } = useSidebar();
   const filteredSections = getNavigationForRole(role);
 
   return (
@@ -171,6 +173,11 @@ export const GlobalSidebar = ({ children, role }: GlobalSidebarProperties) => {
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       isActive={isActivePath(pathname, item.url)}
+                      onClick={() => {
+                        if (isMobile) {
+                          setOpenMobile(false);
+                        }
+                      }}
                       tooltip={item.title}
                       render={<Link href={item.url} />}
                     >

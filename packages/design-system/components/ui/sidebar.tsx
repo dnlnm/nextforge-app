@@ -535,12 +535,23 @@ export function SidebarMenuButton({
   tooltip,
   className,
   render,
+  onClick,
   ...props
 }: useRender.ComponentProps<"button"> & {
   isActive?: boolean;
   tooltip?: string | React.ComponentProps<typeof TooltipPopup>;
 } & VariantProps<typeof sidebarMenuButtonVariants>): React.ReactElement {
-  const { isMobile, state } = useSidebar();
+  const { isMobile, setOpenMobile, state } = useSidebar();
+
+  const handleClick = React.useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      onClick?.(event as unknown as React.MouseEvent<HTMLButtonElement> & React.MouseEvent<HTMLAnchorElement>);
+      if (isMobile) {
+        setOpenMobile(false);
+      }
+    },
+    [isMobile, onClick, setOpenMobile]
+  );
 
   const defaultProps = {
     className: cn(sidebarMenuButtonVariants({ size, variant }), className),
@@ -548,6 +559,7 @@ export function SidebarMenuButton({
     "data-sidebar": "menu-button",
     "data-size": size,
     "data-slot": "sidebar-menu-button",
+    onClick: handleClick,
   };
 
   const buttonProps = mergeProps<"button">(defaultProps, props);
@@ -712,11 +724,24 @@ export function SidebarMenuSubButton({
   isActive = false,
   className,
   render,
+  onClick,
   ...props
 }: useRender.ComponentProps<"a"> & {
   size?: "sm" | "md";
   isActive?: boolean;
 }): React.ReactElement {
+  const { isMobile, setOpenMobile } = useSidebar();
+
+  const handleClick = React.useCallback(
+    (event: React.MouseEvent<HTMLAnchorElement>) => {
+      onClick?.(event);
+      if (isMobile) {
+        setOpenMobile(false);
+      }
+    },
+    [isMobile, onClick, setOpenMobile]
+  );
+
   const defaultProps = {
     className: cn(
       "flex h-8 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-lg px-2 text-sidebar-foreground outline-hidden ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 sm:h-7 [&>span:last-child]:truncate [&>svg:not([class*='size-'])]:size-4 [&>svg]:shrink-0 [&>svg]:text-sidebar-accent-foreground",
@@ -730,6 +755,7 @@ export function SidebarMenuSubButton({
     "data-sidebar": "menu-sub-button",
     "data-size": size,
     "data-slot": "sidebar-menu-sub-button",
+    onClick: handleClick,
   };
 
   return useRender({

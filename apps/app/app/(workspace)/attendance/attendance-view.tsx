@@ -27,6 +27,13 @@ import {
   EmptyTitle,
 } from "@repo/design-system/components/ui/empty";
 import { Input } from "@repo/design-system/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@repo/design-system/components/ui/select";
 import { Spinner } from "@repo/design-system/components/ui/spinner";
 import {
   Stat,
@@ -658,17 +665,21 @@ export function AttendanceView({
                     value={historySearch}
                   />
                 </div>
-                <select
-                  className="h-9 rounded-lg border border-input bg-background px-3 text-sm shadow-xs/5 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/24"
-                  onChange={(event) => setHistoryClass(event.target.value)}
+                <Select
+                  onValueChange={(value) => setHistoryClass(value ?? "All")}
                   value={historyClass}
                 >
-                  {classOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="All classes" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {classOptions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {filteredHistory.length === 0 ? (
