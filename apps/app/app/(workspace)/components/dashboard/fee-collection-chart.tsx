@@ -1,20 +1,17 @@
 "use client";
 
-import { formatMoneyValue } from "@repo/money";
+import { EvilAreaChart } from "@repo/design-system/components/evilcharts/charts/recharts-area-chart";
 import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@repo/design-system/components/evilcharts/ui/recharts-tooltip";
+import { formatMoneyValue } from "@repo/money";
 
-interface FeeCollectionPoint {
+// biome-ignore lint/style/useConsistentTypeDefinitions: interfaces lack the index signature required by EvilCharts' Record<string, unknown> constraint
+type FeeCollectionPoint = {
   collected: number;
   day: string;
-}
+};
 
 interface FeeCollectionChartProps {
   currency: string;
@@ -24,49 +21,54 @@ interface FeeCollectionChartProps {
 export const FeeCollectionChart = ({
   currency,
   data,
-}: FeeCollectionChartProps) => (
-  <ResponsiveContainer className="min-h-0 flex-1 text-xs" height="100%" width="100%">
-    <AreaChart
-      accessibilityLayer
+}: FeeCollectionChartProps) => {
+  const config = {
+    collected: {
+      label: "Collected",
+      colors: {
+        light: ["var(--chart-1)"],
+        dark: ["var(--chart-1)"],
+      },
+    },
+  };
+
+  return (
+    <EvilAreaChart
+      className="aspect-auto"
+      config={config}
+      curveType="natural"
       data={data}
-      margin={{ bottom: 4, left: 0, right: 8, top: 10 }}
     >
-      <CartesianGrid
-        stroke="var(--border)"
-        strokeDasharray="3 3"
-        vertical={false}
-      />
-      <XAxis
-        axisLine={false}
+      <EvilAreaChart.Grid />
+      <EvilAreaChart.XAxis
         dataKey="day"
         interval="preserveStartEnd"
-        stroke="var(--muted-foreground)"
-        tickLine={false}
         tickMargin={10}
       />
-      <YAxis
-        axisLine={false}
-        stroke="var(--muted-foreground)"
+      <EvilAreaChart.YAxis
         tickFormatter={(value) => formatMoneyValue(Number(value), { currency })}
-        tickLine={false}
-        tickMargin={8}
         width={62}
       />
-      <Tooltip
+      <ChartTooltip
+        content={
+          <ChartTooltipContent
+            formatter={(value) => (
+              <div className="flex w-full items-center justify-between gap-4 leading-none">
+                <span className="text-muted-foreground">Collected</span>
+                <span className="font-medium font-mono text-foreground tabular-nums">
+                  {formatMoneyValue(Number(value ?? 0), { currency })}
+                </span>
+              </div>
+            )}
+          />
+        }
         cursor={false}
-        formatter={(value) => [
-          formatMoneyValue(Number(value ?? 0), { currency }),
-          "Collected",
-        ]}
       />
-      <Area
+      <EvilAreaChart.Area
         dataKey="collected"
-        fill="var(--chart-1)"
-        fillOpacity={0.12}
-        stroke="var(--chart-1)"
+        strokeVariant="solid"
         strokeWidth={2}
-        type="natural"
       />
-    </AreaChart>
-  </ResponsiveContainer>
-);
+    </EvilAreaChart>
+  );
+};

@@ -25,3 +25,13 @@ Use the shared display helpers in `@repo/date` (`formatShortDate`, `formatWeekda
 - Zod `z.iso.date()` schemas remain the input contract; validate first, then convert with `@repo/date`.
 - tRPC returns `Date` instances (SuperJSON). Do not replace them with formatted strings.
 - Do not change `yyyy-MM-dd` machine formats or full ISO timestamps in exports/CSV/workbook metadata.
+
+# Chart conventions
+
+All charts use the vendored EvilCharts components (recharts engine) in `packages/design-system/components/evilcharts`. Import the chart family components from `@repo/design-system/components/evilcharts/charts/recharts-{area,line,bar,composed,pie,radial,radar,sankey}-chart` and the shared tooltip from `.../evilcharts/ui/recharts-tooltip`. Do not import `recharts` directly in apps.
+
+- `ChartConfig` `colors` are per-series arrays of `{ light: string[], dark: string[] }` using semantic tokens (`var(--chart-1)`…`var(--chart-5)`, `var(--primary)`, `var(--success)`, `var(--destructive)`).
+- Data row types passed to `data` must be **type aliases**, not interfaces — they must satisfy the `Record<string, unknown>` constraint (interfaces lack an index signature). Mark them with `// biome-ignore lint/style/useConsistentTypeDefinitions: …` since the repo Biome config prefers interfaces.
+- Storybook stories live in `apps/storybook/stories/chart.stories.tsx`; meta needs a baseline `args` when stories use `render` only.
+- Pie/radial center labels are plain HTML overlays (`relative` container + absolutely-positioned `pointer-events-none` div), not recharts labels.
+- Vendored evilcharts files are registry copies (re-copied by `bun run bump-ui`); they intentionally do not match the repo's strict Biome config, same as `billingsdk`/`niko-table`.

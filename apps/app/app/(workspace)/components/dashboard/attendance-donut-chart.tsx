@@ -1,13 +1,15 @@
 "use client";
 
-import { Label, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { EvilPieChart } from "@repo/design-system/components/evilcharts/charts/recharts-pie-chart";
+import type { ChartConfig } from "@repo/design-system/components/evilcharts/ui/recharts-chart";
 
-interface AttendanceSlice {
+// biome-ignore lint/style/useConsistentTypeDefinitions: interfaces lack the index signature required by EvilCharts' Record<string, unknown> constraint
+type AttendanceSlice = {
   fill: string;
   label: string;
   status: string;
   value: number;
-}
+};
 
 interface AttendanceDonutChartProps {
   average: number;
@@ -17,50 +19,34 @@ interface AttendanceDonutChartProps {
 export const AttendanceDonutChart = ({
   average,
   data,
-}: AttendanceDonutChartProps) => (
-  <ResponsiveContainer className="mx-auto text-xs" height={220} width="100%">
-    <PieChart>
-      <Tooltip cursor={false} formatter={(value, name) => [value ?? 0, name]} />
-      <Pie
+}: AttendanceDonutChartProps) => {
+  const config: ChartConfig = Object.fromEntries(
+    data.map((item) => [
+      item.label,
+      { label: item.label, colors: { light: [item.fill], dark: [item.fill] } },
+    ])
+  );
+
+  return (
+    <div className="relative h-[220px] w-full">
+      <EvilPieChart
+        className="aspect-auto h-full w-full"
+        config={config}
         data={data}
         dataKey="value"
-        innerRadius={64}
         nameKey="label"
-        outerRadius={82}
-        strokeWidth={4}
       >
-        <Label
-          content={({ viewBox }) => {
-            if (!(viewBox && "cx" in viewBox && "cy" in viewBox)) {
-              return null;
-            }
-
-            return (
-              <text
-                dominantBaseline="middle"
-                textAnchor="middle"
-                x={viewBox.cx}
-                y={viewBox.cy}
-              >
-                <tspan
-                  className="fill-foreground font-semibold text-3xl"
-                  x={viewBox.cx}
-                  y={viewBox.cy}
-                >
-                  {average.toFixed(1)}%
-                </tspan>
-                <tspan
-                  className="fill-muted-foreground text-xs"
-                  x={viewBox.cx}
-                  y={(viewBox.cy ?? 0) + 24}
-                >
-                  Average
-                </tspan>
-              </text>
-            );
-          }}
-        />
-      </Pie>
-    </PieChart>
-  </ResponsiveContainer>
-);
+        <EvilPieChart.Pie innerRadius={64} outerRadius={82} paddingAngle={2} />
+        <EvilPieChart.Tooltip />
+      </EvilPieChart>
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+        <div className="text-center">
+          <p className="font-semibold text-3xl leading-none">
+            {average.toFixed(1)}%
+          </p>
+          <p className="mt-1 text-muted-foreground text-xs">Average</p>
+        </div>
+      </div>
+    </div>
+  );
+};
