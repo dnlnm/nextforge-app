@@ -1,216 +1,271 @@
 import { requireTenant } from "@repo/auth/authorization";
 import { appName } from "@repo/config/brand";
-import { type AttendanceStatus, database } from "@repo/database";
-import { formatWeekdayDate, getMalaysiaCalendarDate } from "@repo/date";
-import { Badge } from "@repo/design-system/components/ui/badge";
-import { Button } from "@repo/design-system/components/ui/button";
+import { database } from "@repo/database";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@repo/design-system/components/ui/card";
-import { Input } from "@repo/design-system/components/ui/input";
-import { Label } from "@repo/design-system/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@repo/design-system/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@repo/design-system/components/ui/table";
+  addMalaysiaCalendarDays,
+  formatCalendarDate,
+  formatLongMonthYear,
+  formatShortDate,
+  getMalaysiaToday,
+  getMalaysiaWeekday,
+} from "@repo/date";
+import type { AttendanceStatus } from "@repo/schemas/enums";
+import { findTeacherProfileForUser } from "@/lib/teacher-profile";
 import { Header } from "../components/header";
-import { createClassSession, markAttendance } from "./actions";
+import { AttendanceView } from "./attendance-view";
+import type {
+  HistoryRowView,
+  HistoryStatsView,
+  SessionView,
+  WeekDayView,
+} from "./types";
 
-const statusLabels: Record<AttendanceStatus, string> = {
-  ABSENT: "Absent",
-  EXCUSED: "Excused",
-  LATE: "Late",
-  PRESENT: "Present",
+const WEEKDAY_SHORT: Record<string, string> = {
+  FRIDAY: "Fri",
+  MONDAY: "Mon",
+  SATURDAY: "Sat",
+  SUNDAY: "Sun",
+  THURSDAY: "Thu",
+  TUESDAY: "Tue",
+  WEDNESDAY: "Wed",
 };
 
-const today = () => getMalaysiaCalendarDate();
+const countByStatus = (
+  records: { status: AttendanceStatus }[],
+  status: AttendanceStatus
+) => records.filter((record) => record.status === status).length;
 
-const formatDate = (date: Date) => formatWeekdayDate(date);
+const WHITESPACE_RE = /\s+/;
+
+const getInitials = (name: string): string =>
+  name
+    .split(WHITESPACE_RE)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+
+interface SessionWithDetails {
+  attendance: {
+    studentId: string;
+    status: AttendanceStatus;
+    notes: string | null;
+  }[];
+  class: {
+    id: string;
+    name: string;
+    code: string;
+    teacher: { fullName: string } | null;
+    subject: { name: string } | null;
+    level: { name: string } | null;
+    enrollments: {
+      student: { id: string; fullName: string };
+    }[];
+  };
+  endsAt: string;
+  id: string;
+  sessionDate: Date;
+  startsAt: string;
+  status: string;
+}
+
+const toSessionView = (session: SessionWithDetails): SessionView => {
+  const attendanceByStudent = new Map(
+    session.attendance.map((record) => [record.studentId, record])
+  );
+
+  return {
+    id: session.id,
+    date: formatCalendarDate(session.sessionDate),
+    dateLabel: formatShortDate(session.sessionDate),
+    classId: session.class.id,
+    className: session.class.name,
+    subject: session.class.subject?.name ?? "",
+    grade: session.class.level?.name ?? session.class.code,
+    teacher: session.class.teacher?.fullName ?? "",
+    startsAt: session.startsAt,
+    endsAt: session.endsAt,
+    saved: session.status === "COMPLETED",
+    students: session.class.enrollments.map((enrollment) => {
+      const attendance = attendanceByStudent.get(enrollment.student.id);
+      const name = enrollment.student.fullName;
+
+      return {
+        id: enrollment.student.id,
+        name,
+        initials: getInitials(name),
+        status: attendance?.status ?? null,
+        note: attendance?.notes ?? "",
+      };
+    }),
+  };
+};
+
+const toHistoryRow = (session: SessionWithDetails): HistoryRowView => {
+  const total = session.attendance.length;
+  const present = countByStatus(session.attendance, "PRESENT");
+  const late = countByStatus(session.attendance, "LATE");
+  const absent = countByStatus(session.attendance, "ABSENT");
+  const excused = countByStatus(session.attendance, "EXCUSED");
+
+  return {
+    id: session.id,
+    date: formatShortDate(session.sessionDate),
+    session: session.class.name,
+    grade: session.class.level?.name ?? session.class.code,
+    total,
+    present,
+    late,
+    absent,
+    excused,
+    rate: total > 0 ? Math.round(((present + late) / total) * 100) : 0,
+  };
+};
 
 const AttendancePage = async () => {
   const tenant = await requireTenant();
-  const [classes, sessions] = await Promise.all([
-    database.learningClass.findMany({
-      where: { organizationId: tenant.organizationId, status: "ACTIVE" },
-      orderBy: { name: "asc" },
-      include: { subject: true },
+  const today = getMalaysiaToday();
+  const todayIso = formatCalendarDate(today);
+
+  const teacher =
+    tenant.role === "TEACHER"
+      ? await findTeacherProfileForUser(tenant.organizationId, tenant.userId)
+      : null;
+  const classVisibility =
+    tenant.role === "TEACHER" ? { teacherId: teacher?.id ?? "__none__" } : {};
+
+  const weekdayIndex = Math.max(
+    0,
+    [
+      "MONDAY",
+      "TUESDAY",
+      "WEDNESDAY",
+      "THURSDAY",
+      "FRIDAY",
+      "SATURDAY",
+      "SUNDAY",
+    ].indexOf(getMalaysiaWeekday(today))
+  );
+  const weekStart = addMalaysiaCalendarDays(today, -weekdayIndex);
+  const weekEnd = addMalaysiaCalendarDays(weekStart, 6);
+  const monthStart = new Date(
+    Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1)
+  );
+
+  const sessionInclude = {
+    attendance: {
+      select: {
+        notes: true,
+        status: true,
+        studentId: true,
+      },
+    },
+    class: {
+      include: {
+        enrollments: {
+          include: { student: { select: { fullName: true, id: true } } },
+          orderBy: { student: { fullName: "asc" as const } },
+          where: { status: "ACTIVE" as const },
+        },
+        level: { select: { name: true } },
+        subject: { select: { name: true } },
+        teacher: { select: { fullName: true } },
+      },
+    },
+  } as const;
+
+  const [weekSessions, monthSessions] = await Promise.all([
+    database.classSession.findMany({
+      where: {
+        organizationId: tenant.organizationId,
+        class: classVisibility,
+        sessionDate: { gte: weekStart, lte: weekEnd },
+      },
+      include: sessionInclude,
+      orderBy: [{ sessionDate: "asc" }, { startsAt: "asc" }],
     }),
     database.classSession.findMany({
-      where: { organizationId: tenant.organizationId },
-      orderBy: [{ sessionDate: "desc" }, { startsAt: "asc" }],
-      take: 10,
-      include: {
-        attendance: true,
-        class: {
-          include: {
-            enrollments: {
-              where: { status: "ACTIVE" },
-              include: { student: true },
-              orderBy: { student: { fullName: "asc" } },
-            },
-            subject: true,
-            teacher: true,
-          },
-        },
+      where: {
+        organizationId: tenant.organizationId,
+        class: classVisibility,
+        status: "COMPLETED",
+        sessionDate: { gte: monthStart, lte: today },
       },
+      include: sessionInclude,
+      orderBy: [{ sessionDate: "desc" }, { startsAt: "asc" }],
+      take: 60,
     }),
   ]);
+
+  const sessions = weekSessions.map((session) =>
+    toSessionView(session as unknown as SessionWithDetails)
+  );
+  const historyRows = monthSessions.map((session) =>
+    toHistoryRow(session as unknown as SessionWithDetails)
+  );
+
+  const sessionsByDate = new Map<string, SessionView[]>();
+  for (const session of sessions) {
+    const list = sessionsByDate.get(session.date) ?? [];
+    list.push(session);
+    sessionsByDate.set(session.date, list);
+  }
+
+  const weekDays: WeekDayView[] = Array.from({ length: 7 }, (_, index) => {
+    const date = addMalaysiaCalendarDays(weekStart, index);
+    const iso = formatCalendarDate(date);
+    const daySessions = sessionsByDate.get(iso) ?? [];
+
+    return {
+      date: iso,
+      label: WEEKDAY_SHORT[getMalaysiaWeekday(date)] ?? "",
+      day: date.getUTCDate(),
+      isToday: iso === todayIso,
+      isPast: iso < todayIso,
+      savedCount: daySessions.filter((session) => session.saved).length,
+      totalCount: daySessions.length,
+    };
+  });
+
+  const perfectDays = (() => {
+    const rowsByDate = new Map<string, HistoryRowView[]>();
+    for (const row of historyRows) {
+      const list = rowsByDate.get(row.date) ?? [];
+      list.push(row);
+      rowsByDate.set(row.date, list);
+    }
+
+    return Array.from(rowsByDate.values()).filter((rows) =>
+      rows.every((row) => row.rate === 100)
+    ).length;
+  })();
+
+  const historyStats: HistoryStatsView = {
+    avgRate:
+      historyRows.length > 0
+        ? Math.round(
+            historyRows.reduce((sum, row) => sum + row.rate, 0) /
+              historyRows.length
+          )
+        : 0,
+    totalSessions: historyRows.length,
+    perfectDays,
+    absentEvents: historyRows.reduce((sum, row) => sum + row.absent, 0),
+    monthLabel: formatLongMonthYear(today),
+  };
 
   return (
     <>
       <Header page="Attendance" pages={[`${appName}`]} />
-      <main className="grid gap-4 p-4 pt-0 xl:grid-cols-[360px_1fr]">
-        <Card className="h-fit">
-          <CardHeader>
-            <CardTitle>Create session</CardTitle>
-            <CardDescription>
-              Create the class session to mark attendance for a selected date.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form action={createClassSession} className="grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="classId">Class</Label>
-                <Select name="classId" required>
-                  <SelectTrigger id="classId">
-                    <SelectValue placeholder="Select class" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {classes.map((item) => (
-                      <SelectItem key={item.id} value={item.id}>
-                        {item.name} - {item.subject.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="sessionDate">Date</Label>
-                <Input
-                  defaultValue={today()}
-                  id="sessionDate"
-                  name="sessionDate"
-                  required
-                  type="date"
-                />
-              </div>
-              <Button disabled={classes.length === 0} type="submit">
-                Create session
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-        <section className="grid gap-4">
-          {sessions.length === 0 ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>No sessions yet</CardTitle>
-                <CardDescription>
-                  Create a class session to start marking attendance.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          ) : null}
-          {sessions.map((session) => {
-            const attendanceByStudent = new Map(
-              session.attendance.map((record) => [record.studentId, record])
-            );
-
-            return (
-              <Card key={session.id}>
-                <CardHeader>
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div>
-                      <CardTitle>{session.class.name}</CardTitle>
-                      <CardDescription>
-                        {formatDate(session.sessionDate)} - {session.startsAt}{" "}
-                        to {session.endsAt} - {session.class.subject.name}
-                        {session.class.teacher
-                          ? ` - ${session.class.teacher.fullName}`
-                          : ""}
-                      </CardDescription>
-                    </div>
-                    <Badge
-                      variant={
-                        session.status === "COMPLETED" ? "default" : "secondary"
-                      }
-                    >
-                      {session.status}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <form action={markAttendance} className="grid gap-4">
-                    <input name="sessionId" type="hidden" value={session.id} />
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Student</TableHead>
-                          <TableHead>Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {session.class.enrollments.map((enrollment) => {
-                          const existing = attendanceByStudent.get(
-                            enrollment.studentId
-                          );
-
-                          return (
-                            <TableRow key={enrollment.id}>
-                              <TableCell className="font-medium">
-                                {enrollment.student.fullName}
-                              </TableCell>
-                              <TableCell>
-                                <Select
-                                  defaultValue={existing?.status ?? "PRESENT"}
-                                  name={`status:${enrollment.studentId}`}
-                                >
-                                  <SelectTrigger className="w-[150px]">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {Object.entries(statusLabels).map(
-                                      ([value, label]) => (
-                                        <SelectItem key={value} value={value}>
-                                          {label}
-                                        </SelectItem>
-                                      )
-                                    )}
-                                  </SelectContent>
-                                </Select>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                    <Button
-                      disabled={session.class.enrollments.length === 0}
-                      type="submit"
-                    >
-                      Save attendance
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </section>
+      <main className="grid gap-4 p-4 pt-0">
+        <AttendanceView
+          canMark={tenant.role === "TEACHER"}
+          historyRows={historyRows}
+          historyStats={historyStats}
+          sessions={sessions}
+          todayDate={todayIso}
+          weekDays={weekDays}
+        />
       </main>
     </>
   );

@@ -1,13 +1,10 @@
 "use server";
 
-import { requireTenantRole } from "@repo/auth/authorization";
+import { requireTenant, requireTenantRole } from "@repo/auth/authorization";
 import { database } from "@repo/database";
 import { getMalaysiaWeekday, tryParseCalendarDate } from "@repo/date";
 import { attendanceMarkedEvent } from "@repo/domain/students/activity";
-import {
-  type AttendanceStatus,
-  attendanceStatuses,
-} from "@repo/schemas/enums";
+import { type AttendanceStatus, attendanceStatuses } from "@repo/schemas/enums";
 import { revalidatePath } from "next/cache";
 import { getTeacherProfileId } from "@/lib/teacher-profile";
 
@@ -92,6 +89,28 @@ export const createClassSession = async (formData: FormData) => {
   revalidatePath("/attendance");
 };
 
+const getNotesByStudentId = (
+  formData: FormData,
+  enrolledStudentIds: Set<string>
+): Record<string, string> => {
+  const notes: Record<string, string> = {};
+
+  for (const [key, value] of formData.entries()) {
+    if (!key.startsWith("note:")) {
+      continue;
+    }
+
+    const studentId = key.replace("note:", "");
+    const note = typeof value === "string" ? value.trim() : "";
+
+    if (studentId && note && enrolledStudentIds.has(studentId)) {
+      notes[studentId] = note;
+    }
+  }
+
+  return notes;
+};
+
 export const markAttendance = async (formData: FormData) => {
   const tenant = await requireTenantRole(["TEACHER"]);
   const sessionId = getString(formData, "sessionId");
@@ -138,9 +157,12 @@ export const markAttendance = async (formData: FormData) => {
         statuses.has(record.status as AttendanceStatus) &&
         enrolledStudentIds.has(record.studentId)
     );
+  const notesByStudentId = getNotesByStudentId(formData, enrolledStudentIds);
 
   await database.$transaction(async (tx) => {
     for (const record of records) {
+      const note = notesByStudentId[record.studentId];
+
       await tx.attendanceRecord.upsert({
         where: {
           sessionId_studentId: {
@@ -151,6 +173,7 @@ export const markAttendance = async (formData: FormData) => {
         create: {
           organizationId: tenant.organizationId,
           markedByUserId: tenant.userId,
+          notes: note ?? null,
           sessionId: session.id,
           status: record.status,
           studentId: record.studentId,
@@ -158,6 +181,7 @@ export const markAttendance = async (formData: FormData) => {
         update: {
           markedAt: new Date(),
           markedByUserId: tenant.userId,
+          notes: note ?? null,
           status: record.status,
         },
       });
@@ -281,4 +305,46 @@ export const markSessionAttendanceStatus = async (formData: FormData) => {
 
   revalidatePath("/attendance");
   revalidatePath("/today");
+};
+
+export const getSessionRoster = async (sessionId: string) => {
+  const tenant = await requireTenant();
+
+  if (!sessionId) {
+    return [];
+  }
+
+  const session = await database.classSession.findFirst({
+    where: { id: sessionId, organizationId: tenant.organizationId },
+    include: {
+      attendance: { select: { notes: true, status: true, studentId: true } },
+      class: {
+        include: {
+          enrollments: {
+            include: { student: { select: { fullName: true, id: true } } },
+            where: { status: "ACTIVE" },
+          },
+        },
+      },
+    },
+  });
+
+  if (!session) {
+    return [];
+  }
+
+  const attendanceByStudent = new Map(
+    session.attendance.map((record) => [record.studentId, record])
+  );
+
+  return session.class.enrollments.map((enrollment) => {
+    const attendance = attendanceByStudent.get(enrollment.studentId);
+
+    return {
+      id: enrollment.student.id,
+      name: enrollment.student.fullName,
+      note: attendance?.notes ?? "",
+      status: attendance?.status ?? null,
+    };
+  });
 };
