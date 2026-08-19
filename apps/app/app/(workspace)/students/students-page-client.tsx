@@ -1,14 +1,7 @@
 "use client";
 
-import { formatShortDate } from "@repo/date";
-import { Badge } from "@repo/design-system/components/ui/badge";
-import { Button } from "@repo/design-system/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@repo/design-system/components/ui/card";
+import { Card, CardContent } from "@repo/design-system/components/ui/card";
+import { Drawer, DrawerPanel, DrawerPopup, DrawerTitle } from "@repo/design-system/components/ui/drawer";
 import {
   Stat,
   StatDescription,
@@ -18,53 +11,19 @@ import {
   StatPanel,
   StatValue,
 } from "@repo/design-system/components/ui/stat";
+import { useMediaQuery } from "@repo/design-system/hooks/use-media-query";
 import { formatMoneyWhole as formatMoneyShared } from "@repo/money";
-import { privateFileUrl } from "@repo/storage/client";
 import {
-  ChevronRightIcon,
   LandmarkIcon,
-  MoreHorizontalIcon,
   UserCheckIcon,
   UserPlusIcon,
   UsersRoundIcon,
 } from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
-import { StudentAvatar } from "../components/student-avatar";
 import { getStudentDetail } from "./actions";
 import type { Student } from "./columns";
+import { type StudentDetail, StudentDetailContent } from "./student-detail-content";
 import { StudentsTable } from "./students-table";
-
-type StudentDetail = {
-  code: string;
-  dateOfBirth: Date | null;
-  email: string | null;
-  enrolledAt: Date;
-  fullName: string;
-  gender: string | null;
-  id: string;
-  phone: string | null;
-  photoKey: string | null;
-  status: string;
-  level: {
-    name: string;
-  } | null;
-  guardians: Array<{
-    guardian: {
-      addressLine1: string | null;
-      addressLine2: string | null;
-      city: string | null;
-      email: string | null;
-      fullName: string | null;
-      phone: string | null;
-      state: string | null;
-    };
-  }>;
-  invoices?: Array<{
-    totalSen: number;
-    amountPaidSen: number;
-  }>;
-};
 
 type FilterOption = {
   label: string;
@@ -88,8 +47,6 @@ type StudentsPageClientProps = {
   tutorOptions: FilterOption[];
 };
 
-const formatDate = (date: Date) => formatShortDate(date);
-
 export function StudentsPageClient({
   activeStudents,
   classOptions,
@@ -106,42 +63,29 @@ export function StudentsPageClient({
   totalStudents,
   tutorOptions,
 }: StudentsPageClientProps) {
-  const formatMoney = (amountSen: number) =>
-    formatMoneyShared(amountSen, { currency });
+  const formatMoney = (amountSen: number) => formatMoneyShared(amountSen, { currency });
   const [selectedStudent, setSelectedStudent] = useState<StudentDetail | null>(
     defaultStudentDetail
   );
+  const isDesktop = useMediaQuery("xl");
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   // When the user selects a row that isn't the default, hydrate its detail
   // (primary guardian + invoices) on demand instead of shipping every student.
   const onSelectStudent = async (studentId: string) => {
     if (selectedStudent?.id === studentId) {
+      if (!isDesktop) {
+        setDrawerOpen(true);
+      }
       return;
     }
 
     const detail = await getStudentDetail(studentId);
     setSelectedStudent(detail as StudentDetail | null);
+    if (!isDesktop) {
+      setDrawerOpen(true);
+    }
   };
-
-  const selectedGuardian = selectedStudent?.guardians[0]?.guardian;
-
-  const selectedInvoices = selectedStudent?.invoices ?? [];
-  const selectedOutstandingSen = selectedStudent
-    ? selectedInvoices.reduce(
-        (total, invoice) =>
-          total + Math.max(0, invoice.totalSen - invoice.amountPaidSen),
-        0
-      )
-    : 0;
-  const selectedBilledSen = selectedStudent
-    ? selectedInvoices.reduce((total, invoice) => total + invoice.totalSen, 0)
-    : 0;
-  const selectedPaidSen = selectedStudent
-    ? selectedInvoices.reduce(
-        (total, invoice) => total + invoice.amountPaidSen,
-        0
-      )
-    : 0;
 
   return (
     <div className="grid items-start gap-5 xl:grid-cols-[1fr_320px] 2xl:grid-cols-[1fr_380px]">
@@ -217,144 +161,10 @@ export function StudentsPageClient({
         />
       </section>
 
-      <aside className="xl:sticky xl:top-4 xl:self-start">
+      <aside className="hidden xl:sticky xl:top-4 xl:block xl:self-start">
         <Card>
           {selectedStudent ? (
-            <>
-              <CardHeader className="border-b">
-                <div className="flex items-start justify-between gap-4">
-                  <StudentAvatar
-                    className="size-20"
-                    gender={selectedStudent.gender}
-                    name={selectedStudent.fullName}
-                    photoUrl={privateFileUrl(selectedStudent.photoKey)}
-                  />
-                  <Button size="icon" variant="ghost">
-                    <MoreHorizontalIcon className="size-4" />
-                  </Button>
-                </div>
-                <div className="min-w-0">
-                  <CardTitle className="text-xl">
-                    <span className="text-balance">{selectedStudent.fullName}</span>
-                  </CardTitle>
-                  <div className="mt-2 flex flex-wrap items-center gap-2 text-muted-foreground text-sm">
-                    <span>{selectedStudent.code}</span>
-                    <Badge variant="outline">
-                      {selectedStudent.status === "ACTIVE"
-                        ? "Active"
-                        : "Archived"}
-                    </Badge>
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <Button
-                    variant="outline"
-                    render={
-                      <Link
-                        href={`https://wa.me/${selectedGuardian?.phone ?? ""}`}
-                      />
-                    }
-                  >
-                    WhatsApp
-                  </Button>
-                  <Button
-                    variant="outline"
-                    render={
-                      <Link href={`/students/${selectedStudent.id}/edit`} />
-                    }
-                  >
-                    Edit
-                  </Button>
-                  <Button variant="outline">More</Button>
-                </div>
-              </CardHeader>
-              <CardContent className="grid gap-5 p-0">
-                <section className="grid gap-3 border-b p-4">
-                  <h2 className="font-semibold text-sm">Student Information</h2>
-                  {[
-                    [
-                      "Registration Date",
-                      formatDate(selectedStudent.enrolledAt),
-                    ],
-                    [
-                      "Date of Birth",
-                      selectedStudent.dateOfBirth
-                        ? formatDate(selectedStudent.dateOfBirth)
-                        : "-",
-                    ],
-                    [
-                      "Gender",
-                      selectedStudent.gender
-                        ? selectedStudent.gender.charAt(0) +
-                          selectedStudent.gender.slice(1).toLowerCase()
-                        : "-",
-                    ],
-                    ["Level", selectedStudent.level?.name ?? "-"],
-                    ["Phone", selectedStudent.phone ?? "-"],
-                    ["Email", selectedStudent.email ?? "-"],
-                  ].map(([label, value]) => (
-                    <div
-                      className="grid grid-cols-[6rem_1fr] gap-3 text-sm"
-                      key={label}
-                    >
-                      <span className="text-muted-foreground">{label}</span>
-                      <span>{value}</span>
-                    </div>
-                  ))}
-                </section>
-                <section className="grid gap-3 border-b p-4">
-                  <h2 className="font-semibold text-sm">Parent / Guardian</h2>
-                  {[
-                    ["Name", selectedGuardian?.fullName ?? "-"],
-                    ["Phone", selectedGuardian?.phone ?? "-"],
-                    ["Email", selectedGuardian?.email ?? "-"],
-                    [
-                      "Address",
-                      [
-                        selectedGuardian?.addressLine1,
-                        selectedGuardian?.addressLine2,
-                        selectedGuardian?.city,
-                        selectedGuardian?.state,
-                      ]
-                        .filter(Boolean)
-                        .join(", ") || "-",
-                    ],
-                  ].map(([label, value]) => (
-                    <div
-                      className="grid grid-cols-[6rem_1fr] gap-3 text-sm"
-                      key={label}
-                    >
-                      <span className="text-muted-foreground">{label}</span>
-                      <span>{value}</span>
-                    </div>
-                  ))}
-                </section>
-                <section className="grid gap-3 p-4">
-                  <h2 className="font-semibold text-sm">Fee Summary</h2>
-                  {[
-                    ["Total Billed", formatMoney(selectedBilledSen)],
-                    ["Total Paid", formatMoney(selectedPaidSen)],
-                    ["Outstanding", formatMoney(selectedOutstandingSen)],
-                  ].map(([label, value]) => (
-                    <div
-                      className="flex justify-between gap-3 text-sm"
-                      key={label}
-                    >
-                      <span className="text-muted-foreground">{label}</span>
-                      <span>{value}</span>
-                    </div>
-                  ))}
-                  <Button
-                    className="mt-3 w-full"
-                    variant="outline"
-                    render={<Link href={`/students/${selectedStudent.id}`} />}
-                  >
-                    View Full Profile
-                    <ChevronRightIcon className="size-4" />
-                  </Button>
-                </section>
-              </CardContent>
-            </>
+            <StudentDetailContent currency={currency} student={selectedStudent} />
           ) : (
             <CardContent className="p-6 text-center text-muted-foreground text-sm">
               No students to display.
@@ -362,6 +172,23 @@ export function StudentsPageClient({
           )}
         </Card>
       </aside>
+
+      <Drawer
+        onOpenChange={setDrawerOpen}
+        open={drawerOpen && !!selectedStudent && !isDesktop}
+        position="right"
+      >
+        <DrawerPopup>
+          {selectedStudent && (
+            <>
+              <DrawerTitle className="sr-only">{selectedStudent.fullName}</DrawerTitle>
+              <DrawerPanel className="p-0">
+                <StudentDetailContent currency={currency} student={selectedStudent} />
+              </DrawerPanel>
+            </>
+          )}
+        </DrawerPopup>
+      </Drawer>
     </div>
   );
 }

@@ -1,0 +1,56 @@
+"use client";
+
+import { Badge } from "@repo/design-system/components/ui/badge";
+import { Card } from "@repo/design-system/components/ui/card";
+import { privateFileUrl } from "@repo/storage/client";
+import Link from "next/link";
+
+import { StudentAvatar } from "../components/student-avatar";
+import { type Student, StudentRowActions } from "./columns";
+
+export function StudentCard({
+  onRowClick,
+  student,
+}: {
+  onRowClick?: (student: Student) => void;
+  student: Student;
+}) {
+  const statusIsActive = student.status === "ACTIVE";
+
+  return (
+    <Card
+      className="cursor-pointer p-4 transition-colors hover:bg-muted/30"
+      onClick={() => onRowClick?.(student)}
+    >
+      <div className="flex items-center gap-3">
+        <StudentAvatar
+          className="size-10 shrink-0"
+          gender={student.gender}
+          name={student.fullName}
+          photoUrl={privateFileUrl(student.photoKey)}
+        />
+        <div className="min-w-0 flex-1">
+          <Link
+            className="block truncate font-medium hover:underline"
+            href={`/students/${student.id}`}
+            onClick={(event) => event.stopPropagation()}
+          >
+            {student.fullName}
+          </Link>
+          <span className="block truncate text-muted-foreground text-xs">
+            {student.code}
+          </span>
+        </div>
+        <StudentRowActions student={student} />
+      </div>
+      <div className="mt-3 flex items-center justify-between border-t pt-3">
+        <span className="text-muted-foreground text-sm">
+          {student.level?.name ?? "-"}
+        </span>
+        <Badge variant="outline">
+          {statusIsActive ? "Active" : "Archived"}
+        </Badge>
+      </div>
+    </Card>
+  );
+}

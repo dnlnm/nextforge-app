@@ -24,9 +24,11 @@ import {
 } from "nuqs";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
+import { DataTableMobileCards } from "../../../components/data-table-mobile-cards";
 import type { StudentsQueryParams } from "./actions";
 import { getStudentsForTable } from "./actions";
 import { columns, type Student } from "./columns";
+import { StudentCard } from "./student-card";
 
 type FilterOption = {
   label: string;
@@ -235,7 +237,7 @@ export function StudentsTable({
             </DataTableToolbarSection>
           </div>
 
-          <div className="overflow-x-auto px-4">
+          <div className="hidden overflow-x-auto px-4 md:block">
             <DataTable aria-label="Students">
               <DataTableHeader />
               <DataTableBody onRowClick={handleRowClick}>
@@ -243,6 +245,18 @@ export function StudentsTable({
                 <DataTableEmptyBody />
               </DataTableBody>
             </DataTable>
+          </div>
+
+          <div className="px-4 md:hidden">
+            <DataTableMobileCards
+              emptyLabel="No students found"
+              getRowKey={(student) => student.id}
+              isLoading={isLoading}
+              items={data}
+              renderCard={(student) => (
+                <StudentCard onRowClick={handleRowClick} student={student} />
+              )}
+            />
           </div>
 
           <div className="px-4 pb-4">
