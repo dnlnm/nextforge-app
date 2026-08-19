@@ -2,7 +2,10 @@
 
 import { requireTenant, requireTenantRole } from "@repo/auth/authorization";
 import { database, type Prisma } from "@repo/database";
-import { invoiceGeneratedEvent } from "@repo/domain/students/activity";
+import {
+  invoiceGeneratedEvent,
+  writeActivityEvent,
+} from "@repo/domain/students/activity";
 import { type InvoiceStatus, invoiceStatuses } from "@repo/schemas/enums";
 import {
   billingMonthSchema,
@@ -166,7 +169,7 @@ export const generateMonthlyInvoices = async (formData: FormData) => {
         tenant.userId
       );
 
-      await tx.auditEvent.create({ data: event });
+      await writeActivityEvent(tx, event);
     }
   });
 

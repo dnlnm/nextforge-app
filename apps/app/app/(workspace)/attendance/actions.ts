@@ -3,7 +3,10 @@
 import { requireTenant, requireTenantRole } from "@repo/auth/authorization";
 import { database } from "@repo/database";
 import { getMalaysiaWeekday, tryParseCalendarDate } from "@repo/date";
-import { attendanceMarkedEvent } from "@repo/domain/students/activity";
+import {
+  attendanceMarkedEvent,
+  writeActivityEvent,
+} from "@repo/domain/students/activity";
 import { type AttendanceStatus, attendanceStatuses } from "@repo/schemas/enums";
 import { revalidatePath } from "next/cache";
 import { getTeacherProfileId } from "@/lib/teacher-profile";
@@ -206,7 +209,7 @@ export const markAttendance = async (formData: FormData) => {
         tenant.userId
       );
 
-      await tx.auditEvent.create({ data: event });
+      await writeActivityEvent(tx, event);
     }
 
     await tx.classSession.update({
@@ -294,7 +297,7 @@ export const markSessionAttendanceStatus = async (formData: FormData) => {
         tenant.userId
       );
 
-      await tx.auditEvent.create({ data: event });
+      await writeActivityEvent(tx, event);
     }
 
     await tx.classSession.update({

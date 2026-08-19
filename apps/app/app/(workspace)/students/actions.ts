@@ -7,6 +7,7 @@ import {
   studentArchivedEvent,
   studentCreatedEvent,
   studentRestoredEvent,
+  writeActivityEvent,
 } from "@repo/domain/students/activity";
 import {
   type Gender,
@@ -232,7 +233,7 @@ export const createStudent = async (
       tenant.userId
     );
 
-    await tx.auditEvent.create({ data: event });
+    await writeActivityEvent(tx, event);
 
     return created;
   });
@@ -277,7 +278,7 @@ export const archiveStudent = async (formData: FormData) => {
       tenant.userId
     );
 
-    await tx.auditEvent.create({ data: event });
+    await writeActivityEvent(tx, event);
   });
 
   revalidatePath("/students");
@@ -350,7 +351,7 @@ export const restoreStudent = async (formData: FormData) => {
       tenant.userId
     );
 
-    await tx.auditEvent.create({ data: event });
+    await writeActivityEvent(tx, event);
   });
 
   revalidatePath("/students");

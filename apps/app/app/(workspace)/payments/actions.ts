@@ -7,6 +7,7 @@ import {
   paymentRecordedEvent,
   paymentReversedEvent,
   paymentVerifiedEvent,
+  writeActivityEvent,
 } from "@repo/domain/students/activity";
 import { parseMoneyToSen } from "@repo/money";
 import {
@@ -218,7 +219,7 @@ export const recordPayment = async (formData: FormData) => {
         tenant.userId
       );
 
-      await tx.auditEvent.create({ data: event });
+      await writeActivityEvent(tx, event);
 
       return { paymentId: payment.id, receiptNumber };
     }
@@ -453,7 +454,7 @@ export const reversePayment = async (formData: FormData) => {
       tenant.userId
     );
 
-    await tx.auditEvent.create({ data: event });
+    await writeActivityEvent(tx, event);
   });
 
   revalidatePath("/invoices");
@@ -507,7 +508,7 @@ export const verifyPayment = async (formData: FormData) => {
       tenant.userId
     );
 
-    await tx.auditEvent.create({ data: event });
+    await writeActivityEvent(tx, event);
   });
 
   revalidatePath("/payments");
