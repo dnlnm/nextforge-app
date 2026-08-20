@@ -9,7 +9,6 @@ import {
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupLabel,
   SidebarHeader,
@@ -44,8 +43,6 @@ import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { Brand, BrandLogo } from "@/components/brand";
 import { useOrganization } from "./organization-context";
-import { OrganizationSwitcher } from "./organization-switcher";
-import { SidebarUserMenu } from "./sidebar-user-menu";
 
 type SidebarRole = "TEACHER" | "ADMIN" | "OWNER";
 
@@ -232,13 +229,6 @@ export const GlobalSidebar = ({
                 )}
               </Link>
             </SidebarMenuItem>
-            {!collapsed && (
-              <SidebarMenuItem>
-                <div className="px-2 pb-2">
-                  <OrganizationSwitcher />
-                </div>
-              </SidebarMenuItem>
-            )}
             {!collapsed && organization?.role && (
               <SidebarMenuItem>
                 <div className="flex justify-center px-2 pb-2">
@@ -306,13 +296,6 @@ export const GlobalSidebar = ({
             );
           })}
         </SidebarContent>
-        <SidebarFooter>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarUserMenu />
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarFooter>
         <SidebarRail />
       </Sidebar>
       <SidebarInset>{children}</SidebarInset>

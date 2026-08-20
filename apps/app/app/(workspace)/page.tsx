@@ -267,8 +267,7 @@ const App = async () => {
     EXCUSED: "var(--info)",
   };
   const attendanceData = currentMonthAttendance.map((item) => ({
-    fill:
-      attendanceFillByStatus[item.status] ?? "var(--muted-foreground)",
+    fill: attendanceFillByStatus[item.status] ?? "var(--muted-foreground)",
     label: item.status[0] + item.status.slice(1).toLowerCase(),
     status: item.status.toLowerCase(),
     value: item._count.id,
@@ -336,7 +335,10 @@ const App = async () => {
             {welcome}
           </h1>
           <p className="text-muted-foreground text-sm">
-            Here&apos;s what&apos;s happening at {organization?.name ?? "your centre"}{" "}
+            Here&apos;s what&apos;s happening at{" "}
+            <span className="font-medium text-foreground">
+              {organization?.name ?? "your centre"}
+            </span>{" "}
             today.
           </p>
         </section>
@@ -379,12 +381,14 @@ const App = async () => {
                     <StatAction>
                       <Button
                         className="relative z-10"
+                        render={<Link href={stat.action.href} />}
                         size="sm"
                         variant="outline"
-                        render={<Link href={stat.action.href} />}
                       >
                         <PlusIcon aria-hidden="true" />
-                        <span className="hidden md:inline">{stat.action.label}</span>
+                        <span className="hidden md:inline">
+                          {stat.action.label}
+                        </span>
                       </Button>
                     </StatAction>
                   ) : null}
@@ -431,7 +435,10 @@ const App = async () => {
                     vs last month ({formatMoney(previousMonthCollectedSen)})
                   </p>
                 </div>
-                <FeeCollectionChart currency={currency} data={feeCollectionData} />
+                <FeeCollectionChart
+                  currency={currency}
+                  data={feeCollectionData}
+                />
               </CardContent>
             </Card>
           </CardFrame>
@@ -493,9 +500,9 @@ const App = async () => {
                 <CardFrameTitle>Today&apos;s Classes</CardFrameTitle>
                 <CardFrameAction>
                   <Button
+                    render={<Link href="/today" />}
                     size="sm"
                     variant="link"
-                    render={<Link href="/today" />}
                   >
                     View All
                   </Button>
@@ -581,9 +588,9 @@ const App = async () => {
               <CardFrameTitle>Outstanding Fees</CardFrameTitle>
               <CardFrameAction>
                 <Button
+                  render={<Link href="/invoices" />}
                   size="sm"
                   variant="link"
-                  render={<Link href="/invoices" />}
                 >
                   View All
                 </Button>
@@ -630,8 +637,8 @@ const App = async () => {
                 {openInvoices.length > 0 ? (
                   <Button
                     className="mt-4"
-                    variant="outline"
                     render={<Link href="/invoices" />}
+                    variant="outline"
                   >
                     View All Outstanding Fees
                   </Button>

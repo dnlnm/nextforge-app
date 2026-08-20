@@ -1,4 +1,3 @@
-import { getMainDomain } from "@repo/auth/domain";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -9,9 +8,9 @@ import {
 } from "@repo/design-system/components/ui/breadcrumb";
 import { Separator } from "@repo/design-system/components/ui/separator";
 import { SidebarTrigger } from "@repo/design-system/components/ui/sidebar";
-import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
 import { Fragment, type ReactNode } from "react";
+import { SidebarUserMenu } from "./sidebar-user-menu";
 
 type BreadcrumbParent =
   | string
@@ -25,11 +24,6 @@ interface HeaderProps {
   page: string;
   pages: BreadcrumbParent[];
 }
-
-const getMainDomainUrl = () => {
-  const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
-  return `${protocol}://${getMainDomain()}`;
-};
 
 export const Header = ({ pages, page, children }: HeaderProps) => (
   <header className="flex h-16 shrink-0 items-center justify-between gap-2">
@@ -65,13 +59,7 @@ export const Header = ({ pages, page, children }: HeaderProps) => (
       </Breadcrumb>
     </div>
     <div className="flex items-center gap-2 px-4">
-      <Link
-        className="inline-flex items-center gap-2 text-muted-foreground text-sm transition-colors hover:text-foreground"
-        href={`${getMainDomainUrl()}/centres`}
-      >
-        <ArrowLeftIcon className="size-4" />
-        My Centre
-      </Link>
+      <SidebarUserMenu />
       {children}
     </div>
   </header>
