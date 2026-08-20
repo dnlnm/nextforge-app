@@ -11,12 +11,18 @@ import { formatMoneyValue } from "@repo/money";
 type FeeCollectionPoint = {
   collected: number;
   day: string;
+  target: number;
 };
 
 interface FeeCollectionChartProps {
   currency: string;
   data: FeeCollectionPoint[];
 }
+
+const seriesLabels: Record<string, string> = {
+  collected: "Collected",
+  target: "Target",
+};
 
 export const FeeCollectionChart = ({
   currency,
@@ -30,6 +36,13 @@ export const FeeCollectionChart = ({
         dark: ["var(--chart-1)"],
       },
     },
+    target: {
+      label: "Target",
+      colors: {
+        light: ["var(--chart-3)"],
+        dark: ["var(--chart-3)"],
+      },
+    },
   };
 
   return (
@@ -40,6 +53,7 @@ export const FeeCollectionChart = ({
       data={data}
     >
       <EvilAreaChart.Grid />
+      <EvilAreaChart.Legend isClickable />
       <EvilAreaChart.XAxis
         dataKey="day"
         interval="preserveStartEnd"
@@ -52,9 +66,11 @@ export const FeeCollectionChart = ({
       <ChartTooltip
         content={
           <ChartTooltipContent
-            formatter={(value) => (
+            formatter={(value, name) => (
               <div className="flex w-full items-center justify-between gap-4 leading-none">
-                <span className="text-muted-foreground">Collected</span>
+                <span className="text-muted-foreground">
+                  {seriesLabels[String(name)] ?? String(name)}
+                </span>
                 <span className="font-medium font-mono text-foreground tabular-nums">
                   {formatMoneyValue(Number(value ?? 0), { currency })}
                 </span>
@@ -68,6 +84,12 @@ export const FeeCollectionChart = ({
         dataKey="collected"
         strokeVariant="solid"
         strokeWidth={2}
+      />
+      <EvilAreaChart.Area
+        dataKey="target"
+        strokeVariant="dashed"
+        strokeWidth={1.5}
+        variant="solid"
       />
     </EvilAreaChart>
   );

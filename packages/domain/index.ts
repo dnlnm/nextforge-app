@@ -3,6 +3,7 @@ export * from "./analytics";
 export * from "./classes/dashboard";
 export * from "./classes/enrollment";
 export * from "./classes/schedule";
+export * from "./dashboard/overview";
 export * from "./levels/dashboard";
 export * from "./metrics";
 export * from "./students/activity";
