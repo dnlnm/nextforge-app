@@ -1,6 +1,9 @@
 {
   "$schema": "https://turborepo.com/schema.json",
-  "globalDependencies": ["**/.env.*local"],
+  "globalDependencies": [
+    "**/.env.*local",
+    ".env"
+  ],
   "ui": "tui",
   "envMode": "loose",
   "tasks": {

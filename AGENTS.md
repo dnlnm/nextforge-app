@@ -35,3 +35,14 @@ All charts use the vendored EvilCharts components (recharts engine) in `packages
 - Storybook stories live in `apps/storybook/stories/chart.stories.tsx`; meta needs a baseline `args` when stories use `render` only.
 - Pie/radial center labels are plain HTML overlays (`relative` container + absolutely-positioned `pointer-events-none` div), not recharts labels.
 - Vendored evilcharts files are registry copies (re-copied by `bun run bump-ui`); they intentionally do not match the repo's strict Biome config, same as `billingsdk`/`niko-table`.
+
+# Environment variable conventions
+
+The repository-root `.env` (gitignored) is the **single source of truth** for environment variables. Do not duplicate shared values (Supabase keys, `DATABASE_URL`/`DIRECT_URL`, Stripe, Resend, R2, Vercel Blob, Basehub, superadmin IDs, branding/URL defaults) in per-app `.env.local` files.
+
+- The shared loader `packages/config/load-env.ts` is imported first in every Next.js `next.config.ts` (`apps/web`, `apps/api`, `apps/app`) and loads the root `.env` into `process.env` (`override: false` — app-specific values win). It must remain the first import there.
+- `packages/database/prisma.config.ts` loads the root `.env` for Prisma/CLI. `packages/database/.env` must not be recreated.
+- Per-app `.env.local` holds **only app-specific overrides** (e.g. `VERCEL_PROJECT_PRODUCTION_URL`) that legitimately differ per app — see each app's `.env.example`.
+- Expo (`apps/mobile`) cannot read parent-directory env files, so `EXPO_PUBLIC_*` values are mirrored in `apps/mobile/.env.local` and must stay in sync with the root `.env`.
+- `.env.example` files at root and per app are the committed templates documenting every var and its consumer. Keep comments about consumers updated when adding/removing vars.
+- Never commit the root `.env` (gitignored) or per-app `.env.local` files.

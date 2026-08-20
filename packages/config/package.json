@@ -6,6 +6,9 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
+  "dependencies": {
+    "dotenv": "^16.5.0"
+  },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
     "@types/node": "25.3.5",
