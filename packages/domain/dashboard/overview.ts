@@ -151,13 +151,8 @@ export interface DashboardSessionRow {
 }
 
 export interface DashboardKpiData {
-  readonly attendanceToday: {
-    readonly expected: number;
-    readonly percentage: number | null;
-    readonly present: number;
-  };
-  readonly classesToday: {
-    readonly inProgress: number;
+  readonly classes: {
+    readonly addedThisMonth: number;
     readonly total: number;
   };
   readonly fees: {
@@ -171,32 +166,32 @@ export interface DashboardKpiData {
     readonly addedThisMonth: number;
     readonly total: number;
   };
+  readonly teachers: {
+    readonly addedThisMonth: number;
+    readonly total: number;
+  };
 }
 
-/** Data shared by the KPI row and the Today's Classes widget. */
+/** KPI counts and fee summary for the dashboard KPI row. */
 export const getDashboardKpiData = async (
   db: PrismaClient,
   organizationId: string,
   now = new Date()
 ): Promise<DashboardKpiData> => {
-  const today = getMalaysiaToday(now);
   const monthStart = malaysiaMonthStart(now);
   const nextMonthStart = nextMalaysiaMonthStart(now);
-
-  const todaySessions = await db.classSession.findMany({
-    select: { classId: true, endsAt: true, startsAt: true, status: true },
-    where: { organizationId, sessionDate: today },
-  });
 
   const [
     totalStudents,
     studentsAddedThisMonth,
+    totalClasses,
+    classesAddedThisMonth,
+    totalTeachers,
+    teachersAddedThisMonth,
     monthPayments,
     monthInvoices,
     openInvoices,
     overdueInvoiceCount,
-    todayAttendance,
-    todayEnrollments,
   ] = await Promise.all([
     db.student.count({ where: { organizationId, status: "ACTIVE" } }),
     db.student.count({
@@ -204,6 +199,25 @@ export const getDashboardKpiData = async (
         createdAt: { gte: monthStart, lt: nextMonthStart },
         organizationId,
         status: "ACTIVE",
+      },
+    }),
+    db.learningClass.count({
+      where: { archivedAt: null, organizationId, status: "ACTIVE" },
+    }),
+    db.learningClass.count({
+      where: {
+        archivedAt: null,
+        createdAt: { gte: monthStart, lt: nextMonthStart },
+        organizationId,
+        status: "ACTIVE",
+      },
+    }),
+    db.teacherProfile.count({ where: { archivedAt: null, organizationId } }),
+    db.teacherProfile.count({
+      where: {
+        archivedAt: null,
+        createdAt: { gte: monthStart, lt: nextMonthStart },
+        organizationId,
       },
     }),
     db.payment.findMany({
@@ -230,34 +244,7 @@ export const getDashboardKpiData = async (
       },
     }),
     db.invoice.count({ where: { organizationId, status: "OVERDUE" } }),
-    db.attendanceRecord.groupBy({
-      _count: { id: true },
-      by: ["status"],
-      where: {
-        organizationId,
-        session: { sessionDate: today },
-      },
-    }),
-    db.enrollment.findMany({
-      distinct: ["studentId"],
-      select: { studentId: true },
-      where: {
-        classId: {
-          in: [...new Set(todaySessions.map((session) => session.classId))],
-        },
-        organizationId,
-        status: "ACTIVE",
-      },
-    }),
   ]);
-
-  const present = todayAttendance
-    .filter((item) => item.status === "PRESENT" || item.status === "LATE")
-    .reduce((sum, item) => sum + item._count.id, 0);
-  const expected = todayEnrollments.length;
-  const activeSessions = todaySessions.filter(
-    (session) => session.status !== "CANCELLED"
-  );
 
   const collectedSen = monthPayments.reduce(
     (sum, payment) => sum + payment.amountSen,
@@ -270,20 +257,8 @@ export const getDashboardKpiData = async (
     0
   );
 
-  const sessionStatuses = activeSessions.map((session) =>
-    sessionStatusInfo(session, now)
-  );
-  const inProgress = sessionStatuses.filter(
-    (info) => info.status === "IN_PROGRESS"
-  ).length;
-
   return {
-    attendanceToday: {
-      expected,
-      percentage: expected > 0 ? Math.round((present / expected) * 100) : null,
-      present,
-    },
-    classesToday: { inProgress, total: activeSessions.length },
+    classes: { addedThisMonth: classesAddedThisMonth, total: totalClasses },
     fees: {
       collectedSen,
       invoicedSen,
@@ -293,6 +268,7 @@ export const getDashboardKpiData = async (
         invoicedSen > 0 ? Math.round((collectedSen / invoicedSen) * 100) : 0,
     },
     students: { addedThisMonth: studentsAddedThisMonth, total: totalStudents },
+    teachers: { addedThisMonth: teachersAddedThisMonth, total: totalTeachers },
   };
 };
 
@@ -856,80 +832,5 @@ export const getRecentActivityData = async (
         summary: event.summary,
       };
     }),
-  };
-};
-
-export type SetupItemKey =
-  | "ASSIGN_TEACHER"
-  | "CENTRE_PROFILE"
-  | "CREATE_CLASS"
-  | "FEE_STRUCTURE"
-  | "FIRST_STUDENT";
-
-export interface SetupItem {
-  readonly done: boolean;
-  readonly key: SetupItemKey;
-}
-
-export interface SetupStatus {
-  readonly completeCount: number;
-  readonly isOperational: boolean;
-  readonly items: SetupItem[];
-  readonly total: number;
-}
-
-export const getSetupStatus = async (
-  db: PrismaClient,
-  organizationId: string
-): Promise<SetupStatus> => {
-  const [
-    settings,
-    studentCount,
-    classCount,
-    teacherCount,
-    feeClasses,
-    customFeeEnrollments,
-  ] = await Promise.all([
-    db.organizationSettings.findUnique({
-      select: { addressLine1: true, email: true, phone: true },
-      where: { organizationId },
-    }),
-    db.student.count({ where: { organizationId, status: "ACTIVE" } }),
-    db.learningClass.count({
-      where: { archivedAt: null, organizationId, status: "ACTIVE" },
-    }),
-    db.teacherProfile.count({ where: { archivedAt: null, organizationId } }),
-    db.learningClass.count({
-      where: {
-        archivedAt: null,
-        monthlyFeeSen: { gt: 0 },
-        organizationId,
-        status: "ACTIVE",
-      },
-    }),
-    db.enrollment.count({
-      where: { customFeeSen: { not: null }, organizationId, status: "ACTIVE" },
-    }),
-  ]);
-
-  const items: SetupItem[] = [
-    {
-      done: Boolean(
-        settings?.phone || settings?.email || settings?.addressLine1
-      ),
-      key: "CENTRE_PROFILE",
-    },
-    { done: studentCount > 0, key: "FIRST_STUDENT" },
-    { done: classCount > 0, key: "CREATE_CLASS" },
-    { done: teacherCount > 0, key: "ASSIGN_TEACHER" },
-    { done: feeClasses > 0 || customFeeEnrollments > 0, key: "FEE_STRUCTURE" },
-  ];
-  const completeCount = items.filter((item) => item.done).length;
-
-  return {
-    completeCount,
-    isOperational: completeCount === items.length,
-    items,
-    total: items.length,
   };
 };

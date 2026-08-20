@@ -17,11 +17,11 @@ import { cn } from "@repo/design-system/lib/utils";
 import type { DashboardKpiData } from "@repo/domain";
 import { formatMoneyWhole } from "@repo/money";
 import {
-  CalendarDaysIcon,
+  BookOpenIcon,
   CircleDollarSignIcon,
-  ClipboardCheckIcon,
   FileTextIcon,
   PlusIcon,
+  UserRoundIcon,
   UsersRoundIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -42,6 +42,7 @@ export const KpiRow = ({ currency, data }: KpiRowProps) => {
     href: string;
     icon: typeof UsersRoundIcon;
     label: string;
+    progress: number | null;
     value: string;
   }[] = [
     {
@@ -51,42 +52,37 @@ export const KpiRow = ({ currency, data }: KpiRowProps) => {
       href: "/students",
       icon: UsersRoundIcon,
       label: "Total Students",
+      progress: null,
       value: data.students.total.toLocaleString(),
     },
     {
-      action: null,
+      action: { href: "/classes/new", label: "Class" },
       color: "default",
-      detail:
-        data.classesToday.inProgress > 0
-          ? `${data.classesToday.inProgress} in progress`
-          : "No classes running",
-      href: "/today",
-      icon: CalendarDaysIcon,
-      label: "Classes Today",
-      value: data.classesToday.total.toLocaleString(),
+      detail: `+ ${data.classes.addedThisMonth} this month`,
+      href: "/classes",
+      icon: BookOpenIcon,
+      label: "Total Classes",
+      progress: null,
+      value: data.classes.total.toLocaleString(),
     },
     {
-      action: null,
-      color: "success",
-      detail:
-        data.attendanceToday.percentage === null
-          ? "Not marked yet"
-          : `${data.attendanceToday.present} / ${data.attendanceToday.expected} present`,
-      href: "/attendance",
-      icon: ClipboardCheckIcon,
-      label: "Attendance (Today)",
-      value:
-        data.attendanceToday.percentage === null
-          ? "—"
-          : `${data.attendanceToday.percentage}%`,
+      action: { href: "/teachers/new", label: "Teacher" },
+      color: "info",
+      detail: `+ ${data.teachers.addedThisMonth} this month`,
+      href: "/teachers",
+      icon: UserRoundIcon,
+      label: "Total Teachers",
+      progress: null,
+      value: data.teachers.total.toLocaleString(),
     },
     {
-      action: null,
+      action: { href: "/invoices", label: "Invoice" },
       color: "success",
       detail: `${data.fees.targetPercent}% of ${formatMoney(data.fees.invoicedSen)} target`,
       href: "/payments",
       icon: CircleDollarSignIcon,
       label: "Fees Collected (This Month)",
+      progress: data.fees.invoicedSen > 0 ? data.fees.targetPercent : null,
       value: formatMoney(data.fees.collectedSen),
     },
     {
@@ -99,6 +95,7 @@ export const KpiRow = ({ currency, data }: KpiRowProps) => {
       href: "/invoices",
       icon: FileTextIcon,
       label: "Outstanding Fees",
+      progress: null,
       value: formatMoney(data.fees.outstandingSen),
     },
   ];
@@ -122,8 +119,7 @@ export const KpiRow = ({ currency, data }: KpiRowProps) => {
               <StatValue>{stat.value}</StatValue>
             </StatPanel>
             <StatFooter className="flex-col items-start gap-2 max-md:px-3 max-md:py-2">
-              {stat.label === "Fees Collected (This Month)" &&
-              data.fees.invoicedSen > 0 ? (
+              {stat.progress !== null ? (
                 <Progress
                   aria-label={`${data.fees.targetPercent}% of target collected`}
                   value={data.fees.targetPercent}

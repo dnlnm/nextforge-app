@@ -2,18 +2,10 @@ import { requireTenantRole } from "@repo/auth/authorization";
 import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { formatWeekdayDate, getMalaysiaToday } from "@repo/date";
-import { Button } from "@repo/design-system/components/ui/button";
 import { getDashboardKpiData } from "@repo/domain";
 import { NotificationsTrigger as NotificationsTriggerComponent } from "@repo/notifications/components/trigger";
-import {
-  BookPlusIcon,
-  CalendarDaysIcon,
-  ClipboardCheckIcon,
-  FilePlus2Icon,
-  PlusIcon,
-} from "lucide-react";
+import { CalendarDaysIcon } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
 import { getOrganizationCurrency } from "@/lib/currency";
 import { AnnouncementsCard } from "./components/dashboard/announcements-card";
@@ -22,7 +14,6 @@ import { FeeCollectionCard } from "./components/dashboard/fee-collection-card";
 import { KpiRow } from "./components/dashboard/kpi-row";
 import { NeedsAttentionCard } from "./components/dashboard/needs-attention-card";
 import { RecentActivityCard } from "./components/dashboard/recent-activity-card";
-import { SetupCard } from "./components/dashboard/setup-card";
 import { TodaysClassesCard } from "./components/dashboard/todays-classes-card";
 import { WidgetBoundary } from "./components/dashboard/widget-boundary";
 import { Header } from "./components/header";
@@ -49,13 +40,6 @@ const greetingForHour = (hour: number): string => {
 
   return "Good evening";
 };
-
-const quickActions = [
-  { href: "/students/new", icon: BookPlusIcon, label: "+ Student" },
-  { href: "/classes/new", icon: FilePlus2Icon, label: "+ Class" },
-  { href: "/invoices", icon: PlusIcon, label: "+ Invoice" },
-  { href: "/today", icon: ClipboardCheckIcon, label: "Mark Attendance" },
-];
 
 const App = async () => {
   const tenant = await requireTenantRole(["ADMIN"]);
@@ -110,26 +94,6 @@ const App = async () => {
             {formatWeekdayDate(today)}
           </p>
         </section>
-
-        <section className="flex flex-wrap items-center gap-2">
-          {quickActions.map((action) => (
-            <Button
-              key={action.label}
-              render={<Link href={action.href} />}
-              size="sm"
-              variant={action.label === "+ Student" ? "default" : "outline"}
-            >
-              <action.icon className="size-4" />
-              {action.label}
-            </Button>
-          ))}
-        </section>
-
-        <Suspense fallback={null}>
-          <WidgetBoundary title="setup">
-            <SetupCard organizationId={tenant.organizationId} />
-          </WidgetBoundary>
-        </Suspense>
 
         <WidgetBoundary title="key metrics">
           <Suspense
