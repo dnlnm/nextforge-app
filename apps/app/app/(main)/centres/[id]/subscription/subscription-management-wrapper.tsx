@@ -2,19 +2,19 @@
 
 import { appName } from "@repo/config/brand";
 import { SubscriptionManagement } from "@repo/design-system/components/billingsdk/subscription-management";
+import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
-import { Button } from "@repo/design-system/components/ui/button";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import type { CurrentPlan } from "@repo/payments/billingsdk-plans";
 import { billingSDKPlans } from "@repo/payments/billingsdk-plans";
 import { CheckIcon } from "lucide-react";
 import { useTransition } from "react";
-import { toastManager } from "@repo/design-system/components/ui/toast";
 import {
   cancelSubscriptionAtPeriodEnd,
   reactivateSubscription,
@@ -24,9 +24,9 @@ import {
 
 interface SubscriptionManagementWrapperProps {
   readonly currentPlan: CurrentPlan;
-  readonly organizationId: string;
-  readonly isTrial: boolean;
   readonly isCancelled: boolean;
+  readonly isTrial: boolean;
+  readonly organizationId: string;
 }
 
 const paidPlans = billingSDKPlans.filter((plan) => plan.id !== "TRIAL");
@@ -133,12 +133,12 @@ export const SubscriptionManagementWrapper = ({
     return (
       <div className="mb-6 grid gap-4 md:grid-cols-2">
         {paidPlans.map((plan) => (
-          <Card key={plan.id}>
+          <CardShell key={plan.id}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>{plan.title}</CardTitle>
                 {plan.badge ? (
-                  <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary text-xs">
                     {plan.badge}
                   </span>
                 ) : null}
@@ -148,14 +148,14 @@ export const SubscriptionManagementWrapper = ({
             <CardContent className="space-y-4">
               <p className="font-semibold text-2xl">
                 RM{plan.monthlyPrice}
-                <span className="text-muted-foreground text-sm font-normal">
+                <span className="font-normal text-muted-foreground text-sm">
                   /month
                 </span>
               </p>
               <ul className="space-y-2 text-sm">
                 {plan.features.map((feature) => (
-                  <li key={feature.name} className="flex items-center gap-2">
-                    <CheckIcon className="text-primary size-4" />
+                  <li className="flex items-center gap-2" key={feature.name}>
+                    <CheckIcon className="size-4 text-primary" />
                     {feature.name}
                   </li>
                 ))}
@@ -168,7 +168,7 @@ export const SubscriptionManagementWrapper = ({
                 {pending ? "Redirecting..." : `Subscribe to ${plan.title}`}
               </Button>
             </CardContent>
-          </Card>
+          </CardShell>
         ))}
       </div>
     );
@@ -177,7 +177,7 @@ export const SubscriptionManagementWrapper = ({
   return (
     <div className="mb-6 space-y-6">
       {isCancelled ? (
-        <Card className="border-orange-200 bg-orange-50">
+        <CardShell className="border-orange-200" panelClassName="bg-orange-50">
           <CardContent className="py-4">
             <p className="font-medium text-orange-900">
               Subscription scheduled to end on {currentPlan.nextBillingDate}
@@ -194,18 +194,10 @@ export const SubscriptionManagementWrapper = ({
               {pending ? "Reactivating..." : "Reactivate Subscription"}
             </Button>
           </CardContent>
-        </Card>
+        </CardShell>
       ) : null}
 
       <SubscriptionManagement
-        currentPlan={currentPlan}
-        isCancelled={isCancelled}
-        updatePlan={{
-          currentPlan: currentPlan.plan,
-          plans: paidPlans,
-          onPlanChange: handlePlanChange,
-          triggerText: "Change Plan",
-        }}
         cancelSubscription={{
           title: "Cancel Subscription",
           description:
@@ -223,12 +215,20 @@ export const SubscriptionManagementWrapper = ({
             "You'll lose access to all premium features and your data may be removed after the billing period ends.",
           confirmButtonText: "Yes, Cancel Subscription",
           onCancel: handleCancel,
-          onKeepSubscription: async () => {
+          onKeepSubscription: () => {
             toastManager.add({
               title: "Great choice! Your subscription continues.",
               type: "success",
             });
           },
+        }}
+        currentPlan={currentPlan}
+        isCancelled={isCancelled}
+        updatePlan={{
+          currentPlan: currentPlan.plan,
+          plans: paidPlans,
+          onPlanChange: handlePlanChange,
+          triggerText: "Change Plan",
         }}
       />
     </div>

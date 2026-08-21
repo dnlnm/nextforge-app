@@ -286,9 +286,9 @@ export const ClassesTable = ({ classes }: { classes: ClassTableItem[] }) => {
                 <TableCell>
                   <div className="flex justify-end">
                     <Button
+                      render={<Link href={`/classes/${item.id}`} />}
                       size="icon"
                       variant="outline"
-                      render={<Link href={`/classes/${item.id}`} />}
                     >
                       <MoreHorizontalIcon className="size-4" />
                     </Button>

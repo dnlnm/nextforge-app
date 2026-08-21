@@ -35,7 +35,10 @@ import {
 } from "@repo/design-system/components/ui/tabs";
 import { getClassTrends } from "@repo/domain/analytics";
 import { getClassDashboard } from "@repo/domain/classes/dashboard";
-import { formatMoneyCsv as formatMoneyInput, formatMoneyWhole as formatMoneyShared } from "@repo/money";
+import {
+  formatMoneyCsv as formatMoneyInput,
+  formatMoneyWhole as formatMoneyShared,
+} from "@repo/money";
 import {
   CalendarDaysIcon,
   CircleDollarSignIcon,
@@ -196,9 +199,9 @@ const ClassPage = async ({ params }: ClassPageProperties) => {
           <Badge variant="secondary">{learningClass.subject.name}</Badge>
           {learningClass.teacher ? (
             <Button
+              render={<Link href={`/teachers/${learningClass.teacher.id}`} />}
               size="sm"
               variant="link"
-              render={<Link href={`/teachers/${learningClass.teacher.id}`} />}
             >
               {learningClass.teacher.fullName}
             </Button>
@@ -326,13 +329,13 @@ const ClassPage = async ({ params }: ClassPageProperties) => {
                         <TableRow key={enrollment.id}>
                           <TableCell>
                             <Button
-                              size="sm"
-                              variant="link"
                               render={
                                 <Link
                                   href={`/students/${enrollment.student.id}`}
                                 />
                               }
+                              size="sm"
+                              variant="link"
                             >
                               {enrollment.student.fullName}
                             </Button>

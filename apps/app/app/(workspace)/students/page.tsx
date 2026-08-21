@@ -1,5 +1,6 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { appName } from "@repo/config/brand";
+import type { InvoiceStatus } from "@repo/database";
 import { database } from "@repo/database";
 import { formatMonthShort, getMalaysiaToday } from "@repo/date";
 import { Button } from "@repo/design-system/components/ui/button";
@@ -12,10 +13,8 @@ import {
   getStudentFilterOptions,
   getStudentsForTable,
 } from "./actions";
-import { StudentsPageClient } from "./students-page-client";
 import { KpiToggleButton, KpiVisibilityProvider } from "./kpi-visibility";
-
-import type { InvoiceStatus } from "@repo/database";
+import { StudentsPageClient } from "./students-page-client";
 
 const openInvoiceStatuses: InvoiceStatus[] = [
   "ISSUED",
@@ -117,8 +116,8 @@ const StudentsPage = async () => {
           <div className="flex gap-2">
             <Button
               className="flex-1 md:flex-none"
-              variant="outline"
               render={<Link href="/students/import" />}
+              variant="outline"
             >
               <UploadIcon className="size-4" />
               <span className="hidden sm:inline">Import Students</span>

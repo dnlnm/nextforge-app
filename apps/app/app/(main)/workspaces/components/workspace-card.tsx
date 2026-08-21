@@ -3,11 +3,11 @@ import { formatWorkspaceHostname } from "@repo/config/brand";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import { ExternalLinkIcon } from "lucide-react";
 import Image from "next/image";
 
@@ -40,7 +40,10 @@ export const WorkspaceCard = ({
   const workspaceUrl = buildWorkspaceUrl(slug);
 
   return (
-    <Card className="flex flex-col overflow-hidden transition-shadow hover:shadow-lg">
+    <CardShell
+      className="transition-shadow hover:shadow-lg"
+      panelClassName="flex flex-col overflow-hidden"
+    >
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
@@ -83,13 +86,13 @@ export const WorkspaceCard = ({
         </div>
         <Button
           className="mt-auto w-full"
+          render={<a aria-label="Open Workspace" href={workspaceUrl} />}
           size="lg"
-          render={<a href={workspaceUrl} />}
         >
           Open Workspace
           <ExternalLinkIcon className="ml-2 size-4" />
         </Button>
       </CardContent>
-    </Card>
+    </CardShell>
   );
 };

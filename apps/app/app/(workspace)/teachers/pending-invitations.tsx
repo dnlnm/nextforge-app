@@ -1,11 +1,11 @@
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import { MailXIcon } from "lucide-react";
 import { getPendingInvitations, revokeInvitation } from "./actions";
 
@@ -13,7 +13,7 @@ export const PendingInvitations = async () => {
   const invitations = await getPendingInvitations();
 
   return (
-    <Card>
+    <CardShell>
       <CardHeader>
         <CardTitle className="flex items-center gap-3 text-base">
           <MailXIcon className="size-5 text-muted-foreground" />
@@ -63,6 +63,6 @@ export const PendingInvitations = async () => {
           </ul>
         )}
       </CardContent>
-    </Card>
+    </CardShell>
   );
 };

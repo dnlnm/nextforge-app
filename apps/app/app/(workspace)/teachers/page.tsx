@@ -67,8 +67,8 @@ const TeachersPage = async () => {
           <div className="flex gap-2">
             <Button
               className="flex-1 md:flex-none"
-              variant="outline"
               render={<Link href="/teachers/invite" />}
+              variant="outline"
             >
               <SendIcon className="size-4" />
               <span className="hidden sm:inline">Invite Teacher</span>

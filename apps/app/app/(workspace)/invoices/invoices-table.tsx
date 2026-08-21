@@ -15,7 +15,8 @@ import {
 } from "@repo/design-system/components/niko-table/core/data-table-structure";
 import type { GlobalFilter } from "@repo/design-system/components/niko-table/types";
 import { Button } from "@repo/design-system/components/ui/button";
-import { Card, CardContent } from "@repo/design-system/components/ui/card";
+import { CardContent } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import {
   Tabs,
   TabsList,
@@ -278,7 +279,7 @@ export function InvoicesTable({
   );
 
   return (
-    <Card>
+    <CardShell>
       <CardContent className="p-0">
         <DataTableRoot
           columns={columns}
@@ -382,6 +383,6 @@ export function InvoicesTable({
           </div>
         </DataTableRoot>
       </CardContent>
-    </Card>
+    </CardShell>
   );
 }

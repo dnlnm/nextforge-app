@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import { Checkbox } from "@repo/design-system/components/ui/checkbox";
 import {
   Collapsible,
@@ -33,6 +34,7 @@ import {
   TabsTrigger,
 } from "@repo/design-system/components/ui/tabs";
 import { Textarea } from "@repo/design-system/components/ui/textarea";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import {
   BookOpenIcon,
   ChevronDownIcon,
@@ -42,7 +44,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useActionState, useEffect, useState } from "react";
-import { toastManager } from "@repo/design-system/components/ui/toast";
 import { StudentPhotoUpload } from "../../components/student-photo-upload";
 import { createStudent } from "../actions";
 
@@ -198,7 +199,7 @@ export const StudentCreateForm = ({
       onSubmit={handleSubmit}
     >
       <section className="grid content-start gap-5">
-        <Card>
+        <CardShell>
           <CardHeader>
             <CardTitle className="flex items-center gap-3 text-base">
               <UserRoundIcon className="size-5 text-muted-foreground" />
@@ -268,10 +269,10 @@ export const StudentCreateForm = ({
               </div>
             </div>
           </CardContent>
-        </Card>
+        </CardShell>
 
         <Collapsible defaultOpen>
-          <Card>
+          <CardShell>
             <CardHeader className="flex-row items-center justify-between gap-4">
               <div>
                 <CardTitle className="text-base">
@@ -284,7 +285,7 @@ export const StudentCreateForm = ({
               <CollapsibleTrigger
                 render={<Button size="icon" type="button" variant="ghost" />}
               >
-                <ChevronDownIcon className="size-4 transition-transform in-[[data-panel-open]]:rotate-180" />
+                <ChevronDownIcon className="size-4 in-[[data-panel-open]]:rotate-180 transition-transform" />
                 <span className="sr-only">Toggle contact and address</span>
               </CollapsibleTrigger>
             </CardHeader>
@@ -399,11 +400,11 @@ export const StudentCreateForm = ({
                 </div>
               </CardContent>
             </CollapsibleContent>
-          </Card>
+          </CardShell>
         </Collapsible>
 
         <Collapsible defaultOpen>
-          <Card>
+          <CardShell>
             <CardHeader className="flex-row items-center justify-between gap-4">
               <div>
                 <CardTitle className="text-base">
@@ -416,7 +417,7 @@ export const StudentCreateForm = ({
               <CollapsibleTrigger
                 render={<Button size="icon" type="button" variant="ghost" />}
               >
-                <ChevronDownIcon className="size-4 transition-transform in-[[data-panel-open]]:rotate-180" />
+                <ChevronDownIcon className="size-4 in-[[data-panel-open]]:rotate-180 transition-transform" />
                 <span className="sr-only">Toggle academic information</span>
               </CollapsibleTrigger>
             </CardHeader>
@@ -466,10 +467,10 @@ export const StudentCreateForm = ({
                 </div>
               </CardContent>
             </CollapsibleContent>
-          </Card>
+          </CardShell>
         </Collapsible>
 
-        <Card>
+        <CardShell>
           <Tabs className="gap-0" defaultValue="guardian">
             <CardHeader>
               <TabsList className="grid h-auto w-full grid-cols-2">
@@ -631,20 +632,20 @@ export const StudentCreateForm = ({
               </TabsContent>
             </CardContent>
           </Tabs>
-        </Card>
+        </CardShell>
       </section>
 
       <aside className="grid content-start gap-5 xl:sticky xl:top-4 xl:self-start">
-        <Card>
+        <CardShell>
           <CardHeader>
             <CardTitle className="text-base">Profile Photo</CardTitle>
           </CardHeader>
           <CardContent>
             <StudentPhotoUpload name="photoKey" />
           </CardContent>
-        </Card>
+        </CardShell>
 
-        <Card>
+        <CardShell>
           <CardHeader>
             <CardTitle className="text-base">Student Summary</CardTitle>
           </CardHeader>
@@ -663,13 +664,13 @@ export const StudentCreateForm = ({
               </div>
             ))}
           </CardContent>
-        </Card>
+        </CardShell>
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-2">
           <Button
+            render={<Link href="/students" />}
             size="lg"
             variant="outline"
-            render={<Link href="/students" />}
           >
             Cancel
           </Button>

@@ -12,7 +12,11 @@ interface KpiVisibility {
 
 const KpiVisibilityContext = createContext<KpiVisibility | null>(null);
 
-export function KpiVisibilityProvider({ children }: { children: React.ReactNode }) {
+export function KpiVisibilityProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [showKpis, setShowKpis] = useState(true);
   const toggleKpis = () => setShowKpis((value) => !value);
 
@@ -26,7 +30,9 @@ export function KpiVisibilityProvider({ children }: { children: React.ReactNode 
 export function useKpiVisibility() {
   const context = useContext(KpiVisibilityContext);
   if (!context) {
-    throw new Error("useKpiVisibility must be used within a KpiVisibilityProvider");
+    throw new Error(
+      "useKpiVisibility must be used within a KpiVisibilityProvider"
+    );
   }
   return context;
 }

@@ -1,12 +1,12 @@
+import { formatDateTime } from "@repo/date";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import type { listStudentActivity } from "@repo/domain/students/activity";
-import { formatDateTime } from "@repo/date";
 import {
   ActivityIcon,
   ArrowLeftRightIcon,
@@ -65,7 +65,7 @@ export interface StudentActivityTimelineProps {
 export const StudentActivityTimeline = ({
   activities,
 }: StudentActivityTimelineProps) => (
-  <Card>
+  <CardShell>
     <CardHeader>
       <CardTitle>Activity Timeline</CardTitle>
       <CardDescription>
@@ -116,5 +116,5 @@ export const StudentActivityTimeline = ({
         </ol>
       )}
     </CardContent>
-  </Card>
+  </CardShell>
 );

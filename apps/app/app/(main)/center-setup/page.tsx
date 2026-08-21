@@ -3,12 +3,12 @@ import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import { ArrowLeftIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -76,7 +76,7 @@ const CenterSetupPage = async () => {
         </div>
 
         {hasOwnedCentre ? (
-          <Card className="w-full shadow-2xl">
+          <CardShell className="w-full">
             <CardHeader>
               <CardTitle>Centre Limit Reached</CardTitle>
               <CardDescription>
@@ -99,9 +99,9 @@ const CenterSetupPage = async () => {
                 Back to Centres
               </Button>
             </CardContent>
-          </Card>
+          </CardShell>
         ) : (
-          <Card className="w-full shadow-2xl">
+          <CardShell className="w-full">
             <CardHeader>
               <CardTitle>Create your tuition centre</CardTitle>
               <CardDescription>
@@ -112,7 +112,7 @@ const CenterSetupPage = async () => {
             <CardContent>
               <CenterSetupForm />
             </CardContent>
-          </Card>
+          </CardShell>
         )}
       </div>
     </div>

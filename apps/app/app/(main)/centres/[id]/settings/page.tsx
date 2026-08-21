@@ -3,12 +3,12 @@ import { appName, formatWorkspaceHostname } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import { ArrowLeftIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -76,7 +76,7 @@ const CentreSettingsPage = async ({ params }: CentreSettingsPageProps) => {
       </div>
 
       <div className="space-y-6">
-        <Card>
+        <CardShell>
           <CardHeader>
             <CardTitle>Centre Profile</CardTitle>
             <CardDescription>
@@ -87,9 +87,9 @@ const CentreSettingsPage = async ({ params }: CentreSettingsPageProps) => {
           <CardContent>
             <CentreSettingsForm organization={organization} />
           </CardContent>
-        </Card>
+        </CardShell>
 
-        <Card>
+        <CardShell>
           <CardHeader>
             <CardTitle>Centre URL</CardTitle>
             <CardDescription>
@@ -107,9 +107,9 @@ const CentreSettingsPage = async ({ params }: CentreSettingsPageProps) => {
               </p>
             </div>
           </CardContent>
-        </Card>
+        </CardShell>
 
-        <Card className="border-destructive">
+        <CardShell className="border-destructive">
           <CardHeader>
             <CardTitle className="text-destructive">Danger Zone</CardTitle>
             <CardDescription>
@@ -127,7 +127,7 @@ const CentreSettingsPage = async ({ params }: CentreSettingsPageProps) => {
               </Button>
             </div>
           </CardContent>
-        </Card>
+        </CardShell>
       </div>
     </div>
   );

@@ -18,10 +18,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/design-system/components/ui/select";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import { Loader2Icon, UserPlusIcon, UsersRoundIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
-import { toastManager } from "@repo/design-system/components/ui/toast";
 import {
   bulkEnrollStudentsAction,
   enrollStudentAction,

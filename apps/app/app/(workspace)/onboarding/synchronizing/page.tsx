@@ -3,12 +3,12 @@ import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Header } from "../../components/header";
@@ -41,7 +41,7 @@ const SynchronizingPage = async () => {
     <>
       <Header page="Synchronizing" pages={["Centre setup"]} />
       <main className="flex flex-1 items-center justify-center p-6 pt-0">
-        <Card className="w-full max-w-lg">
+        <CardShell className="w-full max-w-lg">
           <CardHeader>
             <CardTitle>Preparing your centre workspace</CardTitle>
             <CardDescription>
@@ -53,11 +53,11 @@ const SynchronizingPage = async () => {
             <Button render={<Link href="/onboarding/synchronizing" />}>
               Check again
             </Button>
-            <Button variant="outline" render={<Link href="/center-setup" />}>
+            <Button render={<Link href="/center-setup" />} variant="outline">
               Back
             </Button>
           </CardContent>
-        </Card>
+        </CardShell>
       </main>
     </>
   );

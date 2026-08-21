@@ -1,7 +1,6 @@
 "use client";
 
 import type { DayOfWeek } from "@repo/database";
-import { formatMoneyCsv } from "@repo/money";
 import { Button } from "@repo/design-system/components/ui/button";
 import { DatePicker } from "@repo/design-system/components/ui/date-picker";
 import { Input } from "@repo/design-system/components/ui/input";
@@ -13,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/design-system/components/ui/select";
+import { formatMoneyCsv } from "@repo/money";
 import { useState } from "react";
 import { updateClass } from "../actions";
 import {
@@ -239,7 +239,7 @@ export const ClassEditForm = ({
       </div>
       <div className="flex gap-2">
         <Button type="submit">Save changes</Button>
-        <Button variant="outline" render={<a href="/classes" />}>
+        <Button render={<a href="/classes" />} variant="outline">
           Cancel
         </Button>
       </div>

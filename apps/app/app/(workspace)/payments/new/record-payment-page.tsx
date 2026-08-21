@@ -2,7 +2,8 @@
 
 import { formatMediumDate, parseCalendarDate } from "@repo/date";
 import { Button } from "@repo/design-system/components/ui/button";
-import { Card, CardContent } from "@repo/design-system/components/ui/card";
+import { CardContent } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import { DatePicker } from "@repo/design-system/components/ui/date-picker";
 import { Input } from "@repo/design-system/components/ui/input";
 import {
@@ -241,7 +242,7 @@ const MethodSection = ({
     formatMoneyShared(amountSen, { currency });
 
   return (
-    <Card className="rounded-xl shadow-none">
+    <CardShell>
       <CardContent className="grid gap-5 p-4 sm:p-5">
         <p className="font-medium text-muted-foreground text-xs uppercase tracking-[0.12em]">
           Payment details
@@ -324,7 +325,7 @@ const MethodSection = ({
           </p>
         </div>
       </CardContent>
-    </Card>
+    </CardShell>
   );
 };
 
@@ -395,7 +396,7 @@ const ReceiptUploader = ({
   };
 
   return (
-    <Card className="rounded-xl shadow-none">
+    <CardShell>
       <CardContent className="grid gap-3 p-4 sm:p-5">
         <p className="font-medium text-muted-foreground text-xs uppercase tracking-[0.12em]">
           Receipt / proof of payment
@@ -461,7 +462,7 @@ const ReceiptUploader = ({
           </ul>
         ) : null}
       </CardContent>
-    </Card>
+    </CardShell>
   );
 };
 
@@ -573,7 +574,7 @@ export function RecordPaymentPage({
 
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_288px]">
         <div className="grid gap-4">
-          <Card className="rounded-xl shadow-none">
+          <CardShell>
             <CardContent className="grid gap-3 p-4 sm:p-5">
               <p className="font-medium text-muted-foreground text-xs uppercase tracking-[0.12em]">
                 Student
@@ -589,7 +590,7 @@ export function RecordPaymentPage({
                 student={selectedStudent}
               />
             </CardContent>
-          </Card>
+          </CardShell>
           <MethodSection
             amount={amount}
             currency={currency}
@@ -623,7 +624,7 @@ export function RecordPaymentPage({
         </div>
 
         <aside className="grid gap-4 lg:sticky lg:top-4">
-          <Card className="rounded-xl shadow-none">
+          <CardShell>
             <CardContent className="grid gap-3 p-4">
               <p className="font-medium text-muted-foreground text-xs uppercase tracking-[0.12em]">
                 Payment summary
@@ -651,8 +652,8 @@ export function RecordPaymentPage({
                 <span className="text-right font-medium">{paymentDate}</span>
               </div>
             </CardContent>
-          </Card>
-          <Card className="rounded-xl border-success/20 bg-success/5 shadow-none">
+          </CardShell>
+          <CardShell panelClassName="border-success/20 bg-success/5">
             <CardContent className="grid gap-2 p-4 text-xs">
               <p className="font-medium text-success">Recording tips</p>
               <p className="text-muted-foreground">
@@ -668,7 +669,7 @@ export function RecordPaymentPage({
                 recording.
               </p>
             </CardContent>
-          </Card>
+          </CardShell>
         </aside>
       </div>
     </form>

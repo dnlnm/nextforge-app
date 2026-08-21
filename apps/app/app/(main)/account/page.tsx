@@ -1,13 +1,12 @@
 import { ensureLocalUser } from "@repo/auth/organizations";
 import { appName } from "@repo/config/brand";
 import {
-  Card,
-  CardFrame,
-  CardFrameDescription,
-  CardFrameHeader,
-  CardFrameTitle,
-  CardPanel,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import { ArrowLeftIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -45,51 +44,43 @@ const AccountPage = async () => {
       </div>
 
       <div className="space-y-6">
-        <CardFrame className="w-full">
-          <CardFrameHeader>
-            <CardFrameTitle>Profile</CardFrameTitle>
-            <CardFrameDescription>
-              Your display name for {appName}
-            </CardFrameDescription>
-          </CardFrameHeader>
-          <Card>
-            <CardPanel>
-              <ProfileForm
-                defaultName={
-                  [user.firstName, user.lastName].filter(Boolean).join(" ") || ""
-                }
-              />
-            </CardPanel>
-          </Card>
-        </CardFrame>
+        <CardShell className="w-full">
+          <CardHeader>
+            <CardTitle>Profile</CardTitle>
+            <CardDescription>Your display name for {appName}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ProfileForm
+              defaultName={
+                [user.firstName, user.lastName].filter(Boolean).join(" ") || ""
+              }
+            />
+          </CardContent>
+        </CardShell>
 
-        <CardFrame className="w-full">
-          <CardFrameHeader>
-            <CardFrameTitle>Email</CardFrameTitle>
-            <CardFrameDescription>
+        <CardShell className="w-full">
+          <CardHeader>
+            <CardTitle>Email</CardTitle>
+            <CardDescription>
               The email address used to sign in to {appName}
-            </CardFrameDescription>
-          </CardFrameHeader>
-          <Card>
-            <CardPanel>
-              <EmailForm defaultEmail={user.email ?? ""} />
-            </CardPanel>
-          </Card>
-        </CardFrame>
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <EmailForm defaultEmail={user.email ?? ""} />
+          </CardContent>
+        </CardShell>
 
-        <CardFrame className="w-full">
-          <CardFrameHeader>
-            <CardFrameTitle>Password</CardFrameTitle>
-            <CardFrameDescription>
+        <CardShell className="w-full">
+          <CardHeader>
+            <CardTitle>Password</CardTitle>
+            <CardDescription>
               Change the password used to sign in to {appName}
-            </CardFrameDescription>
-          </CardFrameHeader>
-          <Card>
-            <CardPanel>
-              <PasswordForm />
-            </CardPanel>
-          </Card>
-        </CardFrame>
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <PasswordForm />
+          </CardContent>
+        </CardShell>
       </div>
     </div>
   );

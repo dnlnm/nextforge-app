@@ -44,8 +44,8 @@ export const StudentQuickActions = ({
           Transfer
         </Button>
         <Button
-          variant="outline"
           render={<Link href={`/students/${studentId}/print`} />}
+          variant="outline"
         >
           <PrinterIcon className="size-4" />
           Print profile

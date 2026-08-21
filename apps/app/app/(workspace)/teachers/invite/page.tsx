@@ -1,12 +1,12 @@
 import { appName } from "@repo/config/brand";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
 import { MailPlusIcon, UserRoundIcon } from "lucide-react";
@@ -35,7 +35,7 @@ const InviteTeacherPage = () => (
         action={inviteTeacher}
         className="grid max-w-xl content-start gap-5"
       >
-        <Card>
+        <CardShell>
           <CardHeader>
             <CardTitle className="flex items-center gap-3 text-base">
               <UserRoundIcon className="size-5 text-muted-foreground" />
@@ -66,13 +66,13 @@ const InviteTeacherPage = () => (
               />
             </div>
           </CardContent>
-        </Card>
+        </CardShell>
 
         <div className="flex gap-3">
           <Button
+            render={<Link href="/teachers" />}
             size="lg"
             variant="outline"
-            render={<Link href="/teachers" />}
           >
             Cancel
           </Button>

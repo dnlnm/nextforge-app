@@ -1,7 +1,13 @@
 "use client";
 
-import { Card, CardContent } from "@repo/design-system/components/ui/card";
-import { Drawer, DrawerPanel, DrawerPopup, DrawerTitle } from "@repo/design-system/components/ui/drawer";
+import { CardContent } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
+import {
+  Drawer,
+  DrawerPanel,
+  DrawerPopup,
+  DrawerTitle,
+} from "@repo/design-system/components/ui/drawer";
 import {
   Stat,
   StatDescription,
@@ -25,7 +31,10 @@ import { useState } from "react";
 import { getStudentDetail } from "./actions";
 import type { Student } from "./columns";
 import { useKpiVisibility } from "./kpi-visibility";
-import { type StudentDetail, StudentDetailContent } from "./student-detail-content";
+import {
+  type StudentDetail,
+  StudentDetailContent,
+} from "./student-detail-content";
 import { StudentsTable } from "./students-table";
 
 type FilterOption = {
@@ -68,7 +77,8 @@ export function StudentsPageClient({
   totalStudents,
   tutorOptions,
 }: StudentsPageClientProps) {
-  const formatMoney = (amountSen: number) => formatMoneyShared(amountSen, { currency });
+  const formatMoney = (amountSen: number) =>
+    formatMoneyShared(amountSen, { currency });
   const [selectedStudent, setSelectedStudent] = useState<StudentDetail | null>(
     defaultStudentDetail
   );
@@ -180,15 +190,18 @@ export function StudentsPageClient({
       </section>
 
       <aside className="hidden xl:sticky xl:top-4 xl:block xl:self-start">
-        <Card>
+        <CardShell>
           {selectedStudent ? (
-            <StudentDetailContent currency={currency} student={selectedStudent} />
+            <StudentDetailContent
+              currency={currency}
+              student={selectedStudent}
+            />
           ) : (
             <CardContent className="p-6 text-center text-muted-foreground text-sm">
               No students to display.
             </CardContent>
           )}
-        </Card>
+        </CardShell>
       </aside>
 
       <Drawer
@@ -199,9 +212,14 @@ export function StudentsPageClient({
         <DrawerPopup>
           {selectedStudent && (
             <>
-              <DrawerTitle className="sr-only">{selectedStudent.fullName}</DrawerTitle>
+              <DrawerTitle className="sr-only">
+                {selectedStudent.fullName}
+              </DrawerTitle>
               <DrawerPanel className="p-0">
-                <StudentDetailContent currency={currency} student={selectedStudent} />
+                <StudentDetailContent
+                  currency={currency}
+                  student={selectedStudent}
+                />
               </DrawerPanel>
             </>
           )}

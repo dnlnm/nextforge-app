@@ -1,11 +1,11 @@
 import { appName } from "@repo/config/brand";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
 import {
@@ -50,7 +50,7 @@ const AddTeacherPage = async () => {
           className="grid items-start gap-5 xl:grid-cols-[1fr_300px] 2xl:grid-cols-[1fr_360px]"
         >
           <section className="grid content-start gap-5">
-            <Card>
+            <CardShell>
               <CardHeader>
                 <CardTitle className="flex items-center gap-3 text-base">
                   <UserRoundIcon className="size-5 text-muted-foreground" />
@@ -286,11 +286,11 @@ const AddTeacherPage = async () => {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </CardShell>
           </section>
 
           <aside className="grid content-start gap-5 xl:sticky xl:top-4 xl:self-start">
-            <Card>
+            <CardShell>
               <CardHeader>
                 <CardTitle className="flex items-center gap-3 text-base">
                   <CloudUploadIcon className="size-5 text-muted-foreground" />
@@ -314,9 +314,9 @@ const AddTeacherPage = async () => {
                   </Button>
                 </div>
               </CardContent>
-            </Card>
+            </CardShell>
 
-            <Card>
+            <CardShell>
               <CardHeader>
                 <CardTitle className="flex items-center gap-3 text-base">
                   <SchoolIcon className="size-5 text-muted-foreground" />
@@ -339,13 +339,13 @@ const AddTeacherPage = async () => {
                   </div>
                 ))}
               </CardContent>
-            </Card>
+            </CardShell>
 
             <div className="grid grid-cols-2 gap-3">
               <Button
+                render={<Link href="/teachers" />}
                 size="lg"
                 variant="outline"
-                render={<Link href="/teachers" />}
               >
                 Cancel
               </Button>

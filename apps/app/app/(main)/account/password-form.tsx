@@ -3,9 +3,9 @@
 import { Button } from "@repo/design-system/components/ui/button";
 import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toastManager } from "@repo/design-system/components/ui/toast";
 import { updatePassword } from "./actions";
 
 export const PasswordForm = () => {

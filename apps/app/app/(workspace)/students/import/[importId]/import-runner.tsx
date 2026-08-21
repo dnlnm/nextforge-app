@@ -17,10 +17,10 @@ import {
 } from "@repo/design-system/components/ui/alert-dialog";
 import { Button } from "@repo/design-system/components/ui/button";
 import { Progress } from "@repo/design-system/components/ui/progress";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import { Loader2Icon, PlayIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
-import { toastManager } from "@repo/design-system/components/ui/toast";
 import { executeStudentImportBatch, startStudentImport } from "../actions";
 
 export const ImportRunner = ({
@@ -121,7 +121,7 @@ export const ImportRunner = ({
               <AlertDialogClose render={<Button variant="ghost" />}>
                 Cancel
               </AlertDialogClose>
-              <AlertDialogClose render={<Button />} onClick={start}>
+              <AlertDialogClose onClick={start} render={<Button />}>
                 Confirm Import
               </AlertDialogClose>
             </AlertDialogFooter>

@@ -114,11 +114,11 @@ export const MainNav = ({
         <ul className="flex items-center gap-1">
           <li>
             <Button
-              variant="ghost"
               className={cn(
                 isMyCentreActive ? "text-foreground" : "text-foreground/60"
               )}
               render={<Link href={centreHref} />}
+              variant="ghost"
             >
               <BuildingIcon className="size-4" />
               My Centre
@@ -130,12 +130,12 @@ export const MainNav = ({
               <DropdownMenuTrigger
                 render={
                   <Button
-                    variant="ghost"
                     className={cn(
                       isWorkspacesActive
                         ? "text-foreground"
                         : "text-foreground/60"
                     )}
+                    variant="ghost"
                   />
                 }
               >
@@ -167,13 +167,13 @@ export const MainNav = ({
 
           <li>
             <Button
-              variant="ghost"
               className={cn(
                 isCentreSettingsActive
                   ? "text-foreground"
                   : "text-foreground/60"
               )}
               render={<Link href={centreSettingsHref} />}
+              variant="ghost"
             >
               <SettingsIcon className="size-4" />
               Centre Settings
@@ -182,11 +182,11 @@ export const MainNav = ({
 
           <li>
             <Button
-              variant="ghost"
               className={cn(
                 isSubscriptionActive ? "text-foreground" : "text-foreground/60"
               )}
               render={<Link href={subscriptionHref} />}
+              variant="ghost"
             >
               <CreditCardIcon className="size-4" />
               Subscription

@@ -2,7 +2,8 @@ import { requireTenantRole } from "@repo/auth/authorization";
 import { database } from "@repo/database";
 import { createStudentTemplate } from "../import/lib/workbook";
 
-const mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+const mime =
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
 export const GET = async () => {
   const tenant = await requireTenantRole(["ADMIN"]);
@@ -15,7 +16,8 @@ export const GET = async () => {
   return new Response(workbook, {
     headers: {
       "Content-Type": mime,
-      "Content-Disposition": 'attachment; filename="klio-student-import-template.xlsx"',
+      "Content-Disposition":
+        'attachment; filename="klio-student-import-template.xlsx"',
       "Cache-Control": "private, no-store",
     },
   });

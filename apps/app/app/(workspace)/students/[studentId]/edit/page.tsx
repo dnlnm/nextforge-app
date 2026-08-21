@@ -2,11 +2,11 @@ import { requireTenantRole } from "@repo/auth/authorization";
 import { database } from "@repo/database";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import { DatePicker } from "@repo/design-system/components/ui/date-picker";
 import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
@@ -66,7 +66,7 @@ const StudentEditPage = async ({ params }: StudentEditPageProperties) => {
       <Header page="Edit Student" pages={["Students", student.fullName]} />
       <main className="p-4 pt-0">
         <div className="grid items-start gap-5 xl:grid-cols-[1fr_300px] 2xl:grid-cols-[1fr_360px]">
-          <Card className="max-w-2xl">
+          <CardShell className="max-w-2xl">
             <CardHeader>
               <CardTitle>Edit student</CardTitle>
             </CardHeader>
@@ -275,17 +275,17 @@ const StudentEditPage = async ({ params }: StudentEditPageProperties) => {
                 <div className="flex gap-2">
                   <Button type="submit">Save changes</Button>
                   <Button
-                    variant="outline"
                     render={<Link href={`/students/${student.id}`} />}
+                    variant="outline"
                   >
                     Cancel
                   </Button>
                 </div>
               </form>
             </CardContent>
-          </Card>
+          </CardShell>
           <aside className="grid content-start gap-5 xl:sticky xl:top-4 xl:self-start">
-            <Card>
+            <CardShell>
               <CardHeader>
                 <CardTitle className="text-base">Profile Photo</CardTitle>
               </CardHeader>
@@ -297,7 +297,7 @@ const StudentEditPage = async ({ params }: StudentEditPageProperties) => {
                   name="photoKey"
                 />
               </CardContent>
-            </Card>
+            </CardShell>
           </aside>
         </div>
       </main>

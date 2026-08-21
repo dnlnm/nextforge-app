@@ -1,11 +1,11 @@
 import {
-  Card,
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import type { Meta, StoryObj } from "@storybook/react";
 import { BellRing } from "lucide-react";
 
@@ -29,14 +29,14 @@ const notifications = [
  */
 const meta = {
   title: "ui/Card",
-  component: Card,
+  component: CardShell,
   tags: ["autodocs"],
   argTypes: {},
   args: {
     className: "w-96",
   },
   render: (args) => (
-    <Card {...args}>
+    <CardShell {...args}>
       <CardHeader>
         <CardTitle>Notifications</CardTitle>
         <CardDescription>You have 3 unread messages.</CardDescription>
@@ -57,12 +57,12 @@ const meta = {
           Close
         </button>
       </CardFooter>
-    </Card>
+    </CardShell>
   ),
   parameters: {
     layout: "centered",
   },
-} satisfies Meta<typeof Card>;
+} satisfies Meta<typeof CardShell>;
 
 export default meta;
 

@@ -19,10 +19,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/design-system/components/ui/select";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import { Loader2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
-import { toastManager } from "@repo/design-system/components/ui/toast";
 import { transferStudentAction } from "../../enrollment/actions";
 import type { EnrollableClass } from "./enroll-student-dialog";
 

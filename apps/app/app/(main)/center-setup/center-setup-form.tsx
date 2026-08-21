@@ -5,10 +5,10 @@ import { formatWorkspaceHostname } from "@repo/config/brand";
 import { Button } from "@repo/design-system/components/ui/button";
 import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import { CheckCircle2Icon, Loader2Icon, XCircleIcon } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { toastManager } from "@repo/design-system/components/ui/toast";
 import { checkSlugAvailability, createCentre } from "./actions";
 
 const deriveSlug = (name: string) =>

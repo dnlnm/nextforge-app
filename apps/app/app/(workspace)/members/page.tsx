@@ -8,12 +8,12 @@ import {
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import { SendIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -71,7 +71,7 @@ const MembersPage = async () => {
 
         <PendingAdminInvitations />
 
-        <Card>
+        <CardShell>
           <CardHeader>
             <CardTitle>Current Members</CardTitle>
             <CardDescription>
@@ -119,7 +119,7 @@ const MembersPage = async () => {
               </ul>
             )}
           </CardContent>
-        </Card>
+        </CardShell>
       </main>
     </>
   );

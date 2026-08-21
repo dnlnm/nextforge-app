@@ -7,13 +7,12 @@ import {
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
+  CardAction,
   CardContent,
-  CardFrame,
-  CardFrameAction,
-  CardFrameHeader,
-  CardFrameTitle,
+  CardHeader,
+  CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import {
   Empty,
   EmptyContent,
@@ -153,44 +152,44 @@ export const TodaysClassesCard = async ({
   const { sessions } = await getTodaysClassesData(database, organizationId);
 
   return (
-    <CardFrame className="h-full">
-      <CardFrameHeader>
-        <CardFrameTitle>Today&apos;s Classes</CardFrameTitle>
-        <CardFrameAction>
+    <CardShell className="h-full">
+      <CardHeader>
+        <CardTitle>Today&apos;s Classes</CardTitle>
+        <CardAction>
           <Button render={<Link href="/schedules" />} size="sm" variant="link">
             View Schedule
           </Button>
-        </CardFrameAction>
-      </CardFrameHeader>
-      <Card className="flex-1">
-        <CardContent className="flex min-h-0 flex-col">
-          {sessions.length === 0 ? (
-            <Empty>
-              <EmptyContent>
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <CalendarDaysIcon className="size-4.5" />
-                  </EmptyMedia>
-                  <EmptyTitle>No classes today</EmptyTitle>
-                  <EmptyDescription>
-                    Create a class session from the schedule to start managing
-                    today&apos;s attendance.
-                  </EmptyDescription>
-                </EmptyHeader>
-                <Button render={<Link href="/classes/new" />} size="sm">
-                  Create Class
-                </Button>
-              </EmptyContent>
-            </Empty>
-          ) : (
-            <div className="grid gap-1">
-              <div className="hidden grid-cols-[4.5rem_1fr_1fr_4.5rem_6.5rem] gap-3 border-b px-3 py-2 font-medium text-muted-foreground text-xs md:grid">
-                <span>Time</span>
-                <span>Class</span>
-                <span>Teacher</span>
-                <span className="text-right">Students</span>
-                <span className="text-right">Status</span>
-              </div>
+        </CardAction>
+      </CardHeader>
+      <CardContent className="flex min-h-0 flex-1 flex-col">
+        {sessions.length === 0 ? (
+          <Empty>
+            <EmptyContent>
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <CalendarDaysIcon className="size-4.5" />
+                </EmptyMedia>
+                <EmptyTitle>No classes today</EmptyTitle>
+                <EmptyDescription>
+                  Create a class session from the schedule to start managing
+                  today&apos;s attendance.
+                </EmptyDescription>
+              </EmptyHeader>
+              <Button render={<Link href="/classes/new" />} size="sm">
+                Create Class
+              </Button>
+            </EmptyContent>
+          </Empty>
+        ) : (
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div className="hidden shrink-0 grid-cols-[4.5rem_1fr_1fr_4.5rem_6.5rem] gap-3 border-b px-3 py-2 font-medium text-muted-foreground text-xs md:grid">
+              <span>Time</span>
+              <span>Class</span>
+              <span>Teacher</span>
+              <span className="text-right">Students</span>
+              <span className="text-right">Status</span>
+            </div>
+            <div className="grid min-h-0 content-start gap-1 overflow-y-auto">
               {sessions.map((session, index) => (
                 <SessionRow
                   isLast={index === sessions.length - 1}
@@ -199,9 +198,9 @@ export const TodaysClassesCard = async ({
                 />
               ))}
             </div>
-          )}
-        </CardContent>
-      </Card>
-    </CardFrame>
+          </div>
+        )}
+      </CardContent>
+    </CardShell>
   );
 };

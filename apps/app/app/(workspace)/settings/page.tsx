@@ -4,12 +4,12 @@ import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import { ArrowUpRightIcon } from "lucide-react";
 import Link from "next/link";
 import { Header } from "../components/header";
@@ -51,7 +51,10 @@ const SettingsPage = async () => {
       <Header page="Settings" pages={[`${appName}`]} />
       <main className="grid gap-5 p-4 pt-0">
         {tenant.role === "OWNER" ? (
-          <Card className="max-w-3xl border-blue-200 bg-blue-50/50">
+          <CardShell
+            className="max-w-3xl border-blue-200"
+            panelClassName="bg-blue-50/50"
+          >
             <CardContent className="flex items-center justify-between gap-4 py-4">
               <div>
                 <h3 className="font-medium">Centre profile & billing</h3>
@@ -61,21 +64,21 @@ const SettingsPage = async () => {
                 </p>
               </div>
               <Button
-                variant="secondary"
                 render={
                   <Link
                     href={`${getMainDomainUrl()}/centres/${tenant.organizationId}/settings`}
                   />
                 }
+                variant="secondary"
               >
                 Open centre portal
                 <ArrowUpRightIcon className="ml-2 size-4" />
               </Button>
             </CardContent>
-          </Card>
+          </CardShell>
         ) : null}
 
-        <Card className="max-w-3xl">
+        <CardShell className="max-w-3xl">
           <CardHeader>
             <CardTitle>Centre settings</CardTitle>
             <CardDescription>
@@ -85,8 +88,8 @@ const SettingsPage = async () => {
           <CardContent>
             <SettingsForm organization={organization} />
           </CardContent>
-        </Card>
-        <Card className="max-w-3xl">
+        </CardShell>
+        <CardShell className="max-w-3xl">
           <CardHeader>
             <CardTitle>Academic levels</CardTitle>
             <CardDescription>
@@ -95,13 +98,13 @@ const SettingsPage = async () => {
           </CardHeader>
           <CardContent>
             <Button
-              variant="secondary"
               render={<Link href="/academic-levels" />}
+              variant="secondary"
             >
               Manage academic levels
             </Button>
           </CardContent>
-        </Card>
+        </CardShell>
       </main>
     </>
   );

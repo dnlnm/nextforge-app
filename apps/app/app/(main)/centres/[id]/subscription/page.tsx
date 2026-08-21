@@ -3,12 +3,12 @@ import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { InvoiceHistory } from "@repo/design-system/components/billingsdk/invoice-history";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import { Progress } from "@repo/design-system/components/ui/progress";
 import { ArrowLeftIcon } from "lucide-react";
 import type { Metadata } from "next";
@@ -91,25 +91,31 @@ const CentreBillingPage = async ({
       </div>
 
       {checkoutStatus === "success" ? (
-        <Card className="mb-6 border-green-200 bg-green-50">
+        <CardShell
+          className="mb-6 border-green-200"
+          panelClassName="bg-green-50"
+        >
           <CardContent className="py-4">
             <p className="font-medium text-green-900">Payment successful</p>
             <p className="text-green-700 text-sm">
               Your subscription has been updated successfully.
             </p>
           </CardContent>
-        </Card>
+        </CardShell>
       ) : null}
 
       {checkoutStatus === "cancelled" ? (
-        <Card className="mb-6 border-destructive/30 bg-destructive/5">
+        <CardShell
+          className="mb-6 border-destructive/30"
+          panelClassName="bg-destructive/5"
+        >
           <CardContent className="py-4">
             <p className="font-medium">Payment cancelled</p>
             <p className="text-muted-foreground text-sm">
               Your payment was cancelled. No charges were made.
             </p>
           </CardContent>
-        </Card>
+        </CardShell>
       ) : null}
 
       <SubscriptionManagementWrapper
@@ -119,7 +125,7 @@ const CentreBillingPage = async ({
         organizationId={organization.id}
       />
 
-      <Card className="mb-6">
+      <CardShell className="mb-6">
         <CardHeader>
           <CardTitle>Plan Usage</CardTitle>
           <CardDescription>
@@ -144,7 +150,7 @@ const CentreBillingPage = async ({
             );
           })}
         </CardContent>
-      </Card>
+      </CardShell>
 
       <div className="mt-6">
         {invoices.length > 0 ? (
@@ -154,7 +160,7 @@ const CentreBillingPage = async ({
             title="Invoice History"
           />
         ) : (
-          <Card>
+          <CardShell>
             <CardHeader>
               <CardTitle>Invoice History</CardTitle>
               <CardDescription>
@@ -167,7 +173,7 @@ const CentreBillingPage = async ({
                 history.
               </p>
             </CardContent>
-          </Card>
+          </CardShell>
         )}
       </div>
     </div>

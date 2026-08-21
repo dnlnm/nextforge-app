@@ -1,12 +1,11 @@
 import { database } from "@repo/database";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import {
-  Card,
   CardContent,
-  CardFrame,
-  CardFrameHeader,
-  CardFrameTitle,
+  CardHeader,
+  CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import {
   Empty,
   EmptyDescription,
@@ -56,69 +55,67 @@ export const NeedsAttentionCard = async ({
   const { items } = await getNeedsAttentionData(database, organizationId);
 
   return (
-    <CardFrame className="h-full">
-      <CardFrameHeader>
-        <CardFrameTitle>Needs Attention</CardFrameTitle>
-      </CardFrameHeader>
-      <Card className="flex-1">
-        <CardContent className="flex min-h-0 flex-col">
-          {items.length === 0 ? (
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <CircleCheckIcon className="size-4.5 text-success" />
-                </EmptyMedia>
-                <EmptyTitle>You&apos;re all caught up</EmptyTitle>
-                <EmptyDescription>
-                  Nothing needs your attention right now.
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-          ) : (
-            <div className="grid gap-1">
-              {items.map((item, index) => {
-                const Icon = ICON_BY_KEY[item.icon];
-                const severity = SEVERITY_STYLES[item.severity];
+    <CardShell className="h-full">
+      <CardHeader>
+        <CardTitle>Needs Attention</CardTitle>
+      </CardHeader>
+      <CardContent className="flex min-h-0 flex-1 flex-col">
+        {items.length === 0 ? (
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <CircleCheckIcon className="size-4.5 text-success" />
+              </EmptyMedia>
+              <EmptyTitle>You&apos;re all caught up</EmptyTitle>
+              <EmptyDescription>
+                Nothing needs your attention right now.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        ) : (
+          <div className="grid min-h-0 gap-1 overflow-y-auto">
+            {items.map((item, index) => {
+              const Icon = ICON_BY_KEY[item.icon];
+              const severity = SEVERITY_STYLES[item.severity];
 
-                return (
-                  <Link
-                    aria-label={`${item.title}: ${item.description}`}
+              return (
+                <Link
+                  aria-label={`${item.title}: ${item.description}`}
+                  className={cn(
+                    "grid grid-cols-[2.5rem_1fr_auto] items-center gap-3 rounded-lg px-3 py-3 text-sm outline-none transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring",
+                    index !== items.length - 1 && "rounded-none border-b"
+                  )}
+                  href={item.href}
+                  key={item.id}
+                >
+                  <span
                     className={cn(
-                      "grid grid-cols-[2.5rem_1fr_auto] items-center gap-3 rounded-lg px-3 py-3 text-sm outline-none transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring",
-                      index !== items.length - 1 && "rounded-none border-b"
+                      "flex size-9 items-center justify-center rounded-md border",
+                      severity.icon
                     )}
-                    href={item.href}
-                    key={item.id}
                   >
-                    <span
-                      className={cn(
-                        "flex size-9 items-center justify-center rounded-md border",
-                        severity.icon
-                      )}
-                    >
-                      <Icon className="size-4" />
+                    <Icon className="size-4" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate font-medium">
+                      {item.title}
                     </span>
-                    <span className="min-w-0">
-                      <span className="block truncate font-medium">
-                        {item.title}
-                      </span>
-                      <span className="block truncate text-muted-foreground text-xs">
-                        {item.description}
-                      </span>
+                    <span className="block truncate text-muted-foreground text-xs">
+                      {item.description}
                     </span>
-                    <span className="flex items-center gap-2">
-                      {item.count !== undefined ? (
-                        <Badge variant={severity.badge}>{item.count}</Badge>
-                      ) : null}
-                      <ChevronRightIcon className="size-4 text-muted-foreground" />
-                    </span>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </CardFrame>
+                  </span>
+                  <span className="flex items-center gap-2">
+                    {item.count !== undefined ? (
+                      <Badge variant={severity.badge}>{item.count}</Badge>
+                    ) : null}
+                    <ChevronRightIcon className="size-4 text-muted-foreground" />
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+    </CardShell>
   );
 };

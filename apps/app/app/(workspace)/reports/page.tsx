@@ -3,12 +3,12 @@ import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import {
   Table,
   TableBody,
@@ -82,7 +82,7 @@ const ReportsPage = async () => {
     <>
       <Header page="Reports" pages={[`${appName}`]} />
       <main className="grid gap-4 p-4 pt-0">
-        <Card>
+        <CardShell>
           <CardHeader>
             <CardTitle>CSV exports</CardTitle>
             <CardDescription>
@@ -94,16 +94,16 @@ const ReportsPage = async () => {
             {exports.map(([kind, label]) => (
               <Button
                 key={kind}
-                variant="outline"
                 render={<Link href={`/reports/exports/${kind}`} />}
+                variant="outline"
               >
                 {label}
               </Button>
             ))}
           </CardContent>
-        </Card>
+        </CardShell>
         <section className="grid gap-4 md:grid-cols-3">
-          <Card>
+          <CardShell>
             <CardHeader>
               <CardTitle>Invoiced</CardTitle>
               <CardDescription>All invoiced amounts</CardDescription>
@@ -111,8 +111,8 @@ const ReportsPage = async () => {
             <CardContent className="font-semibold text-3xl">
               {formatMoney(invoicedSen)}
             </CardContent>
-          </Card>
-          <Card>
+          </CardShell>
+          <CardShell>
             <CardHeader>
               <CardTitle>Collected</CardTitle>
               <CardDescription>All allocated invoice payments</CardDescription>
@@ -120,8 +120,8 @@ const ReportsPage = async () => {
             <CardContent className="font-semibold text-3xl">
               {formatMoney(paidSen)}
             </CardContent>
-          </Card>
-          <Card>
+          </CardShell>
+          <CardShell>
             <CardHeader>
               <CardTitle>Outstanding</CardTitle>
               <CardDescription>Across all invoices</CardDescription>
@@ -129,10 +129,10 @@ const ReportsPage = async () => {
             <CardContent className="font-semibold text-3xl">
               {formatMoney(invoicedSen - paidSen)}
             </CardContent>
-          </Card>
+          </CardShell>
         </section>
         <section className="grid gap-4 xl:grid-cols-2">
-          <Card>
+          <CardShell>
             <CardHeader>
               <CardTitle>Class enrolment</CardTitle>
               <CardDescription>
@@ -161,8 +161,8 @@ const ReportsPage = async () => {
                 </TableBody>
               </Table>
             </CardContent>
-          </Card>
-          <Card>
+          </CardShell>
+          <CardShell>
             <CardHeader>
               <CardTitle>Attendance status</CardTitle>
               <CardDescription>All marked attendance records</CardDescription>
@@ -185,10 +185,10 @@ const ReportsPage = async () => {
                 </TableBody>
               </Table>
             </CardContent>
-          </Card>
+          </CardShell>
         </section>
         <section className="grid gap-4 xl:grid-cols-2">
-          <Card>
+          <CardShell>
             <CardHeader>
               <CardTitle>Active students</CardTitle>
               <CardDescription>First 50 students by name</CardDescription>
@@ -215,8 +215,8 @@ const ReportsPage = async () => {
                 </TableBody>
               </Table>
             </CardContent>
-          </Card>
-          <Card>
+          </CardShell>
+          <CardShell>
             <CardHeader>
               <CardTitle>Payments by method</CardTitle>
               <CardDescription>
@@ -245,7 +245,7 @@ const ReportsPage = async () => {
                 </TableBody>
               </Table>
             </CardContent>
-          </Card>
+          </CardShell>
         </section>
       </main>
     </>

@@ -10,12 +10,12 @@ import {
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import {
   Table,
   TableBody,
@@ -86,7 +86,7 @@ const ImportDetailPage = async ({
               Created {formatDateTime(studentImport.createdAt)}
             </p>
           </div>
-          <Button variant="outline" render={<Link href="/students/import" />}>
+          <Button render={<Link href="/students/import" />} variant="outline">
             <ArrowLeftIcon className="size-4" />
             Import History
           </Button>
@@ -111,17 +111,17 @@ const ImportDetailPage = async ({
               studentImport.invalidRows + studentImport.skippedRows,
             ],
           ].map(([title, value]) => (
-            <Card key={String(title)}>
+            <CardShell key={String(title)}>
               <CardHeader className="pb-2">
                 <CardDescription>{title}</CardDescription>
                 <CardTitle className="text-3xl tabular-nums">
                   {Number(value).toLocaleString()}
                 </CardTitle>
               </CardHeader>
-            </Card>
+            </CardShell>
           ))}
         </div>
-        <Card>
+        <CardShell>
           <CardHeader>
             <CardTitle>
               {terminalStatuses.has(studentImport.status)
@@ -145,10 +145,10 @@ const ImportDetailPage = async ({
               <div className="flex flex-wrap justify-end gap-2">
                 {hasErrors && (
                   <Button
-                    variant="outline"
                     render={
                       <Link href={`/students/import/${importId}/errors`} />
                     }
+                    variant="outline"
                   >
                     <DownloadIcon className="size-4" />
                     Download Error Report
@@ -160,9 +160,9 @@ const ImportDetailPage = async ({
               </div>
             )}
           </CardContent>
-        </Card>
+        </CardShell>
         {studentImport.rows.length > 0 && (
-          <Card>
+          <CardShell>
             <CardHeader>
               <CardTitle>Rows requiring attention</CardTitle>
               <CardDescription>
@@ -202,10 +202,10 @@ const ImportDetailPage = async ({
               {hasErrors && (
                 <div className="mt-4 flex justify-end">
                   <Button
-                    variant="outline"
                     render={
                       <Link href={`/students/import/${importId}/errors`} />
                     }
+                    variant="outline"
                   >
                     <DownloadIcon className="size-4" />
                     Download All Errors
@@ -213,7 +213,7 @@ const ImportDetailPage = async ({
                 </div>
               )}
             </CardContent>
-          </Card>
+          </CardShell>
         )}
       </main>
     </>

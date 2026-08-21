@@ -4,11 +4,11 @@ import { formatShortDate } from "@repo/date";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import {
   Stat,
   StatDescription,
@@ -177,7 +177,7 @@ export function TeachersPageClient({
       </section>
 
       <aside className="xl:sticky xl:top-4 xl:self-start">
-        <Card>
+        <CardShell>
           {selectedTeacher ? (
             <>
               <CardHeader className="border-b">
@@ -202,12 +202,12 @@ export function TeachersPageClient({
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <Button
-                    variant="outline"
                     render={
                       <Link
                         href={`https://wa.me/${selectedTeacher.phone ?? ""}`}
                       />
                     }
+                    variant="outline"
                   >
                     WhatsApp
                   </Button>
@@ -250,8 +250,8 @@ export function TeachersPageClient({
                   ))}
                   <Button
                     className="mt-1 w-full"
-                    variant="outline"
                     render={<Link href={`/teachers/${selectedTeacher.id}`} />}
+                    variant="outline"
                   >
                     View Full Profile
                     <ChevronRightIcon className="size-4" />
@@ -270,7 +270,7 @@ export function TeachersPageClient({
               No teachers to display.
             </CardContent>
           )}
-        </Card>
+        </CardShell>
       </aside>
     </div>
   );

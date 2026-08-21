@@ -5,12 +5,12 @@ import { formatShortDate } from "@repo/date";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import {
   Table,
   TableBody,
@@ -52,7 +52,7 @@ const StudentImportPage = async () => {
         </div>
         <ImportStepper current={1} />
         <div className="grid gap-5 lg:grid-cols-[0.7fr_1.3fr]">
-          <Card>
+          <CardShell>
             <CardHeader>
               <CardTitle>1. Download template</CardTitle>
               <CardDescription>
@@ -62,14 +62,14 @@ const StudentImportPage = async () => {
             </CardHeader>
             <CardContent>
               <Button
-                variant="outline"
                 render={<a download href="/students/template" />}
+                variant="outline"
               >
                 <DownloadIcon className="size-4" />
                 Download Template
               </Button>
             </CardContent>
-          </Card>
+          </CardShell>
           <div className="grid gap-3">
             <div>
               <h2 className="font-semibold text-lg">2. Upload workbook</h2>
@@ -81,7 +81,7 @@ const StudentImportPage = async () => {
             <StudentImportUpload />
           </div>
         </div>
-        <Card>
+        <CardShell>
           <CardHeader>
             <CardTitle>Import history</CardTitle>
             <CardDescription>
@@ -105,9 +105,7 @@ const StudentImportPage = async () => {
                 {history.length ? (
                   history.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell>
-                        {formatShortDate(item.createdAt)}
-                      </TableCell>
+                      <TableCell>{formatShortDate(item.createdAt)}</TableCell>
                       <TableCell>
                         <Link
                           className="font-medium hover:underline"
@@ -148,7 +146,7 @@ const StudentImportPage = async () => {
               </TableBody>
             </Table>
           </CardContent>
-        </Card>
+        </CardShell>
       </main>
     </>
   );

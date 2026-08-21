@@ -1,9 +1,6 @@
-import type {
-  CurrentPlan,
-  Plan,
-} from "@repo/payments/billingsdk-plans";
-import { billingSDKPlans } from "@repo/payments/billingsdk-plans";
 import { formatLongDate } from "@repo/date";
+import type { CurrentPlan, Plan } from "@repo/payments/billingsdk-plans";
+import { billingSDKPlans } from "@repo/payments/billingsdk-plans";
 
 interface BillingState {
   subscription: {

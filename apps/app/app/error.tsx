@@ -4,12 +4,12 @@ import { getMainDomain } from "@repo/auth/domain";
 import { TENANT_ACCESS_DENIED_MESSAGE } from "@repo/auth/errors";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import Link from "next/link";
 import { useEffect } from "react";
 
@@ -26,7 +26,7 @@ const AppError = ({ error, reset }: AppErrorProperties) => {
   if (error.message === TENANT_ACCESS_DENIED_MESSAGE) {
     return (
       <main className="flex min-h-dvh items-center justify-center p-6">
-        <Card className="w-full max-w-md">
+        <CardShell className="w-full max-w-md">
           <CardHeader>
             <CardTitle>No access to this centre</CardTitle>
             <CardDescription>
@@ -42,20 +42,20 @@ const AppError = ({ error, reset }: AppErrorProperties) => {
               Go to my centres
             </Button>
             <Button
-              variant="outline"
               render={<Link href={`https://${getMainDomain()}/account`} />}
+              variant="outline"
             >
               Manage my account
             </Button>
           </CardContent>
-        </Card>
+        </CardShell>
       </main>
     );
   }
 
   return (
     <main className="flex min-h-dvh items-center justify-center p-6">
-      <Card className="w-full max-w-md">
+      <CardShell className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Something went wrong</CardTitle>
           <CardDescription>
@@ -65,13 +65,13 @@ const AppError = ({ error, reset }: AppErrorProperties) => {
         <CardContent className="flex flex-col gap-2">
           <Button onClick={reset}>Try again</Button>
           <Button
-            variant="outline"
             render={<Link href={`https://${getMainDomain()}/centres`} />}
+            variant="outline"
           >
             Go to my centres
           </Button>
         </CardContent>
-      </Card>
+      </CardShell>
     </main>
   );
 };

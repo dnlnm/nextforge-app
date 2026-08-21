@@ -1,12 +1,12 @@
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import type { Dictionary } from "@repo/internationalization";
 import { localizePath } from "@repo/internationalization";
 import { Check, MoveRight, PhoneCall } from "lucide-react";
@@ -38,12 +38,8 @@ export const Pricing = ({
         </div>
         <div className="grid w-full grid-cols-1 gap-8 pt-20 text-left lg:grid-cols-3">
           {dictionary.web.home.pricing.plans.map((plan, planIndex) => (
-            <Card
-              className={
-                plan.highlighted
-                  ? "w-full rounded-md shadow-2xl"
-                  : "w-full rounded-md"
-              }
+            <CardShell
+              className={plan.highlighted ? "w-full shadow-2xl" : "w-full"}
               key={plan.name}
             >
               <CardHeader>
@@ -77,7 +73,6 @@ export const Pricing = ({
                   </div>
                   <Button
                     className="gap-4"
-                    variant={plan.highlighted ? "default" : "outline"}
                     render={
                       <Link
                         href={
@@ -87,6 +82,7 @@ export const Pricing = ({
                         }
                       />
                     }
+                    variant={plan.highlighted ? "default" : "outline"}
                   >
                     {plan.cta}{" "}
                     {planIndex === 2 ? (
@@ -97,14 +93,14 @@ export const Pricing = ({
                   </Button>
                 </div>
               </CardContent>
-            </Card>
+            </CardShell>
           ))}
         </div>
         {showFullComparison && (
           <Button
             className="mt-10 gap-4"
-            variant="outline"
             render={<Link href={localizePath(locale, "/pricing")} />}
+            variant="outline"
           >
             {dictionary.web.home.pricing.fullComparison}
             <MoveRight className="h-4 w-4" />

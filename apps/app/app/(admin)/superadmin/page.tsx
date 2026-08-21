@@ -2,11 +2,11 @@ import { requireSuperadmin } from "@repo/auth/authorization";
 import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
 import {
-  Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import {
   Table,
   TableBody,
@@ -59,38 +59,38 @@ const AdminPage = async () => {
         </p>
       </div>
       <section className="grid gap-4 md:grid-cols-4">
-        <Card>
+        <CardShell>
           <CardHeader>
             <CardTitle>Total centres</CardTitle>
           </CardHeader>
           <CardContent className="font-semibold text-3xl">
             {centres}
           </CardContent>
-        </Card>
-        <Card>
+        </CardShell>
+        <CardShell>
           <CardHeader>
             <CardTitle>Active centres</CardTitle>
           </CardHeader>
           <CardContent className="font-semibold text-3xl">
             {activeCentres}
           </CardContent>
-        </Card>
-        <Card>
+        </CardShell>
+        <CardShell>
           <CardHeader>
             <CardTitle>Users</CardTitle>
           </CardHeader>
           <CardContent className="font-semibold text-3xl">{users}</CardContent>
-        </Card>
-        <Card>
+        </CardShell>
+        <CardShell>
           <CardHeader>
             <CardTitle>Memberships</CardTitle>
           </CardHeader>
           <CardContent className="font-semibold text-3xl">
             {memberships}
           </CardContent>
-        </Card>
+        </CardShell>
       </section>
-      <Card>
+      <CardShell>
         <CardHeader>
           <CardTitle>Subscriptions</CardTitle>
         </CardHeader>
@@ -126,7 +126,7 @@ const AdminPage = async () => {
             </TableBody>
           </Table>
         </CardContent>
-      </Card>
+      </CardShell>
     </main>
   );
 };

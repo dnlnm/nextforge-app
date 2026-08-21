@@ -5,12 +5,12 @@ import { formatShortDate, formatWallClockTime } from "@repo/date";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import {
   Stat,
   StatDescription,
@@ -124,7 +124,7 @@ const TeacherPage = async ({ params }: TeacherPageProperties) => {
         pages={[`${appName}`, { href: "/teachers", label: "Teachers" }]}
       />
       <main className="grid gap-5 p-4 pt-4">
-        <Card>
+        <CardShell>
           <CardContent className="flex flex-col gap-5 p-5 md:flex-row md:items-start md:justify-between">
             <div className="flex items-start gap-4">
               <div className="flex size-20 shrink-0 items-center justify-center rounded-full border bg-muted text-muted-foreground">
@@ -160,18 +160,18 @@ const TeacherPage = async ({ params }: TeacherPageProperties) => {
             </div>
             <div className="grid gap-2 sm:grid-cols-2 md:w-auto md:min-w-[16rem]">
               <Button
-                variant="outline"
                 render={<Link href={`https://wa.me/${teacher.phone ?? ""}`} />}
+                variant="outline"
               >
                 <PhoneIcon className="size-4" />
                 WhatsApp
               </Button>
-              <Button variant="outline" render={<Link href="/teachers" />}>
+              <Button render={<Link href="/teachers" />} variant="outline">
                 Back to teachers
               </Button>
             </div>
           </CardContent>
-        </Card>
+        </CardShell>
 
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
           <Stat>
@@ -243,7 +243,7 @@ const TeacherPage = async ({ params }: TeacherPageProperties) => {
           </Stat>
         </section>
 
-        <Card>
+        <CardShell>
           <CardHeader>
             <CardTitle>Workload</CardTitle>
             <CardDescription>
@@ -267,10 +267,10 @@ const TeacherPage = async ({ params }: TeacherPageProperties) => {
               </span>
             </div>
           </CardContent>
-        </Card>
+        </CardShell>
 
         <section className="grid gap-5 xl:grid-cols-[1fr_380px]">
-          <Card>
+          <CardShell>
             <CardHeader>
               <CardTitle>Weekly Schedule</CardTitle>
               <CardDescription>
@@ -329,9 +329,9 @@ const TeacherPage = async ({ params }: TeacherPageProperties) => {
                 );
               })}
             </CardContent>
-          </Card>
+          </CardShell>
 
-          <Card>
+          <CardShell>
             <CardHeader>
               <CardTitle>Classes</CardTitle>
               <CardDescription>Classes taught by this teacher.</CardDescription>
@@ -359,7 +359,7 @@ const TeacherPage = async ({ params }: TeacherPageProperties) => {
                 ))
               )}
             </CardContent>
-          </Card>
+          </CardShell>
         </section>
       </main>
     </>

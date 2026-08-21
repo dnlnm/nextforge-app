@@ -5,11 +5,11 @@ import { formatShortDate } from "@repo/date";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import {
   Table,
   TableBody,
@@ -90,7 +90,10 @@ const PaymentPage = async ({ params }: PaymentPageProperties) => {
         </Header>
       </div>
       <main className="mx-auto grid max-w-3xl gap-4 p-4 pt-0 print:p-0">
-        <Card className="print:border-none print:shadow-none">
+        <CardShell
+          className="print:border-none"
+          panelClassName="print:border-none print:bg-transparent"
+        >
           <CardHeader className="grid gap-6 md:grid-cols-2">
             <div>
               <CardTitle className="text-2xl">Receipt</CardTitle>
@@ -181,7 +184,7 @@ const PaymentPage = async ({ params }: PaymentPageProperties) => {
               </section>
             ) : null}
           </CardContent>
-        </Card>
+        </CardShell>
       </main>
     </>
   );

@@ -1,7 +1,9 @@
 "use client";
 
 import { Button } from "@repo/design-system/components/ui/button";
-import { Card, CardContent } from "@repo/design-system/components/ui/card";
+import { CardContent } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
+import { toastManager } from "@repo/design-system/components/ui/toast";
 import {
   FileSpreadsheetIcon,
   Loader2Icon,
@@ -9,7 +11,6 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { toastManager } from "@repo/design-system/components/ui/toast";
 import { validateStudentImport } from "./actions";
 import { MAX_IMPORT_BYTES } from "./lib/workbook";
 
@@ -91,7 +92,7 @@ export const StudentImportUpload = () => {
     }
   };
   return (
-    <Card>
+    <CardShell>
       <CardContent className="grid gap-4 p-6">
         <button
           className="grid min-h-48 place-items-center rounded-lg border border-dashed bg-muted/20 p-6 text-center transition-colors hover:bg-muted/40"
@@ -148,6 +149,6 @@ export const StudentImportUpload = () => {
           </Button>
         </div>
       </CardContent>
-    </Card>
+    </CardShell>
   );
 };

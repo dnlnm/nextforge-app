@@ -43,8 +43,8 @@ export const AdminSidebar = ({ children }: AdminSidebarProperties) => (
             {adminNavigation.map((item) => (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
-                  tooltip={item.title}
                   render={<Link href={item.url} />}
+                  tooltip={item.title}
                 >
                   <item.icon />
                   <span>{item.title}</span>

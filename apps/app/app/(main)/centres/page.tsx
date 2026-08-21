@@ -5,11 +5,11 @@ import { database } from "@repo/database";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import {
   CreditCardIcon,
   ExternalLinkIcon,
@@ -77,7 +77,7 @@ const CentresPage = async () => {
           </p>
         </div>
         {canCreateCentre && (
-          <Button size="lg" render={<Link href="/center-setup" />}>
+          <Button render={<Link href="/center-setup" />} size="lg">
             <PlusCircleIcon className="mr-2 size-5" />
             Create Centre
           </Button>
@@ -85,7 +85,7 @@ const CentresPage = async () => {
       </div>
 
       {memberships.length === 0 ? (
-        <Card className="border-dashed">
+        <CardShell className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <div className="mb-4 flex size-20 items-center justify-center rounded-full bg-primary/10">
               <PlusCircleIcon className="size-10 text-primary" />
@@ -95,12 +95,12 @@ const CentresPage = async () => {
               Create your first tuition centre to start managing students,
               classes, and attendance.
             </p>
-            <Button size="lg" render={<Link href="/center-setup" />}>
+            <Button render={<Link href="/center-setup" />} size="lg">
               <PlusCircleIcon className="mr-2 size-5" />
               Create Your First Centre
             </Button>
           </CardContent>
-        </Card>
+        </CardShell>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {memberships.map(({ organization, role }) => {
@@ -108,9 +108,10 @@ const CentresPage = async () => {
             const roleVariant = "default";
 
             return (
-              <Card
-                className="flex flex-col overflow-hidden transition-shadow hover:shadow-lg"
+              <CardShell
+                className="transition-shadow hover:shadow-lg"
                 key={organization.id}
+                panelClassName="flex flex-col overflow-hidden"
               >
                 <CardHeader className="pb-4">
                   <div className="flex items-start justify-between">
@@ -185,8 +186,10 @@ const CentresPage = async () => {
                   <div className="mt-auto space-y-2">
                     <Button
                       className="w-full"
+                      render={
+                        <a aria-label="Open Workspace" href={workspaceUrl} />
+                      }
                       size="lg"
-                      render={<a href={workspaceUrl} />}
                     >
                       Open Workspace
                       <ExternalLinkIcon className="ml-2 size-4" />
@@ -195,25 +198,25 @@ const CentresPage = async () => {
                     {role === "OWNER" ? (
                       <div className="grid grid-cols-2 gap-2">
                         <Button
-                          size="sm"
-                          variant="outline"
                           render={
                             <Link
                               href={`/centres/${organization.id}/settings`}
                             />
                           }
+                          size="sm"
+                          variant="outline"
                         >
                           <SettingsIcon className="mr-2 size-4" />
                           Settings
                         </Button>
                         <Button
-                          size="sm"
-                          variant="outline"
                           render={
                             <Link
                               href={`/centres/${organization.id}/subscription`}
                             />
                           }
+                          size="sm"
+                          variant="outline"
                         >
                           <CreditCardIcon className="mr-2 size-4" />
                           Subscription
@@ -222,7 +225,7 @@ const CentresPage = async () => {
                     ) : null}
                   </div>
                 </CardContent>
-              </Card>
+              </CardShell>
             );
           })}
         </div>

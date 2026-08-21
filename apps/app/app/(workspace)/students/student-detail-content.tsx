@@ -3,7 +3,11 @@
 import { formatShortDate } from "@repo/date";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
-import { CardContent, CardHeader, CardTitle } from "@repo/design-system/components/ui/card";
+import {
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@repo/design-system/components/ui/card";
 import { formatMoneyWhole as formatMoneyShared } from "@repo/money";
 import { privateFileUrl } from "@repo/storage/client";
 import { ChevronRightIcon, MoreHorizontalIcon } from "lucide-react";
@@ -49,16 +53,27 @@ type StudentDetailContentProps = {
 
 const formatDate = (date: Date) => formatShortDate(date);
 
-export function StudentDetailContent({ currency, student }: StudentDetailContentProps) {
-  const formatMoney = (amountSen: number) => formatMoneyShared(amountSen, { currency });
+export function StudentDetailContent({
+  currency,
+  student,
+}: StudentDetailContentProps) {
+  const formatMoney = (amountSen: number) =>
+    formatMoneyShared(amountSen, { currency });
   const guardian = student.guardians[0]?.guardian;
   const invoices = student.invoices ?? [];
   const outstandingSen = invoices.reduce(
-    (total, invoice) => total + Math.max(0, invoice.totalSen - invoice.amountPaidSen),
+    (total, invoice) =>
+      total + Math.max(0, invoice.totalSen - invoice.amountPaidSen),
     0
   );
-  const billedSen = invoices.reduce((total, invoice) => total + invoice.totalSen, 0);
-  const paidSen = invoices.reduce((total, invoice) => total + invoice.amountPaidSen, 0);
+  const billedSen = invoices.reduce(
+    (total, invoice) => total + invoice.totalSen,
+    0
+  );
+  const paidSen = invoices.reduce(
+    (total, invoice) => total + invoice.amountPaidSen,
+    0
+  );
 
   return (
     <>
@@ -80,7 +95,9 @@ export function StudentDetailContent({ currency, student }: StudentDetailContent
           </CardTitle>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-muted-foreground text-sm">
             <span>{student.code}</span>
-            <Badge variant="outline">{student.status === "ACTIVE" ? "Active" : "Archived"}</Badge>
+            <Badge variant="outline">
+              {student.status === "ACTIVE" ? "Active" : "Archived"}
+            </Badge>
           </div>
         </div>
         <div className="grid grid-cols-3 gap-2">
@@ -90,7 +107,10 @@ export function StudentDetailContent({ currency, student }: StudentDetailContent
           >
             WhatsApp
           </Button>
-          <Button render={<Link href={`/students/${student.id}/edit`} />} variant="outline">
+          <Button
+            render={<Link href={`/students/${student.id}/edit`} />}
+            variant="outline"
+          >
             Edit
           </Button>
           <Button variant="outline">More</Button>
@@ -101,18 +121,25 @@ export function StudentDetailContent({ currency, student }: StudentDetailContent
           <h2 className="font-semibold text-sm">Student Information</h2>
           {[
             ["Registration Date", formatDate(student.enrolledAt)],
-            ["Date of Birth", student.dateOfBirth ? formatDate(student.dateOfBirth) : "-"],
+            [
+              "Date of Birth",
+              student.dateOfBirth ? formatDate(student.dateOfBirth) : "-",
+            ],
             [
               "Gender",
               student.gender
-                ? student.gender.charAt(0) + student.gender.slice(1).toLowerCase()
+                ? student.gender.charAt(0) +
+                  student.gender.slice(1).toLowerCase()
                 : "-",
             ],
             ["Level", student.level?.name ?? "-"],
             ["Phone", student.phone ?? "-"],
             ["Email", student.email ?? "-"],
           ].map(([label, value]) => (
-            <div className="grid grid-cols-[6rem_1fr] gap-3 text-sm" key={label}>
+            <div
+              className="grid grid-cols-[6rem_1fr] gap-3 text-sm"
+              key={label}
+            >
               <span className="text-muted-foreground">{label}</span>
               <span>{value}</span>
             </div>
@@ -126,12 +153,20 @@ export function StudentDetailContent({ currency, student }: StudentDetailContent
             ["Email", guardian?.email ?? "-"],
             [
               "Address",
-              [guardian?.addressLine1, guardian?.addressLine2, guardian?.city, guardian?.state]
+              [
+                guardian?.addressLine1,
+                guardian?.addressLine2,
+                guardian?.city,
+                guardian?.state,
+              ]
                 .filter(Boolean)
                 .join(", ") || "-",
             ],
           ].map(([label, value]) => (
-            <div className="grid grid-cols-[6rem_1fr] gap-3 text-sm" key={label}>
+            <div
+              className="grid grid-cols-[6rem_1fr] gap-3 text-sm"
+              key={label}
+            >
               <span className="text-muted-foreground">{label}</span>
               <span>{value}</span>
             </div>

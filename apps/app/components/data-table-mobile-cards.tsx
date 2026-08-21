@@ -1,6 +1,6 @@
 "use client";
 
-import { Card } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import { Skeleton } from "@repo/design-system/components/ui/skeleton";
 import type { ReactNode } from "react";
 
@@ -27,7 +27,7 @@ export function DataTableMobileCards<T>({
     return (
       <div className="grid gap-3 md:hidden">
         {SKELETON_KEYS.slice(0, skeletonCount).map((key) => (
-          <Card className="p-4" key={key}>
+          <CardShell key={key} panelClassName="p-4">
             <div className="flex items-center gap-3">
               <Skeleton className="size-10 rounded-full" />
               <div className="grid flex-1 gap-2">
@@ -39,7 +39,7 @@ export function DataTableMobileCards<T>({
               <Skeleton className="h-3 w-1/2" />
               <Skeleton className="h-3 w-1/3" />
             </div>
-          </Card>
+          </CardShell>
         ))}
       </div>
     );
@@ -48,11 +48,11 @@ export function DataTableMobileCards<T>({
   if (items.length === 0) {
     return (
       <div className="md:hidden">
-        <Card className="p-6">
+        <CardShell panelClassName="p-6">
           <p className="text-center text-muted-foreground text-sm">
             {emptyLabel}
           </p>
-        </Card>
+        </CardShell>
       </div>
     );
   }

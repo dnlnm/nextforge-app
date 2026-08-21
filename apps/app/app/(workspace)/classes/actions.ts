@@ -3,13 +3,13 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { database } from "@repo/database";
 import { formatCalendarDate, tryParseCalendarDate } from "@repo/date";
-import { parseMoneyToSen } from "@repo/money";
 import {
   EnrollmentValidationError,
   endEnrollment as endEnrollmentCommand,
   enrollStudent as enrollStudentCommand,
   updateEnrollment as updateEnrollmentCommand,
 } from "@repo/domain/classes/enrollment";
+import { parseMoneyToSen } from "@repo/money";
 import { type DayOfWeek, daysOfWeek } from "@repo/schemas/enums";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";

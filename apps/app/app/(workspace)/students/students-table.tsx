@@ -14,7 +14,8 @@ import {
   DataTableSkeleton,
 } from "@repo/design-system/components/niko-table/core/data-table-structure";
 import type { GlobalFilter } from "@repo/design-system/components/niko-table/types";
-import { Card, CardContent } from "@repo/design-system/components/ui/card";
+import { CardContent } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import {
   parseAsInteger,
   parseAsJson,
@@ -97,7 +98,10 @@ export function StudentsTable({
   const [debouncedSearch, setDebouncedSearch] = useState(urlParams.search);
 
   useEffect(() => {
-    const handle = window.setTimeout(() => setDebouncedSearch(urlParams.search), 250);
+    const handle = window.setTimeout(
+      () => setDebouncedSearch(urlParams.search),
+      250
+    );
     return () => window.clearTimeout(handle);
   }, [urlParams.search]);
 
@@ -188,7 +192,7 @@ export function StudentsTable({
   );
 
   return (
-    <Card>
+    <CardShell>
       <CardContent className="p-0">
         <DataTableRoot
           columns={columns}
@@ -270,6 +274,6 @@ export function StudentsTable({
           </div>
         </DataTableRoot>
       </CardContent>
-    </Card>
+    </CardShell>
   );
 }

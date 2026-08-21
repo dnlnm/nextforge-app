@@ -2,11 +2,11 @@ import { requireTenantRole } from "@repo/auth/authorization";
 import { database } from "@repo/database";
 import { formatShortDate, formatWallClockTime } from "@repo/date";
 import {
-  Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import { Separator } from "@repo/design-system/components/ui/separator";
 import { notFound } from "next/navigation";
 
@@ -65,7 +65,7 @@ const PrintStudentPage = async ({ params }: PrintStudentPageProperties) => {
       </header>
 
       <section className="grid gap-4">
-        <Card>
+        <CardShell>
           <CardHeader>
             <CardTitle>Identity</CardTitle>
           </CardHeader>
@@ -102,9 +102,9 @@ const PrintStudentPage = async ({ params }: PrintStudentPageProperties) => {
               />
             </div>
           </CardContent>
-        </Card>
+        </CardShell>
 
-        <Card>
+        <CardShell>
           <CardHeader>
             <CardTitle>Primary Guardian</CardTitle>
           </CardHeader>
@@ -117,9 +117,9 @@ const PrintStudentPage = async ({ params }: PrintStudentPageProperties) => {
             <Detail label="Phone" value={primaryGuardian?.phone ?? "-"} />
             <Detail label="Email" value={primaryGuardian?.email ?? "-"} />
           </CardContent>
-        </Card>
+        </CardShell>
 
-        <Card>
+        <CardShell>
           <CardHeader>
             <CardTitle>Active Classes</CardTitle>
           </CardHeader>
@@ -158,7 +158,7 @@ const PrintStudentPage = async ({ params }: PrintStudentPageProperties) => {
               ))
             )}
           </CardContent>
-        </Card>
+        </CardShell>
       </section>
 
       <Separator className="my-6 print:hidden" />

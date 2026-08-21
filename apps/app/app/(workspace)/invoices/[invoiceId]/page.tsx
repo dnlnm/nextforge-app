@@ -5,11 +5,11 @@ import { formatShortDate } from "@repo/date";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import {
   Table,
   TableBody,
@@ -76,7 +76,7 @@ const InvoicePage = async ({ params }: InvoicePageProperties) => {
       <div className="print:hidden">
         <Header page={invoice.invoiceNumber} pages={["Invoices"]}>
           <div className="flex gap-2 pr-4">
-            <Button variant="outline" render={<Link href="/invoices" />}>
+            <Button render={<Link href="/invoices" />} variant="outline">
               Back
             </Button>
             <PrintButton />
@@ -84,7 +84,10 @@ const InvoicePage = async ({ params }: InvoicePageProperties) => {
         </Header>
       </div>
       <main className="mx-auto grid max-w-4xl gap-4 p-4 pt-0 print:p-0">
-        <Card className="print:border-none print:shadow-none">
+        <CardShell
+          className="print:border-none"
+          panelClassName="print:border-none print:bg-transparent"
+        >
           <CardHeader className="grid gap-6 md:grid-cols-2">
             <div>
               <CardTitle className="text-2xl">Invoice</CardTitle>
@@ -205,7 +208,7 @@ const InvoicePage = async ({ params }: InvoicePageProperties) => {
               </section>
             ) : null}
           </CardContent>
-        </Card>
+        </CardShell>
       </main>
     </>
   );

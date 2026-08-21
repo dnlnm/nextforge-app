@@ -1,8 +1,4 @@
-import {
-  Card,
-  CardFrame,
-  CardFrameFooter,
-} from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import { Skeleton } from "@repo/design-system/components/ui/skeleton";
 
 const HeaderSkeleton = () => (
@@ -40,80 +36,85 @@ const StatCardsSkeleton = ({
 }: {
   readonly count?: number;
   readonly className?: string;
-}) => (
-  <section className={`grid gap-3 ${className}`}>
-    {Array.from({ length: count }).map((_, index) => (
-      <CardFrame className="h-full" key={index}>
-        <Card className="grid flex-1 grid-cols-[auto_1fr] gap-x-3 gap-y-2 p-4">
-          <Skeleton className="size-8 rounded-md" />
-          <Skeleton className="h-3 w-20 self-center" />
-          <Skeleton className="col-span-2 h-7 w-24" />
-        </Card>
-        <CardFrameFooter className="flex min-h-12 items-center justify-between gap-2 px-4 py-3">
-          <Skeleton className="h-3 w-32" />
-        </CardFrameFooter>
-      </CardFrame>
-    ))}
-  </section>
-);
+}) => {
+  const cards = Array.from({ length: count }, (_, index) => ({
+    id: `stat-${index}`,
+  }));
 
-const FormCardSkeleton = ({ fields = 2 }: { readonly fields?: number }) => (
-  <div className="rounded-lg border bg-card text-card-foreground">
-    <div className="grid gap-2 p-6">
-      <Skeleton className="h-5 w-36" />
-      <Skeleton className="h-4 w-56 max-w-full" />
-    </div>
-    <div className="grid gap-4 p-6 pt-0">
-      {Array.from({ length: fields }).map((_, index) => (
-        <div className="grid gap-2" key={index}>
-          <Skeleton className="h-3 w-24" />
-          <Skeleton className="h-9 w-full" />
-        </div>
+  return (
+    <section className={`grid gap-3 ${className}`}>
+      {cards.map((card) => (
+        <CardShell className="h-full" key={card.id}>
+          <div className="grid flex-1 grid-cols-[auto_1fr] gap-x-3 gap-y-2 p-4">
+            <Skeleton className="size-8 rounded-md" />
+            <Skeleton className="h-3 w-20 self-center" />
+            <Skeleton className="col-span-2 h-7 w-24" />
+          </div>
+          <div className="flex min-h-12 items-center justify-between gap-2 px-4 py-3">
+            <Skeleton className="h-3 w-32" />
+          </div>
+        </CardShell>
       ))}
-      <Skeleton className="h-9 w-32" />
-    </div>
-  </div>
-);
+    </section>
+  );
+};
+
+const FormCardSkeleton = ({ fields = 2 }: { readonly fields?: number }) => {
+  const inputs = Array.from({ length: fields }, (_, index) => ({
+    id: `field-${index}`,
+  }));
+
+  return (
+    <CardShell>
+      <div className="grid gap-2 p-6">
+        <Skeleton className="h-5 w-36" />
+        <Skeleton className="h-4 w-56 max-w-full" />
+      </div>
+      <div className="grid gap-4 p-6 pt-0">
+        {inputs.map((input) => (
+          <div className="grid gap-2" key={input.id}>
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-9 w-full" />
+          </div>
+        ))}
+        <Skeleton className="h-9 w-32" />
+      </div>
+    </CardShell>
+  );
+};
 
 const TableCardSkeleton = ({
-  columns = 4,
+  columns: _columns = 4,
   rows = 6,
   toolbar = false,
 }: {
   readonly columns?: number;
   readonly rows?: number;
   readonly toolbar?: boolean;
-}) => (
-  <div className="rounded-lg border bg-card text-card-foreground">
-    <div className="flex items-center justify-between gap-4 p-6 pb-4">
-      <div className="grid gap-2">
-        <Skeleton className="h-5 w-32" />
-        <Skeleton className="h-4 w-48 max-w-full" />
-      </div>
-      <Skeleton className="h-9 w-24" />
-    </div>
-    {toolbar && (
-      <div className="flex flex-wrap items-end gap-3 border-t p-4">
-        <Skeleton className="h-9 w-64 max-w-full" />
-        <Skeleton className="h-9 w-36" />
-        <Skeleton className="h-9 w-36" />
-        <Skeleton className="h-9 w-28" />
-      </div>
-    )}
-    <div className="grid gap-0 border-t p-4 pt-0">
-      <div className="grid grid-cols-[2.5rem_1fr_auto] items-center gap-4 border-b py-3">
-        <Skeleton className="size-10" />
+}) => {
+  const skeletonRows = Array.from({ length: rows }, (_, index) => ({
+    id: `row-${index}`,
+  }));
+
+  return (
+    <CardShell>
+      <div className="flex items-center justify-between gap-4 p-6 pb-4">
         <div className="grid gap-2">
+          <Skeleton className="h-5 w-32" />
           <Skeleton className="h-4 w-48 max-w-full" />
-          <Skeleton className="h-3 w-32 max-w-full" />
         </div>
-        <Skeleton className="h-6 w-20" />
+        <Skeleton className="h-9 w-24" />
       </div>
-      {Array.from({ length: rows }).map((_, index) => (
-        <div
-          className="grid grid-cols-[2.5rem_1fr_auto] items-center gap-4 border-b py-3 last:border-b-0"
-          key={index}
-        >
+      {toolbar && (
+        <div className="flex flex-wrap items-end gap-3 border-t p-4">
+          <Skeleton className="h-9 w-64 max-w-full" />
+          <Skeleton className="h-9 w-36" />
+          <Skeleton className="h-9 w-36" />
+          <Skeleton className="h-9 w-28" />
+        </div>
+      )}
+      <div className="grid gap-0 border-t p-4 pt-0">
+        <div className="grid grid-cols-[2.5rem_1fr_auto] items-center gap-4 border-b py-3">
           <Skeleton className="size-10" />
           <div className="grid gap-2">
             <Skeleton className="h-4 w-48 max-w-full" />
@@ -121,19 +122,30 @@ const TableCardSkeleton = ({
           </div>
           <Skeleton className="h-6 w-20" />
         </div>
-      ))}
-    </div>
-  </div>
-);
+        {skeletonRows.map((row) => (
+          <div
+            className="grid grid-cols-[2.5rem_1fr_auto] items-center gap-4 border-b py-3 last:border-b-0"
+            key={row.id}
+          >
+            <Skeleton className="size-10" />
+            <div className="grid gap-2">
+              <Skeleton className="h-4 w-48 max-w-full" />
+              <Skeleton className="h-3 w-32 max-w-full" />
+            </div>
+            <Skeleton className="h-6 w-20" />
+          </div>
+        ))}
+      </div>
+    </CardShell>
+  );
+};
 
 const ChartCardSkeleton = ({
-  height = "h-[430px]",
+  height = "h-[clamp(20rem,42dvh,30rem)]",
 }: {
   readonly height?: string;
 }) => (
-  <div
-    className={`grid content-start gap-3 rounded-lg border bg-card p-6 text-card-foreground ${height}`}
-  >
+  <CardShell className={height} panelClassName="grid content-start gap-3 p-6">
     <div className="flex items-center justify-between gap-4">
       <div className="grid gap-2">
         <Skeleton className="h-5 w-40" />
@@ -147,7 +159,7 @@ const ChartCardSkeleton = ({
       <Skeleton className="h-3 w-40" />
     </div>
     <Skeleton className="mt-auto h-48 w-full" />
-  </div>
+  </CardShell>
 );
 
 export {

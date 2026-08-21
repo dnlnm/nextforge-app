@@ -60,10 +60,7 @@ export const inviteAdmin = async (formData: FormData) => {
   }
 
   const token = randomBytes(32).toString("base64url");
-  const expiresAt = addMalaysiaCalendarDays(
-    new Date(),
-    INVITATION_TTL_DAYS
-  );
+  const expiresAt = addMalaysiaCalendarDays(new Date(), INVITATION_TTL_DAYS);
 
   const [organization, reusableInvitation] = await Promise.all([
     database.organization.findFirst({

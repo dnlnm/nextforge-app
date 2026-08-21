@@ -1,9 +1,6 @@
 import { createHash } from "node:crypto";
 import type { Gender, GuardianRelationship } from "@repo/database";
-import {
-  formatCalendarDate,
-  tryParseCalendarDate,
-} from "@repo/date";
+import { formatCalendarDate, tryParseCalendarDate } from "@repo/date";
 import ExcelJS from "exceljs";
 
 export const MAX_IMPORT_BYTES = 10 * 1024 * 1024;

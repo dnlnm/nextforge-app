@@ -496,7 +496,7 @@ export const CreateClassForm = ({
               </Card>
 
               <div className="flex justify-end gap-2">
-                <Button variant="outline" render={<a href="/classes" />}>
+                <Button render={<a href="/classes" />} variant="outline">
                   Cancel
                 </Button>
                 <SubmitButton />

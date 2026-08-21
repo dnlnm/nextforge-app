@@ -4,11 +4,11 @@ import { createClient } from "@repo/auth/client";
 import { appName } from "@repo/config/brand";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import { Separator } from "@repo/design-system/components/ui/separator";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -115,8 +115,8 @@ export const InviteAcceptClient = ({
             Sign in
           </Button>
           <Button
-            variant="outline"
             render={<Link href={`/sign-up?${redirectQuery}`} />}
+            variant="outline"
           >
             Create an account
           </Button>
@@ -173,7 +173,7 @@ interface ShellProps {
 
 const Shell = ({ children, kind }: ShellProps) => (
   <div className="flex min-h-svh flex-col items-center justify-center bg-background p-6">
-    <Card className="w-full max-w-md">
+    <CardShell className="w-full max-w-md">
       <CardHeader className="border-b text-center">
         <CardTitle className="font-semibold text-xl tracking-tight">
           {kind === "ADMIN" ? "Admin invitation" : "Teacher invitation"}
@@ -183,6 +183,6 @@ const Shell = ({ children, kind }: ShellProps) => (
       <CardContent className="grid gap-2 p-8 text-center">
         {children}
       </CardContent>
-    </Card>
+    </CardShell>
   </div>
 );

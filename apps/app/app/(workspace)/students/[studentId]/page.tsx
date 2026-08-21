@@ -5,12 +5,12 @@ import { formatShortDate, formatWallClockTime } from "@repo/date";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import { Separator } from "@repo/design-system/components/ui/separator";
 import {
   Tabs,
@@ -168,7 +168,7 @@ const StudentHeader = ({
   readonly primaryGuardianPhone?: string;
   readonly student: StudentData;
 }) => (
-  <Card>
+  <CardShell>
     <CardContent className="flex flex-col gap-5 p-5 md:flex-row md:items-start md:justify-between">
       <div className="flex items-start gap-4">
         <StudentAvatar
@@ -207,15 +207,15 @@ const StudentHeader = ({
       </div>
       <div className="grid gap-2 sm:grid-cols-2 md:w-auto md:min-w-[18rem]">
         <Button
-          variant="outline"
           render={<Link href={`/students/${student.id}/edit`} />}
+          variant="outline"
         >
           <Edit3Icon className="size-4" />
           Edit profile
         </Button>
         <Button
-          variant="outline"
           render={<Link href={`https://wa.me/${primaryGuardianPhone ?? ""}`} />}
+          variant="outline"
         >
           <PhoneIcon className="size-4" />
           WhatsApp guardian
@@ -223,7 +223,7 @@ const StudentHeader = ({
         <StudentProfileActions status={student.status} studentId={student.id} />
       </div>
     </CardContent>
-  </Card>
+  </CardShell>
 );
 
 const StudentMetrics = ({
@@ -248,7 +248,7 @@ const StudentMetrics = ({
       ["Paid", formatMoney(totalPaidSen), formatMoney(totalBilledSen)],
       ["Attendance", `${attendanceRate}%`, "This academic year"],
     ].map(([label, value, detail]) => (
-      <Card key={label}>
+      <CardShell key={label}>
         <CardContent className="flex items-center gap-4 p-4">
           <div className="flex size-14 shrink-0 items-center justify-center border bg-muted text-muted-foreground">
             <LandmarkIcon className="size-6" />
@@ -261,13 +261,13 @@ const StudentMetrics = ({
             <p className="mt-1 text-muted-foreground text-xs">{detail}</p>
           </div>
         </CardContent>
-      </Card>
+      </CardShell>
     ))}
   </section>
 );
 
 const StudentOverviewTab = ({ student }: { readonly student: StudentData }) => (
-  <Card>
+  <CardShell>
     <CardHeader>
       <CardTitle>Student Profile</CardTitle>
       <CardDescription>
@@ -320,7 +320,7 @@ const StudentOverviewTab = ({ student }: { readonly student: StudentData }) => (
         </div>
       </div>
     </CardContent>
-  </Card>
+  </CardShell>
 );
 
 const StudentAcademicsTab = ({
@@ -330,7 +330,7 @@ const StudentAcademicsTab = ({
   readonly formatMoney: (amountSen: number) => string;
   readonly student: StudentData;
 }) => (
-  <Card>
+  <CardShell>
     <CardHeader>
       <CardTitle>Active Classes</CardTitle>
       <CardDescription>
@@ -383,7 +383,7 @@ const StudentAcademicsTab = ({
         ))
       )}
     </CardContent>
-  </Card>
+  </CardShell>
 );
 
 const StudentGuardiansTab = ({
@@ -391,7 +391,7 @@ const StudentGuardiansTab = ({
 }: {
   readonly student: StudentData;
 }) => (
-  <Card>
+  <CardShell>
     <CardHeader>
       <CardTitle>Guardians</CardTitle>
       <CardDescription>
@@ -451,7 +451,7 @@ const StudentGuardiansTab = ({
         })
       )}
     </CardContent>
-  </Card>
+  </CardShell>
 );
 
 const StudentBillingTab = ({
@@ -476,7 +476,7 @@ const StudentBillingTab = ({
   );
 
   return (
-    <Card>
+    <CardShell>
       <CardHeader>
         <CardTitle>Billing Summary</CardTitle>
         <CardDescription>
@@ -563,7 +563,7 @@ const StudentBillingTab = ({
           )}
         </div>
       </CardContent>
-    </Card>
+    </CardShell>
   );
 };
 
@@ -572,7 +572,7 @@ const StudentAttendanceTab = ({
 }: {
   readonly student: StudentData;
 }) => (
-  <Card>
+  <CardShell>
     <CardHeader>
       <CardTitle>Attendance History</CardTitle>
       <CardDescription>
@@ -606,11 +606,11 @@ const StudentAttendanceTab = ({
         ))
       )}
     </CardContent>
-  </Card>
+  </CardShell>
 );
 
 const StudentNotesTab = ({ student }: { readonly student: StudentData }) => (
-  <Card>
+  <CardShell>
     <CardHeader>
       <CardTitle>Notes</CardTitle>
       <CardDescription>Internal notes and follow-up reminders.</CardDescription>
@@ -620,7 +620,7 @@ const StudentNotesTab = ({ student }: { readonly student: StudentData }) => (
         {student.notes ?? "No notes recorded for this student."}
       </p>
     </CardContent>
-  </Card>
+  </CardShell>
 );
 
 const StudentSidebar = ({
@@ -639,7 +639,7 @@ const StudentSidebar = ({
   readonly totalPaidSen: number;
 }) => (
   <aside className="grid content-start gap-5 xl:sticky xl:top-4 xl:self-start">
-    <Card>
+    <CardShell>
       <CardHeader>
         <CardTitle className="text-base">Quick Summary</CardTitle>
         <CardDescription>
@@ -696,22 +696,22 @@ const StudentSidebar = ({
             Actions
           </div>
           <Button
-            variant="outline"
             render={<Link href={`/students/${student.id}/edit`} />}
+            variant="outline"
           >
             Edit profile
           </Button>
           <Button
-            variant="outline"
             render={
               <Link href={`https://wa.me/${primaryGuardian?.phone ?? ""}`} />
             }
+            variant="outline"
           >
             Message guardian
           </Button>
         </div>
       </CardContent>
-    </Card>
+    </CardShell>
   </aside>
 );
 
@@ -819,13 +819,19 @@ const StudentProfilePage = async ({ params }: StudentPageProperties) => {
                 ) : null}
               </TabsContent>
               <TabsContent className="grid gap-5" value="academics">
-                <StudentAcademicsTab formatMoney={formatMoney} student={student} />
+                <StudentAcademicsTab
+                  formatMoney={formatMoney}
+                  student={student}
+                />
               </TabsContent>
               <TabsContent className="grid gap-5" value="guardians">
                 <StudentGuardiansTab student={student} />
               </TabsContent>
               <TabsContent className="grid gap-5" value="billing">
-                <StudentBillingTab formatMoney={formatMoney} student={student} />
+                <StudentBillingTab
+                  formatMoney={formatMoney}
+                  student={student}
+                />
               </TabsContent>
               <TabsContent className="grid gap-5" value="attendance">
                 <StudentAttendanceTab student={student} />

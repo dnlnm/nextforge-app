@@ -115,7 +115,7 @@ const LevelPage = async ({ params }: LevelPageProperties) => {
                 </p>
               </div>
             </div>
-            <Button variant="outline" render={<Link href="/academic-levels" />}>
+            <Button render={<Link href="/academic-levels" />} variant="outline">
               Back to levels
             </Button>
           </CardContent>
@@ -187,9 +187,9 @@ const LevelPage = async ({ params }: LevelPageProperties) => {
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <CardTitle>{group.name}</CardTitle>
                     <Button
+                      render={<Link href={`/subjects/${subjectId}`} />}
                       size="sm"
                       variant="outline"
-                      render={<Link href={`/subjects/${subjectId}`} />}
                     >
                       View subject
                     </Button>

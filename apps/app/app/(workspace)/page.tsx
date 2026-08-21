@@ -111,22 +111,22 @@ const App = async () => {
           </Suspense>
         </WidgetBoundary>
 
-        <section className="grid items-start gap-5 xl:grid-cols-12">
-          <div className="xl:col-span-7">
+        <section className="grid gap-5 xl:grid-cols-2">
+          <div className="xl:h-[clamp(20rem,42dvh,30rem)]">
             <WidgetBoundary title="today's classes">
               <Suspense fallback={<ChartCardSkeleton />}>
                 <TodaysClassesCard organizationId={tenant.organizationId} />
               </Suspense>
             </WidgetBoundary>
           </div>
-          <div className="xl:col-span-5">
+          <div className="xl:h-[clamp(20rem,42dvh,30rem)]">
             <WidgetBoundary title="attention items">
               <Suspense fallback={<ChartCardSkeleton />}>
                 <NeedsAttentionCard organizationId={tenant.organizationId} />
               </Suspense>
             </WidgetBoundary>
           </div>
-          <div className="xl:col-span-7">
+          <div className="xl:h-[clamp(20rem,42dvh,30rem)]">
             <WidgetBoundary title="fee collection">
               <Suspense fallback={<ChartCardSkeleton />}>
                 <FeeCollectionCard
@@ -136,21 +136,21 @@ const App = async () => {
               </Suspense>
             </WidgetBoundary>
           </div>
-          <div className="xl:col-span-5">
+          <div className="xl:h-[clamp(20rem,42dvh,30rem)]">
             <WidgetBoundary title="attendance">
               <Suspense fallback={<ChartCardSkeleton />}>
                 <AttendanceCard organizationId={tenant.organizationId} />
               </Suspense>
             </WidgetBoundary>
           </div>
-          <div className="xl:col-span-7">
+          <div className="xl:h-[clamp(20rem,42dvh,30rem)]">
             <WidgetBoundary title="recent activity">
               <Suspense fallback={<ChartCardSkeleton />}>
                 <RecentActivityCard organizationId={tenant.organizationId} />
               </Suspense>
             </WidgetBoundary>
           </div>
-          <div className="xl:col-span-5">
+          <div className="xl:h-[clamp(20rem,42dvh,30rem)]">
             <AnnouncementsCard />
           </div>
         </section>
