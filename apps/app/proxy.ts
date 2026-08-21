@@ -1,5 +1,6 @@
 import { isMainDomain, parseSubdomain } from "@repo/auth/domain";
 import { authMiddleware } from "@repo/auth/proxy";
+import { buildAppUrl } from "@repo/config/brand";
 import {
   noseconeOptions,
   noseconeOptionsWithToolbar,
@@ -57,6 +58,21 @@ export default authMiddleware(
     // SUBDOMAIN ROUTING (brightmind.klio.my)
     // ============================================================
     if (subdomain) {
+      // Sign-up always starts on the main domain: the post-signup
+      // /center-setup flow creates a new centre, which must not be
+      // initiated from someone else's subdomain.
+      if (
+        url.pathname === "/sign-up" ||
+        url.pathname.startsWith("/sign-up/")
+      ) {
+        // Build from the configured app URL (scheme + host + port differ per
+        // environment); swapping only the hostname would keep the dev port
+        // against the production domain.
+        const signUpUrl = new URL(buildAppUrl("/sign-up"));
+        signUpUrl.search = url.search;
+        return NextResponse.redirect(signUpUrl);
+      }
+
       // Allow trusted subdomain paths through. Authenticated access is
       // enforced in the workspace layout via requireSubdomainTenant.
       return undefined;
