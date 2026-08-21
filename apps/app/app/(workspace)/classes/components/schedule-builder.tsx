@@ -143,6 +143,13 @@ export const ScheduleBuilder = ({
     roomId: string;
   } | null>(null);
 
+  const roomItems = Object.fromEntries(
+    rooms.map((room) => [
+      room.id,
+      `${room.name}${room.capacity ? ` (max ${room.capacity})` : ""}`,
+    ])
+  );
+
   const sortByDay = (list: ScheduleEntry[]) =>
     [...list].sort((a, b) => {
       const indexA = dayOptions.findIndex(([value]) => value === a.dayOfWeek);
@@ -260,6 +267,7 @@ export const ScheduleBuilder = ({
                   </div>
                   <div className="grid w-full min-w-0 flex-1 gap-1.5 md:w-auto">
                     <Select
+                      items={roomItems}
                       onValueChange={(value) =>
                         handleRoomSelect(day, value ?? "")
                       }

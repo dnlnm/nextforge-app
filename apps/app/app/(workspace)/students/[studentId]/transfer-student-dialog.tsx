@@ -115,6 +115,21 @@ export const TransferStudentDialog = ({
 
   const hasActiveEnrollment = activeEnrollments.length > 0;
 
+  const sourceItems = Object.fromEntries(
+    activeEnrollments.map((enrollment) => [
+      enrollment.id,
+      `${enrollment.className} · ${enrollment.subjectName}`,
+    ])
+  );
+  const destinationItems = Object.fromEntries(
+    classes.map((learningClass) => [
+      learningClass.id,
+      `${learningClass.name} · ${learningClass.subjectName}${
+        learningClass.levelName ? ` · ${learningClass.levelName}` : ""
+      }`,
+    ])
+  );
+
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent>
@@ -131,6 +146,7 @@ export const TransferStudentDialog = ({
             <div className="grid gap-2">
               <Label htmlFor="source">Current class</Label>
               <Select
+                items={sourceItems}
                 name="sourceEnrollmentId"
                 onValueChange={(value) => setSourceEnrollmentId(value ?? "")}
                 value={sourceEnrollmentId}
@@ -151,6 +167,7 @@ export const TransferStudentDialog = ({
             <div className="grid gap-2">
               <Label htmlFor="destination">Destination class</Label>
               <Select
+                items={destinationItems}
                 name="destinationClassId"
                 onValueChange={(value) => setDestinationClassId(value ?? "")}
                 value={destinationClassId}

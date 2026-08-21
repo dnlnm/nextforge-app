@@ -67,6 +67,15 @@ export const EnrollStudentDialog = ({
 
   const selectedClass = classes.find((c) => c.id === classId);
 
+  const classItems = Object.fromEntries(
+    classes.map((learningClass) => [
+      learningClass.id,
+      `${learningClass.name} · ${learningClass.subjectName}${
+        learningClass.levelName ? ` · ${learningClass.levelName}` : ""
+      }`,
+    ])
+  );
+
   const handleSubmit = () => {
     if (!classId) {
       toastManager.add({
@@ -127,6 +136,7 @@ export const EnrollStudentDialog = ({
           <div className="grid gap-2">
             <Label htmlFor="class">Class</Label>
             <Select
+              items={classItems}
               name="classId"
               onValueChange={(value) => setClassId(value ?? "")}
               value={classId}

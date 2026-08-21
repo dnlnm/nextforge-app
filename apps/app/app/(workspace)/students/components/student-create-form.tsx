@@ -436,7 +436,14 @@ export const StudentCreateForm = ({
                     <Label htmlFor="levelId">
                       Current Grade / Form <Required />
                     </Label>
-                    <Select name="levelId">
+                    <Select
+                      items={Object.fromEntries(
+                        levels
+                          .filter((level) => level.name !== "General")
+                          .map((level) => [level.id, level.name])
+                      )}
+                      name="levelId"
+                    >
                       <SelectTrigger
                         aria-invalid={Boolean(errors.levelId)}
                         className={errorClassName(Boolean(errors.levelId))}

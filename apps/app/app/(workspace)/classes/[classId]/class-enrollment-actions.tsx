@@ -52,6 +52,17 @@ export const ClassEnrollmentActions = ({
     [students]
   );
 
+  const studentItems = useMemo(
+    () =>
+      Object.fromEntries(
+        sortedStudents.map((student) => [
+          student.id,
+          `${student.fullName} · ${student.code}`,
+        ])
+      ),
+    [sortedStudents]
+  );
+
   const toggleStudent = (studentId: string) => {
     setSelectedIds((current) =>
       current.includes(studentId)
@@ -142,6 +153,7 @@ export const ClassEnrollmentActions = ({
             <div className="grid gap-2">
               <Label htmlFor="student">Student</Label>
               <Select
+                items={studentItems}
                 onValueChange={(value) => setSelectedStudentId(value ?? "")}
                 value={selectedStudentId}
               >

@@ -125,6 +125,27 @@ export const EnrollmentCenter = ({
 
   const [endEnrollmentId, setEndEnrollmentId] = useState("");
 
+  const classItemsWithLevel = Object.fromEntries(
+    classes.map((learningClass) => [
+      learningClass.id,
+      `${learningClass.name} · ${learningClass.subjectName}${
+        learningClass.levelName ? ` · ${learningClass.levelName}` : ""
+      }`,
+    ])
+  );
+  const classItems = Object.fromEntries(
+    classes.map((learningClass) => [
+      learningClass.id,
+      `${learningClass.name} · ${learningClass.subjectName}`,
+    ])
+  );
+  const enrollmentItems = Object.fromEntries(
+    enrollments.map((enrollment) => [
+      enrollment.id,
+      `${enrollment.studentName} · ${enrollment.className}`,
+    ])
+  );
+
   const refresh = () => router.refresh();
 
   const handleEnroll = () => {
@@ -302,6 +323,7 @@ export const EnrollmentCenter = ({
               <div className="grid gap-2">
                 <Label htmlFor="enroll-class">Class</Label>
                 <Select
+                  items={classItemsWithLevel}
                   onValueChange={(value) => setEnrollClassId(value ?? "")}
                   value={enrollClassId}
                 >
@@ -382,6 +404,7 @@ export const EnrollmentCenter = ({
             <div className="grid gap-2 md:max-w-md">
               <Label htmlFor="bulk-class">Class</Label>
               <Select
+                items={classItems}
                 onValueChange={(value) => setBulkClassId(value ?? "")}
                 value={bulkClassId}
               >
@@ -463,6 +486,7 @@ export const EnrollmentCenter = ({
               <div className="grid gap-2">
                 <Label htmlFor="transfer-enrollment">Current enrollment</Label>
                 <Select
+                  items={enrollmentItems}
                   onValueChange={(value) =>
                     setTransferEnrollmentId(value ?? "")
                   }
@@ -488,6 +512,7 @@ export const EnrollmentCenter = ({
               <div className="grid gap-2">
                 <Label htmlFor="transfer-class">Destination class</Label>
                 <Select
+                  items={classItems}
                   onValueChange={(value) => setTransferClassId(value ?? "")}
                   value={transferClassId}
                 >
@@ -557,6 +582,7 @@ export const EnrollmentCenter = ({
             <div className="grid gap-2 md:max-w-md">
               <Label htmlFor="end-enrollment">Enrollment</Label>
               <Select
+                items={enrollmentItems}
                 onValueChange={(value) => setEndEnrollmentId(value ?? "")}
                 value={endEnrollmentId}
               >

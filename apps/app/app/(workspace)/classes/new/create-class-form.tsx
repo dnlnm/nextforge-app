@@ -210,6 +210,16 @@ export const CreateClassForm = ({
   const selectedTeacher = teachers.find((teacher) => teacher.id === teacherId);
   const selectedLevel = levels.find((level) => level.id === levelId);
 
+  const subjectItems = Object.fromEntries(
+    subjects.map((subject) => [subject.id, subject.name])
+  );
+  const levelItems = Object.fromEntries(
+    levels.map((level) => [level.id, level.name])
+  );
+  const teacherItems = Object.fromEntries(
+    teachers.map((teacher) => [teacher.id, teacher.fullName])
+  );
+
   const autoClassCode = buildClassCode({
     academicYear,
     levelCode: selectedLevel?.code,
@@ -310,6 +320,7 @@ export const CreateClassForm = ({
                   <Label htmlFor="subjectId">Subject *</Label>
                   <input name="subjectId" type="hidden" value={subjectId} />
                   <Select
+                    items={subjectItems}
                     onValueChange={(value) => setSubjectId(value ?? "")}
                     value={subjectId}
                   >
@@ -336,6 +347,7 @@ export const CreateClassForm = ({
                 <div className="grid gap-2">
                   <Label htmlFor="level">Level *</Label>
                   <Select
+                    items={levelItems}
                     onValueChange={(value) => setLevelId(value ?? "")}
                     value={levelId}
                   >
@@ -601,6 +613,7 @@ export const CreateClassForm = ({
             <div className="grid gap-2">
               <Label htmlFor="teacherId">Main Teacher *</Label>
               <Select
+                items={teacherItems}
                 onValueChange={(value) => setTeacherId(value ?? "")}
                 value={teacherId}
               >

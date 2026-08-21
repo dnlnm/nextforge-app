@@ -357,7 +357,16 @@ const FilterSelect = ({
 }) => (
   <div className="grid gap-1.5">
     <Label className="text-xs">{label}</Label>
-    <Select onValueChange={(v) => onChange(v ?? "")} value={value}>
+    <Select
+      items={{
+        all: `All ${label}s`,
+        ...Object.fromEntries(
+          options.map((option) => [option.id, option.name])
+        ),
+      }}
+      onValueChange={(v) => onChange(v ?? "")}
+      value={value}
+    >
       <SelectTrigger>
         <SelectValue />
       </SelectTrigger>

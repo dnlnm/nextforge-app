@@ -72,6 +72,20 @@ export const ClassEditForm = ({
     }))
   );
 
+  const subjectItems = Object.fromEntries(
+    subjects.map((subject) => [subject.id, subject.name])
+  );
+  const levelItems = {
+    none: "No level",
+    ...Object.fromEntries(levels.map((level) => [level.id, level.name])),
+  };
+  const teacherItems = {
+    none: "No teacher yet",
+    ...Object.fromEntries(
+      teachers.map((teacher) => [teacher.id, teacher.fullName])
+    ),
+  };
+
   return (
     <form action={updateClass} className="grid gap-4">
       <input name="classId" type="hidden" value={classId} />
@@ -134,6 +148,7 @@ export const ClassEditForm = ({
         <Label htmlFor="subjectId">Subject</Label>
         <Select
           defaultValue={initialValues.subjectId}
+          items={subjectItems}
           name="subjectId"
           required
         >
@@ -151,7 +166,11 @@ export const ClassEditForm = ({
       </div>
       <div className="grid gap-2">
         <Label htmlFor="levelId">Level</Label>
-        <Select defaultValue={initialValues.levelId ?? "none"} name="levelId">
+        <Select
+          defaultValue={initialValues.levelId ?? "none"}
+          items={levelItems}
+          name="levelId"
+        >
           <SelectTrigger id="levelId">
             <SelectValue />
           </SelectTrigger>
@@ -169,6 +188,7 @@ export const ClassEditForm = ({
         <Label htmlFor="teacherId">Teacher</Label>
         <Select
           defaultValue={initialValues.teacherId ?? "none"}
+          items={teacherItems}
           name="teacherId"
         >
           <SelectTrigger id="teacherId">
