@@ -10,12 +10,13 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "../client";
+import { isEmailAddress, normalizeUsername } from "../username";
 
 export const SignIn = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect_to");
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -25,12 +26,27 @@ export const SignIn = () => {
     setLoading(true);
     setError(null);
 
-    const { error: signInError } = await createClient().auth.signInWithPassword(
-      {
-        email,
-        password,
+    const client = createClient();
+    let loginEmail = identifier.trim();
+
+    if (!isEmailAddress(loginEmail)) {
+      const { data: resolvedEmail } = await client.rpc("get_email_by_username", {
+        p_username: normalizeUsername(loginEmail),
+      });
+
+      if (!resolvedEmail) {
+        setError("Invalid email/username or password.");
+        setLoading(false);
+        return;
       }
-    );
+
+      loginEmail = resolvedEmail;
+    }
+
+    const { error: signInError } = await client.auth.signInWithPassword({
+      email: loginEmail,
+      password,
+    });
 
     if (signInError) {
       setError(signInError.message);
@@ -58,15 +74,15 @@ export const SignIn = () => {
 
             <div className="grid gap-5">
               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email or username</Label>
                 <Input
-                  autoComplete="email"
+                  autoComplete="username"
                   id="email"
-                  onChange={(event) => setEmail(event.target.value)}
-                  placeholder="m@example.com"
+                  onChange={(event) => setIdentifier(event.target.value)}
+                  placeholder="m@example.com or username"
                   required
-                  type="email"
-                  value={email}
+                  type="text"
+                  value={identifier}
                 />
               </div>
               <div className="grid gap-2">

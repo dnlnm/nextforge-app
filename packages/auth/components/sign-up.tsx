@@ -10,12 +10,19 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "../client";
+import {
+  isValidUsername,
+  normalizeUsername,
+  USERNAME_MAX_LENGTH,
+  USERNAME_MIN_LENGTH,
+} from "../username";
 
 export const SignUp = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect_to");
   const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -33,10 +40,32 @@ export const SignUp = () => {
       return;
     }
 
-    const { error: signUpError } = await createClient().auth.signUp({
+    const normalizedUsername = normalizeUsername(username);
+
+    if (!isValidUsername(normalizedUsername)) {
+      setError(
+        `Username must be ${USERNAME_MIN_LENGTH}-${USERNAME_MAX_LENGTH} characters and only contain letters, numbers, dots, dashes, or underscores.`
+      );
+      setLoading(false);
+      return;
+    }
+
+    const client = createClient();
+
+    const { data: available } = await client.rpc("is_username_available", {
+      p_username: normalizedUsername,
+    });
+
+    if (!available) {
+      setError("Username already taken.");
+      setLoading(false);
+      return;
+    }
+
+    const { error: signUpError } = await client.auth.signUp({
       email,
       password,
-      options: { data: { name } },
+      options: { data: { name, username: normalizedUsername } },
     });
 
     if (signUpError) {
@@ -74,6 +103,24 @@ export const SignUp = () => {
                   required
                   value={name}
                 />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  autoComplete="username"
+                  id="username"
+                  maxLength={USERNAME_MAX_LENGTH}
+                  minLength={USERNAME_MIN_LENGTH}
+                  onChange={(event) => setUsername(event.target.value)}
+                  placeholder="danieltan"
+                  required
+                  type="text"
+                  value={username}
+                />
+                <p className="text-muted-foreground text-xs">
+                  Letters, numbers, dots, dashes, and underscores. You can use
+                  this to sign in instead of your email.
+                </p>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>

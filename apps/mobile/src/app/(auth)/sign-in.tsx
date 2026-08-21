@@ -10,6 +10,8 @@ import {
 import { useState } from "react";
 import { Alert, Image, useColorScheme, View } from "react-native";
 
+import { isEmailAddress, normalizeUsername } from "@repo/auth/username";
+
 import { supabase } from "@/lib/supabase";
 
 interface AuthError {
@@ -19,20 +21,36 @@ interface AuthError {
 export default function SignInScreen() {
   const colorScheme = useColorScheme();
   const logoColor = colorScheme === "dark" ? "#fafafa" : "#171717";
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSignIn = async () => {
-    if (!(email && password)) {
-      Alert.alert("Missing details", "Enter your email and password.");
+    if (!(identifier && password)) {
+      Alert.alert("Missing details", "Enter your email or username and password.");
       return;
     }
 
     setIsSubmitting(true);
 
+    let loginEmail = identifier.trim();
+
+    if (!isEmailAddress(loginEmail)) {
+      const { data: resolvedEmail } = await supabase.rpc("get_email_by_username", {
+        p_username: normalizeUsername(loginEmail),
+      });
+
+      if (!resolvedEmail) {
+        setIsSubmitting(false);
+        Alert.alert("Sign in failed", "Invalid email/username or password.");
+        return;
+      }
+
+      loginEmail = resolvedEmail;
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
-      email,
+      email: loginEmail,
       password,
     });
 
@@ -67,14 +85,13 @@ export default function SignInScreen() {
 
         <View className="gap-4">
           <TextField isDisabled={isSubmitting} isRequired>
-            <Label>Email</Label>
+            <Label>Email or username</Label>
             <Input
               autoCapitalize="none"
-              autoComplete="email"
-              keyboardType="email-address"
-              onChangeText={setEmail}
-              placeholder="you@example.com"
-              value={email}
+              autoComplete="username"
+              onChangeText={setIdentifier}
+              placeholder="you@example.com or username"
+              value={identifier}
             />
           </TextField>
 

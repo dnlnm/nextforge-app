@@ -12,6 +12,13 @@ import {
 import { useState } from "react";
 import { Alert, Image, useColorScheme, View } from "react-native";
 
+import {
+  isValidUsername,
+  normalizeUsername,
+  USERNAME_MAX_LENGTH,
+  USERNAME_MIN_LENGTH,
+} from "@repo/auth/username";
+
 import { supabase } from "@/lib/supabase";
 
 interface AuthError {
@@ -22,12 +29,23 @@ export default function SignUpScreen() {
   const colorScheme = useColorScheme();
   const logoColor = colorScheme === "dark" ? "#fafafa" : "#171717";
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSignUp = async () => {
     if (!(email && password)) {
       Alert.alert("Missing details", "Enter your email and password.");
+      return;
+    }
+
+    const normalizedUsername = normalizeUsername(username);
+
+    if (!isValidUsername(normalizedUsername)) {
+      Alert.alert(
+        "Invalid username",
+        `Use ${USERNAME_MIN_LENGTH}-${USERNAME_MAX_LENGTH} characters: letters, numbers, dots, dashes, or underscores.`
+      );
       return;
     }
 
@@ -42,6 +60,7 @@ export default function SignUpScreen() {
       email,
       password,
       options: {
+        data: { username: normalizedUsername },
         emailRedirectTo: createURL("auth/callback", {
           queryParams: { type: "signup" },
         }),
@@ -95,6 +114,22 @@ export default function SignUpScreen() {
               placeholder="you@example.com"
               value={email}
             />
+          </TextField>
+
+          <TextField isDisabled={isSubmitting} isRequired>
+            <Label>Username</Label>
+            <Input
+              autoCapitalize="none"
+              autoComplete="username"
+              maxLength={USERNAME_MAX_LENGTH}
+              onChangeText={setUsername}
+              placeholder="yourname"
+              value={username}
+            />
+            <Description>
+              Letters, numbers, dots, dashes, underscores. Use this to sign in
+              instead of your email.
+            </Description>
           </TextField>
 
           <TextField isDisabled={isSubmitting} isRequired>
