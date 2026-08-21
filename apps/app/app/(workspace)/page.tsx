@@ -1,5 +1,8 @@
+import { isMainDomain } from "@repo/auth/domain";
 import { requireTenantRole } from "@repo/auth/authorization";
 import { appName } from "@repo/config/brand";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { database } from "@repo/database";
 import { formatWeekdayDate, getMalaysiaToday } from "@repo/date";
 import { getDashboardKpiData } from "@repo/domain";
@@ -42,6 +45,13 @@ const greetingForHour = (hour: number): string => {
 };
 
 const App = async () => {
+  const headersList = await headers();
+  const host = headersList.get("host") ?? "";
+
+  if (isMainDomain(host)) {
+    redirect("/centres");
+  }
+
   const tenant = await requireTenantRole(["ADMIN"]);
   const currency = await getOrganizationCurrency(tenant.organizationId);
   // "Business today" is the Asia/Kuala_Lumpur calendar day, per AGENTS.md.

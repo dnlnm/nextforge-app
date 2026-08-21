@@ -16,6 +16,7 @@ const browserClient = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "",
   {
+    auth: { flowType: "pkce" },
     cookieOptions: {
       domain: `.${getMainDomain()}`,
       path: "/",

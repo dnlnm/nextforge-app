@@ -14,6 +14,7 @@ export const createClient = async () => {
     environment.NEXT_PUBLIC_SUPABASE_URL ?? "",
     environment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "",
     {
+      auth: { flowType: "pkce" },
       cookies: {
         getAll: () => cookieStore.getAll(),
         setAll: (cookiesToSet) => {

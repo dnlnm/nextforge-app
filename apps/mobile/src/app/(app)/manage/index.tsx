@@ -1,8 +1,13 @@
+import type { Href } from "expo-router";
 import { useRouter } from "expo-router";
 import { Chip, Typography } from "heroui-native";
 import { Pressable, ScrollView, View } from "react-native";
 
-const sections: { href: string; title: string; description: string }[] = [
+const sections: {
+  description: string;
+  href: Href;
+  title: string;
+}[] = [
   {
     href: "/manage/dashboard",
     title: "Dashboard",
@@ -38,10 +43,7 @@ export default function ManageScreen() {
           </Typography.Paragraph>
         </View>
         {sections.map((section) => (
-          <Pressable
-            key={section.href}
-            onPress={() => router.push(section.href)}
-          >
+          <Pressable key={section.title}>
             <View className="rounded-lg border border-border bg-card p-4">
               <View className="flex-row items-center justify-between">
                 <Typography.Paragraph type="body">

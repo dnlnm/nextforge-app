@@ -10,7 +10,10 @@ type MiddlewareHandler = (
 ) => Response | Promise<Response | undefined> | undefined;
 
 export const authMiddleware =
-  (handler?: MiddlewareHandler) =>
+  (
+    handler?: MiddlewareHandler,
+    finalize?: (response: Response) => Response | Promise<Response>
+  ) =>
   async (request: NextRequest, event: unknown) => {
     let response = NextResponse.next({ request });
 
@@ -52,5 +55,7 @@ export const authMiddleware =
 
     const handlerResponse = await handler?.(data.user, request, event);
 
-    return handlerResponse ?? response;
+    const finalResponse = handlerResponse ?? response;
+
+    return finalize ? finalize(finalResponse) : finalResponse;
   };

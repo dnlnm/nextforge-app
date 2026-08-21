@@ -29,7 +29,9 @@ export default function TodayScreen() {
     } catch (createError) {
       Alert.alert(
         "Could not create sessions",
-        createError instanceof Error ? createError.message : "Please try again."
+        createError instanceof Error
+          ? createError.message
+          : "Please try again.",
       );
     }
   };
@@ -128,6 +130,9 @@ export default function TodayScreen() {
           </Typography.Paragraph>
         </View>
 
+        <Button onPress={() => router.push("/(app)/account")} variant="outline">
+          Account
+        </Button>
         <Button onPress={signOut} variant="danger-soft">
           Sign out
         </Button>

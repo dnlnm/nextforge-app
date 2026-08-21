@@ -1,5 +1,6 @@
 "use client";
 
+import { ModeToggle } from "@repo/design-system/components/mode-toggle";
 import {
   Accordion,
   AccordionContent,
@@ -293,6 +294,7 @@ export const MainNav = ({
           </SheetContent>
         </Sheet>
 
+        <ModeToggle />
         <UserMenu userId={userId} />
       </div>
     </div>

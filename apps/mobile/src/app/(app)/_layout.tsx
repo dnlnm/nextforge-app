@@ -13,6 +13,7 @@ export default function AppStackLayout() {
         name="session/[sessionId]"
         options={{ title: "Attendance", headerBackTitle: "Back" }}
       />
+      <Stack.Screen name="account" options={{ title: "Account" }} />
     </Stack>
   );
 }

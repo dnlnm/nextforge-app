@@ -18,7 +18,7 @@ export default function ManageLayout() {
   }
 
   if (!isAdmin) {
-    return <Redirect href="/(app)/(tabs)" />;
+    return <Redirect href="/(app)/(tabs)/(home)" />;
   }
 
   return (

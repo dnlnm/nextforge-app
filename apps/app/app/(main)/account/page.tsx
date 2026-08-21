@@ -1,4 +1,5 @@
 import { ensureLocalUser } from "@repo/auth/organizations";
+import { currentUser } from "@repo/auth/server";
 import { appName } from "@repo/config/brand";
 import {
   CardContent,
@@ -14,6 +15,7 @@ import { redirect } from "next/navigation";
 import { EmailForm } from "./email-form";
 import { PasswordForm } from "./password-form";
 import { ProfileForm } from "./profile-form";
+import { UsernameForm } from "./username-form";
 
 export const metadata: Metadata = {
   title: `Account - ${appName}`,
@@ -25,6 +27,10 @@ const AccountPage = async () => {
   if (!user) {
     redirect("/sign-in");
   }
+
+  const authUser = await currentUser();
+  const currentUsername =
+    (authUser?.user_metadata?.username as string | undefined) ?? "";
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
@@ -55,6 +61,18 @@ const AccountPage = async () => {
                 [user.firstName, user.lastName].filter(Boolean).join(" ") || ""
               }
             />
+          </CardContent>
+        </CardShell>
+
+        <CardShell className="w-full">
+          <CardHeader>
+            <CardTitle>Username</CardTitle>
+            <CardDescription>
+              Sign in with this instead of your email
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <UsernameForm defaultUsername={currentUsername} />
           </CardContent>
         </CardShell>
 

@@ -5,7 +5,6 @@ import { Button } from "@repo/design-system/components/ui/button";
 import { Card, CardContent } from "@repo/design-system/components/ui/card";
 import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
-import { Separator } from "@repo/design-system/components/ui/separator";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -177,13 +176,6 @@ export const SignUp = () => {
             <Button disabled={loading} type="submit">
               {loading ? "Creating account..." : "Create account"}
             </Button>
-
-            <div className="relative">
-              <Separator />
-              <span className="absolute inset-x-0 top-1/2 mx-auto w-fit -translate-y-1/2 bg-card px-2 text-muted-foreground text-xs">
-                Or continue with
-              </span>
-            </div>
 
             <p className="text-center text-muted-foreground text-sm">
               Already have an account?{" "}
