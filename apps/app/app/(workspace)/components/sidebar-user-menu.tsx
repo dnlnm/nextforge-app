@@ -38,8 +38,8 @@ const initials = (email: string) =>
 export const SidebarUserMenu = () => {
   const router = useRouter();
   const { setTheme } = useTheme();
-  const { state } = useSidebar();
-  const collapsed = state === "collapsed";
+  const { state, isMobile } = useSidebar();
+  const collapsed = state === "collapsed" || isMobile;
   const [email, setEmail] = useState<string | null>(null);
   const supabase = createClient();
 
