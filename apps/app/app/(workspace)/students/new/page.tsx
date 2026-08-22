@@ -12,7 +12,7 @@ const AddStudentPage = async () => {
     database.level.findMany({
       where: { organizationId: tenant.organizationId, archivedAt: null },
       orderBy: { order: "asc" },
-      select: { id: true, name: true },
+      select: { id: true, name: true, stage: true },
     }),
     database.organizationSettings.findUnique({
       where: { organizationId: tenant.organizationId },

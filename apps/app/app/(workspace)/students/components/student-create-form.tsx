@@ -79,6 +79,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
+import { STAGE_OPTIONS } from "../../academic-levels/add-level-dialog";
 import { StudentAvatar } from "../../components/student-avatar";
 import { createStudent } from "../actions";
 import {
@@ -95,6 +96,7 @@ import { type GuardianDraft, GuardianEditor } from "./guardian-editor";
 interface LevelOption {
   readonly id: string;
   readonly name: string;
+  readonly stage: string;
 }
 
 interface StudentCreateFormProperties {
@@ -105,14 +107,6 @@ interface StudentCreateFormProperties {
   readonly nextCode: string;
 }
 
-const SCHOOL_TYPES = [
-  "SK (National)",
-  "SJKC (Chinese)",
-  "SJKT (Tamil)",
-  "SMK (Secondary)",
-  "Private",
-  "International",
-];
 const REFERRAL_SOURCES = [
   "Friend / Word of mouth",
   "Facebook",
@@ -572,6 +566,23 @@ const CustomFeeField = ({
   </div>
 );
 
+const getStageSelection = (
+  levels: readonly LevelOption[],
+  selectedStage: string
+) => {
+  const selectable = levels.filter((level) => level.stage !== "GENERAL");
+
+  return {
+    levels: selectable.filter((level) => level.stage === selectedStage),
+    options: STAGE_OPTIONS.filter((option) =>
+      selectable.some((level) => level.stage === option.value)
+    ),
+    placeholder: selectedStage
+      ? "Select level..."
+      : "Select a stage first...",
+  };
+};
+
 export const StudentCreateForm = ({
   classes,
   currency,
@@ -590,6 +601,7 @@ export const StudentCreateForm = ({
   const [icDigits, setIcDigits] = useState("");
   const [dobDate, setDobDate] = useState("");
   const [gender, setGender] = useState<Gender | "">("");
+  const [selectedStage, setSelectedStage] = useState("");
   const [levelId, setLevelId] = useState("");
   const [schoolName, setSchoolName] = useState("");
   const [studentEmail, setStudentEmail] = useState("");
@@ -643,6 +655,11 @@ export const StudentCreateForm = ({
   const singleSelection = selectedClasses.length === 1;
   const effectiveTotalSen =
     singleSelection && customFeeSen !== null ? customFeeSen : subjectTotalSen;
+  const {
+    levels: stageLevels,
+    options: stageOptions,
+    placeholder: levelPlaceholder,
+  } = getStageSelection(levels, selectedStage);
   const gradeLabel = levels.find((level) => level.id === levelId)?.name ?? "";
   const primaryGuardian = guardians[0];
   const genderLabel =
@@ -697,6 +714,14 @@ export const StudentCreateForm = ({
     clearError("subjects");
   };
 
+  const handleStageChange = (value: string | null) => {
+    setSelectedStage(value ?? "");
+    setLevelId("");
+    setSelectedClassIds([]);
+    clearError("levelId");
+    clearError("subjects");
+  };
+
   const handleLevelChange = (value: string | null) => {
     setLevelId(value ?? "");
     setSelectedClassIds([]);
@@ -716,7 +741,7 @@ export const StudentCreateForm = ({
     }
 
     if (!levelId) {
-      next.levelId = "Please select the current grade or form.";
+      next.levelId = "Please select the current level.";
     }
 
     if (icDigits && !isValidIcNumber(icDigits)) {
@@ -971,15 +996,37 @@ export const StudentCreateForm = ({
 
         <FormSectionCard
           icon={GraduationCapIcon}
-          subtitle="Current academic level"
-          title="School &amp; Grade"
+          subtitle="Current academic stage and level"
+          title="School &amp; Level"
         >
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid content-start gap-1.5">
-              <FieldLabel required>Grade / Form</FieldLabel>
+              <FieldLabel required>Stage</FieldLabel>
               <Select
                 items={Object.fromEntries(
-                  levels.map((level) => [level.id, level.name])
+                  stageOptions.map((option) => [option.value, option.label])
+                )}
+                onValueChange={handleStageChange}
+                value={selectedStage}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select stage..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {stageOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid content-start gap-1.5">
+              <FieldLabel required>Level</FieldLabel>
+              <Select
+                disabled={!selectedStage}
+                items={Object.fromEntries(
+                  stageLevels.map((level) => [level.id, level.name])
                 )}
                 onValueChange={handleLevelChange}
                 value={levelId}
@@ -988,34 +1035,17 @@ export const StudentCreateForm = ({
                   aria-invalid={errors.levelId ? true : undefined}
                   className={errorClassName(Boolean(errors.levelId))}
                 >
-                  <SelectValue placeholder="Select grade..." />
+                  <SelectValue placeholder={levelPlaceholder} />
                 </SelectTrigger>
                 <SelectContent>
-                  {levels
-                    .filter((level) => level.name !== "General")
-                    .map((level) => (
-                      <SelectItem key={level.id} value={level.id}>
-                        {level.name}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-              <FieldErrorText message={errors.levelId} />
-            </div>
-            <div className="grid content-start gap-1.5">
-              <FieldLabel>School type</FieldLabel>
-              <Select name="schoolType">
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {SCHOOL_TYPES.map((schoolType) => (
-                    <SelectItem key={schoolType} value={schoolType}>
-                      {schoolType}
+                  {stageLevels.map((level) => (
+                    <SelectItem key={level.id} value={level.id}>
+                      {level.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              <FieldErrorText message={errors.levelId} />
             </div>
             <div className="grid content-start gap-1.5 sm:col-span-2">
               <FieldLabel htmlFor="schoolName">School name</FieldLabel>
