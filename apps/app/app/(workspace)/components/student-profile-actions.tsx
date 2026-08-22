@@ -5,17 +5,14 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@repo/design-system/components/ui/dropdown-menu";
 import {
   ArchiveIcon,
-  Edit3Icon,
   MoreHorizontalIcon,
   RotateCcwIcon,
   Trash2Icon,
 } from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
 import { ArchiveStudentDialog } from "./archive-student-dialog";
 import { DeleteStudentDialog } from "./delete-student-dialog";
@@ -41,13 +38,6 @@ export const StudentProfileActions = ({
           More
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-44">
-          <DropdownMenuItem
-            render={<Link href={`/students/${studentId}/edit`} />}
-          >
-            <Edit3Icon />
-            Edit profile
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
           {isArchived ? (
             <DropdownMenuItem onClick={() => setIsRestoreOpen(true)}>
               <RotateCcwIcon />

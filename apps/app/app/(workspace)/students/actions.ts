@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { requireTenant, requireTenantRole } from "@repo/auth/authorization";
 import { database, type Prisma } from "@repo/database";
@@ -155,7 +155,7 @@ interface ParsedGuardians {
 }
 
 /**
- * Guardians (1–3). The Add Student UI posts a `guardiansJson` array; legacy
+ * Guardians (1â€“3). The Add Student UI posts a `guardiansJson` array; legacy
  * callers still post single-guardian fields, which also copy student address
  * details onto the primary guardian.
  */
@@ -217,7 +217,7 @@ const parseGuardianInputs = (formData: FormData): ParsedGuardians => {
     if (!result.success) {
       return {
         error:
-          "Complete every guardian contact — name, Malaysian phone number and (for the primary) an email address are required.",
+          "Complete every guardian contact â€” name, Malaysian phone number and (for the primary) an email address are required.",
         guardians: [],
       };
     }
@@ -359,7 +359,7 @@ export const createStudent = async (
     return { error: "Student name is required." };
   }
 
-  // ── Guardians (1–3).
+  // â”€â”€ Guardians (1â€“3).
   const parsedGuardians = parseGuardianInputs(formData);
 
   if (parsedGuardians.error) {
@@ -377,14 +377,14 @@ export const createStudent = async (
   const studentEmail = getString(formData, "studentEmail");
   const postcode = getString(formData, "postcode");
 
-  // ── IC / MyKid with DOB + gender derivation.
+  // â”€â”€ IC / MyKid with DOB + gender derivation.
   const identity = resolveStudentIdentity(formData);
 
   if (identity.error || !identity.gender) {
     return { error: identity.error ?? "Gender is required." };
   }
 
-  // ── Fee due day (1–28).
+  // â”€â”€ Fee due day (1â€“28).
   const dueDayResult = parseInvoiceDueDay(formData);
 
   if (dueDayResult.error) {
@@ -401,7 +401,7 @@ export const createStudent = async (
     return { error: "Student limit reached for your plan." };
   }
 
-  // ── Class enrollments requested at creation time.
+  // â”€â”€ Class enrollments requested at creation time.
   const enrollmentResult = parseEnrollmentRequests(formData);
 
   if (enrollmentResult.error) {
@@ -670,72 +670,245 @@ export const deleteStudent = async (formData: FormData) => {
   revalidatePath("/attendance");
 };
 
-export const updateStudent = async (formData: FormData) => {
-  const tenant = await requireTenantRole(["ADMIN"]);
-  const studentId = getString(formData, "studentId");
-  const fullName = getString(formData, "fullName");
-  const guardianId = getString(formData, "guardianId");
-  const guardianName = getString(formData, "guardianName");
+type StudentFieldValue = string | number | null;
 
-  if (!(studentId && fullName && guardianId && guardianName)) {
-    throw new Error("Student and guardian details are required.");
+/** Editable student columns, keyed by the field name the client sends. */
+const STUDENT_FIELDS = new Set([
+  "addressLine1",
+  "addressLine2",
+  "city",
+  "dateOfBirth",
+  "email",
+  "emergencyContactName",
+  "emergencyContactPhone",
+  "enrolledAt",
+  "fullName",
+  "gender",
+  "icNumber",
+  "invoiceDueDay",
+  "levelId",
+  "notes",
+  "phone",
+  "postcode",
+  "preferredName",
+  "referralSource",
+  "schoolName",
+  "state",
+]);
+
+/** Guardian fields (primary guardian only), mapped to Guardian columns. */
+const GUARDIAN_FIELD_MAP: Record<string, string> = {
+  guardianAddressLine1: "addressLine1",
+  guardianAddressLine2: "addressLine2",
+  guardianCity: "city",
+  guardianEmail: "email",
+  guardianFullName: "fullName",
+  guardianPhone: "phone",
+  guardianPostcode: "postcode",
+  guardianRelationship: "relationship",
+  guardianState: "state",
+};
+
+interface FieldUpdateResult {
+  data?: Prisma.StudentUncheckedUpdateManyInput;
+  guardianData?: Prisma.GuardianUncheckedUpdateManyInput;
+  linkData?: Prisma.StudentGuardianUncheckedUpdateManyInput;
+}
+
+const buildIcUpdate = (
+  value: string
+): FieldUpdateResult | string => {
+  const ic = normalizeIcNumber(value);
+  if (ic && !isValidIcNumber(ic)) {
+    return "IC / MyKid number must be exactly 12 digits.";
+  }
+  return { data: { icNumber: ic || null } };
+};
+
+/** Student-column updates needing parsing/validation beyond plain text. */
+const buildStudentValueUpdate = (
+  field: string,
+  value: string
+): FieldUpdateResult | string | null => {
+  switch (field) {
+    case "gender": {
+      if (value !== "" && !genderSet.has(value as Gender)) {
+        return "Invalid gender.";
+      }
+      return { data: { gender: value === "" ? null : (value as Gender) } };
+    }
+    case "dateOfBirth":
+    case "enrolledAt": {
+      const date = value ? tryParseCalendarDate(value) : undefined;
+      if (value && !date) {
+        return "Invalid date.";
+      }
+      return {
+        data: {
+          [field]: value ? date : null,
+        } as Prisma.StudentUncheckedUpdateManyInput,
+      };
+    }
+    case "invoiceDueDay": {
+      if (value === "") {
+        return { data: { invoiceDueDay: null } };
+      }
+      const day = Number.parseInt(value, 10);
+      if (!Number.isInteger(day) || day < 1 || day > 28) {
+        return "Fee due day must be between 1 and 28.";
+      }
+      return { data: { invoiceDueDay: day } };
+    }
+    case "icNumber":
+      return buildIcUpdate(value);
+    default:
+      return null;
+  }
+};
+
+/**
+ * Builds updates for fields that need parsing/validation beyond plain text.
+ * Returns an error message, null when the field is not a structured field,
+ * or the update payload.
+ */
+const buildStructuredUpdate = async (
+  field: string,
+  rawValue: string | number
+): Promise<FieldUpdateResult | string | null> => {
+  const value = String(rawValue);
+
+  if (field === "levelId") {
+    if (value === "" || value === "none") {
+      return { data: { levelId: null } };
+    }
+    return { data: { levelId: await resolveLevel(value) } };
   }
 
-  const levelId = await resolveLevel(getString(formData, "levelId"));
-  const sameAsStudentAddress =
-    getString(formData, "sameAsStudentAddress") === "on";
-  const address = {
-    addressLine1: getString(formData, "addressLine1"),
-    addressLine2: getString(formData, "addressLine2"),
-  };
+  if (field === "guardianRelationship") {
+    if (!relationships.has(value as GuardianRelationship)) {
+      return "Invalid relationship.";
+    }
+    return {
+      linkData: { relationship: value as GuardianRelationship },
+    };
+  }
 
-  await database.$transaction(async (tx) => {
-    await tx.student.updateMany({
-      where: { id: studentId, organizationId: tenant.organizationId },
-      data: {
-        fullName,
-        levelId,
-        dateOfBirth: getDate(formData, "dateOfBirth"),
-        enrolledAt: getDate(formData, "enrolledAt"),
-        gender: getGender(formData, "gender"),
-        phone: getString(formData, "studentPhone"),
-        email: getString(formData, "studentEmail"),
-        ...address,
-        city: getString(formData, "city"),
-        state: getString(formData, "state"),
-        postcode: getString(formData, "postcode"),
-        preferredName: getString(formData, "preferredName"),
-        schoolName: getString(formData, "schoolName"),
-        photoKey: getString(formData, "photoKey"),
-        notes: getString(formData, "notes"),
-      },
+  return buildStudentValueUpdate(field, value);
+};
+
+/** Persists a validated single-field update. Returns an error message or null. */
+const applyFieldUpdate = async (
+  organizationId: string,
+  studentId: string,
+  update: FieldUpdateResult
+): Promise<string | null> => {
+  try {
+    if (update.linkData || update.guardianData) {
+      const student = await database.student.findFirst({
+        where: { id: studentId, organizationId },
+        select: { id: true },
+      });
+
+      if (!student) {
+        return "Student not found.";
+      }
+    }
+
+    if (update.linkData) {
+      await database.studentGuardian.updateMany({
+        where: { isPrimary: true, studentId },
+        data: update.linkData,
+      });
+      return null;
+    }
+
+    if (update.guardianData) {
+      const link = await database.studentGuardian.findFirst({
+        where: { isPrimary: true, studentId },
+        select: { guardianId: true },
+      });
+
+      if (!link) {
+        return "Primary guardian not found.";
+      }
+
+      await database.guardian.updateMany({
+        where: { id: link.guardianId, organizationId },
+        data: update.guardianData,
+      });
+      return null;
+    }
+
+    const updated = await database.student.updateMany({
+      where: { id: studentId, organizationId },
+      data: update.data as Prisma.StudentUncheckedUpdateManyInput,
     });
-    const guardianAddress = sameAsStudentAddress
-      ? address
-      : {
-          addressLine1: getString(formData, "guardianAddressLine1"),
-          addressLine2: getString(formData, "guardianAddressLine2"),
-        };
-    await tx.guardian.updateMany({
-      where: { id: guardianId, organizationId: tenant.organizationId },
-      data: {
-        email: getString(formData, "guardianEmail"),
-        fullName: guardianName,
-        phone: getString(formData, "guardianPhone"),
-        ...guardianAddress,
-        city: sameAsStudentAddress ? getString(formData, "city") : undefined,
-        state: sameAsStudentAddress ? getString(formData, "state") : undefined,
-        postcode: sameAsStudentAddress
-          ? getString(formData, "postcode")
-          : undefined,
-      },
-    });
-  });
+
+    return updated.count === 0 ? "Student not found." : null;
+  } catch {
+    return "Could not save. Please try again.";
+  }
+};
+
+/**
+ * Inline per-field student update. Accepts exactly one field at a time so
+ * click-to-edit controls can save individually; empty string clears text
+ * fields, null clears nullable non-text fields.
+ */
+export const updateStudent = async (input: {
+  field: string;
+  studentId: string;
+  value: StudentFieldValue;
+}): Promise<{ error?: string }> => {
+  const tenant = await requireTenantRole(["ADMIN"]);
+  const { field, studentId } = input;
+  const rawValue =
+    typeof input.value === "number" ? input.value : (input.value ?? "");
+
+  let update: FieldUpdateResult;
+
+  const structured = await buildStructuredUpdate(field, rawValue);
+  if (typeof structured === "string") {
+    return { error: structured };
+  }
+
+  if (structured) {
+    update = structured;
+  } else {
+    const value = String(rawValue).trim();
+
+    if (!(STUDENT_FIELDS.has(field) || field in GUARDIAN_FIELD_MAP)) {
+      return { error: "Unsupported field." };
+    }
+
+    if ((field === "fullName" || field === "guardianFullName") && !value) {
+      return { error: "Name is required." };
+    }
+
+    update =
+      field in GUARDIAN_FIELD_MAP
+        ? ({
+            guardianData: { [GUARDIAN_FIELD_MAP[field]]: value },
+          } as FieldUpdateResult)
+        : ({
+            data: { [field]: value },
+          } as FieldUpdateResult);
+  }
+
+  const error = await applyFieldUpdate(
+    tenant.organizationId,
+    studentId,
+    update
+  );
+
+  if (error) {
+    return { error };
+  }
 
   revalidatePath("/students");
   revalidatePath(`/students/${studentId}`);
-  revalidatePath(`/students/${studentId}/edit`);
-  redirect(`/students/${studentId}`);
+
+  return {};
 };
 
 // Fetch students for table with server-side pagination, filtering, and sorting
@@ -748,7 +921,7 @@ export async function getStudentsForTable(params: StudentsQueryParams) {
     archivedAt: null,
   };
 
-  // Teachers only see students in the classes they teach (spec §5).
+  // Teachers only see students in the classes they teach (spec Â§5).
   const teacherProfileId = await getTeacherProfileId(tenant);
 
   if (teacherProfileId !== undefined) {

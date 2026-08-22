@@ -15,7 +15,6 @@ import {
 import { privateFileUrl } from "@repo/storage/client";
 import {
   ArchiveIcon,
-  Edit3Icon,
   EyeIcon,
   MessageCircleIcon,
   MoreHorizontalIcon,
@@ -70,12 +69,6 @@ export const StudentRowActions = ({ student }: { student: Student }) => {
           <DropdownMenuItem render={<Link href={`/students/${student.id}`} />}>
             <EyeIcon />
             View profile
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            render={<Link href={`/students/${student.id}/edit`} />}
-          >
-            <Edit3Icon />
-            Edit
           </DropdownMenuItem>
           <DropdownMenuItem
             render={

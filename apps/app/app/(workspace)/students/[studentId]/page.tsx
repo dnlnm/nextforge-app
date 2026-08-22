@@ -1,7 +1,11 @@
 import { requireTenantRole } from "@repo/auth/authorization";
 import { appName } from "@repo/config/brand";
 import { type AttendanceStatus, database } from "@repo/database";
-import { formatShortDate, formatWallClockTime } from "@repo/date";
+import {
+  formatCalendarDate,
+  formatShortDate,
+  formatWallClockTime,
+} from "@repo/date";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
@@ -26,19 +30,16 @@ import {
 } from "@repo/domain/students/dashboard";
 import { formatMoneyWhole as formatMoneyShared } from "@repo/money";
 import { privateFileUrl } from "@repo/storage/client";
-import {
-  Edit3Icon,
-  LandmarkIcon,
-  MailIcon,
-  MapPinIcon,
-  PhoneIcon,
-} from "lucide-react";
+import { LandmarkIcon, MailIcon, MapPinIcon, PhoneIcon } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { ReactNode } from "react";
 import { getOrganizationCurrency } from "@/lib/currency";
 import { Header } from "../../components/header";
 import { StudentAvatar } from "../../components/student-avatar";
 import { StudentProfileActions } from "../../components/student-profile-actions";
+import { FEE_DUE_DAYS, ordinalSuffix, REFERRAL_SOURCES } from "../lib/options";
+import { EditableField } from "./editable-field";
 import { StudentActivityTimeline } from "./student-activity-timeline";
 import { StudentAnalyticsTab } from "./student-analytics-tab";
 import { StudentQuickActions } from "./student-quick-actions";
@@ -201,13 +202,6 @@ const StudentHeader = ({
       </div>
       <div className="grid gap-2 sm:grid-cols-2 md:w-auto md:min-w-[18rem]">
         <Button
-          render={<Link href={`/students/${student.id}/edit`} />}
-          variant="outline"
-        >
-          <Edit3Icon className="size-4" />
-          Edit profile
-        </Button>
-        <Button
           render={<Link href={`https://wa.me/${primaryGuardianPhone ?? ""}`} />}
           variant="outline"
         >
@@ -260,59 +254,322 @@ const StudentMetrics = ({
   </section>
 );
 
-const StudentOverviewTab = ({ student }: { readonly student: StudentData }) => (
+const ProfileField = ({
+  children,
+  label,
+}: {
+  readonly children: ReactNode;
+  readonly label: string;
+}) => (
+  <div className="grid min-w-0 gap-1">
+    <span className="text-muted-foreground text-xs">{label}</span>
+    {children}
+  </div>
+);
+
+interface LevelOption {
+  readonly id: string;
+  readonly name: string;
+  readonly stage: string;
+}
+
+const GENDER_SELECT_OPTIONS = [
+  { label: "Male", value: "MALE" },
+  { label: "Female", value: "FEMALE" },
+  { label: "Other", value: "OTHER" },
+];
+
+const RELATIONSHIP_SELECT_OPTIONS = [
+  { label: "Father", value: "FATHER" },
+  { label: "Mother", value: "MOTHER" },
+  { label: "Guardian", value: "GUARDIAN" },
+  { label: "Other", value: "OTHER" },
+];
+
+const PersonalProfileFields = ({
+  student,
+}: {
+  readonly student: StudentData;
+}) => (
+  <>
+    <ProfileField label="Full name">
+      <EditableField
+        field="fullName"
+        label="full name"
+        placeholder="Add full name"
+        studentId={student.id}
+        type="text"
+        value={student.fullName}
+      />
+    </ProfileField>
+    <ProfileField label="Preferred name">
+      <EditableField
+        field="preferredName"
+        label="preferred name"
+        placeholder="Add preferred name"
+        studentId={student.id}
+        type="text"
+        value={student.preferredName}
+      />
+    </ProfileField>
+    <ProfileField label="Date of birth">
+      <EditableField
+        display={
+          student.dateOfBirth ? formatDate(student.dateOfBirth) : null
+        }
+        field="dateOfBirth"
+        label="date of birth"
+        placeholder="Add date of birth"
+        studentId={student.id}
+        type="date"
+        value={
+          student.dateOfBirth ? formatCalendarDate(student.dateOfBirth) : null
+        }
+      />
+    </ProfileField>
+    <ProfileField label="Gender">
+      <EditableField
+        display={student.gender ? (genderLabels[student.gender] ?? null) : null}
+        field="gender"
+        label="gender"
+        options={GENDER_SELECT_OPTIONS}
+        placeholder="Set gender"
+        studentId={student.id}
+        type="select"
+        value={student.gender ?? null}
+      />
+    </ProfileField>
+    <ProfileField label="IC / MyKid number">
+      <EditableField
+        field="icNumber"
+        label="IC / MyKid number"
+        placeholder="Add IC / MyKid number"
+        studentId={student.id}
+        type="text"
+        value={student.icNumber}
+      />
+    </ProfileField>
+  </>
+);
+
+const SchoolProfileFields = ({
+  levels,
+  student,
+}: {
+  readonly levels: readonly LevelOption[];
+  readonly student: StudentData;
+}) => {
+  const levelOptions = [
+    ...levels
+      .filter((level) => level.stage !== "GENERAL")
+      .map((level) => ({ label: level.name, value: level.id })),
+    { label: "No level", value: "" },
+  ];
+  const dueDayOptions = FEE_DUE_DAYS.map((day) => ({
+    label: `${day}${ordinalSuffix(day)} of each month`,
+    value: day,
+  }));
+
+  return (
+    <>
+      <ProfileField label="Academic level">
+        <EditableField
+          display={student.level?.name ?? null}
+          field="levelId"
+          label="academic level"
+          options={levelOptions}
+          placeholder="Set academic level"
+          studentId={student.id}
+          type="select"
+          value={student.levelId}
+        />
+      </ProfileField>
+      <ProfileField label="School">
+        <EditableField
+          field="schoolName"
+          label="school"
+          placeholder="Add school"
+          studentId={student.id}
+          type="text"
+          value={student.schoolName}
+        />
+      </ProfileField>
+      <ProfileField label="Branch">
+        <span className="font-medium text-sm">
+          {student.branch?.name ?? "-"}
+        </span>
+      </ProfileField>
+      <ProfileField label="Enrolled">
+        <EditableField
+          display={formatDate(student.enrolledAt)}
+          field="enrolledAt"
+          label="enrollment date"
+          placeholder="Add enrollment date"
+          studentId={student.id}
+          type="date"
+          value={formatCalendarDate(student.enrolledAt)}
+        />
+      </ProfileField>
+      <ProfileField label="Fee due day">
+        <EditableField
+          display={
+            student.invoiceDueDay
+              ? `${student.invoiceDueDay}${ordinalSuffix(String(student.invoiceDueDay))} of each month`
+              : null
+          }
+          field="invoiceDueDay"
+          label="fee due day"
+          options={dueDayOptions}
+          placeholder="Set fee due day"
+          studentId={student.id}
+          type="select"
+          value={student.invoiceDueDay ? String(student.invoiceDueDay) : null}
+        />
+      </ProfileField>
+    </>
+  );
+};
+
+const ContactProfileFields = ({
+  student,
+}: {
+  readonly student: StudentData;
+}) => (
+  <>
+    <ProfileField label="Phone">
+      <EditableField
+        field="phone"
+        label="phone"
+        placeholder="Add phone number"
+        studentId={student.id}
+        type="text"
+        value={student.phone}
+      />
+    </ProfileField>
+    <ProfileField label="Email">
+      <EditableField
+        field="email"
+        label="email"
+        placeholder="Add email address"
+        studentId={student.id}
+        type="text"
+        value={student.email}
+      />
+    </ProfileField>
+    <ProfileField label="Emergency contact name">
+      <EditableField
+        field="emergencyContactName"
+        label="emergency contact name"
+        placeholder="Add emergency contact name"
+        studentId={student.id}
+        type="text"
+        value={student.emergencyContactName}
+      />
+    </ProfileField>
+    <ProfileField label="Emergency contact phone">
+      <EditableField
+        field="emergencyContactPhone"
+        label="emergency contact phone"
+        placeholder="Add emergency contact phone"
+        studentId={student.id}
+        type="text"
+        value={student.emergencyContactPhone}
+      />
+    </ProfileField>
+    <ProfileField label="Referral source">
+      <EditableField
+        display={student.referralSource ?? null}
+        field="referralSource"
+        label="referral source"
+        options={REFERRAL_SOURCES.map((source) => ({
+          label: source,
+          value: source,
+        }))}
+        placeholder="Set referral source"
+        studentId={student.id}
+        type="select"
+        value={student.referralSource}
+      />
+    </ProfileField>
+  </>
+);
+
+const AddressProfileFields = ({
+  student,
+}: {
+  readonly student: StudentData;
+}) => (
+  <>
+    <ProfileField label="Address line 1">
+      <EditableField
+        field="addressLine1"
+        label="address line 1"
+        placeholder="Add address line 1"
+        studentId={student.id}
+        type="text"
+        value={student.addressLine1}
+      />
+    </ProfileField>
+    <ProfileField label="Address line 2">
+      <EditableField
+        field="addressLine2"
+        label="address line 2"
+        placeholder="Add address line 2"
+        studentId={student.id}
+        type="text"
+        value={student.addressLine2}
+      />
+    </ProfileField>
+    <ProfileField label="City">
+      <EditableField
+        field="city"
+        label="city"
+        placeholder="Add city"
+        studentId={student.id}
+        type="text"
+        value={student.city}
+      />
+    </ProfileField>
+    <ProfileField label="State">
+      <EditableField
+        field="state"
+        label="state"
+        placeholder="Add state"
+        studentId={student.id}
+        type="text"
+        value={student.state}
+      />
+    </ProfileField>
+    <ProfileField label="Postcode">
+      <EditableField
+        field="postcode"
+        label="postcode"
+        placeholder="Add postcode"
+        studentId={student.id}
+        type="text"
+        value={student.postcode}
+      />
+    </ProfileField>
+  </>
+);
+
+const StudentOverviewTab = ({
+  levels,
+  student,
+}: {
+  readonly levels: readonly LevelOption[];
+  readonly student: StudentData;
+}) => (
   <CardShell>
     <CardHeader>
       <CardTitle>Student Profile</CardTitle>
-      <CardDescription>
-        Core student information and administrative details.
-      </CardDescription>
+      <CardDescription>Click any value to edit it inline.</CardDescription>
     </CardHeader>
-    <CardContent className="grid gap-4 md:grid-cols-2">
-      {[
-        ["Full name", student.fullName],
-        ["Preferred name", student.preferredName ?? "-"],
-        [
-          "Date of birth",
-          student.dateOfBirth ? formatDate(student.dateOfBirth) : "-",
-        ],
-        [
-          "Gender",
-          student.gender ? (genderLabels[student.gender] ?? "-") : "-",
-        ],
-        ["School", student.schoolName ?? "-"],
-        ["Academic level", student.level?.name ?? "-"],
-        ["Branch", student.branch?.name ?? "-"],
-        ["Phone", student.phone ?? "-"],
-        ["Email", student.email ?? "-"],
-        ["Enrolled", formatDate(student.enrolledAt)],
-        [
-          "Address",
-          [
-            student.addressLine1,
-            student.addressLine2,
-            student.city,
-            student.state,
-            student.postcode,
-          ]
-            .filter(Boolean)
-            .join(", ") || "-",
-        ],
-      ].map(([label, value]) => (
-        <div className="grid gap-1" key={label}>
-          <span className="text-muted-foreground text-xs">{label}</span>
-          <span className="font-medium text-sm">{value}</span>
-        </div>
-      ))}
-      <div className="md:col-span-2">
-        <Separator className="my-1" />
-        <div className="grid gap-1">
-          <span className="text-muted-foreground text-xs">Notes</span>
-          <p className="text-sm">
-            {student.notes ?? "No student notes recorded."}
-          </p>
-        </div>
-      </div>
+    <CardContent className="grid gap-x-6 gap-y-4 md:grid-cols-2">
+      <PersonalProfileFields student={student} />
+      <SchoolProfileFields levels={levels} student={student} />
+      <ContactProfileFields student={student} />
+      <AddressProfileFields student={student} />
     </CardContent>
   </CardShell>
 );
@@ -380,6 +637,159 @@ const StudentAcademicsTab = ({
   </CardShell>
 );
 
+const GuardianCard = ({
+  link,
+  studentId,
+}: {
+  readonly link: StudentData["guardians"][number];
+  readonly studentId: string;
+}) => {
+  const guardian = link.guardian;
+  const address = [
+    guardian.addressLine1,
+    guardian.addressLine2,
+    guardian.city,
+    guardian.state,
+    guardian.postcode,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+  return (
+    <div className="border p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            {link.isPrimary ? (
+              <EditableField
+                field="guardianFullName"
+                label="guardian name"
+                placeholder="Add guardian name"
+                studentId={studentId}
+                type="text"
+                value={guardian.fullName}
+              />
+            ) : (
+              <p className="font-medium">{guardian.fullName}</p>
+            )}
+            {link.isPrimary ? <Badge>Primary</Badge> : null}
+            {link.receivesBilling ? (
+              <Badge variant="secondary">Billing contact</Badge>
+            ) : null}
+          </div>
+          {link.isPrimary ? (
+            <div className="mt-1">
+              <EditableField
+                display={link.relationship || null}
+                field="guardianRelationship"
+                label="guardian relationship"
+                options={RELATIONSHIP_SELECT_OPTIONS}
+                placeholder="Set relationship"
+                studentId={studentId}
+                type="select"
+                value={link.relationship ?? null}
+              />
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-sm">{link.relationship}</p>
+          )}
+        </div>
+      </div>
+      <div className="mt-4 grid gap-2 md:grid-cols-2">
+        <div className="flex items-center gap-2 text-sm">
+          <PhoneIcon className="size-4 shrink-0 text-muted-foreground" />
+          {link.isPrimary ? (
+            <EditableField
+              field="guardianPhone"
+              label="guardian phone"
+              placeholder="Add phone number"
+              studentId={studentId}
+              type="text"
+              value={guardian.phone}
+            />
+          ) : (
+            <span>{guardian.phone ?? "-"}</span>
+          )}
+        </div>
+        <div className="flex items-center gap-2 text-sm">
+          <MailIcon className="size-4 shrink-0 text-muted-foreground" />
+          {link.isPrimary ? (
+            <EditableField
+              field="guardianEmail"
+              label="guardian email"
+              placeholder="Add email address"
+              studentId={studentId}
+              type="text"
+              value={guardian.email}
+            />
+          ) : (
+            <span>{guardian.email ?? "-"}</span>
+          )}
+        </div>
+        {link.isPrimary ? (
+          <div className="grid gap-2 md:col-span-2 md:grid-cols-2">
+            <ProfileField label="Address line 1">
+              <EditableField
+                field="guardianAddressLine1"
+                label="guardian address line 1"
+                placeholder="Add address line 1"
+                studentId={studentId}
+                type="text"
+                value={guardian.addressLine1}
+              />
+            </ProfileField>
+            <ProfileField label="Address line 2">
+              <EditableField
+                field="guardianAddressLine2"
+                label="guardian address line 2"
+                placeholder="Add address line 2"
+                studentId={studentId}
+                type="text"
+                value={guardian.addressLine2}
+              />
+            </ProfileField>
+            <ProfileField label="City">
+              <EditableField
+                field="guardianCity"
+                label="guardian city"
+                placeholder="Add city"
+                studentId={studentId}
+                type="text"
+                value={guardian.city}
+              />
+            </ProfileField>
+            <ProfileField label="State">
+              <EditableField
+                field="guardianState"
+                label="guardian state"
+                placeholder="Add state"
+                studentId={studentId}
+                type="text"
+                value={guardian.state}
+              />
+            </ProfileField>
+            <ProfileField label="Postcode">
+              <EditableField
+                field="guardianPostcode"
+                label="guardian postcode"
+                placeholder="Add postcode"
+                studentId={studentId}
+                type="text"
+                value={guardian.postcode}
+              />
+            </ProfileField>
+          </div>
+        ) : (
+          <div className="flex items-start gap-2 text-sm md:col-span-2">
+            <MapPinIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+            <span>{address || "-"}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const StudentGuardiansTab = ({
   student,
 }: {
@@ -398,51 +808,9 @@ const StudentGuardiansTab = ({
           No guardians linked to this student.
         </p>
       ) : (
-        student.guardians.map((link) => {
-          const guardian = link.guardian;
-          const address = [
-            guardian.addressLine1,
-            guardian.addressLine2,
-            guardian.city,
-            guardian.state,
-            guardian.postcode,
-          ]
-            .filter(Boolean)
-            .join(", ");
-
-          return (
-            <div className="border p-4" key={link.id}>
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-medium">{guardian.fullName}</p>
-                    {link.isPrimary ? <Badge>Primary</Badge> : null}
-                    {link.receivesBilling ? (
-                      <Badge variant="secondary">Billing contact</Badge>
-                    ) : null}
-                  </div>
-                  <p className="text-muted-foreground text-sm">
-                    {link.relationship}
-                  </p>
-                </div>
-              </div>
-              <div className="mt-4 grid gap-2 md:grid-cols-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <PhoneIcon className="size-4 text-muted-foreground" />
-                  <span>{guardian.phone ?? "-"}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <MailIcon className="size-4 text-muted-foreground" />
-                  <span>{guardian.email ?? "-"}</span>
-                </div>
-                <div className="flex items-start gap-2 text-sm md:col-span-2">
-                  <MapPinIcon className="mt-0.5 size-4 text-muted-foreground" />
-                  <span>{address || "-"}</span>
-                </div>
-              </div>
-            </div>
-          );
-        })
+        student.guardians.map((link) => (
+          <GuardianCard key={link.id} link={link} studentId={student.id} />
+        ))
       )}
     </CardContent>
   </CardShell>
@@ -609,10 +977,21 @@ const StudentNotesTab = ({ student }: { readonly student: StudentData }) => (
       <CardTitle>Notes</CardTitle>
       <CardDescription>Internal notes and follow-up reminders.</CardDescription>
     </CardHeader>
-    <CardContent>
-      <p className="text-sm">
-        {student.notes ?? "No notes recorded for this student."}
-      </p>
+    <CardContent className="grid gap-1">
+      <span className="text-muted-foreground text-xs">Internal notes</span>
+      <EditableField
+        display={
+          student.notes ? (
+            <span className="whitespace-pre-wrap">{student.notes}</span>
+          ) : null
+        }
+        field="notes"
+        label="internal notes"
+        placeholder="Add internal notes"
+        studentId={student.id}
+        type="textarea"
+        value={student.notes}
+      />
     </CardContent>
   </CardShell>
 );
@@ -623,7 +1002,7 @@ const StudentProfilePage = async ({ params }: StudentPageProperties) => {
   const currency = await getOrganizationCurrency(tenant.organizationId);
   const formatMoney = (amountSen: number) =>
     formatMoneyShared(amountSen, { currency });
-  const [student, dashboard, _overview, activities, trends, enrollableClasses] =
+  const [student, dashboard, _overview, activities, trends, enrollableClasses, levels] =
     await Promise.all([
       getStudentData(studentId, tenant.organizationId),
       getStudentDashboard(database, {
@@ -637,6 +1016,11 @@ const StudentProfilePage = async ({ params }: StudentPageProperties) => {
       listStudentActivity(database, tenant.organizationId, studentId),
       getStudentTrends(database, tenant.organizationId, studentId),
       getEnrollableClasses(tenant.organizationId),
+      database.level.findMany({
+        where: { organizationId: tenant.organizationId, archivedAt: null },
+        orderBy: { order: "asc" },
+        select: { id: true, name: true, stage: true },
+      }),
     ]);
 
   if (!student) {
@@ -708,7 +1092,7 @@ const StudentProfilePage = async ({ params }: StudentPageProperties) => {
               </TabsList>
 
               <TabsContent className="grid gap-5" value="overview">
-                <StudentOverviewTab student={student} />
+                <StudentOverviewTab levels={levels} student={student} />
               </TabsContent>
               <TabsContent className="grid gap-5" value="activity">
                 <StudentActivityTimeline activities={activities} />

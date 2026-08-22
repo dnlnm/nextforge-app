@@ -100,18 +100,12 @@ export function StudentDetailContent({
             </Badge>
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           <Button
             render={<Link href={`https://wa.me/${guardian?.phone ?? ""}`} />}
             variant="outline"
           >
             WhatsApp
-          </Button>
-          <Button
-            render={<Link href={`/students/${student.id}/edit`} />}
-            variant="outline"
-          >
-            Edit
           </Button>
           <Button variant="outline">More</Button>
         </div>

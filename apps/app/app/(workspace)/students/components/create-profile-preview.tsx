@@ -208,12 +208,12 @@ export const CreateProfilePreview = ({
         />
       ) : null}
 
-      <div className="rounded-xl border border-primary/10 bg-secondary/40 p-4">
+      <div className="hidden rounded-xl border border-primary/10 bg-secondary/40 p-4 sm:block">
         <p className="mb-2 font-semibold text-primary text-xs">Quick Tips</p>
         <ul className="grid gap-1.5 text-muted-foreground text-xs">
           {[
             "Enter the IC number to auto-fill DOB and gender.",
-            "Select a grade first, then pick subjects from the list.",
+            "Select a stage first, then pick subjects from the list.",
             "You can add up to 3 parent/guardian contacts.",
           ].map((tip) => (
             <li className="flex gap-2" key={tip}>

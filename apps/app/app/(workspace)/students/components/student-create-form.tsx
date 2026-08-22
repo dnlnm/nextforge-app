@@ -8,7 +8,6 @@ import {
   parseLocalCalendarDate,
 } from "@repo/date";
 import { Button } from "@repo/design-system/components/ui/button";
-import { Calendar } from "@repo/design-system/components/ui/calendar";
 import {
   CardContent,
   CardHeader,
@@ -19,14 +18,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@repo/design-system/components/ui/collapsible";
-import {
-  Combobox,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxPopup,
-} from "@repo/design-system/components/ui/combobox";
 import { Input } from "@repo/design-system/components/ui/input";
 import {
   InputGroup,
@@ -35,17 +26,18 @@ import {
 } from "@repo/design-system/components/ui/input-group";
 import { Label } from "@repo/design-system/components/ui/label";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@repo/design-system/components/ui/popover";
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@repo/design-system/components/ui/select";
+import {
+  Tabs,
+  TabsList,
+  TabsPanel,
+  TabsTab,
+} from "@repo/design-system/components/ui/tabs";
 import { Textarea } from "@repo/design-system/components/ui/textarea";
 import { toastManager } from "@repo/design-system/components/ui/toast";
 import {
@@ -64,7 +56,6 @@ import {
 import {
   AlertCircleIcon,
   BookOpenIcon,
-  CalendarIcon,
   CameraIcon,
   CheckIcon,
   ChevronDownIcon,
@@ -88,10 +79,16 @@ import {
   isValidIcNumber,
   normalizeIcNumber,
 } from "../lib/ic-number";
+import {
+  FEE_DUE_DAYS,
+  ordinalSuffix,
+  REFERRAL_SOURCES,
+} from "../lib/options";
 import { ClassPicker, type EnrollableClassOption } from "./class-picker";
 import { CreateProfilePreview } from "./create-profile-preview";
 import { FormSectionCard } from "./form-section-card";
 import { type GuardianDraft, GuardianEditor } from "./guardian-editor";
+import { IsoDatePicker } from "./iso-date-picker";
 
 interface LevelOption {
   readonly id: string;
@@ -107,16 +104,6 @@ interface StudentCreateFormProperties {
   readonly nextCode: string;
 }
 
-const REFERRAL_SOURCES = [
-  "Friend / Word of mouth",
-  "Facebook",
-  "Instagram",
-  "Google Search",
-  "Banner / Flyer",
-  "Walk-in",
-  "WhatsApp broadcast",
-  "Other",
-];
 const GENDER_OPTIONS: ReadonlyArray<{
   readonly label: string;
   readonly value: Gender;
@@ -125,9 +112,6 @@ const GENDER_OPTIONS: ReadonlyArray<{
   { label: "Female", value: "FEMALE" },
 ];
 
-const FEE_DUE_DAYS = Array.from({ length: 28 }, (_, index) =>
-  String(index + 1)
-);
 const maxPhotoSizeBytes = 2 * 1024 * 1024;
 const phoneRegex = /^01\d{8,10}$/;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -145,86 +129,6 @@ const blankGuardian = (): GuardianDraft => ({
   sameAsPhone: true,
   whatsapp: "",
 });
-
-const ORDINAL_SUFFIXES: Record<string, string> = {
-  "1": "st",
-  "2": "nd",
-  "3": "rd",
-};
-
-const ordinalSuffix = (day: string) => ORDINAL_SUFFIXES[day] ?? "th";
-
-const isoFromDate = (date: Date) =>
-  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
-    date.getDate()
-  ).padStart(2, "0")}`;
-
-interface CalendarDropdownItem {
-  readonly disabled?: boolean;
-  readonly label: string;
-  readonly value: string;
-}
-
-interface CalendarDropdownProps {
-  readonly "aria-label"?: string;
-  readonly onChange?: (event: React.ChangeEvent<HTMLSelectElement>) => void;
-  readonly options?: ReadonlyArray<{
-    readonly disabled?: boolean;
-    readonly label: string;
-    readonly value: number | string;
-  }>;
-  readonly value?: number | string | readonly string[];
-}
-
-/**
- * Month/year dropdown for the calendar caption, rendered as a coss Combobox
- * (adapted from the coss p-date-picker-3 particle).
- */
-const CalendarDropdown = (props: CalendarDropdownProps) => {
-  const { "aria-label": ariaLabel, onChange, options, value } = props;
-  const items: CalendarDropdownItem[] =
-    options?.map((option) => ({
-      disabled: option.disabled,
-      label: option.label,
-      value: option.value.toString(),
-    })) ?? [];
-  const selectedItem = items.find((item) => item.value === value?.toString());
-
-  return (
-    <Combobox
-      aria-label={ariaLabel}
-      autoHighlight
-      items={items}
-      onValueChange={(newValue) => {
-        if (onChange && newValue) {
-          onChange({
-            target: { value: newValue.value },
-          } as React.ChangeEvent<HTMLSelectElement>);
-        }
-      }}
-      value={selectedItem}
-    >
-      <ComboboxInput
-        className="**:[input]:w-0 **:[input]:flex-1"
-        onFocus={(event) => event.currentTarget.select()}
-      />
-      <ComboboxPopup aria-label={ariaLabel}>
-        <ComboboxEmpty>No items found.</ComboboxEmpty>
-        <ComboboxList>
-          {(item: CalendarDropdownItem) => (
-            <ComboboxItem
-              disabled={item.disabled}
-              key={item.value}
-              value={item}
-            >
-              {item.label}
-            </ComboboxItem>
-          )}
-        </ComboboxList>
-      </ComboboxPopup>
-    </Combobox>
-  );
-};
 
 const parseMoney = (value: string): number | null => {
   if (value.trim() === "") {
@@ -431,66 +335,6 @@ const PhotoUploadTile = ({
       />
       <input name="photoKey" type="hidden" value={photoKey} />
       {error ? <p className="text-destructive text-xs">{error}</p> : null}
-    </div>
-  );
-};
-
-const IsoDatePicker = ({
-  endMonth,
-  name,
-  onChange,
-  placeholder = "Select date",
-  startMonth,
-  toDisplay = (selected: Date) => formatCalendarDate(selected),
-  value,
-}: {
-  readonly endMonth?: Date;
-  readonly name: string;
-  readonly onChange: (iso: string) => void;
-  readonly placeholder?: string;
-  readonly startMonth?: Date;
-  readonly toDisplay?: (selected: Date) => string;
-  readonly value: string;
-}) => {
-  const [open, setOpen] = useState(false);
-  const selected = parseLocalCalendarDate(value);
-
-  return (
-    <div>
-      <Popover onOpenChange={setOpen} open={open}>
-        <PopoverTrigger
-          render={
-            <Button
-              className="w-full justify-start text-left font-normal"
-              type="button"
-              variant="outline"
-            />
-          }
-        >
-          <CalendarIcon className="size-4 text-muted-foreground" />
-          <span className="min-w-0 truncate">
-            {selected ? toDisplay(selected) : placeholder}
-          </span>
-        </PopoverTrigger>
-        <PopoverContent align="start" className="w-auto p-0">
-          <Calendar
-            captionLayout="dropdown"
-            components={{ Dropdown: CalendarDropdown }}
-            defaultMonth={selected ?? undefined}
-            endMonth={endMonth}
-            mode="single"
-            onSelect={(day) => {
-              if (day) {
-                onChange(isoFromDate(day));
-                setOpen(false);
-              }
-            }}
-            selected={selected ?? undefined}
-            startMonth={startMonth}
-          />
-        </PopoverContent>
-      </Popover>
-      <input name={name} type="hidden" value={value} />
     </div>
   );
 };
@@ -823,7 +667,7 @@ export const StudentCreateForm = ({
         value={JSON.stringify(enrollmentsPayload)}
       />
 
-      <section className="grid content-start gap-5">
+      <section className="grid content-start gap-5 xl:col-start-1 xl:row-start-1">
         <FormSectionCard
           icon={UserRoundIcon}
           subtitle="Legal name as per IC / birth certificate"
@@ -995,72 +839,6 @@ export const StudentCreateForm = ({
         </FormSectionCard>
 
         <FormSectionCard
-          icon={GraduationCapIcon}
-          subtitle="Current academic stage and level"
-          title="School &amp; Level"
-        >
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="grid content-start gap-1.5">
-              <FieldLabel required>Stage</FieldLabel>
-              <Select
-                items={Object.fromEntries(
-                  stageOptions.map((option) => [option.value, option.label])
-                )}
-                onValueChange={handleStageChange}
-                value={selectedStage}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select stage..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {stageOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid content-start gap-1.5">
-              <FieldLabel required>Level</FieldLabel>
-              <Select
-                disabled={!selectedStage}
-                items={Object.fromEntries(
-                  stageLevels.map((level) => [level.id, level.name])
-                )}
-                onValueChange={handleLevelChange}
-                value={levelId}
-              >
-                <SelectTrigger
-                  aria-invalid={errors.levelId ? true : undefined}
-                  className={errorClassName(Boolean(errors.levelId))}
-                >
-                  <SelectValue placeholder={levelPlaceholder} />
-                </SelectTrigger>
-                <SelectContent>
-                  {stageLevels.map((level) => (
-                    <SelectItem key={level.id} value={level.id}>
-                      {level.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FieldErrorText message={errors.levelId} />
-            </div>
-            <div className="grid content-start gap-1.5 sm:col-span-2">
-              <FieldLabel htmlFor="schoolName">School name</FieldLabel>
-              <Input
-                id="schoolName"
-                name="schoolName"
-                onChange={(event) => setSchoolName(event.target.value)}
-                placeholder="e.g. SMK Kajang, SJKC Chong Hwa..."
-                value={schoolName}
-              />
-            </div>
-          </div>
-        </FormSectionCard>
-
-        <FormSectionCard
           icon={UsersRoundIcon}
           subtitle="At least one contact is required"
           title="Parent / Guardian"
@@ -1092,72 +870,161 @@ export const StudentCreateForm = ({
         </FormSectionCard>
 
         <FormSectionCard
-          icon={BookOpenIcon}
-          subtitle="Subjects, fees, and start date"
-          title="Enrollment"
+          icon={GraduationCapIcon}
+          subtitle="Academic placement, subjects, fees, and start date"
+          title="School &amp; Enrollment"
         >
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="grid content-start gap-1.5">
-              <FieldLabel>Start date</FieldLabel>
-              <IsoDatePicker
-                name="enrolledAt"
-                onChange={setStartDate}
-                placeholder="Select date"
-                value={startDate}
+          <Tabs defaultValue="school">
+            <div className="border-b">
+              <TabsList variant="underline">
+                <TabsTab value="school">
+                  <GraduationCapIcon aria-hidden="true" className="size-4" />
+                  School &amp; Level
+                </TabsTab>
+                <TabsTab value="enrollment">
+                  <BookOpenIcon aria-hidden="true" className="size-4" />
+                  Enrollment
+                </TabsTab>
+              </TabsList>
+            </div>
+            <TabsPanel
+              className="grid content-start gap-4 pt-2"
+              keepMounted
+              value="school"
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid content-start gap-1.5">
+                  <FieldLabel required>Stage</FieldLabel>
+                  <Select
+                    items={Object.fromEntries(
+                      stageOptions.map((option) => [
+                        option.value,
+                        option.label,
+                      ])
+                    )}
+                    onValueChange={handleStageChange}
+                    value={selectedStage}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select stage..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {stageOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid content-start gap-1.5">
+                  <FieldLabel required>Level</FieldLabel>
+                  <Select
+                    disabled={!selectedStage}
+                    items={Object.fromEntries(
+                      stageLevels.map((level) => [level.id, level.name])
+                    )}
+                    name="levelId"
+                    onValueChange={handleLevelChange}
+                    value={levelId}
+                  >
+                    <SelectTrigger
+                      aria-invalid={errors.levelId ? true : undefined}
+                      className={errorClassName(Boolean(errors.levelId))}
+                    >
+                      <SelectValue placeholder={levelPlaceholder} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {stageLevels.map((level) => (
+                        <SelectItem key={level.id} value={level.id}>
+                          {level.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FieldErrorText message={errors.levelId} />
+                </div>
+                <div className="grid content-start gap-1.5 sm:col-span-2">
+                  <FieldLabel htmlFor="schoolName">School name</FieldLabel>
+                  <Input
+                    id="schoolName"
+                    name="schoolName"
+                    onChange={(event) => setSchoolName(event.target.value)}
+                    placeholder="e.g. SMK Kajang, SJKC Chong Hwa..."
+                    value={schoolName}
+                  />
+                </div>
+              </div>
+            </TabsPanel>
+            <TabsPanel
+              className="grid content-start gap-4 pt-2"
+              keepMounted
+              value="enrollment"
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid content-start gap-1.5">
+                  <FieldLabel>Start date</FieldLabel>
+                  <IsoDatePicker
+                    name="enrolledAt"
+                    onChange={setStartDate}
+                    placeholder="Select date"
+                    value={startDate}
+                  />
+                </div>
+                <div className="grid content-start gap-1.5">
+                  <FieldLabel>Fee due day</FieldLabel>
+                  <Select
+                    defaultValue={String(defaultFeeDueDay)}
+                    name="invoiceDueDay"
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FEE_DUE_DAYS.map((day) => (
+                        <SelectItem key={day} value={day}>
+                          {day}
+                          {ordinalSuffix(day)} of each month
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Hint>Day of month invoices are due</Hint>
+                </div>
+              </div>
+
+              <div className="grid content-start gap-1.5">
+                <FieldLabel required>Subjects / programmes enrolled</FieldLabel>
+                <ClassPicker
+                  classes={classes}
+                  currency={currency}
+                  error={errors.subjects}
+                  levels={levels}
+                  onToggle={toggleClass}
+                  selectedIds={selectedClassIds}
+                />
+              </div>
+
+              {selectedClasses.length > 0 ? (
+                <FeeSummaryBar
+                  currency={currency}
+                  subjectCount={selectedClasses.length}
+                  totalSen={effectiveTotalSen}
+                />
+              ) : null}
+
+              <CustomFeeField
+                customFee={customFee}
+                error={errors.customFee}
+                onChange={(value) => {
+                  setCustomFee(value);
+                  clearError("customFee");
+                }}
+                singleSelection={singleSelection}
+                subjectTotalSen={subjectTotalSen}
               />
-            </div>
-            <div className="grid content-start gap-1.5">
-              <FieldLabel>Fee due day</FieldLabel>
-              <Select
-                defaultValue={String(defaultFeeDueDay)}
-                name="invoiceDueDay"
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {FEE_DUE_DAYS.map((day) => (
-                    <SelectItem key={day} value={day}>
-                      {day}
-                      {ordinalSuffix(day)} of each month
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Hint>Day of month invoices are due</Hint>
-            </div>
-          </div>
-
-          <div className="grid content-start gap-1.5">
-            <FieldLabel required>Subjects / programmes enrolled</FieldLabel>
-            <ClassPicker
-              classes={classes}
-              currency={currency}
-              error={errors.subjects}
-              levels={levels}
-              onToggle={toggleClass}
-              selectedIds={selectedClassIds}
-            />
-          </div>
-
-          {selectedClasses.length > 0 ? (
-            <FeeSummaryBar
-              currency={currency}
-              subjectCount={selectedClasses.length}
-              totalSen={effectiveTotalSen}
-            />
-          ) : null}
-
-          <CustomFeeField
-            customFee={customFee}
-            error={errors.customFee}
-            onChange={(value) => {
-              setCustomFee(value);
-              clearError("customFee");
-            }}
-            singleSelection={singleSelection}
-            subjectTotalSen={subjectTotalSen}
-          />
+            </TabsPanel>
+          </Tabs>
         </FormSectionCard>
 
         <Collapsible>
@@ -1262,37 +1129,9 @@ export const StudentCreateForm = ({
             Please complete all required fields before saving.
           </div>
         ) : null}
-
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <Button
-            className="flex-1"
-            disabled={isPending}
-            size="lg"
-            type="submit"
-          >
-            {isPending ? (
-              <>
-                <Loader2Icon className="size-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <CheckIcon className="size-4" />
-                Save Student
-              </>
-            )}
-          </Button>
-          <Button
-            render={<Link href="/students" />}
-            size="lg"
-            variant="outline"
-          >
-            Cancel
-          </Button>
-        </div>
       </section>
 
-      <aside className="grid content-start gap-4 xl:sticky xl:top-4 xl:self-start">
+      <aside className="order-2 grid content-start gap-4 xl:sticky xl:top-4 xl:col-start-2 xl:row-start-1 xl:self-start">
         <CreateProfilePreview
           currency={currency}
           enrolledSubjects={selectedClasses.map((learningClass) => ({
@@ -1315,6 +1154,25 @@ export const StudentCreateForm = ({
           totalSen={effectiveTotalSen}
         />
       </aside>
+
+      <div className="order-3 flex flex-col gap-3 sm:flex-row xl:col-start-1 xl:row-start-2">
+        <Button className="flex-1" disabled={isPending} size="lg" type="submit">
+          {isPending ? (
+            <>
+              <Loader2Icon className="size-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <CheckIcon className="size-4" />
+              Save Student
+            </>
+          )}
+        </Button>
+        <Button render={<Link href="/students" />} size="lg" variant="outline">
+          Cancel
+        </Button>
+      </div>
     </form>
   );
 };
