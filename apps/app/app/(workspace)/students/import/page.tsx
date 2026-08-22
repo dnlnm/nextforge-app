@@ -29,6 +29,17 @@ const label = (status: string) => status.toLowerCase().replaceAll("_", " ");
 
 const StudentImportPage = async () => {
   const tenant = await requireTenantRole(["ADMIN"]);
+  // ponytail: retention sweep only runs when an ADMIN opens this page; move to
+  // a scheduled job if cleanup latency ever matters.
+  await database.studentImport
+    .deleteMany({
+      where: {
+        organizationId: tenant.organizationId,
+        status: { in: ["COMPLETED", "COMPLETED_WITH_ERRORS", "FAILED"] },
+        createdAt: { lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
+      },
+    })
+    .catch(() => undefined);
   const history = await database.studentImport.findMany({
     where: { organizationId: tenant.organizationId },
     orderBy: { createdAt: "desc" },

@@ -7,12 +7,21 @@ const mime =
 
 export const GET = async () => {
   const tenant = await requireTenantRole(["ADMIN"]);
-  const levels = await database.level.findMany({
-    where: { organizationId: tenant.organizationId, archivedAt: null },
-    orderBy: [{ order: "asc" }, { name: "asc" }],
-    select: { code: true, name: true },
+  const [levels, organization] = await Promise.all([
+    database.level.findMany({
+      where: { organizationId: tenant.organizationId, archivedAt: null },
+      orderBy: [{ order: "asc" }, { name: "asc" }],
+      select: { code: true, name: true },
+    }),
+    database.organization.findUnique({
+      where: { id: tenant.organizationId },
+      select: { name: true },
+    }),
+  ]);
+  const workbook = await createStudentTemplate(levels, organization?.name);
+  console.info("Student import template downloaded", {
+    organizationId: tenant.organizationId,
   });
-  const workbook = await createStudentTemplate(levels);
   return new Response(workbook, {
     headers: {
       "Content-Type": mime,

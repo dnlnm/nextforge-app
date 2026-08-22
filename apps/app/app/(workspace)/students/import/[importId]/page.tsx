@@ -29,6 +29,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Header } from "../../../components/header";
 import { ImportStepper } from "../import-stepper";
+import { columns as importColumns } from "../lib/validation";
+import { issuesToMessages } from "../lib/workbook";
+import { ImportReview } from "./import-review";
 import { ImportRunner } from "./import-runner";
 
 const terminalStatuses = new Set(["COMPLETED", "COMPLETED_WITH_ERRORS"]);
@@ -41,16 +44,23 @@ const ImportDetailPage = async ({
 }) => {
   const tenant = await requireTenantRole(["ADMIN"]);
   const { importId } = await params;
-  const studentImport = await database.studentImport.findFirst({
-    where: { id: importId, organizationId: tenant.organizationId },
-    include: {
-      rows: {
-        where: { status: { in: ["INVALID", "DUPLICATE", "FAILED"] } },
-        orderBy: { rowNumber: "asc" },
-        take: 100,
+  const [studentImport, levels] = await Promise.all([
+    database.studentImport.findFirst({
+      where: { id: importId, organizationId: tenant.organizationId },
+      include: {
+        rows: {
+          where: { status: { in: ["INVALID", "DUPLICATE", "FAILED"] } },
+          orderBy: { rowNumber: "asc" },
+          take: 100,
+        },
       },
-    },
-  });
+    }),
+    database.level.findMany({
+      where: { organizationId: tenant.organizationId, archivedAt: null },
+      orderBy: [{ order: "asc" }, { name: "asc" }],
+      select: { code: true, name: true },
+    }),
+  ]);
   if (!studentImport) {
     notFound();
   }
@@ -161,7 +171,27 @@ const ImportDetailPage = async ({
             )}
           </CardContent>
         </CardShell>
-        {studentImport.rows.length > 0 && (
+        {studentImport.status === "READY" && (
+          <CardShell>
+            <CardHeader>
+              <CardTitle>Review &amp; fix</CardTitle>
+              <CardDescription>
+                Click any highlighted cell to correct it. Fixes revalidate
+                immediately without re-uploading the workbook.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ImportReview
+                columnNames={importColumns}
+                importId={importId}
+                levelOptions={levels.map(
+                  (level) => `${level.code} - ${level.name}`
+                )}
+              />
+            </CardContent>
+          </CardShell>
+        )}
+        {studentImport.status !== "READY" && studentImport.rows.length > 0 && (
           <CardShell>
             <CardHeader>
               <CardTitle>Rows requiring attention</CardTitle>
@@ -181,9 +211,7 @@ const ImportDetailPage = async ({
                 <TableBody>
                   {studentImport.rows.map((row) => {
                     const raw = row.rawData as Record<string, unknown>;
-                    const errors = Array.isArray(row.errors)
-                      ? row.errors.map(String)
-                      : [];
+                    const errors = issuesToMessages(row.errors);
                     return (
                       <TableRow key={row.id}>
                         <TableCell>{row.rowNumber}</TableCell>

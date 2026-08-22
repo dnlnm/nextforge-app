@@ -105,8 +105,14 @@ describe("student import workbooks", () => {
       buffer: Buffer.from(await workbook.xlsx.writeBuffer()),
       levels,
     });
-    expect(result.rows[0]?.errors).toContain(
-      "Formula cells are not allowed: Student Name."
+    expect(result.rows[0]?.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          field: "Student Name",
+          code: "FORMULA_CELL",
+          message: "Formula cells are not allowed: Student Name.",
+        }),
+      ])
     );
   });
 
@@ -121,7 +127,8 @@ describe("student import workbooks", () => {
       levels,
     });
     expect(result.rows[0]?.status).toBe("INVALID");
-    expect(result.rows[0]?.errors).toEqual(
+    const messages = result.rows[0]?.issues.map((entry) => entry.message);
+    expect(messages).toEqual(
       expect.arrayContaining([
         "Student name is required.",
         "Guardian phone is invalid.",
@@ -129,6 +136,9 @@ describe("student import workbooks", () => {
         "Academic level does not exist in this tuition centre.",
       ])
     );
+    expect(
+      result.rows[0]?.issues.find((entry) => entry.code === "REQUIRED")
+    ).toMatchObject({ field: "Student Name" });
   });
 
   it("marks repeated workbook rows as duplicates", async () => {
@@ -152,9 +162,16 @@ describe("student import workbooks", () => {
       levels,
     });
     expect(result.rows.map((row) => row.status)).toEqual([
-      "VALID",
+      "DUPLICATE",
       "DUPLICATE",
     ]);
+    for (const row of result.rows) {
+      expect(row.issues).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ code: "DUPLICATE_IN_FILE" }),
+        ])
+      );
+    }
   });
 
   it("neutralizes formula-like values in error reports", async () => {

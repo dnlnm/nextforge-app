@@ -87,8 +87,8 @@ export const ImportRunner = ({
         <Alert>
           <AlertTitle>Nothing has been imported yet</AlertTitle>
           <AlertDescription>
-            Valid rows will create new students and guardians. Invalid and
-            duplicate rows will be skipped.
+            All rows must be valid before importing. Fix highlighted cells in
+            the review table; valid rows will create new students and guardians.
           </AlertDescription>
         </Alert>
         <AlertDialog>
@@ -113,8 +113,8 @@ export const ImportRunner = ({
                 Import {validRows.toLocaleString()} students?
               </AlertDialogTitle>
               <AlertDialogDescription>
-                This creates new student and guardian records. Invalid and
-                duplicate rows remain skipped, and this import cannot be undone.
+                This creates new student and guardian records. Imports only
+                start when every row is valid, and this cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
