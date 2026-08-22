@@ -20,13 +20,22 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface UserMenuProperties {
-  readonly userId: string;
+  readonly userName: string | null;
 }
 
-const initials = (name: string) =>
-  (name.split("@")[0]?.slice(0, 2) ?? "AC").toUpperCase();
+const whitespace = /\s+/;
 
-export const UserMenu = ({ userId }: UserMenuProperties) => {
+const initials = (value: string) => {
+  const words = value.split(whitespace).filter(Boolean);
+
+  if (words.length > 1) {
+    return `${words[0]?.[0] ?? ""}${words.at(-1)?.[0] ?? ""}`.toUpperCase();
+  }
+
+  return (value.split("@")[0]?.slice(0, 2) ?? "AC").toUpperCase();
+};
+
+export const UserMenu = ({ userName }: UserMenuProperties) => {
   const router = useRouter();
   const supabase = createClient();
   const [email, setEmail] = useState<string | null>(null);
@@ -57,12 +66,12 @@ export const UserMenu = ({ userId }: UserMenuProperties) => {
       >
         <Avatar className="size-9">
           <AvatarImage
-            alt={email ?? "Account"}
+            alt={userName ?? email ?? "Account"}
             src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
-              email ?? "U"
+              userName ?? email ?? "U"
             )}&background=6366f1&color=fff`}
           />
-          <AvatarFallback>{initials(email ?? "U")}</AvatarFallback>
+          <AvatarFallback>{initials(userName ?? email ?? "U")}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -75,13 +84,16 @@ export const UserMenu = ({ userId }: UserMenuProperties) => {
             <p className="font-medium text-sm leading-none">
               {email ?? "Account"}
             </p>
-            <p className="text-muted-foreground text-xs leading-none">
-              {userId}
-            </p>
+            {userName ? (
+              <p className="text-muted-foreground text-xs leading-none">
+                {userName}
+              </p>
+            ) : null}
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem
+          // biome-ignore lint/a11y/useAnchorContent: DropdownMenuItem injects its children into the anchor via the render prop
           render={<a className="cursor-pointer" href="/account" />}
         >
           <UserIcon />

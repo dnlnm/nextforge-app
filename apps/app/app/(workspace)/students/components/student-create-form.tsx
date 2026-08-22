@@ -1,24 +1,44 @@
 "use client";
 
-import { getMalaysiaCalendarDate } from "@repo/date";
-import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
+  formatCalendarDate,
+  formatNumericShortDate,
+  getMalaysiaCalendarDate,
+  getMalaysiaToday,
+  parseLocalCalendarDate,
+} from "@repo/date";
+import { Button } from "@repo/design-system/components/ui/button";
+import { Calendar } from "@repo/design-system/components/ui/calendar";
+import {
   CardContent,
-  CardDescription,
   CardHeader,
-  CardTitle,
 } from "@repo/design-system/components/ui/card";
 import { CardShell } from "@repo/design-system/components/ui/card-shell";
-import { Checkbox } from "@repo/design-system/components/ui/checkbox";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@repo/design-system/components/ui/collapsible";
-import { DatePicker } from "@repo/design-system/components/ui/date-picker";
+import {
+  Combobox,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxPopup,
+} from "@repo/design-system/components/ui/combobox";
 import { Input } from "@repo/design-system/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@repo/design-system/components/ui/input-group";
 import { Label } from "@repo/design-system/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@repo/design-system/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -26,26 +46,51 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/design-system/components/ui/select";
-import { Separator } from "@repo/design-system/components/ui/separator";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@repo/design-system/components/ui/tabs";
 import { Textarea } from "@repo/design-system/components/ui/textarea";
 import { toastManager } from "@repo/design-system/components/ui/toast";
 import {
+  Tooltip,
+  TooltipPopup,
+  TooltipTrigger,
+} from "@repo/design-system/components/ui/tooltip";
+import { cn } from "@repo/design-system/lib/utils";
+import { formatMoney } from "@repo/money";
+import type { Gender } from "@repo/schemas/enums";
+import {
+  optimizeImageFile,
+  privateFileUrl,
+  uploadToR2,
+} from "@repo/storage/client";
+import {
+  AlertCircleIcon,
   BookOpenIcon,
+  CalendarIcon,
+  CameraIcon,
+  CheckIcon,
   ChevronDownIcon,
+  GraduationCapIcon,
+  InfoIcon,
   Loader2Icon,
+  MoreHorizontalIcon,
+  PlusIcon,
   UserRoundIcon,
   UsersRoundIcon,
+  XIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { useActionState, useEffect, useState } from "react";
-import { StudentPhotoUpload } from "../../components/student-photo-upload";
+import { useActionState, useEffect, useRef, useState } from "react";
+import { StudentAvatar } from "../../components/student-avatar";
 import { createStudent } from "../actions";
+import {
+  deriveDateOfBirthFromIc,
+  deriveGenderFromIc,
+  isValidIcNumber,
+  normalizeIcNumber,
+} from "../lib/ic-number";
+import { ClassPicker, type EnrollableClassOption } from "./class-picker";
+import { CreateProfilePreview } from "./create-profile-preview";
+import { FormSectionCard } from "./form-section-card";
+import { type GuardianDraft, GuardianEditor } from "./guardian-editor";
 
 interface LevelOption {
   readonly id: string;
@@ -53,113 +98,509 @@ interface LevelOption {
 }
 
 interface StudentCreateFormProperties {
-  readonly levels: LevelOption[];
+  readonly classes: readonly EnrollableClassOption[];
+  readonly currency: string;
+  readonly defaultFeeDueDay: number;
+  readonly levels: readonly LevelOption[];
   readonly nextCode: string;
 }
 
-const Required = () => <span className="text-destructive">*</span>;
+const SCHOOL_TYPES = [
+  "SK (National)",
+  "SJKC (Chinese)",
+  "SJKT (Tamil)",
+  "SMK (Secondary)",
+  "Private",
+  "International",
+];
+const REFERRAL_SOURCES = [
+  "Friend / Word of mouth",
+  "Facebook",
+  "Instagram",
+  "Google Search",
+  "Banner / Flyer",
+  "Walk-in",
+  "WhatsApp broadcast",
+  "Other",
+];
+const GENDER_OPTIONS: ReadonlyArray<{
+  readonly label: string;
+  readonly value: Gender;
+}> = [
+  { label: "Male", value: "MALE" },
+  { label: "Female", value: "FEMALE" },
+];
 
-const HelperText = ({ children }: { children: React.ReactNode }) => (
-  <p className="text-muted-foreground text-xs">{children}</p>
+const FEE_DUE_DAYS = Array.from({ length: 28 }, (_, index) =>
+  String(index + 1)
 );
-
-const FieldError = ({ message }: { message?: string }) =>
-  message ? <p className="text-destructive text-xs">{message}</p> : null;
-
-const getValue = (formData: FormData, key: string) => {
-  const value = formData.get(key);
-
-  return typeof value === "string" ? value.trim() : "";
-};
-
+const maxPhotoSizeBytes = 2 * 1024 * 1024;
+const phoneRegex = /^01\d{8,10}$/;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phoneStripRegex = /[-\s]/g;
-const phoneRegex = /^01\d{8,10}$/;
-const postcodeRegex = /^\d{5}$/;
 
-const isValidEmail = (email: string) => emailRegex.test(email);
+const uid = () => Math.random().toString(36).slice(2, 10);
 
-const isValidPhone = (phone: string) =>
-  phoneRegex.test(phone.replace(phoneStripRegex, ""));
+const blankGuardian = (): GuardianDraft => ({
+  email: "",
+  fullName: "",
+  icNumber: "",
+  id: uid(),
+  phone: "",
+  relationship: "",
+  sameAsPhone: true,
+  whatsapp: "",
+});
 
-const isValidPostcode = (postcode: string) => postcodeRegex.test(postcode);
+const ORDINAL_SUFFIXES: Record<string, string> = {
+  "1": "st",
+  "2": "nd",
+  "3": "rd",
+};
 
-const validate = (formData: FormData): Record<string, string> => {
+const ordinalSuffix = (day: string) => ORDINAL_SUFFIXES[day] ?? "th";
+
+const isoFromDate = (date: Date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+    date.getDate()
+  ).padStart(2, "0")}`;
+
+interface CalendarDropdownItem {
+  readonly disabled?: boolean;
+  readonly label: string;
+  readonly value: string;
+}
+
+interface CalendarDropdownProps {
+  readonly "aria-label"?: string;
+  readonly onChange?: (event: React.ChangeEvent<HTMLSelectElement>) => void;
+  readonly options?: ReadonlyArray<{
+    readonly disabled?: boolean;
+    readonly label: string;
+    readonly value: number | string;
+  }>;
+  readonly value?: number | string | readonly string[];
+}
+
+/**
+ * Month/year dropdown for the calendar caption, rendered as a coss Combobox
+ * (adapted from the coss p-date-picker-3 particle).
+ */
+const CalendarDropdown = (props: CalendarDropdownProps) => {
+  const { "aria-label": ariaLabel, onChange, options, value } = props;
+  const items: CalendarDropdownItem[] =
+    options?.map((option) => ({
+      disabled: option.disabled,
+      label: option.label,
+      value: option.value.toString(),
+    })) ?? [];
+  const selectedItem = items.find((item) => item.value === value?.toString());
+
+  return (
+    <Combobox
+      aria-label={ariaLabel}
+      autoHighlight
+      items={items}
+      onValueChange={(newValue) => {
+        if (onChange && newValue) {
+          onChange({
+            target: { value: newValue.value },
+          } as React.ChangeEvent<HTMLSelectElement>);
+        }
+      }}
+      value={selectedItem}
+    >
+      <ComboboxInput
+        className="**:[input]:w-0 **:[input]:flex-1"
+        onFocus={(event) => event.currentTarget.select()}
+      />
+      <ComboboxPopup aria-label={ariaLabel}>
+        <ComboboxEmpty>No items found.</ComboboxEmpty>
+        <ComboboxList>
+          {(item: CalendarDropdownItem) => (
+            <ComboboxItem
+              disabled={item.disabled}
+              key={item.value}
+              value={item}
+            >
+              {item.label}
+            </ComboboxItem>
+          )}
+        </ComboboxList>
+      </ComboboxPopup>
+    </Combobox>
+  );
+};
+
+const parseMoney = (value: string): number | null => {
+  if (value.trim() === "") {
+    return null;
+  }
+
+  const parsed = Number.parseFloat(value);
+
+  return Number.isNaN(parsed) || parsed <= 0 ? null : Math.round(parsed * 100);
+};
+
+const validateGuardians = (
+  guardians: readonly GuardianDraft[]
+): Record<string, string> => {
   const errors: Record<string, string> = {};
-  const fullName = getValue(formData, "fullName");
-  const gender = getValue(formData, "gender");
-  const levelId = getValue(formData, "levelId");
-  const studentPhone = getValue(formData, "studentPhone");
-  const studentEmail = getValue(formData, "studentEmail");
-  const postcode = getValue(formData, "postcode");
-  const guardianName = getValue(formData, "guardianName");
-  const relationship = getValue(formData, "relationship");
-  const guardianPhone = getValue(formData, "guardianPhone");
-  const guardianEmail = getValue(formData, "guardianEmail");
 
-  if (!fullName) {
-    errors.fullName = "Full name is required.";
-  }
+  guardians.forEach((guardian, index) => {
+    if (!guardian.fullName.trim()) {
+      errors[`guardian${index}name`] = "Guardian name is required.";
+    }
 
-  if (!gender) {
-    errors.gender = "Please select a gender.";
-  }
+    if (!phoneRegex.test(guardian.phone.replace(phoneStripRegex, ""))) {
+      errors[`guardian${index}phone`] =
+        "Enter a valid Malaysian phone number (e.g. 012-3456789).";
+    }
 
-  if (!levelId) {
-    errors.levelId = "Please select the current grade or form.";
-  }
-
-  if (studentPhone && !isValidPhone(studentPhone)) {
-    errors.studentPhone =
-      "Enter a valid Malaysian phone number (e.g. 012-3456789).";
-  }
-
-  if (studentEmail && !isValidEmail(studentEmail)) {
-    errors.studentEmail = "Enter a valid email address.";
-  }
-
-  if (postcode && !isValidPostcode(postcode)) {
-    errors.postcode = "Enter a 5-digit postcode.";
-  }
-
-  if (!guardianName) {
-    errors.guardianName = "Guardian name is required.";
-  }
-
-  if (!relationship) {
-    errors.relationship = "Please select a relationship.";
-  }
-
-  if (!guardianPhone) {
-    errors.guardianPhone = "Guardian phone number is required.";
-  } else if (!isValidPhone(guardianPhone)) {
-    errors.guardianPhone =
-      "Enter a valid Malaysian phone number (e.g. 012-3456789).";
-  }
-
-  if (guardianEmail && !isValidEmail(guardianEmail)) {
-    errors.guardianEmail = "Enter a valid email address.";
-  }
-
-  if (!(studentEmail || guardianEmail)) {
-    errors.guardianEmail =
-      "At least one email address is required (student or guardian).";
-  }
+    if (index === 0) {
+      if (!guardian.email.trim()) {
+        errors.guardian0email = "Primary guardian email is required.";
+      } else if (!emailRegex.test(guardian.email)) {
+        errors.guardian0email = "Enter a valid email address.";
+      }
+    } else if (guardian.email && !emailRegex.test(guardian.email)) {
+      errors[`guardian${index}email`] = "Enter a valid email address.";
+    }
+  });
 
   return errors;
 };
+const FieldLabel = ({
+  children,
+  htmlFor,
+  required,
+}: {
+  readonly children: React.ReactNode;
+  readonly htmlFor?: string;
+  readonly required?: boolean;
+}) => (
+  <Label htmlFor={htmlFor}>
+    {children}
+    {required ? <span className="text-destructive text-xs"> *</span> : null}
+  </Label>
+);
+
+const Hint = ({ children }: { readonly children: React.ReactNode }) => (
+  <p className="flex items-center gap-1 text-muted-foreground text-xs">
+    <InfoIcon className="size-3" />
+    {children}
+  </p>
+);
+
+const FieldErrorText = ({ message }: { readonly message?: string }) =>
+  message ? (
+    <p className="flex items-center gap-1 text-destructive text-xs">
+      <AlertCircleIcon className="size-3" />
+      {message}
+    </p>
+  ) : null;
+
+const PhotoUploadTile = ({
+  onPreviewUrlChange,
+}: {
+  readonly onPreviewUrlChange: (url: string | null) => void;
+}) => {
+  const [photoKey, setPhotoKey] = useState("");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(
+    () => () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    },
+    [previewUrl]
+  );
+
+  useEffect(() => {
+    onPreviewUrlChange(
+      previewUrl ?? (photoKey ? privateFileUrl(photoKey) : null)
+    );
+  }, [onPreviewUrlChange, photoKey, previewUrl]);
+
+  const handleFileChange = async (file: File | undefined) => {
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setError("Photo must be an image.");
+      return;
+    }
+
+    if (file.size > maxPhotoSizeBytes) {
+      setError("Photo must be 2MB or smaller.");
+      return;
+    }
+
+    setError(null);
+    setIsUploading(true);
+
+    try {
+      const optimized = await optimizeImageFile(file, {
+        fileType: "image/webp",
+        maxWidthOrHeight: 512,
+        maxSizeMB: 0.5,
+      });
+
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      const nextPreview = URL.createObjectURL(optimized);
+      setPreviewUrl(nextPreview);
+
+      const { key } = await uploadToR2(optimized, "/api/uploads/student-photo");
+      setPhotoKey(key);
+    } catch (uploadError) {
+      setError(
+        uploadError instanceof Error ? uploadError.message : "Upload failed"
+      );
+      setPreviewUrl(null);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const hasPhoto = Boolean(previewUrl || photoKey);
+
+  const handleRemove = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+
+    setPreviewUrl(null);
+    setPhotoKey("");
+    setError(null);
+
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
+  };
+
+  return (
+    <div className="flex shrink-0 flex-col items-center gap-2">
+      <div className="relative">
+      <button
+        aria-label="Upload student photo"
+        className={cn(
+          "group relative flex size-20 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed bg-muted transition-all hover:border-primary/50 hover:bg-primary/5",
+          isUploading && "opacity-60"
+        )}
+          onClick={() => inputRef.current?.click()}
+          type="button"
+        >
+          {previewUrl ? (
+            <>
+            <StudentAvatar
+              className="size-full"
+              name="Student photo"
+              photoUrl={previewUrl}
+            />
+              <span className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                <CameraIcon className="size-4 text-white" />
+              </span>
+            </>
+          ) : (
+            <CameraIcon className="size-5 text-muted-foreground transition-colors group-hover:text-primary" />
+          )}
+        </button>
+        {hasPhoto ? (
+          <button
+            aria-label="Remove photo"
+            className="absolute -right-1 -top-1 flex size-6 items-center justify-center rounded-full border bg-card text-muted-foreground shadow-sm transition-colors hover:border-destructive/50 hover:bg-destructive hover:text-destructive-foreground"
+            onClick={handleRemove}
+            type="button"
+          >
+            <XIcon className="size-3.5" />
+          </button>
+        ) : null}
+      </div>
+      <p className="text-center text-[10px] text-muted-foreground leading-tight">
+        Photo
+        <br />
+        (optional)
+      </p>
+      <input
+        accept="image/*"
+        className="hidden"
+        onChange={(event) => handleFileChange(event.target.files?.[0])}
+        ref={inputRef}
+        type="file"
+      />
+      <input name="photoKey" type="hidden" value={photoKey} />
+      {error ? <p className="text-destructive text-xs">{error}</p> : null}
+    </div>
+  );
+};
+
+const IsoDatePicker = ({
+  endMonth,
+  name,
+  onChange,
+  placeholder = "Select date",
+  startMonth,
+  toDisplay = (selected: Date) => formatCalendarDate(selected),
+  value,
+}: {
+  readonly endMonth?: Date;
+  readonly name: string;
+  readonly onChange: (iso: string) => void;
+  readonly placeholder?: string;
+  readonly startMonth?: Date;
+  readonly toDisplay?: (selected: Date) => string;
+  readonly value: string;
+}) => {
+  const [open, setOpen] = useState(false);
+  const selected = parseLocalCalendarDate(value);
+
+  return (
+    <div>
+      <Popover onOpenChange={setOpen} open={open}>
+        <PopoverTrigger
+          render={
+            <Button
+              className="w-full justify-start text-left font-normal"
+              type="button"
+              variant="outline"
+            />
+          }
+        >
+          <CalendarIcon className="size-4 text-muted-foreground" />
+          <span className="min-w-0 truncate">
+            {selected ? toDisplay(selected) : placeholder}
+          </span>
+        </PopoverTrigger>
+        <PopoverContent align="start" className="w-auto p-0">
+          <Calendar
+            captionLayout="dropdown"
+            components={{ Dropdown: CalendarDropdown }}
+            defaultMonth={selected ?? undefined}
+            endMonth={endMonth}
+            mode="single"
+            onSelect={(day) => {
+              if (day) {
+                onChange(isoFromDate(day));
+                setOpen(false);
+              }
+            }}
+            selected={selected ?? undefined}
+            startMonth={startMonth}
+          />
+        </PopoverContent>
+      </Popover>
+      <input name={name} type="hidden" value={value} />
+    </div>
+  );
+};
+
+const FeeSummaryBar = ({
+  currency,
+  subjectCount,
+  totalSen,
+}: {
+  readonly currency: string;
+  readonly subjectCount: number;
+  readonly totalSen: number;
+}) => (
+  <div className="flex items-center justify-between rounded-lg border border-primary/10 bg-secondary/50 px-3 py-2.5">
+    <span className="text-muted-foreground text-xs">
+      {subjectCount} subject{subjectCount !== 1 ? "s" : ""} · monthly total
+    </span>
+    <span className="font-bold text-primary text-sm">
+      {formatMoney(totalSen, { currency })}
+    </span>
+  </div>
+);
+
+const CustomFeeField = ({
+  customFee,
+  error,
+  onChange,
+  singleSelection,
+  subjectTotalSen,
+}: {
+  readonly customFee: string;
+  readonly error?: string;
+  readonly onChange: (value: string) => void;
+  readonly singleSelection: boolean;
+  readonly subjectTotalSen: number;
+}) => (
+  <div className="grid content-start gap-1.5">
+    <FieldLabel htmlFor="customFee">Custom monthly fee (optional)</FieldLabel>
+    <div className="relative">
+      <span className="absolute top-1/2 left-3 -translate-y-1/2 font-semibold text-muted-foreground text-sm">
+        RM
+      </span>
+      <Input
+        aria-invalid={error ? true : undefined}
+        className={cn(
+          "pl-10",
+          error && "border-destructive focus-visible:ring-destructive/50"
+        )}
+        disabled={!singleSelection}
+        id="customFee"
+        inputMode="decimal"
+        min="0"
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={
+          singleSelection && subjectTotalSen > 0
+            ? (subjectTotalSen / 100).toFixed(2)
+            : "0.00"
+        }
+        step="0.01"
+        type="number"
+        value={customFee}
+      />
+    </div>
+    {error ? (
+      <FieldErrorText message={error} />
+    ) : (
+      <Hint>
+        {singleSelection
+          ? "Overrides the subject-based total"
+          : "Available when exactly one subject is selected"}
+      </Hint>
+    )}
+  </div>
+);
 
 export const StudentCreateForm = ({
+  classes,
+  currency,
+  defaultFeeDueDay,
   levels,
   nextCode,
 }: StudentCreateFormProperties) => {
   const [state, formAction, isPending] = useActionState(
-    async (_state: { error?: string }, formData: FormData) =>
+    async (_previous: { error?: string }, formData: FormData) =>
       createStudent(formData),
     {}
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [sameAsStudentAddress, setSameAsStudentAddress] = useState(true);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [icDigits, setIcDigits] = useState("");
+  const [dobDate, setDobDate] = useState("");
+  const [gender, setGender] = useState<Gender | "">("");
+  const [levelId, setLevelId] = useState("");
+  const [schoolName, setSchoolName] = useState("");
+  const [studentEmail, setStudentEmail] = useState("");
+  const [studentPhone, setStudentPhone] = useState("");
+  const [guardians, setGuardians] = useState<GuardianDraft[]>([
+    blankGuardian(),
+  ]);
+  const [selectedClassIds, setSelectedClassIds] = useState<string[]>([]);
+  const [customFee, setCustomFee] = useState("");
+  const [startDate, setStartDate] = useState(getMalaysiaCalendarDate());
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (state.error) {
@@ -178,9 +619,137 @@ export const StudentCreateForm = ({
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, []);
 
+  const clearError = (key: string) =>
+    setErrors((previous) => {
+      if (!(key in previous)) {
+        return previous;
+      }
+
+      const next = { ...previous };
+      delete next[key];
+
+      return next;
+    });
+
+  const fullName = [firstName, lastName].filter(Boolean).join(" ").trim();
+  const selectedClasses = classes.filter((learningClass) =>
+    selectedClassIds.includes(learningClass.id)
+  );
+  const subjectTotalSen = selectedClasses.reduce(
+    (sum, learningClass) => sum + learningClass.monthlyFeeSen,
+    0
+  );
+  const customFeeSen = parseMoney(customFee);
+  const singleSelection = selectedClasses.length === 1;
+  const effectiveTotalSen =
+    singleSelection && customFeeSen !== null ? customFeeSen : subjectTotalSen;
+  const gradeLabel = levels.find((level) => level.id === levelId)?.name ?? "";
+  const primaryGuardian = guardians[0];
+  const genderLabel =
+    gender === ""
+      ? ""
+      : (GENDER_OPTIONS.find((option) => option.value === gender)?.label ?? "");
+
+  const handleIcChange = (value: string) => {
+    const digits = normalizeIcNumber(value);
+
+    setIcDigits(digits);
+    clearError("icNumber");
+
+    if (digits.length >= 6) {
+      const iso = deriveDateOfBirthFromIc(digits);
+
+      if (iso) {
+        setDobDate(iso);
+      }
+    }
+
+    if (digits.length === 12) {
+      setGender(deriveGenderFromIc(digits) ?? "");
+    }
+  };
+
+  const updateGuardian = (id: string, patch: Partial<GuardianDraft>) =>
+    setGuardians((previous) =>
+      previous.map((guardian) =>
+        guardian.id === id ? { ...guardian, ...patch } : guardian
+      )
+    );
+
+  const removeGuardian = (id: string) =>
+    setGuardians((previous) =>
+      previous.length > 1
+        ? previous.filter((guardian) => guardian.id !== id)
+        : previous
+    );
+
+  const addGuardian = () =>
+    setGuardians((previous) =>
+      previous.length < 3 ? [...previous, blankGuardian()] : previous
+    );
+
+  const toggleClass = (classId: string) => {
+    setSelectedClassIds((previous) =>
+      previous.includes(classId)
+        ? previous.filter((id) => id !== classId)
+        : [...previous, classId]
+    );
+    clearError("subjects");
+  };
+
+  const handleLevelChange = (value: string | null) => {
+    setLevelId(value ?? "");
+    setSelectedClassIds([]);
+    clearError("levelId");
+    clearError("subjects");
+  };
+
+  const validate = (): Record<string, string> => {
+    const next: Record<string, string> = {};
+
+    if (!firstName.trim()) {
+      next.firstName = "First name is required.";
+    }
+
+    if (!gender) {
+      next.gender = "Please select a gender.";
+    }
+
+    if (!levelId) {
+      next.levelId = "Please select the current grade or form.";
+    }
+
+    if (icDigits && !isValidIcNumber(icDigits)) {
+      next.icNumber = "IC / MyKid number must be exactly 12 digits.";
+    }
+
+    if (studentEmail && !emailRegex.test(studentEmail)) {
+      next.studentEmail = "Enter a valid email address.";
+    }
+
+    if (
+      studentPhone &&
+      !phoneRegex.test(studentPhone.replace(phoneStripRegex, ""))
+    ) {
+      next.studentPhone =
+        "Enter a valid Malaysian phone number (e.g. 012-3456789).";
+    }
+
+    if (selectedClassIds.length === 0) {
+      next.subjects = "Enroll at least one subject.";
+    }
+
+    if (customFee.trim() !== "" && customFeeSen === null) {
+      next.customFee = "Enter a valid amount greater than zero.";
+    }
+
+    Object.assign(next, validateGuardians(guardians));
+
+    return next;
+  };
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    const formData = new FormData(event.currentTarget);
-    const validationErrors = validate(formData);
+    const validationErrors = validate();
 
     setErrors(validationErrors);
 
@@ -188,6 +757,22 @@ export const StudentCreateForm = ({
       event.preventDefault();
     }
   };
+
+  const guardiansPayload = guardians.map((guardian) => ({
+    email: guardian.email.trim() || undefined,
+    fullName: guardian.fullName.trim(),
+    icNumber: normalizeIcNumber(guardian.icNumber) || undefined,
+    phone: guardian.phone.trim(),
+    relationship: guardian.relationship || undefined,
+    whatsapp:
+      (guardian.sameAsPhone ? guardian.phone : guardian.whatsapp).trim() ||
+      undefined,
+  }));
+
+  const enrollmentsPayload = selectedClasses.map((learningClass) => ({
+    classId: learningClass.id,
+    ...(singleSelection && customFeeSen !== null ? { customFeeSen } : {}),
+  }));
 
   const errorClassName = (hasError: boolean) =>
     hasError ? "border-destructive focus-visible:ring-destructive/50" : "";
@@ -198,482 +783,475 @@ export const StudentCreateForm = ({
       className="grid items-start gap-5 xl:grid-cols-[1fr_300px] 2xl:grid-cols-[1fr_360px]"
       onSubmit={handleSubmit}
     >
+      <input name="fullName" type="hidden" value={fullName} />
+      <input name="firstName" type="hidden" value={firstName.trim()} />
+      <input name="lastName" type="hidden" value={lastName.trim()} />
+      <input name="icNumber" type="hidden" value={icDigits} />
+      <input
+        name="guardiansJson"
+        type="hidden"
+        value={JSON.stringify(guardiansPayload)}
+      />
+      <input
+        name="enrollmentsJson"
+        type="hidden"
+        value={JSON.stringify(enrollmentsPayload)}
+      />
+
       <section className="grid content-start gap-5">
-        <CardShell>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3 text-base">
-              <UserRoundIcon className="size-5 text-muted-foreground" />
-              Personal Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-5">
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="grid gap-2">
-                <Label htmlFor="fullName">
-                  Full Name <Required />
-                </Label>
+        <FormSectionCard
+          icon={UserRoundIcon}
+          subtitle="Legal name as per IC / birth certificate"
+          title="Student Information"
+        >
+          <div className="flex items-start gap-5">
+            <PhotoUploadTile onPreviewUrlChange={setPhotoUrl} />
+            <div className="grid flex-1 gap-4 sm:grid-cols-2">
+              <div className="grid content-start gap-1.5">
+                <FieldLabel htmlFor="firstName" required>
+                  First name
+                </FieldLabel>
                 <Input
-                  aria-invalid={Boolean(errors.fullName)}
-                  className={errorClassName(Boolean(errors.fullName))}
-                  id="fullName"
-                  name="fullName"
-                  placeholder="Enter full name"
-                  required
+                  aria-invalid={errors.firstName ? true : undefined}
+                  className={errorClassName(Boolean(errors.firstName))}
+                  id="firstName"
+                  onChange={(event) => {
+                    setFirstName(event.target.value);
+                    clearError("firstName");
+                  }}
+                  placeholder="e.g. Nurul Aisyah / Wei Jie / Priya"
+                  value={firstName}
                 />
-                <FieldError message={errors.fullName} />
+                <FieldErrorText message={errors.firstName} />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                <DatePicker
-                  className="!justify-center !text-center w-40"
-                  id="dateOfBirth"
-                  name="dateOfBirth"
-                  placeholder="Select date of birth"
-                />
-                <HelperText>Optional</HelperText>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="enrolledAt">
-                  Enrollment Date <Required />
-                </Label>
-                <DatePicker
-                  className="!justify-center !text-center w-40"
-                  defaultValue={getMalaysiaCalendarDate()}
-                  id="enrolledAt"
-                  name="enrolledAt"
-                  placeholder="Select enrollment date"
+              <div className="grid content-start gap-1.5">
+                <FieldLabel htmlFor="lastName">
+                  Last name / Family name
+                </FieldLabel>
+                <Input
+                  id="lastName"
+                  onChange={(event) => setLastName(event.target.value)}
+                  placeholder="e.g. binti Ahmad / Tan / a/p Kumar"
+                  value={lastName}
                 />
               </div>
             </div>
+          </div>
 
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="grid gap-2">
-                <Label htmlFor="gender">
-                  Gender <Required />
-                </Label>
-                <Select name="gender">
-                  <SelectTrigger
-                    aria-invalid={Boolean(errors.gender)}
-                    className={errorClassName(Boolean(errors.gender))}
-                    id="gender"
-                  >
-                    <SelectValue placeholder="Select gender" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="MALE">Male</SelectItem>
-                    <SelectItem value="FEMALE">Female</SelectItem>
-                    <SelectItem value="OTHER">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FieldError message={errors.gender} />
-              </div>
-            </div>
-          </CardContent>
-        </CardShell>
-
-        <Collapsible defaultOpen>
-          <CardShell>
-            <CardHeader className="flex-row items-center justify-between gap-4">
-              <div>
-                <CardTitle className="text-base">
-                  Contact &amp; Address
-                </CardTitle>
-                <CardDescription className="mt-1">
-                  Optional contact details and home address.
-                </CardDescription>
-              </div>
-              <CollapsibleTrigger
-                render={<Button size="icon" type="button" variant="ghost" />}
-              >
-                <ChevronDownIcon className="size-4 in-[[data-panel-open]]:rotate-180 transition-transform" />
-                <span className="sr-only">Toggle contact and address</span>
-              </CollapsibleTrigger>
-            </CardHeader>
-            <CollapsibleContent>
-              <CardContent className="grid gap-5">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="grid gap-2">
-                    <Label htmlFor="studentPhone">Phone Number</Label>
-                    <div className="grid grid-cols-[96px_1fr] gap-2">
-                      <Select defaultValue="60" name="studentPhoneCode">
-                        <SelectTrigger id="studentPhoneCode">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="60">+60</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Input
-                        aria-invalid={Boolean(errors.studentPhone)}
-                        className={errorClassName(Boolean(errors.studentPhone))}
-                        id="studentPhone"
-                        name="studentPhone"
-                        placeholder="012-3456789"
-                      />
-                    </div>
-                    <FieldError message={errors.studentPhone} />
-                    <HelperText>Format: 012-3456789 or 0123456789</HelperText>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="studentEmail">Email Address</Label>
-                    <Input
-                      aria-invalid={Boolean(errors.studentEmail)}
-                      className={errorClassName(Boolean(errors.studentEmail))}
-                      id="studentEmail"
-                      name="studentEmail"
-                      placeholder="Enter email address"
-                      type="email"
-                    />
-                    <FieldError message={errors.studentEmail} />
-                    <HelperText>
-                      Student or guardian email is required.
-                    </HelperText>
-                  </div>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="grid gap-2">
-                    <Label htmlFor="addressLine1">Address Line 1</Label>
-                    <Input
-                      id="addressLine1"
-                      name="addressLine1"
-                      placeholder="Unit/building and street name"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="addressLine2">Address Line 2</Label>
-                    <Input
-                      id="addressLine2"
-                      name="addressLine2"
-                      placeholder="Area, neighbourhood (optional)"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div className="grid gap-2">
-                    <Label htmlFor="postcode">Postcode</Label>
-                    <Input
-                      aria-invalid={Boolean(errors.postcode)}
-                      className={errorClassName(Boolean(errors.postcode))}
-                      id="postcode"
-                      name="postcode"
-                      placeholder="50000"
-                    />
-                    <FieldError message={errors.postcode} />
-                    <HelperText>5-digit postcode</HelperText>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="city">City</Label>
-                    <Input id="city" name="city" placeholder="Enter city" />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="state">State</Label>
-                    <Select name="state">
-                      <SelectTrigger id="state">
-                        <SelectValue placeholder="Select state" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Johor">Johor</SelectItem>
-                        <SelectItem value="Kedah">Kedah</SelectItem>
-                        <SelectItem value="Kelantan">Kelantan</SelectItem>
-                        <SelectItem value="Kuala Lumpur">
-                          Kuala Lumpur
-                        </SelectItem>
-                        <SelectItem value="Labuan">Labuan</SelectItem>
-                        <SelectItem value="Melaka">Melaka</SelectItem>
-                        <SelectItem value="Negeri Sembilan">
-                          Negeri Sembilan
-                        </SelectItem>
-                        <SelectItem value="Pahang">Pahang</SelectItem>
-                        <SelectItem value="Penang">Penang</SelectItem>
-                        <SelectItem value="Perak">Perak</SelectItem>
-                        <SelectItem value="Perlis">Perlis</SelectItem>
-                        <SelectItem value="Putrajaya">Putrajaya</SelectItem>
-                        <SelectItem value="Sabah">Sabah</SelectItem>
-                        <SelectItem value="Sarawak">Sarawak</SelectItem>
-                        <SelectItem value="Selangor">Selangor</SelectItem>
-                        <SelectItem value="Terengganu">Terengganu</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </CollapsibleContent>
-          </CardShell>
-        </Collapsible>
-
-        <Collapsible defaultOpen>
-          <CardShell>
-            <CardHeader className="flex-row items-center justify-between gap-4">
-              <div>
-                <CardTitle className="text-base">
-                  Academic Information
-                </CardTitle>
-                <CardDescription className="mt-1">
-                  School and current academic level.
-                </CardDescription>
-              </div>
-              <CollapsibleTrigger
-                render={<Button size="icon" type="button" variant="ghost" />}
-              >
-                <ChevronDownIcon className="size-4 in-[[data-panel-open]]:rotate-180 transition-transform" />
-                <span className="sr-only">Toggle academic information</span>
-              </CollapsibleTrigger>
-            </CardHeader>
-            <CollapsibleContent>
-              <CardContent className="grid gap-5">
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1.2fr]">
-                  <div className="grid gap-2">
-                    <Label htmlFor="schoolName">School Name</Label>
-                    <Input
-                      id="schoolName"
-                      name="schoolName"
-                      placeholder="Enter school name"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="levelId">
-                      Current Grade / Form <Required />
-                    </Label>
-                    <Select
-                      items={Object.fromEntries(
-                        levels
-                          .filter((level) => level.name !== "General")
-                          .map((level) => [level.id, level.name])
-                      )}
-                      name="levelId"
-                    >
-                      <SelectTrigger
-                        aria-invalid={Boolean(errors.levelId)}
-                        className={errorClassName(Boolean(errors.levelId))}
-                        id="levelId"
-                      >
-                        <SelectValue placeholder="Select current grade or form" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {levels
-                          .filter((level) => level.name !== "General")
-                          .map((level) => (
-                            <SelectItem key={level.id} value={level.id}>
-                              {level.name}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                    <FieldError message={errors.levelId} />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="notes">Notes</Label>
-                    <Textarea
-                      id="notes"
-                      name="notes"
-                      placeholder="Additional notes (optional)"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </CollapsibleContent>
-          </CardShell>
-        </Collapsible>
-
-        <CardShell>
-          <Tabs className="gap-0" defaultValue="guardian">
-            <CardHeader>
-              <TabsList className="grid h-auto w-full grid-cols-2">
-                <TabsTrigger value="guardian">
-                  <UsersRoundIcon />
-                  Guardian
-                </TabsTrigger>
-                <TabsTrigger value="classes">
-                  <BookOpenIcon />
-                  Classes
-                </TabsTrigger>
-              </TabsList>
-            </CardHeader>
-            <CardContent className="p-0">
-              <TabsContent className="p-4" keepMounted value="guardian">
-                <div className="grid gap-4">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="grid gap-2">
-                      <Label htmlFor="guardianName">
-                        Guardian Name <Required />
-                      </Label>
-                      <Input
-                        aria-invalid={Boolean(errors.guardianName)}
-                        className={errorClassName(Boolean(errors.guardianName))}
-                        id="guardianName"
-                        name="guardianName"
-                        placeholder="Enter guardian full name"
-                        required
-                      />
-                      <FieldError message={errors.guardianName} />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="relationship">
-                        Relationship <Required />
-                      </Label>
-                      <Select defaultValue="GUARDIAN" name="relationship">
-                        <SelectTrigger
-                          aria-invalid={Boolean(errors.relationship)}
-                          className={errorClassName(
-                            Boolean(errors.relationship)
-                          )}
-                          id="relationship"
-                        >
-                          <SelectValue placeholder="Select relationship" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="FATHER">Father</SelectItem>
-                          <SelectItem value="MOTHER">Mother</SelectItem>
-                          <SelectItem value="GUARDIAN">Guardian</SelectItem>
-                          <SelectItem value="OTHER">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FieldError message={errors.relationship} />
-                    </div>
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="grid gap-2">
-                      <Label htmlFor="guardianPhone">
-                        Phone Number <Required />
-                      </Label>
-                      <div className="grid grid-cols-[82px_1fr] gap-2">
-                        <Select defaultValue="60" name="guardianPhoneCode">
-                          <SelectTrigger id="guardianPhoneCode">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="60">+60</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Input
-                          aria-invalid={Boolean(errors.guardianPhone)}
-                          className={errorClassName(
-                            Boolean(errors.guardianPhone)
-                          )}
-                          id="guardianPhone"
-                          name="guardianPhone"
-                          placeholder="012-3456789"
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid content-start gap-1.5">
+              <FieldLabel htmlFor="icNumber">IC / MyKid number</FieldLabel>
+              {/* Align the trio with the app's control rhythm: upstream
+                  InputGroup is content-height (34/30px) while Button and
+                  SelectTrigger render 36/32px. */}
+              <InputGroup className="h-9 sm:h-8">
+                <InputGroupAddon>
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <Button
+                          aria-label="About IC / MyKid number"
+                          size="icon-xs"
+                          variant="ghost"
                         />
-                      </div>
-                      <FieldError message={errors.guardianPhone} />
-                      <HelperText>Format: 012-3456789 or 0123456789</HelperText>
-                    </div>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="guardianEmail">Email Address</Label>
-                    <Input
-                      aria-invalid={Boolean(errors.guardianEmail)}
-                      className={errorClassName(Boolean(errors.guardianEmail))}
-                      id="guardianEmail"
-                      name="guardianEmail"
-                      placeholder="Enter email address"
-                      type="email"
-                    />
-                    <FieldError message={errors.guardianEmail} />
-                    <HelperText>
-                      Student or guardian email is required.
-                    </HelperText>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center gap-2 text-sm">
-                    <Checkbox
-                      checked={sameAsStudentAddress}
-                      name="sameAsStudentAddress"
-                      onCheckedChange={(checked) =>
-                        setSameAsStudentAddress(checked === true)
                       }
-                    />
-                    <span>Same as student address</span>
-                  </div>
-                  {!sameAsStudentAddress && (
-                    <div className="fade-in-50 grid animate-in gap-4 duration-200 md:grid-cols-2">
-                      <div className="grid gap-2">
-                        <Label htmlFor="guardianAddressLine1">
-                          Address Line 1
-                        </Label>
-                        <Input
-                          id="guardianAddressLine1"
-                          name="guardianAddressLine1"
-                          placeholder="Unit/building and street name"
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label htmlFor="guardianAddressLine2">
-                          Address Line 2
-                        </Label>
-                        <Input
-                          id="guardianAddressLine2"
-                          name="guardianAddressLine2"
-                          placeholder="Area, neighbourhood (optional)"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-              <TabsContent className="p-4" keepMounted value="classes">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">
-                      Class Enrollment
-                    </CardTitle>
-                    <CardDescription>
-                      Assign this student to their classes.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex min-h-40 flex-col items-center justify-center rounded-lg border border-dashed bg-muted/20 p-6 text-center">
-                      <BookOpenIcon className="size-8 text-muted-foreground" />
-                      <p className="mt-3 font-medium text-sm">
-                        Class enrollment coming soon
-                      </p>
-                      <p className="mt-1 max-w-sm text-muted-foreground text-xs">
-                        You&apos;ll be able to assign this student to classes
-                        right after creating their profile.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </CardContent>
-          </Tabs>
-        </CardShell>
-      </section>
-
-      <aside className="grid content-start gap-5 xl:sticky xl:top-4 xl:self-start">
-        <CardShell>
-          <CardHeader>
-            <CardTitle className="text-base">Profile Photo</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <StudentPhotoUpload name="photoKey" />
-          </CardContent>
-        </CardShell>
-
-        <CardShell>
-          <CardHeader>
-            <CardTitle className="text-base">Student Summary</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            {[
-              ["Status", "Active"],
-              ["Student ID", nextCode],
-              ["Enrollment Date", "Set in personal information"],
-            ].map(([label, value]) => (
-              <div
-                className="grid grid-cols-[6rem_1fr] gap-3 text-sm"
-                key={label}
+                    >
+                      <InfoIcon />
+                    </TooltipTrigger>
+                    <TooltipPopup>
+                      12 digits — auto-detects date of birth and gender
+                    </TooltipPopup>
+                  </Tooltip>
+                </InputGroupAddon>
+                <InputGroupInput
+                  aria-invalid={errors.icNumber ? true : undefined}
+                  id="icNumber"
+                  inputMode="numeric"
+                  maxLength={12}
+                  onChange={(event) => handleIcChange(event.target.value)}
+                  placeholder="e.g. 120304-14-5678"
+                  value={icDigits}
+                />
+              </InputGroup>
+              {errors.icNumber ? (
+                <FieldErrorText message={errors.icNumber} />
+              ) : null}
+            </div>
+            <div className="grid content-start gap-1.5">
+              <FieldLabel>Date of birth</FieldLabel>
+              <IsoDatePicker
+                endMonth={getMalaysiaToday()}
+                name="dateOfBirth"
+                onChange={(iso) => setDobDate(iso)}
+                placeholder="Select date of birth"
+                startMonth={new Date(1900, 0)}
+                toDisplay={(selected) => formatNumericShortDate(selected)}
+                value={dobDate}
+              />
+            </div>
+            <div className="grid content-start gap-1.5">
+              <FieldLabel required>Gender</FieldLabel>
+              <Select
+                items={Object.fromEntries(
+                  GENDER_OPTIONS.map((option) => [option.value, option.label])
+                )}
+                name="gender"
+                onValueChange={(value) => {
+                  setGender(value ?? "");
+                  clearError("gender");
+                }}
+                value={gender}
               >
-                <span className="text-muted-foreground">{label}</span>
-                <span>{value}</span>
-              </div>
-            ))}
-          </CardContent>
-        </CardShell>
+                <SelectTrigger
+                  aria-invalid={errors.gender ? true : undefined}
+                  className={errorClassName(Boolean(errors.gender))}
+                >
+                  <SelectValue placeholder="Select gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  {GENDER_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FieldErrorText message={errors.gender} />
+            </div>
+          </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid content-start gap-1.5">
+              <FieldLabel htmlFor="studentEmail">
+                Email address
+                <span className="text-muted-foreground text-xs font-normal">
+                  {" "}
+                  (optional)
+                </span>
+              </FieldLabel>
+              <Input
+                aria-invalid={errors.studentEmail ? true : undefined}
+                className={errorClassName(Boolean(errors.studentEmail))}
+                id="studentEmail"
+                name="studentEmail"
+                onChange={(event) => {
+                  setStudentEmail(event.target.value);
+                  clearError("studentEmail");
+                }}
+                placeholder="e.g. student@email.com"
+                type="email"
+                value={studentEmail}
+              />
+              <FieldErrorText message={errors.studentEmail} />
+            </div>
+            <div className="grid content-start gap-1.5">
+              <FieldLabel htmlFor="studentPhone">
+                Phone number
+                <span className="text-muted-foreground text-xs font-normal">
+                  {" "}
+                  (optional)
+                </span>
+              </FieldLabel>
+              <Input
+                aria-invalid={errors.studentPhone ? true : undefined}
+                className={errorClassName(Boolean(errors.studentPhone))}
+                id="studentPhone"
+                name="studentPhone"
+                onChange={(event) => {
+                  setStudentPhone(event.target.value);
+                  clearError("studentPhone");
+                }}
+                placeholder="e.g. 012-345 6789"
+                value={studentPhone}
+              />
+              <FieldErrorText message={errors.studentPhone} />
+            </div>
+          </div>
+        </FormSectionCard>
+
+        <FormSectionCard
+          icon={GraduationCapIcon}
+          subtitle="Current academic level"
+          title="School &amp; Grade"
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid content-start gap-1.5">
+              <FieldLabel required>Grade / Form</FieldLabel>
+              <Select
+                items={Object.fromEntries(
+                  levels.map((level) => [level.id, level.name])
+                )}
+                onValueChange={handleLevelChange}
+                value={levelId}
+              >
+                <SelectTrigger
+                  aria-invalid={errors.levelId ? true : undefined}
+                  className={errorClassName(Boolean(errors.levelId))}
+                >
+                  <SelectValue placeholder="Select grade..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {levels
+                    .filter((level) => level.name !== "General")
+                    .map((level) => (
+                      <SelectItem key={level.id} value={level.id}>
+                        {level.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+              <FieldErrorText message={errors.levelId} />
+            </div>
+            <div className="grid content-start gap-1.5">
+              <FieldLabel>School type</FieldLabel>
+              <Select name="schoolType">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select type..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {SCHOOL_TYPES.map((schoolType) => (
+                    <SelectItem key={schoolType} value={schoolType}>
+                      {schoolType}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid content-start gap-1.5 sm:col-span-2">
+              <FieldLabel htmlFor="schoolName">School name</FieldLabel>
+              <Input
+                id="schoolName"
+                name="schoolName"
+                onChange={(event) => setSchoolName(event.target.value)}
+                placeholder="e.g. SMK Kajang, SJKC Chong Hwa..."
+                value={schoolName}
+              />
+            </div>
+          </div>
+        </FormSectionCard>
+
+        <FormSectionCard
+          icon={UsersRoundIcon}
+          subtitle="At least one contact is required"
+          title="Parent / Guardian"
+        >
+          <div className="grid gap-4">
+            {guardians.map((guardian, index) => (
+              <GuardianEditor
+                errors={errors}
+                guardian={guardian}
+                index={index}
+                key={guardian.id}
+                onRemove={removeGuardian}
+                onUpdate={updateGuardian}
+                total={guardians.length}
+              />
+            ))}
+            {guardians.length < 3 ? (
+              <Button
+                className="w-fit text-primary"
+                onClick={addGuardian}
+                type="button"
+                variant="ghost"
+              >
+                <PlusIcon className="size-4" />
+                Add second parent / guardian
+              </Button>
+            ) : null}
+          </div>
+        </FormSectionCard>
+
+        <FormSectionCard
+          icon={BookOpenIcon}
+          subtitle="Subjects, fees, and start date"
+          title="Enrollment"
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid content-start gap-1.5">
+              <FieldLabel>Start date</FieldLabel>
+              <IsoDatePicker
+                name="enrolledAt"
+                onChange={setStartDate}
+                placeholder="Select date"
+                value={startDate}
+              />
+            </div>
+            <div className="grid content-start gap-1.5">
+              <FieldLabel>Fee due day</FieldLabel>
+              <Select
+                defaultValue={String(defaultFeeDueDay)}
+                name="invoiceDueDay"
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {FEE_DUE_DAYS.map((day) => (
+                    <SelectItem key={day} value={day}>
+                      {day}
+                      {ordinalSuffix(day)} of each month
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Hint>Day of month invoices are due</Hint>
+            </div>
+          </div>
+
+          <div className="grid content-start gap-1.5">
+            <FieldLabel required>Subjects / programmes enrolled</FieldLabel>
+            <ClassPicker
+              classes={classes}
+              currency={currency}
+              error={errors.subjects}
+              levels={levels}
+              onToggle={toggleClass}
+              selectedIds={selectedClassIds}
+            />
+          </div>
+
+          {selectedClasses.length > 0 ? (
+            <FeeSummaryBar
+              currency={currency}
+              subjectCount={selectedClasses.length}
+              totalSen={effectiveTotalSen}
+            />
+          ) : null}
+
+          <CustomFeeField
+            customFee={customFee}
+            error={errors.customFee}
+            onChange={(value) => {
+              setCustomFee(value);
+              clearError("customFee");
+            }}
+            singleSelection={singleSelection}
+            subjectTotalSen={subjectTotalSen}
+          />
+        </FormSectionCard>
+
+        <Collapsible>
+          <CardShell>
+            <CardHeader className="flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <MoreHorizontalIcon className="size-4 text-primary" />
+                </span>
+                <div>
+                  <p className="font-semibold text-sm">
+                    Additional Information
+                  </p>
+                  <p className="text-muted-foreground text-xs">
+                    Medical notes, emergency contact, referral — optional
+                  </p>
+                </div>
+              </div>
+              <CollapsibleTrigger
+                render={<Button size="icon" type="button" variant="ghost" />}
+              >
+                <ChevronDownIcon className="size-4 in-[[data-panel-open]]:rotate-180 transition-transform" />
+                <span className="sr-only">Toggle additional information</span>
+              </CollapsibleTrigger>
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent className="grid gap-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid content-start gap-1.5">
+                    <FieldLabel htmlFor="emergencyContactName">
+                      Emergency contact name
+                    </FieldLabel>
+                    <Input
+                      id="emergencyContactName"
+                      name="emergencyContactName"
+                      placeholder="Name of emergency contact"
+                    />
+                  </div>
+                  <div className="grid content-start gap-1.5">
+                    <FieldLabel htmlFor="emergencyContactPhone">
+                      Emergency contact phone
+                    </FieldLabel>
+                    <div className="flex gap-2">
+                      <span className="flex items-center whitespace-nowrap rounded-lg border border-border bg-muted px-3 font-medium text-muted-foreground text-sm">
+                        +60
+                      </span>
+                      <Input
+                        id="emergencyContactPhone"
+                        name="emergencyContactPhone"
+                        placeholder="012-345 6789"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid content-start gap-1.5">
+                  <FieldLabel htmlFor="medicalNotes">
+                    Medical conditions / allergies
+                  </FieldLabel>
+                  <Textarea
+                    id="medicalNotes"
+                    name="medicalNotes"
+                    placeholder="e.g. Peanut allergy, asthma inhaler required, wears glasses..."
+                    rows={2}
+                  />
+                  <Hint>Visible to centre staff only</Hint>
+                </div>
+
+                <div className="grid content-start gap-1.5">
+                  <FieldLabel>How did they find us?</FieldLabel>
+                  <Select name="referralSource">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select source..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {REFERRAL_SOURCES.map((source) => (
+                        <SelectItem key={source} value={source}>
+                          {source}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid content-start gap-1.5">
+                  <FieldLabel htmlFor="notes">Internal notes</FieldLabel>
+                  <Textarea
+                    id="notes"
+                    name="notes"
+                    placeholder="e.g. Sibling of existing student, requires extra attention in Maths..."
+                    rows={2}
+                  />
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </CardShell>
+        </Collapsible>
+
+        {Object.keys(errors).length > 0 ? (
+          <div className="flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-destructive text-sm">
+            <AlertCircleIcon className="size-4 shrink-0" />
+            Please complete all required fields before saving.
+          </div>
+        ) : null}
+
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Button
+            className="flex-1"
+            disabled={isPending}
+            size="lg"
+            type="submit"
+          >
+            {isPending ? (
+              <>
+                <Loader2Icon className="size-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <CheckIcon className="size-4" />
+                Save Student
+              </>
+            )}
+          </Button>
           <Button
             render={<Link href="/students" />}
             size="lg"
@@ -681,17 +1259,31 @@ export const StudentCreateForm = ({
           >
             Cancel
           </Button>
-          <Button disabled={isPending} size="lg" type="submit">
-            {isPending ? (
-              <>
-                <Loader2Icon className="size-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              "Save Student"
-            )}
-          </Button>
         </div>
+      </section>
+
+      <aside className="grid content-start gap-4 xl:sticky xl:top-4 xl:self-start">
+        <CreateProfilePreview
+          currency={currency}
+          enrolledSubjects={selectedClasses.map((learningClass) => ({
+            feeSen: learningClass.monthlyFeeSen,
+            name: learningClass.subjectName,
+          }))}
+          gender={gender}
+          genderLabel={genderLabel}
+          gradeLabel={gradeLabel}
+          guardianEmail={primaryGuardian?.email ?? ""}
+          guardianName={primaryGuardian?.fullName ?? ""}
+          guardianPhone={primaryGuardian?.phone ?? ""}
+          nextCode={nextCode}
+          photoUrl={photoUrl}
+          schoolName={schoolName}
+          startsOnLabel={formatCalendarDate(
+            parseLocalCalendarDate(startDate) ?? getMalaysiaToday()
+          )}
+          studentName={fullName}
+          totalSen={effectiveTotalSen}
+        />
       </aside>
     </form>
   );

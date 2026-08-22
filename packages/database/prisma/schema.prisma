@@ -182,39 +182,46 @@ model Branch {
 }
 
 model Student {
-  id                String             @id @default(cuid())
-  organizationId    String
-  branchId          String?
-  code              String
-  fullName          String
-  preferredName     String?
-  dateOfBirth       DateTime?
-  gender            Gender?
-  phone             String?
-  email             String?
-  addressLine1      String?
-  addressLine2      String?
-  city              String?
-  state             String?
-  postcode          String?
-  schoolName        String?
-  photoKey          String?
-  enrolledAt        DateTime           @default(now())
-  status            StudentStatus      @default(ACTIVE)
-  notes             String?
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  archivedAt        DateTime?
-  attendanceRecords AttendanceRecord[]
-  enrollments       Enrollment[]
-  invoices          Invoice[]
-  payments          Payment[]
-  branch            Branch?            @relation(fields: [branchId], references: [id])
-  organization      Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  guardians         StudentGuardian[]
-  level             Level?             @relation("StudentLevel", fields: [levelId], references: [id])
-  levelId           String?
-  importRows        StudentImportRow[]
+  id                    String             @id @default(cuid())
+  organizationId        String
+  branchId              String?
+  code                  String
+  fullName              String
+  preferredName         String?
+  dateOfBirth           DateTime?
+  gender                Gender?
+  phone                 String?
+  email                 String?
+  addressLine1          String?
+  addressLine2          String?
+  city                  String?
+  state                 String?
+  postcode              String?
+  schoolName            String?
+  schoolType            String?
+  icNumber              String?
+  invoiceDueDay         Int?
+  emergencyContactName  String?
+  emergencyContactPhone String?
+  medicalNotes          String?
+  referralSource        String?
+  photoKey              String?
+  enrolledAt            DateTime           @default(now())
+  status                StudentStatus      @default(ACTIVE)
+  notes                 String?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  archivedAt            DateTime?
+  attendanceRecords     AttendanceRecord[]
+  enrollments           Enrollment[]
+  invoices              Invoice[]
+  payments              Payment[]
+  branch                Branch?            @relation(fields: [branchId], references: [id])
+  organization          Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  guardians             StudentGuardian[]
+  level                 Level?             @relation("StudentLevel", fields: [levelId], references: [id])
+  levelId               String?
+  importRows            StudentImportRow[]
 
   @@unique([organizationId, code])
   @@index([organizationId, status])
@@ -278,6 +285,8 @@ model Guardian {
   organizationId String
   fullName       String
   phone          String?
+  whatsapp       String?
+  icNumber       String?
   email          String?
   addressLine1   String?
   addressLine2   String?

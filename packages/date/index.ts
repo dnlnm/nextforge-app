@@ -91,6 +91,10 @@ export const tryParseCalendarDate = (value: string): Date | undefined => {
 export const formatCalendarDate = (date: Date): string =>
   format(date, calendarDateFormat, { in: tz("UTC") });
 
+/** e.g. `formatNumericShortDate(...)` -> "21/08/26", in the UTC calendar day. */
+export const formatNumericShortDate = (date: Date): string =>
+  format(date, "dd/MM/yy", { in: tz("UTC") });
+
 export const getMalaysiaCalendarDate = (date = new Date()): string =>
   format(date, calendarDateFormat, { in: malaysiaTimeZone });
 

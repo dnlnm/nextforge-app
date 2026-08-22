@@ -157,6 +157,66 @@ export interface EnrollmentResult {
   readonly studentId: string;
 }
 
+/**
+ * Core enrollment write (capacity + duplicate checks + audit event). Must be
+ * called inside an existing transaction so callers can compose it with other
+ * writes (e.g. creating the student) atomically.
+ */
+export const enrollStudentInTransaction = async (
+  tx: TransactionClient,
+  ctx: EnrollmentContext,
+  input: EnrollInput
+): Promise<EnrollmentResult> => {
+  const [_student, _learningClass] = await Promise.all([
+    assertStudentAvailable(tx, ctx.organizationId, input.studentId),
+    assertClassAvailable(tx, ctx.organizationId, input.classId),
+  ]);
+
+  await assertNotDuplicated(
+    tx,
+    ctx.organizationId,
+    input.studentId,
+    input.classId
+  );
+
+  const className = await tx.learningClass
+    .findFirst({
+      where: { id: input.classId, organizationId: ctx.organizationId },
+      select: { name: true },
+    })
+    .then((c) => c?.name ?? "class");
+
+  const enrollment = await tx.enrollment.create({
+    data: {
+      archivedAt: null,
+      classId: input.classId,
+      customFeeSen: input.customFeeSen ?? undefined,
+      organizationId: ctx.organizationId,
+      startsOn: parseDate(input.startsOn),
+      status: "ACTIVE",
+      studentId: input.studentId,
+    },
+    select: { id: true },
+  });
+
+  await tx.auditEvent.create({
+    data: {
+      action: "UPDATE",
+      actorUserId: ctx.userId,
+      metadata: {
+        className,
+        eventType: "enrollment.created",
+      },
+      organizationId: ctx.organizationId,
+      summary: `Enrolled in ${className}`,
+      targetId: input.studentId,
+      targetType: "Student",
+    },
+  });
+
+  return { enrollmentId: enrollment.id, studentId: input.studentId };
+};
+
 /** Enrolls a single student into a class with capacity and duplicate checks. */
 export const enrollStudent = async (
   db: PrismaClient,
@@ -168,56 +228,9 @@ export const enrollStudent = async (
   }
 
   try {
-    return await db.$transaction(async (tx) => {
-      const [_student, _learningClass] = await Promise.all([
-        assertStudentAvailable(tx, ctx.organizationId, input.studentId),
-        assertClassAvailable(tx, ctx.organizationId, input.classId),
-      ]);
-
-      await assertNotDuplicated(
-        tx,
-        ctx.organizationId,
-        input.studentId,
-        input.classId
-      );
-
-      const className = await tx.learningClass
-        .findFirst({
-          where: { id: input.classId, organizationId: ctx.organizationId },
-          select: { name: true },
-        })
-        .then((c) => c?.name ?? "class");
-
-      const enrollment = await tx.enrollment.create({
-        data: {
-          archivedAt: null,
-          classId: input.classId,
-          customFeeSen: input.customFeeSen ?? undefined,
-          organizationId: ctx.organizationId,
-          startsOn: parseDate(input.startsOn),
-          status: "ACTIVE",
-          studentId: input.studentId,
-        },
-        select: { id: true },
-      });
-
-      await tx.auditEvent.create({
-        data: {
-          action: "UPDATE",
-          actorUserId: ctx.userId,
-          metadata: {
-            className,
-            eventType: "enrollment.created",
-          },
-          organizationId: ctx.organizationId,
-          summary: `Enrolled in ${className}`,
-          targetId: input.studentId,
-          targetType: "Student",
-        },
-      });
-
-      return { enrollmentId: enrollment.id, studentId: input.studentId };
-    });
+    return await db.$transaction((tx) =>
+      enrollStudentInTransaction(tx, ctx, input)
+    );
   } catch (error) {
     if (error instanceof EnrollmentValidationError) {
       throw error;

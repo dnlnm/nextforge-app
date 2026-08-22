@@ -4,6 +4,10 @@ import { requireTenant, requireTenantRole } from "@repo/auth/authorization";
 import { database, type Prisma } from "@repo/database";
 import { tryParseCalendarDate } from "@repo/date";
 import {
+  EnrollmentValidationError,
+  enrollStudentInTransaction,
+} from "@repo/domain/classes/enrollment";
+import {
   studentArchivedEvent,
   studentCreatedEvent,
   studentRestoredEvent,
@@ -17,11 +21,22 @@ import {
   type StudentStatus,
   studentStatuses,
 } from "@repo/schemas/enums";
-import type { StudentsQueryParams } from "@repo/schemas/students";
+import {
+  type EnrollmentRequest,
+  enrollmentRequestSchema,
+  guardianInputSchema,
+  type StudentsQueryParams,
+} from "@repo/schemas/students";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getTeacherProfileId } from "@/lib/teacher-profile";
 import { assertWithinPlanLimit } from "../billing/limits";
+import {
+  deriveDateOfBirthFromIc,
+  deriveGenderFromIc,
+  isValidIcNumber,
+  normalizeIcNumber,
+} from "./lib/ic-number";
 import { reserveStudentCode } from "./lib/student-code";
 
 export type { StudentsQueryParams } from "@repo/schemas/students";
@@ -64,6 +79,26 @@ const isValidPostcode = (postcode: string) => postcodeRegex.test(postcode);
 const relationships = new Set<GuardianRelationship>(guardianRelationships);
 const statuses = new Set<StudentStatus>(studentStatuses);
 
+/** Parses a hidden JSON array input posted by a dynamic client collection. */
+const parseJsonArray = (
+  formData: FormData,
+  key: string
+): unknown[] | undefined => {
+  const raw = getString(formData, key);
+
+  if (!raw) {
+    return undefined;
+  }
+
+  try {
+    const parsed: unknown = JSON.parse(raw);
+
+    return Array.isArray(parsed) ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
 export const getNextStudentCode = async () => {
   const tenant = await requireTenant();
   const organization = await database.organization.findUniqueOrThrow({
@@ -96,56 +131,264 @@ const resolveLevel = async (levelId: string | undefined) => {
   return level?.id ?? null;
 };
 
-export const createStudent = async (
-  formData: FormData
-): Promise<{ error?: string }> => {
-  const tenant = await requireTenantRole(["ADMIN"]);
-  const fullName = getString(formData, "fullName");
-  const guardianName = getString(formData, "guardianName");
+interface GuardianContact {
+  readonly email?: string;
+  readonly fullName: string;
+  readonly icNumber?: string;
+  readonly phone: string;
+  readonly relationship?: GuardianRelationship;
+  readonly whatsapp?: string;
+}
 
-  if (!(fullName && guardianName)) {
-    return { error: "Student and guardian names are required." };
+interface GuardianAddress {
+  readonly addressLine1?: string;
+  readonly addressLine2?: string;
+  readonly city?: string;
+  readonly postcode?: string;
+  readonly state?: string;
+}
+
+interface ParsedGuardians {
+  readonly error?: string;
+  readonly guardians: GuardianContact[];
+  readonly primaryGuardianAddress?: GuardianAddress;
+}
+
+/**
+ * Guardians (1–3). The Add Student UI posts a `guardiansJson` array; legacy
+ * callers still post single-guardian fields, which also copy student address
+ * details onto the primary guardian.
+ */
+const parseGuardianInputs = (formData: FormData): ParsedGuardians => {
+  const payloads = parseJsonArray(formData, "guardiansJson");
+
+  if (!payloads) {
+    const legacyName = getString(formData, "guardianName");
+    const legacyPhone = getString(formData, "guardianPhone");
+
+    if (!(legacyName && legacyPhone)) {
+      return {
+        error: "Student and guardian names are required.",
+        guardians: [],
+      };
+    }
+
+    const sameAsStudentAddress =
+      getString(formData, "sameAsStudentAddress") === "on";
+
+    return {
+      guardians: [
+        {
+          email: getString(formData, "guardianEmail"),
+          fullName: legacyName,
+          phone: legacyPhone,
+          relationship: getString(formData, "relationship") as
+            | GuardianRelationship
+            | undefined,
+        },
+      ],
+      primaryGuardianAddress: sameAsStudentAddress
+        ? {
+            addressLine1: getString(formData, "addressLine1"),
+            addressLine2: getString(formData, "addressLine2"),
+            city: getString(formData, "city"),
+            postcode: getString(formData, "postcode"),
+            state: getString(formData, "state"),
+          }
+        : {
+            addressLine1: getString(formData, "guardianAddressLine1"),
+            addressLine2: getString(formData, "guardianAddressLine2"),
+          },
+    };
   }
 
-  const gender = getGender(formData, "gender");
+  if (payloads.length < 1 || payloads.length > 3) {
+    return {
+      error: "Add between one and three parent/guardian contacts.",
+      guardians: [],
+    };
+  }
 
-  if (!gender) {
-    return { error: "Gender is required." };
+  const guardians: GuardianContact[] = [];
+
+  for (const payload of payloads) {
+    const result = guardianInputSchema.safeParse(payload);
+
+    if (!result.success) {
+      return {
+        error:
+          "Complete every guardian contact — name, Malaysian phone number and (for the primary) an email address are required.",
+        guardians: [],
+      };
+    }
+
+    guardians.push(result.data);
+  }
+
+  return { guardians };
+};
+
+interface StudentIdentity {
+  readonly dateOfBirth?: Date;
+  readonly error?: string;
+  readonly gender?: Gender;
+  readonly icNumber?: string;
+}
+
+/** IC / MyKid normalization plus DOB & gender derivation. */
+const resolveStudentIdentity = (formData: FormData): StudentIdentity => {
+  const rawValue = getString(formData, "icNumber");
+
+  if (!rawValue) {
+    const gender = getGender(formData, "gender");
+
+    return gender
+      ? { dateOfBirth: getDate(formData, "dateOfBirth"), gender }
+      : {
+          dateOfBirth: getDate(formData, "dateOfBirth"),
+          error: "Gender is required.",
+        };
+  }
+
+  const icNumber = normalizeIcNumber(rawValue);
+
+  if (!isValidIcNumber(rawValue)) {
+    return {
+      error: "IC / MyKid number must be exactly 12 digits.",
+    };
+  }
+
+  const derivedDate = tryParseCalendarDate(
+    deriveDateOfBirthFromIc(icNumber) ?? ""
+  );
+
+  return {
+    dateOfBirth: getDate(formData, "dateOfBirth") ?? derivedDate,
+    gender:
+      getGender(formData, "gender") ??
+      deriveGenderFromIc(icNumber) ??
+      undefined,
+    icNumber,
+  };
+};
+
+const parseInvoiceDueDay = (
+  formData: FormData
+): { error?: string; invoiceDueDay?: number } => {
+  const rawValue = getString(formData, "invoiceDueDay");
+
+  if (!rawValue) {
+    return {};
+  }
+
+  const dueDay = Number.parseInt(rawValue, 10);
+
+  if (dueDay < 1 || dueDay > 28) {
+    return { error: "Fee due day must be a day between 1 and 28." };
+  }
+
+  return { invoiceDueDay: dueDay };
+};
+
+const parseEnrollmentRequests = (
+  formData: FormData
+): { error?: string; requests: EnrollmentRequest[] } => {
+  const requests: EnrollmentRequest[] = [];
+
+  for (const payload of parseJsonArray(formData, "enrollmentsJson") ?? []) {
+    const result = enrollmentRequestSchema.safeParse(payload);
+
+    if (!result.success) {
+      return { error: "One of the selected classes is invalid.", requests: [] };
+    }
+
+    requests.push(result.data);
+  }
+
+  return { requests };
+};
+
+/** Phone/email/postcode rules shared by the student and guardian blocks. */
+const validateStudentContact = (
+  formData: FormData,
+  guardians: readonly GuardianContact[]
+): string | undefined => {
+  for (const guardianInput of guardians) {
+    if (!isValidPhone(guardianInput.phone)) {
+      return `Enter a valid Malaysian phone number for ${guardianInput.fullName} (e.g. 012-3456789).`;
+    }
   }
 
   const studentEmail = getString(formData, "studentEmail");
-  const guardianEmail = getString(formData, "guardianEmail");
 
-  if (!(studentEmail || guardianEmail)) {
-    return {
-      error:
-        "At least one email address is required for the student or guardian.",
-    };
+  if (!(studentEmail || guardians.some((guardian) => guardian.email))) {
+    return "At least one email address is required for the student or primary guardian.";
   }
 
   const phone = getString(formData, "studentPhone");
-  const guardianPhone = getString(formData, "guardianPhone");
 
   if (phone && !isValidPhone(phone)) {
-    return {
-      error: "Enter a valid student phone number (e.g. 012-3456789).",
-    };
-  }
-
-  if (!guardianPhone) {
-    return { error: "Guardian phone number is required." };
-  }
-
-  if (!isValidPhone(guardianPhone)) {
-    return {
-      error: "Enter a valid guardian phone number (e.g. 012-3456789).",
-    };
+    return "Enter a valid student phone number (e.g. 012-3456789).";
   }
 
   const postcode = getString(formData, "postcode");
 
   if (postcode && !isValidPostcode(postcode)) {
-    return { error: "Enter a 5-digit postcode." };
+    return "Enter a 5-digit postcode.";
+  }
+
+  return undefined;
+};
+
+export const createStudent = async (
+  formData: FormData
+): Promise<{ error?: string }> => {
+  const tenant = await requireTenantRole(["ADMIN"]);
+  const address = {
+    addressLine1: getString(formData, "addressLine1"),
+    addressLine2: getString(formData, "addressLine2"),
+  };
+
+  const firstName = getString(formData, "firstName");
+  const lastName = getString(formData, "lastName");
+  const fullName =
+    [firstName, lastName].filter(Boolean).join(" ").trim() ||
+    getString(formData, "fullName");
+
+  if (!fullName) {
+    return { error: "Student name is required." };
+  }
+
+  // ── Guardians (1–3).
+  const parsedGuardians = parseGuardianInputs(formData);
+
+  if (parsedGuardians.error) {
+    return { error: parsedGuardians.error };
+  }
+
+  const guardiansInput = parsedGuardians.guardians;
+  const contactError = validateStudentContact(formData, guardiansInput);
+
+  if (contactError) {
+    return { error: contactError };
+  }
+
+  const phone = getString(formData, "studentPhone");
+  const studentEmail = getString(formData, "studentEmail");
+  const postcode = getString(formData, "postcode");
+
+  // ── IC / MyKid with DOB + gender derivation.
+  const identity = resolveStudentIdentity(formData);
+
+  if (identity.error || !identity.gender) {
+    return { error: identity.error ?? "Gender is required." };
+  }
+
+  // ── Fee due day (1–28).
+  const dueDayResult = parseInvoiceDueDay(formData);
+
+  if (dueDayResult.error) {
+    return { error: dueDayResult.error };
   }
 
   try {
@@ -158,88 +401,117 @@ export const createStudent = async (
     return { error: "Student limit reached for your plan." };
   }
 
-  const relationship = getString(formData, "relationship") as
-    | GuardianRelationship
-    | undefined;
+  // ── Class enrollments requested at creation time.
+  const enrollmentResult = parseEnrollmentRequests(formData);
+
+  if (enrollmentResult.error) {
+    return { error: enrollmentResult.error };
+  }
+
   const levelId = await resolveLevel(getString(formData, "levelId"));
-  const sameAsStudentAddress =
-    getString(formData, "sameAsStudentAddress") === "on";
-  const address = {
-    addressLine1: getString(formData, "addressLine1"),
-    addressLine2: getString(formData, "addressLine2"),
-  };
 
-  const student = await database.$transaction(async (tx) => {
-    const code = await reserveStudentCode(tx, tenant.organizationId);
-    const created = await tx.student.create({
-      data: {
-        organizationId: tenant.organizationId,
+  let createdStudentId: string;
+
+  try {
+    createdStudentId = await database.$transaction(async (tx) => {
+      const code = await reserveStudentCode(tx, tenant.organizationId);
+      const created = await tx.student.create({
+        data: {
+          organizationId: tenant.organizationId,
+          fullName,
+          code,
+          levelId,
+          dateOfBirth: identity.dateOfBirth,
+          enrolledAt: getDate(formData, "enrolledAt") ?? new Date(),
+          gender: identity.gender,
+          phone,
+          email: studentEmail,
+          ...address,
+          city: getString(formData, "city"),
+          state: getString(formData, "state"),
+          postcode,
+          schoolName: getString(formData, "schoolName"),
+          schoolType: getString(formData, "schoolType"),
+          icNumber: identity.icNumber,
+          invoiceDueDay: dueDayResult.invoiceDueDay,
+          emergencyContactName: getString(formData, "emergencyContactName"),
+          emergencyContactPhone: getString(formData, "emergencyContactPhone"),
+          medicalNotes: getString(formData, "medicalNotes"),
+          referralSource: getString(formData, "referralSource"),
+          photoKey: getString(formData, "photoKey"),
+          notes: getString(formData, "notes"),
+        },
+        select: { id: true },
+      });
+
+      for (const [index, guardianInput] of guardiansInput.entries()) {
+        const isPrimary = index === 0;
+        const guardian = await tx.guardian.create({
+          data: {
+            organizationId: tenant.organizationId,
+            email: guardianInput.email,
+            fullName: guardianInput.fullName,
+            phone: guardianInput.phone,
+            whatsapp: guardianInput.whatsapp,
+            icNumber: guardianInput.icNumber
+              ? normalizeIcNumber(guardianInput.icNumber) || undefined
+              : undefined,
+            ...(isPrimary && parsedGuardians.primaryGuardianAddress
+              ? parsedGuardians.primaryGuardianAddress
+              : {}),
+          },
+          select: { id: true },
+        });
+
+        await tx.studentGuardian.create({
+          data: {
+            guardianId: guardian.id,
+            isPrimary,
+            receivesBilling: isPrimary,
+            relationship:
+              guardianInput.relationship &&
+              relationships.has(guardianInput.relationship)
+                ? guardianInput.relationship
+                : "GUARDIAN",
+            studentId: created.id,
+          },
+        });
+      }
+
+      for (const request of enrollmentResult.requests) {
+        await enrollStudentInTransaction(
+          tx,
+          { organizationId: tenant.organizationId, userId: tenant.userId },
+          {
+            classId: request.classId,
+            customFeeSen: request.customFeeSen ?? null,
+            startsOn: getString(formData, "enrolledAt") || null,
+            studentId: created.id,
+          }
+        );
+      }
+
+      const event = studentCreatedEvent(
+        tenant.organizationId,
+        created.id,
         fullName,
-        code,
-        levelId,
-        dateOfBirth: getDate(formData, "dateOfBirth"),
-        enrolledAt: getDate(formData, "enrolledAt") ?? new Date(),
-        gender,
-        phone,
-        email: studentEmail,
-        ...address,
-        city: getString(formData, "city"),
-        state: getString(formData, "state"),
-        postcode,
-        schoolName: getString(formData, "schoolName"),
-        photoKey: getString(formData, "photoKey"),
-        notes: getString(formData, "notes"),
-      },
-      select: { id: true },
+        tenant.userId
+      );
+
+      await writeActivityEvent(tx, event);
+
+      return created.id;
     });
+  } catch (error) {
+    if (error instanceof EnrollmentValidationError) {
+      return { error: error.message };
+    }
 
-    const guardianAddress = sameAsStudentAddress
-      ? address
-      : {
-          addressLine1: getString(formData, "guardianAddressLine1"),
-          addressLine2: getString(formData, "guardianAddressLine2"),
-        };
-    const guardian = await tx.guardian.create({
-      data: {
-        organizationId: tenant.organizationId,
-        email: guardianEmail,
-        fullName: guardianName,
-        phone: guardianPhone,
-        ...guardianAddress,
-        city: sameAsStudentAddress ? getString(formData, "city") : undefined,
-        state: sameAsStudentAddress ? getString(formData, "state") : undefined,
-        postcode: sameAsStudentAddress ? postcode : undefined,
-      },
-      select: { id: true },
-    });
-
-    await tx.studentGuardian.create({
-      data: {
-        guardianId: guardian.id,
-        isPrimary: true,
-        receivesBilling: true,
-        relationship:
-          relationship && relationships.has(relationship)
-            ? relationship
-            : "GUARDIAN",
-        studentId: created.id,
-      },
-    });
-
-    const event = studentCreatedEvent(
-      tenant.organizationId,
-      created.id,
-      fullName,
-      tenant.userId
-    );
-
-    await writeActivityEvent(tx, event);
-
-    return created;
-  });
+    throw error;
+  }
 
   revalidatePath("/students");
-  redirect(`/students/${student.id}`);
+  redirect(`/students/${createdStudentId}`);
 };
 
 export const archiveStudent = async (formData: FormData) => {

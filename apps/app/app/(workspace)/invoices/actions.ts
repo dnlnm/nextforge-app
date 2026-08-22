@@ -128,6 +128,11 @@ export const generateMonthlyInvoices = async (formData: FormData) => {
           unitPriceSen: amountSen,
         };
       });
+      // Per-student billing preference falls back to the organization default.
+      const dueDay =
+        studentEnrollments[0]?.student.invoiceDueDay ??
+        settings?.defaultInvoiceDueDay ??
+        7;
       const totalSen = lineItems.reduce((sum, item) => sum + item.totalSen, 0);
 
       const invoiceNumberValue = await reserveNextSequence(
@@ -144,10 +149,7 @@ export const generateMonthlyInvoices = async (formData: FormData) => {
         data: {
           organizationId: tenant.organizationId,
           billingMonth,
-          dueDate: getDueDate(
-            billingMonth,
-            settings?.defaultInvoiceDueDay ?? 7
-          ),
+          dueDate: getDueDate(billingMonth, dueDay),
           invoiceNumber,
           lineItems: { create: lineItems },
           status: "ISSUED",

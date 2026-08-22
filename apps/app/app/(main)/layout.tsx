@@ -34,6 +34,12 @@ const MainLayout = async ({ children }: MainLayoutProperties) => {
     redirect("/sign-in");
   }
 
+  const userName =
+    [localUser.firstName, localUser.lastName]
+      .filter(Boolean)
+      .join(" ")
+      .trim() || null;
+
   const [adminCount, teacherCount, ownedCentre] = await Promise.all([
     database.organizationMembership.count({
       where: { userId: localUser.id, role: "ADMIN", status: "ACTIVE" },
@@ -60,7 +66,7 @@ const MainLayout = async ({ children }: MainLayoutProperties) => {
             <MainNav
               counts={{ admin: adminCount, teacher: teacherCount }}
               ownedCentreId={ownedCentre?.organization.id ?? null}
-              userId={user.id}
+              userName={userName}
             />
           </div>
         </header>

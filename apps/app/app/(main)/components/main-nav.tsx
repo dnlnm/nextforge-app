@@ -55,13 +55,13 @@ interface WorkspaceItem {
 interface MainNavProperties {
   readonly counts: WorkspaceCounts;
   readonly ownedCentreId: string | null;
-  readonly userId: string;
+  readonly userName: string | null;
 }
 
 export const MainNav = ({
   counts,
   ownedCentreId,
-  userId,
+  userName,
 }: MainNavProperties) => {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -295,7 +295,7 @@ export const MainNav = ({
         </Sheet>
 
         <ModeToggle />
-        <UserMenu userId={userId} />
+        <UserMenu userName={userName} />
       </div>
     </div>
   );

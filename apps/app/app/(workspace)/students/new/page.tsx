@@ -7,12 +7,37 @@ import { StudentCreateForm } from "../components/student-create-form";
 
 const AddStudentPage = async () => {
   const tenant = await requireTenantRole(["ADMIN"]);
-  const [nextCode, levels] = await Promise.all([
+  const [nextCode, levels, settings, classes] = await Promise.all([
     getNextStudentCode(),
     database.level.findMany({
       where: { organizationId: tenant.organizationId, archivedAt: null },
       orderBy: { order: "asc" },
       select: { id: true, name: true },
+    }),
+    database.organizationSettings.findUnique({
+      where: { organizationId: tenant.organizationId },
+      select: { currency: true, defaultInvoiceDueDay: true },
+    }),
+    database.learningClass.findMany({
+      where: {
+        organizationId: tenant.organizationId,
+        archivedAt: null,
+        status: "ACTIVE",
+      },
+      orderBy: [{ level: { order: "asc" } }, { name: "asc" }],
+      select: {
+        id: true,
+        name: true,
+        monthlyFeeSen: true,
+        capacity: true,
+        levelId: true,
+        subject: { select: { name: true } },
+        _count: {
+          select: {
+            enrollments: { where: { status: "ACTIVE", archivedAt: null } },
+          },
+        },
+      },
     }),
   ]);
 
@@ -22,19 +47,29 @@ const AddStudentPage = async () => {
         page="Add Student"
         pages={[`${appName}`, { href: "/students", label: "Students" }]}
       />
-      <main className="grid gap-5 p-4 pt-4">
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-          <div>
-            <h1 className="font-semibold text-2xl tracking-tight">
-              Add Student
-            </h1>
-            <p className="text-muted-foreground text-sm">
-              Capture student and guardian details in one place.
-            </p>
-          </div>
+      <main className="mx-auto grid w-full max-w-6xl gap-5 p-4 pt-4">
+        <div>
+          <h1 className="font-semibold text-2xl tracking-tight">Add Student</h1>
+          <p className="text-muted-foreground text-sm">
+            Register a new student and their parent/guardian details.
+          </p>
         </div>
 
-        <StudentCreateForm levels={levels} nextCode={nextCode} />
+        <StudentCreateForm
+          nextCode={nextCode}
+          classes={classes.map((learningClass) => ({
+            activeEnrollmentCount: learningClass._count.enrollments,
+            capacity: learningClass.capacity,
+            id: learningClass.id,
+            levelId: learningClass.levelId,
+            monthlyFeeSen: learningClass.monthlyFeeSen,
+            name: learningClass.name,
+            subjectName: learningClass.subject.name,
+          }))}
+          currency={settings?.currency ?? "MYR"}
+          defaultFeeDueDay={settings?.defaultInvoiceDueDay ?? 1}
+          levels={levels}
+        />
       </main>
     </>
   );

@@ -1,5 +1,6 @@
-import { database, type Prisma } from "@repo/database";
+import { database, type Prisma, type PrismaClient } from "@repo/database";
 import { parseCalendarDate } from "@repo/date";
+import { enrollStudentInTransaction } from "@repo/domain/classes/enrollment";
 import { type StudentStatus, studentStatuses } from "@repo/schemas/enums";
 import {
   createStudentInputSchema,
@@ -16,6 +17,67 @@ import {
 import { createTRPCRouter, TRPCError } from "../trpc";
 
 const statuses = new Set<StudentStatus>(studentStatuses);
+
+type TransactionClient = Parameters<
+  Parameters<PrismaClient["$transaction"]>[0]
+>[0];
+
+/** Creates the non-primary guardians from the repeatable Add Student flow. */
+const createAdditionalGuardians = async (
+  tx: TransactionClient,
+  organizationId: string,
+  studentId: string,
+  guardians: readonly {
+    readonly email?: string;
+    readonly fullName: string;
+    readonly icNumber?: string;
+    readonly phone: string;
+    readonly relationship?: "FATHER" | "GUARDIAN" | "MOTHER" | "OTHER";
+    readonly whatsapp?: string;
+  }[]
+) => {
+  for (const guardianInput of guardians) {
+    const guardian = await tx.guardian.create({
+      data: {
+        organizationId,
+        email: guardianInput.email,
+        fullName: guardianInput.fullName,
+        phone: guardianInput.phone,
+        whatsapp: guardianInput.whatsapp,
+        icNumber: guardianInput.icNumber,
+      },
+      select: { id: true },
+    });
+
+    await tx.studentGuardian.create({
+      data: {
+        guardianId: guardian.id,
+        isPrimary: false,
+        receivesBilling: false,
+        relationship: guardianInput.relationship ?? "GUARDIAN",
+        studentId,
+      },
+    });
+  }
+};
+
+/** Enrolls a freshly created student into the classes selected at creation. */
+const enrollCreatedStudent = async (
+  tx: TransactionClient,
+  context: { organizationId: string; userId?: string | null },
+  studentId: string,
+  startsOn: string | undefined,
+  requests: readonly { classId: string; customFeeSen?: number }[]
+) => {
+  for (const request of requests) {
+    await enrollStudentInTransaction(tx, context, {
+      classId: request.classId,
+      customFeeSen: request.customFeeSen ?? null,
+      startsOn: startsOn ?? null,
+      studentId,
+    });
+  }
+};
 
 const asStringArray = (value: unknown): string[] => {
   const values = Array.isArray(value) ? value : [value];
@@ -298,6 +360,13 @@ export const studentsRouter = createTRPCRouter({
             postcode: input.postcode,
             preferredName: input.preferredName,
             schoolName: input.schoolName,
+            schoolType: input.schoolType,
+            icNumber: input.icNumber,
+            invoiceDueDay: input.invoiceDueDay,
+            emergencyContactName: input.emergencyContactName,
+            emergencyContactPhone: input.emergencyContactPhone,
+            medicalNotes: input.medicalNotes,
+            referralSource: input.referralSource,
             photoKey: input.photoKey,
             notes: input.notes,
           },
@@ -314,9 +383,11 @@ export const studentsRouter = createTRPCRouter({
         const guardian = await tx.guardian.create({
           data: {
             organizationId: ctx.organizationId,
-            email: input.guardianEmail,
-            fullName: input.guardianName,
-            phone: input.guardianPhone,
+            email: input.guardianEmail ?? input.guardians?.[0]?.email,
+            fullName: input.guardianName ?? input.guardians?.[0]?.fullName,
+            phone: input.guardianPhone ?? input.guardians?.[0]?.phone ?? "",
+            whatsapp: input.guardians?.[0]?.whatsapp,
+            icNumber: input.guardians?.[0]?.icNumber,
             ...guardianAddress,
             city: input.sameAsStudentAddress ? input.city : undefined,
             state: input.sameAsStudentAddress ? input.state : undefined,
@@ -334,6 +405,23 @@ export const studentsRouter = createTRPCRouter({
             studentId: created.id,
           },
         });
+
+        // Additional guardians from the repeatable Add Student flow.
+        await createAdditionalGuardians(
+          tx,
+          ctx.organizationId,
+          created.id,
+          (input.guardians ?? []).slice(1)
+        );
+
+        // Class enrollments requested at creation time.
+        await enrollCreatedStudent(
+          tx,
+          { organizationId: ctx.organizationId, userId: ctx.userId },
+          created.id,
+          input.enrolledAt,
+          input.enrollments ?? []
+        );
 
         return created;
       });
