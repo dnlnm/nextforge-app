@@ -1,11 +1,6 @@
 "use client";
 
 import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@repo/design-system/components/ui/alert";
-import {
   AlertDialog,
   AlertDialogClose,
   AlertDialogContent,
@@ -83,51 +78,42 @@ export const ImportRunner = ({
     });
   if (status === "READY") {
     return (
-      <div className="grid gap-3">
-        <Alert>
-          <AlertTitle>Nothing has been imported yet</AlertTitle>
-          <AlertDescription>
-            All rows must be valid before importing. Fix highlighted cells in
-            the review table; valid rows will create new students and guardians.
-          </AlertDescription>
-        </Alert>
-        <AlertDialog>
-          <AlertDialogTrigger
-            render={
-              <Button
-                className="justify-self-end"
-                disabled={!validRows || pending}
-              />
-            }
-          >
-            {pending ? (
-              <Loader2Icon className="size-4 animate-spin" />
-            ) : (
-              <PlayIcon className="size-4" />
-            )}
-            Import {validRows.toLocaleString()} Students
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>
-                Import {validRows.toLocaleString()} students?
-              </AlertDialogTitle>
-              <AlertDialogDescription>
-                This creates new student and guardian records. Imports only
-                start when every row is valid, and this cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogClose render={<Button variant="ghost" />}>
-                Cancel
-              </AlertDialogClose>
-              <AlertDialogClose onClick={start} render={<Button />}>
-                Confirm Import
-              </AlertDialogClose>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
+      <AlertDialog>
+        <AlertDialogTrigger
+          render={
+            <Button
+              className="justify-self-end"
+              disabled={!validRows || pending}
+            />
+          }
+        >
+          {pending ? (
+            <Loader2Icon className="size-4 animate-spin" />
+          ) : (
+            <PlayIcon className="size-4" />
+          )}
+          Import {validRows.toLocaleString()} Students
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Import {validRows.toLocaleString()} students?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This creates new student and guardian records. Imports only start
+              when every row is valid, and this cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogClose render={<Button variant="ghost" />}>
+              Cancel
+            </AlertDialogClose>
+            <AlertDialogClose onClick={start} render={<Button />}>
+              Confirm Import
+            </AlertDialogClose>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     );
   }
   if (status === "PROCESSING") {

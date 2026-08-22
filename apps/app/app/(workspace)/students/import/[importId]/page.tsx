@@ -131,46 +131,32 @@ const ImportDetailPage = async ({
             </CardShell>
           ))}
         </div>
-        <CardShell>
-          <CardHeader>
-            <CardTitle>
-              {terminalStatuses.has(studentImport.status)
-                ? "Import complete"
-                : "Import review"}
-            </CardTitle>
-            <CardDescription>
-              {terminalStatuses.has(studentImport.status)
-                ? "The result is recorded in import history."
-                : "Review the results before creating student records."}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <ImportRunner
-              importId={importId}
-              processedRows={studentImport.processedRows}
-              status={studentImport.status}
-              validRows={studentImport.validRows}
-            />
-            {terminalStatuses.has(studentImport.status) && (
-              <div className="flex flex-wrap justify-end gap-2">
-                {hasErrors && (
-                  <Button
-                    render={
-                      <Link href={`/students/import/${importId}/errors`} />
-                    }
-                    variant="outline"
-                  >
-                    <DownloadIcon className="size-4" />
-                    Download Error Report
-                  </Button>
-                )}
-                <Button render={<Link href="/students" />}>
-                  Back to Students
-                </Button>
-              </div>
+        {terminalStatuses.has(studentImport.status) && (
+          <div className="flex flex-wrap justify-end gap-2">
+            {hasErrors && (
+              <Button
+                render={<Link href={`/students/import/${importId}/errors`} />}
+                variant="outline"
+              >
+                <DownloadIcon className="size-4" />
+                Download Error Report
+              </Button>
             )}
-          </CardContent>
-        </CardShell>
+            <Button render={<Link href="/students" />}>Back to Students</Button>
+          </div>
+        )}
+        {studentImport.status === "PROCESSING" && (
+          <CardShell>
+            <CardContent className="pt-6">
+              <ImportRunner
+                importId={importId}
+                processedRows={studentImport.processedRows}
+                status={studentImport.status}
+                validRows={studentImport.validRows}
+              />
+            </CardContent>
+          </CardShell>
+        )}
         {studentImport.status === "READY" && (
           <CardShell>
             <CardHeader>
@@ -180,13 +166,19 @@ const ImportDetailPage = async ({
                 immediately without re-uploading the workbook.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="grid gap-4">
               <ImportReview
                 columnNames={importColumns}
                 importId={importId}
                 levelOptions={levels.map(
                   (level) => `${level.code} - ${level.name}`
                 )}
+              />
+              <ImportRunner
+                importId={importId}
+                processedRows={studentImport.processedRows}
+                status={studentImport.status}
+                validRows={studentImport.validRows}
               />
             </CardContent>
           </CardShell>
