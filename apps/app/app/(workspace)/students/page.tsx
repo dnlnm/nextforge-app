@@ -105,7 +105,7 @@ const StudentsPage = async () => {
   return (
     <KpiVisibilityProvider>
       <Header page="Students" pages={[`${appName}`]} />
-      <main className="grid gap-5 p-4 pt-4">
+      <main className="mx-auto grid w-full max-w-6xl gap-5 p-4 pt-4 [scrollbar-gutter:stable]">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
             <h1 className="font-semibold text-2xl tracking-tight">Students</h1>
@@ -113,9 +113,9 @@ const StudentsPage = async () => {
               Manage student information and registration.
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex w-full gap-2 md:w-auto">
             <Button
-              className="flex-1 md:flex-none"
+              className="min-w-0 flex-1 md:flex-none"
               render={<Link href="/students/import" />}
               variant="outline"
             >
@@ -124,7 +124,7 @@ const StudentsPage = async () => {
               <span className="sm:hidden">Import</span>
             </Button>
             <Button
-              className="flex-1 md:flex-none"
+              className="min-w-0 flex-1 md:flex-none"
               render={<Link href="/students/new" />}
             >
               <PlusIcon className="size-4" />

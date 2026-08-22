@@ -27,17 +27,11 @@ import {
 import { formatMoneyWhole as formatMoneyShared } from "@repo/money";
 import { privateFileUrl } from "@repo/storage/client";
 import {
-  BookOpenIcon,
-  CalendarDaysIcon,
   Edit3Icon,
-  ExternalLinkIcon,
   LandmarkIcon,
   MailIcon,
   MapPinIcon,
   PhoneIcon,
-  SchoolIcon,
-  ShieldCheckIcon,
-  UsersRoundIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -623,98 +617,6 @@ const StudentNotesTab = ({ student }: { readonly student: StudentData }) => (
   </CardShell>
 );
 
-const StudentSidebar = ({
-  formatMoney,
-  primaryGuardian,
-  student,
-  totalBilledSen,
-  totalPaidSen,
-  outstandingSen,
-}: {
-  readonly formatMoney: (amountSen: number) => string;
-  readonly primaryGuardian?: StudentData["guardians"][number]["guardian"];
-  readonly outstandingSen: number;
-  readonly student: StudentData;
-  readonly totalBilledSen: number;
-  readonly totalPaidSen: number;
-}) => (
-  <aside className="grid content-start gap-5 xl:sticky xl:top-4 xl:self-start">
-    <CardShell>
-      <CardHeader>
-        <CardTitle className="text-base">Quick Summary</CardTitle>
-        <CardDescription>
-          High-level contact and status information.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="grid gap-4">
-        <div className="grid gap-3 border-b pb-4 text-sm">
-          <div className="flex items-center gap-2">
-            <SchoolIcon className="size-4 text-muted-foreground" />
-            <span>{student.schoolName ?? "No school linked"}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <BookOpenIcon className="size-4 text-muted-foreground" />
-            <span>{student.level?.name ?? "No academic level"}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <CalendarDaysIcon className="size-4 text-muted-foreground" />
-            <span>Joined {formatDate(student.enrolledAt)}</span>
-          </div>
-        </div>
-
-        <div className="grid gap-3 border-b pb-4">
-          <div className="flex items-center gap-2 font-medium text-sm">
-            <UsersRoundIcon className="size-4 text-muted-foreground" />
-            Primary Guardian
-          </div>
-          <div className="grid gap-1 text-sm">
-            <p>{primaryGuardian?.fullName ?? "No guardian linked"}</p>
-            <p className="text-muted-foreground">
-              {primaryGuardian?.phone ?? "No phone"}
-            </p>
-            <p className="text-muted-foreground">
-              {primaryGuardian?.email ?? "No email"}
-            </p>
-          </div>
-        </div>
-
-        <div className="grid gap-3 border-b pb-4">
-          <div className="flex items-center gap-2 font-medium text-sm">
-            <ShieldCheckIcon className="size-4 text-muted-foreground" />
-            Finance
-          </div>
-          <div className="grid gap-1 text-sm">
-            <p>Total billed: {formatMoney(totalBilledSen)}</p>
-            <p>Total paid: {formatMoney(totalPaidSen)}</p>
-            <p>Outstanding: {formatMoney(outstandingSen)}</p>
-          </div>
-        </div>
-
-        <div className="grid gap-3">
-          <div className="flex items-center gap-2 font-medium text-sm">
-            <ExternalLinkIcon className="size-4 text-muted-foreground" />
-            Actions
-          </div>
-          <Button
-            render={<Link href={`/students/${student.id}/edit`} />}
-            variant="outline"
-          >
-            Edit profile
-          </Button>
-          <Button
-            render={
-              <Link href={`https://wa.me/${primaryGuardian?.phone ?? ""}`} />
-            }
-            variant="outline"
-          >
-            Message guardian
-          </Button>
-        </div>
-      </CardContent>
-    </CardShell>
-  </aside>
-);
-
 const StudentProfilePage = async ({ params }: StudentPageProperties) => {
   const tenant = await requireTenantRole(["ADMIN"]);
   const { studentId } = await params;
@@ -759,20 +661,18 @@ const StudentProfilePage = async ({ params }: StudentPageProperties) => {
         page="Student Information"
         pages={[`${appName}`, { href: "/students", label: "Students" }]}
       />
-      <main className="grid gap-5 p-4 pt-4">
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-          <div>
-            <h1 className="font-semibold text-2xl tracking-tight">
-              Student Information
-            </h1>
-            <p className="text-muted-foreground text-sm">
-              View student profile details, guardian contacts, class
-              enrollments, billing, and attendance.
-            </p>
-          </div>
+      <main className="mx-auto grid w-full max-w-6xl gap-5 p-4 pt-4">
+        <div>
+          <h1 className="font-semibold text-2xl tracking-tight">
+            Student Information
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            View student profile details, guardian contacts, class
+            enrollments, billing, and attendance.
+          </p>
         </div>
 
-        <section className="grid gap-5 xl:grid-cols-[1fr_340px] 2xl:grid-cols-[1fr_380px]">
+        <section className="grid gap-5">
           <section className="grid content-start gap-5">
             <StudentHeader
               primaryGuardianPhone={primaryGuardian?.phone ?? undefined}
@@ -841,15 +741,6 @@ const StudentProfilePage = async ({ params }: StudentPageProperties) => {
               </TabsContent>
             </Tabs>
           </section>
-
-          <StudentSidebar
-            formatMoney={formatMoney}
-            outstandingSen={outstandingSen}
-            primaryGuardian={primaryGuardian}
-            student={student}
-            totalBilledSen={totalBilledSen}
-            totalPaidSen={totalPaidSen}
-          />
         </section>
       </main>
     </>

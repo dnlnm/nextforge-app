@@ -211,39 +211,44 @@ export function StudentsTable({
           state={tableState}
         >
           <div className="grid gap-4 p-4">
-            <DataTableToolbarSection>
-              <DataTableSearchFilter placeholder="Search students..." />
-              <DataTableFacetedFilter
-                accessorKey="class"
-                multiple
-                options={classOptions}
-                title="Class"
+            <DataTableToolbarSection className="flex-col items-stretch sm:flex-row sm:items-center">
+              <DataTableSearchFilter
+                className="w-full sm:max-w-sm sm:flex-none"
+                placeholder="Search students..."
               />
-              <DataTableFacetedFilter
-                accessorKey="tutor"
-                multiple
-                options={tutorOptions}
-                title="Tutor"
-              />
-              <DataTableFacetedFilter
-                accessorKey="status"
-                multiple
-                options={statusOptions}
-                title="Status"
-              />
-              <DataTableFacetedFilter
-                accessorKey="gender"
-                multiple
-                options={genderOptions}
-                title="Gender"
-              />
-              <DataTableFacetedFilter
-                accessorKey="academicLevel"
-                multiple
-                options={levelOptions}
-                title="Level"
-              />
-              <DataTableClearFilter />
+              <div className="flex flex-wrap items-center gap-2">
+                <DataTableFacetedFilter
+                  accessorKey="class"
+                  multiple
+                  options={classOptions}
+                  title="Class"
+                />
+                <DataTableFacetedFilter
+                  accessorKey="tutor"
+                  multiple
+                  options={tutorOptions}
+                  title="Tutor"
+                />
+                <DataTableFacetedFilter
+                  accessorKey="status"
+                  multiple
+                  options={statusOptions}
+                  title="Status"
+                />
+                <DataTableFacetedFilter
+                  accessorKey="gender"
+                  multiple
+                  options={genderOptions}
+                  title="Gender"
+                />
+                <DataTableFacetedFilter
+                  accessorKey="academicLevel"
+                  multiple
+                  options={levelOptions}
+                  title="Level"
+                />
+                <DataTableClearFilter />
+              </div>
             </DataTableToolbarSection>
           </div>
 

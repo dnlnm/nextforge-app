@@ -102,7 +102,7 @@ const InvoicesPage = async () => {
   return (
     <>
       <Header page="Invoices" pages={[`${appName}`]} />
-      <main className="grid gap-5 p-4 pt-4">
+      <main className="mx-auto grid w-full max-w-6xl gap-5 p-4 pt-4">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
             <h1 className="font-semibold text-2xl tracking-tight">Invoices</h1>

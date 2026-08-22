@@ -183,51 +183,53 @@ export function TablePagination<TData>({
 
   return (
     <nav
-      className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-2"
+      className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-x-6 sm:gap-y-2"
       aria-label="Table pagination"
     >
-      <div className="flex items-center space-x-2">
-        <span
-          className="text-sm whitespace-nowrap text-muted-foreground"
-          id="pagination-page-size-label"
-        >
-          Items per page
-        </span>
-        <Select
-          value={`${Number(pageSize) === 0 ? defaultPageSize : Number(pageSize)}`}
-          onValueChange={handlePageSizeChange}
-          disabled={isLoading}
-        >
-          <SelectTrigger
-            size="sm"
-            className="w-16 focus:ring-0"
-            aria-label="Select page size"
-            aria-labelledby="pagination-page-size-label"
+      <div className="flex items-center justify-between gap-4 sm:contents">
+        <div className="flex items-center gap-2">
+          <span
+            className="text-sm whitespace-nowrap text-muted-foreground"
+            id="pagination-page-size-label"
           >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {pageSizeOptions?.map(size => (
-              <SelectItem key={size} value={`${size}`}>
-                {size}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+            Items per page
+          </span>
+          <Select
+            value={`${Number(pageSize) === 0 ? defaultPageSize : Number(pageSize)}`}
+            onValueChange={handlePageSizeChange}
+            disabled={isLoading}
+          >
+            <SelectTrigger
+              size="sm"
+              className="w-16 focus:ring-0"
+              aria-label="Select page size"
+              aria-labelledby="pagination-page-size-label"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {pageSizeOptions?.map(size => (
+                <SelectItem key={size} value={`${size}`}>
+                  {size}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div
+          className="flex-1 text-right text-sm whitespace-nowrap text-muted-foreground sm:text-center"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          {totalRows === 0
+            ? "0 items"
+            : `${startItem}-${endItem} of ${totalRows} items`}
+        </div>
       </div>
 
-      <div
-        className="flex-1 text-right text-sm whitespace-nowrap text-muted-foreground md:text-center"
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
-      >
-        {totalRows === 0
-          ? "0 items"
-          : `${startItem}-${endItem} of ${totalRows} items`}
-      </div>
-
-      <div className="ml-auto flex items-center space-x-4">
+      <div className="flex items-center justify-center gap-4 sm:ml-auto">
         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
           <label htmlFor="page-number-input" className="sr-only">
             Page number

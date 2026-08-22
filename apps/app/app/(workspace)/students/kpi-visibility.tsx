@@ -3,7 +3,7 @@
 import { Button } from "@repo/design-system/components/ui/button";
 import { cn } from "@repo/design-system/lib/utils";
 import { ChevronDownIcon } from "lucide-react";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 interface KpiVisibility {
   showKpis: boolean;
@@ -17,8 +17,18 @@ export function KpiVisibilityProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [showKpis, setShowKpis] = useState(true);
+  // Start hidden to avoid flash on mobile (server and initial client render
+  // match). After mount, sync to viewport: visible on desktop, hidden on mobile.
+  const [showKpis, setShowKpis] = useState(false);
   const toggleKpis = () => setShowKpis((value) => !value);
+
+  useEffect(() => {
+    const mql = window.matchMedia("(min-width: 768px)");
+    const sync = () => setShowKpis(mql.matches);
+    sync();
+    mql.addEventListener("change", sync);
+    return () => mql.removeEventListener("change", sync);
+  }, []);
 
   return (
     <KpiVisibilityContext.Provider value={{ showKpis, toggleKpis }}>
