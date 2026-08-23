@@ -24,6 +24,7 @@ import {
 import {
   IMPORT_BATCH_SIZE,
   MAX_IMPORT_BYTES,
+  MAX_IMPORT_ROWS,
   parseStudentWorkbook,
 } from "./lib/workbook";
 
@@ -40,7 +41,7 @@ interface RecomputedRow {
   status: ImportRowStatus;
 }
 
-const tallyStatuses = (statuses: ImportRowStatus[]) => {
+const tallyStatuses = (statuses: readonly string[]) => {
   let valid = 0;
   let invalid = 0;
   let duplicate = 0;
@@ -49,7 +50,7 @@ const tallyStatuses = (statuses: ImportRowStatus[]) => {
       valid += 1;
     } else if (status === "INVALID") {
       invalid += 1;
-    } else {
+    } else if (status === "DUPLICATE") {
       duplicate += 1;
     }
   }
@@ -192,13 +193,25 @@ const recomputeImportRows = (
   return recomputed;
 };
 
+const REVIEW_TAB_STATUSES = {
+  all: undefined,
+  invalid: ["INVALID", "DUPLICATE", "FAILED"],
+  valid: ["VALID"],
+} as const;
+
+type ReviewTab = keyof typeof REVIEW_TAB_STATUSES;
+
 export const getStudentImportRows = async ({
   importId,
-  filter,
+  tab = "all",
+  search = "",
+  errorCode = "",
   page = 0,
 }: {
   importId: string;
-  filter: "errors" | "all";
+  tab?: ReviewTab;
+  search?: string;
+  errorCode?: string;
   page?: number;
 }) => {
   const tenant = await requireTenantRole(["ADMIN"]);
@@ -217,20 +230,20 @@ export const getStudentImportRows = async ({
     return { error: "Import not found." };
   }
   const tenantScope = { importId, organizationId: tenant.organizationId };
-  const where: Prisma.StudentImportRowWhereInput =
-    filter === "errors"
-      ? {
-          ...tenantScope,
-          status: { in: ["INVALID", "DUPLICATE", "FAILED"] },
-        }
-      : tenantScope;
-  const [total, rows] = await Promise.all([
-    database.studentImportRow.count({ where }),
+  const statusFilter = REVIEW_TAB_STATUSES[tab];
+  // Tab counts and filterable codes come from the full row set; row payloads
+  // are small (capped by MAX_IMPORT_ROWS) so in-memory filtering is fine.
+  const [allStatuses, tabRows] = await Promise.all([
     database.studentImportRow.findMany({
-      where,
+      where: tenantScope,
+      select: { status: true },
+    }),
+    database.studentImportRow.findMany({
+      where: {
+        ...tenantScope,
+        ...(statusFilter ? { status: { in: [...statusFilter] } } : {}),
+      },
       orderBy: { rowNumber: "asc" },
-      skip: Math.max(0, page) * REVIEW_PAGE_SIZE,
-      take: REVIEW_PAGE_SIZE,
       select: {
         id: true,
         rowNumber: true,
@@ -240,12 +253,54 @@ export const getStudentImportRows = async ({
       },
     }),
   ]);
+  const counts = tallyStatuses(allStatuses.map((row) => row.status));
+  const term = search.trim().toLowerCase();
+  let candidates = tabRows;
+  if (term) {
+    candidates = candidates.filter(
+      (row) =>
+        String(row.rowNumber).includes(term) ||
+        Object.values(row.rawData as RawImportData).some((value) =>
+          value.toLowerCase().includes(term)
+        )
+    );
+  }
+  const availableCodes = [
+    ...new Set(
+      candidates.flatMap((row) =>
+        rowIssues(row.errors)
+          .filter((issue) => issue.severity === "error")
+          .map((issue) => issue.code)
+      )
+    ),
+  ].sort();
+  if (errorCode) {
+    candidates = candidates.filter((row) =>
+      rowIssues(row.errors).some((issue) => issue.code === errorCode)
+    );
+  }
+  const safePage = Math.max(0, page);
+  const pageCount = Math.max(
+    1,
+    Math.ceil(candidates.length / REVIEW_PAGE_SIZE)
+  );
+  const clampedPage = Math.min(safePage, pageCount - 1);
+  const pageRows = candidates.slice(
+    clampedPage * REVIEW_PAGE_SIZE,
+    (clampedPage + 1) * REVIEW_PAGE_SIZE
+  );
   return {
     ok: true as const,
-    page: Math.max(0, page),
+    page: clampedPage,
     pageSize: REVIEW_PAGE_SIZE,
-    total,
-    pageCount: Math.max(1, Math.ceil(total / REVIEW_PAGE_SIZE)),
+    total: candidates.length,
+    pageCount,
+    counts: {
+      all: counts.total,
+      valid: counts.valid,
+      invalid: counts.invalid + counts.duplicate,
+    },
+    errorCodes: availableCodes,
     summary: {
       totalRows: session.totalRows,
       validRows: session.validRows,
@@ -254,7 +309,7 @@ export const getStudentImportRows = async ({
       blockingRows: session.invalidRows + session.skippedRows,
       notes: session.failureMessage ?? "",
     },
-    rows: rows.map((row) => ({
+    rows: pageRows.map((row) => ({
       id: row.id,
       rowNumber: row.rowNumber,
       status: row.status as string,
@@ -262,6 +317,120 @@ export const getStudentImportRows = async ({
       issues: rowIssues(row.errors),
     })),
   };
+};
+
+export const deleteStudentImportRows = async ({
+  importId,
+  rowIds,
+}: {
+  importId: string;
+  rowIds: string[];
+}) => {
+  const tenant = await requireTenantRole(["ADMIN"]);
+  if (!rowIds.length) {
+    return { error: "No rows selected." };
+  }
+  const session = await database.studentImport.findFirst({
+    where: { id: importId, organizationId: tenant.organizationId },
+    select: { id: true, status: true },
+  });
+  if (!session || session.status !== "READY") {
+    return { error: "Only imports awaiting review can be edited." };
+  }
+  const deleted = await database.studentImportRow.deleteMany({
+    where: {
+      id: { in: rowIds },
+      importId,
+      organizationId: tenant.organizationId,
+    },
+  });
+  const remaining = await database.studentImportRow.findMany({
+    where: { importId, organizationId: tenant.organizationId },
+    select: { status: true },
+  });
+  const counts = tallyStatuses(remaining.map((row) => row.status));
+  await database.studentImport.update({
+    where: { id: importId },
+    data: {
+      totalRows: counts.total,
+      validRows: counts.valid,
+      invalidRows: counts.invalid,
+      skippedRows: counts.duplicate,
+    },
+  });
+  console.info("Student import rows deleted", {
+    importId,
+    organizationId: tenant.organizationId,
+    deleted: deleted.count,
+  });
+  revalidatePath(`/students/import/${importId}`);
+  return { ok: true as const, deleted: deleted.count };
+};
+
+export const addStudentImportRow = async ({
+  importId,
+}: {
+  importId: string;
+}) => {
+  const tenant = await requireTenantRole(["ADMIN"]);
+  const session = await database.studentImport.findFirst({
+    where: { id: importId, organizationId: tenant.organizationId },
+    select: { id: true, status: true },
+  });
+  if (!session || session.status !== "READY") {
+    return { error: "Only imports awaiting review can be edited." };
+  }
+  const [last, statuses] = await Promise.all([
+    database.studentImportRow.findFirst({
+      where: { importId, organizationId: tenant.organizationId },
+      orderBy: { rowNumber: "desc" },
+      select: { rowNumber: true },
+    }),
+    database.studentImportRow.findMany({
+      where: { importId, organizationId: tenant.organizationId },
+      select: { status: true },
+    }),
+  ]);
+  if (statuses.length >= MAX_IMPORT_ROWS) {
+    return { error: `This import already has ${MAX_IMPORT_ROWS} rows.` };
+  }
+  const rawData = Object.fromEntries(
+    importColumns.map((column) => [column, ""])
+  ) as RawImportData;
+  const result = validateRow(rawData, { levels: [] });
+  const rowNumber = (last?.rowNumber ?? 1) + 1;
+  const row = await database.studentImportRow.create({
+    data: {
+      organizationId: tenant.organizationId,
+      importId,
+      rowNumber,
+      status: result.status,
+      rawData: rawData as Prisma.InputJsonValue,
+      errors: result.issues as Prisma.InputJsonValue,
+      fingerprint: result.fingerprint,
+    },
+    select: { id: true },
+  });
+  const counts = tallyStatuses([
+    ...statuses.map((entry) => entry.status),
+    result.status,
+  ]);
+  await database.studentImport.update({
+    where: { id: importId },
+    data: {
+      totalRows: counts.total,
+      validRows: counts.valid,
+      invalidRows: counts.invalid,
+      skippedRows: counts.duplicate,
+    },
+  });
+  console.info("Student import row added", {
+    importId,
+    organizationId: tenant.organizationId,
+    rowNumber,
+  });
+  revalidatePath(`/students/import/${importId}`);
+  return { ok: true as const, rowId: row.id, rowNumber };
 };
 
 export const validateStudentImport = async (importId: string) => {

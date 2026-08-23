@@ -194,6 +194,24 @@ describe("markWithinFileDuplicates", () => {
     expect(second.issues[0]?.message).toContain("2");
   });
 
+  it("never groups rows without a student name", () => {
+    const first = {
+      status: "INVALID" as const,
+      issues: [] as ValidationIssue[],
+      fingerprint: "",
+      rowNumber: 2,
+    };
+    const second = {
+      status: "INVALID" as const,
+      issues: [] as ValidationIssue[],
+      fingerprint: "",
+      rowNumber: 3,
+    };
+    markWithinFileDuplicates([first, second]);
+    expect(first.issues).toHaveLength(0);
+    expect(second.issues).toHaveLength(0);
+  });
+
   it("leaves invalid rows invalid but still explains the conflict", () => {
     const invalid = {
       status: "INVALID" as const,

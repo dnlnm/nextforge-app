@@ -240,7 +240,11 @@ export const validateRow = (
     }
   }
 
-  const fingerprint = identityFingerprint(rawData, dateOfBirthIso);
+  // Rows without a student name have no meaningful identity; leave them
+  // ungrouped so blank/hand-added rows never collide as "duplicates".
+  const fingerprint = rawData["Student Name"]
+    ? identityFingerprint(rawData, dateOfBirthIso)
+    : "";
   const status = issues.length ? "INVALID" : "VALID";
   return {
     status,
@@ -302,6 +306,9 @@ export const markWithinFileDuplicates = <
 ): void => {
   const groups = new Map<string, T[]>();
   for (const row of rows) {
+    if (!row.fingerprint) {
+      continue;
+    }
     const group = groups.get(row.fingerprint);
     if (group) {
       group.push(row);
