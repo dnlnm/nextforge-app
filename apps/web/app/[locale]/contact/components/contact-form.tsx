@@ -24,39 +24,41 @@ export const ContactForm = ({ dictionary, locale }: ContactFormProps) => {
   const [date, setDate] = useState<Date | undefined>(new Date());
 
   return (
-    <div className="w-full py-20 lg:py-40">
+    <div className="w-full py-16 lg:py-24">
       <div className="container mx-auto max-w-6xl">
-        <div className="grid gap-10 lg:grid-cols-2">
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <h4 className="max-w-xl text-left font-regular text-3xl tracking-tighter md:text-5xl">
-                  {dictionary.web.contact.meta.title}
-                </h4>
-                <p className="max-w-sm text-left text-lg text-muted-foreground leading-relaxed tracking-tight">
-                  {dictionary.web.contact.meta.description}
-                </p>
-              </div>
+        <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
+          <div className="flex flex-col gap-8">
+            <div className="flex flex-col gap-3">
+              <h4 className="max-w-[16ch] text-left font-heading text-3xl leading-none tracking-[-0.03em] text-balance md:text-5xl">
+                {dictionary.web.contact.meta.title}
+              </h4>
+              <p className="max-w-[38ch] text-left text-[15px] leading-relaxed text-muted-foreground text-pretty">
+                {dictionary.web.contact.meta.description}
+              </p>
             </div>
+            <div className="flex flex-col gap-6">
             {dictionary.web.contact.hero.benefits.map((benefit) => (
               <div
-                className="flex flex-row items-start gap-6 text-left"
+                className="flex flex-row items-start gap-3 text-left"
                 key={benefit.title}
               >
-                <Check className="mt-2 h-4 w-4 text-primary" />
+                <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--accent-blue)_10%,transparent)] ring-1 ring-[color-mix(in_oklab,var(--accent-blue)_15%,transparent)]">
+                  <Check className="h-3 w-3 text-[var(--accent-blue)]" />
+                </span>
                 <div className="flex flex-col gap-1">
-                  <p>{benefit.title}</p>
-                  <p className="text-muted-foreground text-sm">
+                  <p className="text-sm font-medium">{benefit.title}</p>
+                  <p className="text-sm leading-relaxed text-muted-foreground text-pretty">
                     {benefit.description}
                   </p>
                 </div>
               </div>
             ))}
+            </div>
           </div>
 
-          <div className="flex items-center justify-center">
-            <div className="flex max-w-sm flex-col gap-4 rounded-md border p-8">
-              <p>{dictionary.web.contact.hero.form.title}</p>
+          <div className="flex items-start justify-center lg:justify-end">
+            <div className="flex w-full max-w-sm flex-col gap-4 rounded-2xl border bg-card p-6 shadow-card md:p-8">
+              <p className="text-sm font-semibold tracking-tight">{dictionary.web.contact.hero.form.title}</p>
               <div className="grid w-full max-w-sm items-center gap-1">
                 <Label htmlFor="picture">
                   {dictionary.web.contact.hero.form.date}

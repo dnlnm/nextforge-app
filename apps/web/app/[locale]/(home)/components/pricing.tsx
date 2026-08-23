@@ -1,4 +1,3 @@
-import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
   CardContent,
@@ -24,47 +23,64 @@ export const Pricing = ({
   locale,
   showFullComparison = false,
 }: PricingProps) => (
-  <div className="w-full scroll-mt-24 py-20 lg:py-40" id="pricing">
+  <div className="w-full scroll-mt-24 py-20 lg:py-28" id="pricing">
     <div className="container mx-auto">
       <div className="flex flex-col items-center justify-center gap-4 text-center">
-        <Badge>{dictionary.web.home.pricing.badge}</Badge>
-        <div className="flex flex-col gap-2">
-          <h2 className="max-w-xl text-center font-regular text-3xl tracking-tighter md:text-5xl">
+        <span className="inline-flex items-center rounded-full border bg-muted px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+          {dictionary.web.home.pricing.badge}
+        </span>
+        <div className="flex flex-col gap-3">
+          <h2 className="mx-auto max-w-[18ch] text-center font-heading text-3xl leading-none tracking-[-0.03em] text-balance md:text-5xl">
             {dictionary.web.home.pricing.title}
           </h2>
-          <p className="max-w-xl text-center text-lg text-muted-foreground leading-relaxed tracking-tight">
+          <p className="mx-auto max-w-[48ch] text-center text-[15px] leading-relaxed text-muted-foreground text-pretty">
             {dictionary.web.home.pricing.description}
           </p>
         </div>
-        <div className="grid w-full grid-cols-1 gap-8 pt-20 text-left lg:grid-cols-3">
+        <div className="grid w-full grid-cols-1 gap-5 pt-12 text-left lg:grid-cols-3 lg:items-stretch">
           {dictionary.web.home.pricing.plans.map((plan, planIndex) => (
             <CardShell
-              className={plan.highlighted ? "w-full shadow-2xl" : "w-full"}
+              className={
+                plan.highlighted
+                  ? "relative flex w-full flex-col overflow-hidden border-accent-blue/20 bg-card shadow-panel lg:-mt-3 lg:scale-[1.02]"
+                  : "relative flex w-full flex-col bg-card shadow-card"
+              }
               key={plan.name}
             >
-              <CardHeader>
-                <CardTitle>
-                  <span className="flex flex-row items-center gap-4 font-normal">
+              {plan.highlighted && (
+                <div className="absolute inset-x-0 top-0 h-0.5 bg-[linear-gradient(90deg,var(--accent-blue),color-mix(in_oklab,var(--accent-blue)_60%,white))]" aria-hidden />
+              )}
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                     {plan.name}
-                  </span>
-                </CardTitle>
-                <CardDescription>{plan.description}</CardDescription>
+                  </CardTitle>
+                  {plan.highlighted && (
+                    <span className="rounded-full bg-[color-mix(in_oklab,var(--accent-blue)_12%,transparent)] px-2.5 py-1 text-[11px] font-medium tracking-wide text-[var(--accent-blue)] ring-1 ring-[color-mix(in_oklab,var(--accent-blue)_20%,transparent)]">
+                      Popular
+                    </span>
+                  )}
+                </div>
+                <CardDescription className="text-pretty pt-1">{plan.description}</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="flex flex-col justify-start gap-8">
-                  <p className="flex flex-row items-center gap-2 text-xl">
-                    <span className="text-4xl">{plan.price}</span>
-                    <span className="text-muted-foreground text-sm">
+              <CardContent className="flex flex-1 flex-col">
+                <div className="flex flex-1 flex-col gap-6">
+                  <p className="flex items-baseline gap-2">
+                    <span className="font-mono text-4xl font-medium tracking-tight tabular-nums">{plan.price}</span>
+                    <span className="text-sm text-muted-foreground">
                       {plan.period}
                     </span>
                   </p>
-                  <div className="flex flex-col justify-start gap-4">
+                  <div className="h-px bg-border/70" aria-hidden />
+                  <div className="flex flex-1 flex-col gap-4">
                     {plan.features.map((feature) => (
-                      <div className="flex flex-row gap-4" key={feature.title}>
-                        <Check className="mt-2 h-4 w-4 text-primary" />
-                        <div className="flex flex-col">
-                          <p>{feature.title}</p>
-                          <p className="text-muted-foreground text-sm">
+                      <div className="flex gap-3" key={feature.title}>
+                        <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--accent-blue)_10%,transparent)] ring-1 ring-[color-mix(in_oklab,var(--accent-blue)_15%,transparent)]">
+                          <Check className="h-3 w-3 text-[var(--accent-blue)]" />
+                        </span>
+                        <div className="flex flex-col gap-0.5">
+                          <p className="text-sm font-medium leading-none">{feature.title}</p>
+                          <p className="text-sm leading-snug text-muted-foreground text-pretty">
                             {feature.description}
                           </p>
                         </div>
@@ -72,7 +88,7 @@ export const Pricing = ({
                     ))}
                   </div>
                   <Button
-                    className="gap-4"
+                    className="mt-auto w-full gap-2"
                     render={
                       <Link
                         href={

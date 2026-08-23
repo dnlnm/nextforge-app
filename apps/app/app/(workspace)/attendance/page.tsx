@@ -257,7 +257,7 @@ const AttendancePage = async () => {
   return (
     <>
       <Header page="Attendance" pages={[`${appName}`]} />
-      <main className="grid gap-4 p-4 pt-0">
+      <main className="mx-auto grid w-full max-w-6xl gap-5 p-4 pt-4 [scrollbar-gutter:stable]">
         <AttendanceView
           canMark={tenant.role === "TEACHER"}
           historyRows={historyRows}

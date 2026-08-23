@@ -1,70 +1,56 @@
 import type { Dictionary } from "@repo/internationalization";
-import { User } from "lucide-react";
+import {
+  CalendarRange,
+  GraduationCap,
+  Receipt,
+  UsersRound,
+} from "lucide-react";
 
 interface FeaturesProps {
   dictionary: Dictionary;
 }
 
+const icons = [UsersRound, CalendarRange, Receipt, GraduationCap] as const;
+
 export const Features = ({ dictionary }: FeaturesProps) => (
-  <div className="w-full scroll-mt-24 py-20 lg:py-40" id="features">
+  <div className="w-full scroll-mt-24 py-20 lg:py-28" id="features">
     <div className="container mx-auto">
       <div className="flex flex-col gap-10">
-        <div className="flex flex-col items-start gap-4">
-          <div className="flex flex-col gap-2">
-            <h2 className="max-w-xl text-left font-regular text-3xl tracking-tighter md:text-5xl">
-              {dictionary.web.home.features.title}
-            </h2>
-            <p className="max-w-xl text-left text-lg text-muted-foreground leading-relaxed tracking-tight lg:max-w-lg">
-              {dictionary.web.home.features.description}
-            </p>
-          </div>
+        <div className="grid gap-6 lg:grid-cols-[1.05fr_0.85fr] lg:items-end">
+          <h2 className="max-w-[18ch] text-left font-heading text-3xl leading-none tracking-[-0.03em] text-balance md:text-5xl">
+            {dictionary.web.home.features.title}
+          </h2>
+          <p className="max-w-[42ch] text-left text-[15px] leading-relaxed text-muted-foreground text-pretty lg:justify-self-end lg:text-right">
+            {dictionary.web.home.features.description}
+          </p>
         </div>
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="flex aspect-square h-full flex-col justify-between rounded-md bg-muted p-6 lg:col-span-2 lg:aspect-auto">
-            <User className="h-8 w-8 stroke-1" />
-            <div className="flex flex-col">
-              <h3 className="text-xl tracking-tight">
-                {dictionary.web.home.features.items[0].title}
-              </h3>
-              <p className="max-w-xs text-base text-muted-foreground">
-                {dictionary.web.home.features.items[0].description}
-              </p>
-            </div>
-          </div>
-          <div className="flex aspect-square flex-col justify-between rounded-md bg-muted p-6">
-            <User className="h-8 w-8 stroke-1" />
-            <div className="flex flex-col">
-              <h3 className="text-xl tracking-tight">
-                {dictionary.web.home.features.items[1].title}
-              </h3>
-              <p className="max-w-xs text-base text-muted-foreground">
-                {dictionary.web.home.features.items[1].description}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex aspect-square flex-col justify-between rounded-md bg-muted p-6">
-            <User className="h-8 w-8 stroke-1" />
-            <div className="flex flex-col">
-              <h3 className="text-xl tracking-tight">
-                {dictionary.web.home.features.items[2].title}
-              </h3>
-              <p className="max-w-xs text-base text-muted-foreground">
-                {dictionary.web.home.features.items[2].description}
-              </p>
-            </div>
-          </div>
-          <div className="flex aspect-square h-full flex-col justify-between rounded-md bg-muted p-6 lg:col-span-2 lg:aspect-auto">
-            <User className="h-8 w-8 stroke-1" />
-            <div className="flex flex-col">
-              <h3 className="text-xl tracking-tight">
-                {dictionary.web.home.features.items[3].title}
-              </h3>
-              <p className="max-w-xs text-base text-muted-foreground">
-                {dictionary.web.home.features.items[3].description}
-              </p>
-            </div>
-          </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-12">
+          {dictionary.web.home.features.items.map((item, i) => {
+            const Icon = icons[i % icons.length];
+            const span =
+              i === 0 || i === 3 ? "sm:col-span-7" : "sm:col-span-5";
+            return (
+              <div
+                key={item.title}
+                className={`group relative flex min-h-[280px] flex-col justify-between overflow-hidden rounded-2xl border bg-card p-7 shadow-card transition-all hover:shadow-md hover:-translate-y-0.5 ${span}`}
+              >
+                <div className="absolute inset-0 -z-10 opacity-0 transition-opacity group-hover:opacity-100" aria-hidden>
+                  <div className="absolute inset-0 bg-[radial-gradient(600px_circle_at_0%_0%,color-mix(in_oklab,var(--accent-blue)_7%,transparent),transparent_60%)]" />
+                </div>
+                <span className="flex size-9 items-center justify-center rounded-xl border bg-muted">
+                  <Icon className="size-[18px] stroke-[1.6]" />
+                </span>
+                <div className="flex flex-col gap-2">
+                  <h3 className="text-[17px] font-medium tracking-tight">
+                    {item.title}
+                  </h3>
+                  <p className="max-w-[32ch] text-sm leading-relaxed text-muted-foreground text-pretty">
+                    {item.description}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

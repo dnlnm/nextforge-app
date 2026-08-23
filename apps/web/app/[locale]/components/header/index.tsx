@@ -71,7 +71,7 @@ export const Header = ({ dictionary, locale }: HeaderProps) => {
 
   const [isOpen, setOpen] = useState(false);
   return (
-    <header className="sticky top-0 left-0 z-40 w-full border-b bg-background">
+    <header className="sticky top-0 left-0 z-40 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="container relative mx-auto flex min-h-20 flex-row items-center gap-4 lg:justify-between">
         <nav className="hidden flex-row items-center justify-start gap-4 lg:flex">
           <ul className="flex flex-row justify-start gap-3">

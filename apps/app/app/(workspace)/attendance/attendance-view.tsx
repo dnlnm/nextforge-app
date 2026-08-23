@@ -11,7 +11,14 @@ import {
 } from "@repo/design-system/components/ui/avatar";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
-import { Card, CardContent } from "@repo/design-system/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFrame,
+  CardFrameAction,
+  CardFrameHeader,
+  CardFrameTitle,
+} from "@repo/design-system/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -63,6 +70,8 @@ import type { AttendanceStatus } from "@repo/schemas/enums";
 import {
   AlertTriangle,
   BookOpen,
+  CalendarDays,
+  Check,
   CheckSquare,
   ChevronRight,
   Clock,
@@ -104,11 +113,9 @@ const WEEKDAY_FULL: Record<string, string> = {
 
 const formatDaySubtitle = (iso: string): string => {
   const date = tryParseCalendarDate(iso);
-
   if (!date) {
     return "";
   }
-
   return `${WEEKDAY_FULL[getMalaysiaWeekday(date)] ?? ""}, ${formatLongDate(
     date,
     "en"
@@ -121,26 +128,63 @@ const KpiCard = ({
   label,
   sub,
   value,
+  variant = "icon",
+  striped = false,
 }: {
   color?: StatColor;
   icon: typeof Percent;
   label: string;
+  striped?: boolean;
   sub: string;
   value: string | number;
-}) => (
-  <Stat>
-    <StatPanel>
-      <StatIndicator color={color} variant="icon">
-        <Icon className="size-4" />
-      </StatIndicator>
-      <StatLabel>{label}</StatLabel>
-      <StatValue>{value}</StatValue>
-    </StatPanel>
-    <StatFooter className="min-h-12 px-4 py-3">
-      <StatDescription>{sub}</StatDescription>
-    </StatFooter>
-  </Stat>
-);
+  variant?: "icon" | "stacked";
+}) => {
+  if (striped) {
+    return (
+      <div className="relative h-full rounded-xl border border-border/70 p-1">
+        <div className="relative h-full overflow-hidden rounded-lg">
+          <div
+            aria-hidden="true"
+            className="absolute inset-1 z-0 rounded-sm opacity-40"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(45deg, transparent, transparent 2px, var(--border) 2px, var(--border) 4px)",
+            }}
+          />
+          <Card className="relative isolate z-10 h-full rounded-lg border-2 border-border bg-transparent shadow-none before:hidden">
+            <div className="grid flex-1 grid-cols-[auto_1fr] gap-x-3 gap-y-2 p-4 **:data-[slot=stat-value]:col-span-2 **:data-[slot=stat-indicator]:col-start-1 **:data-[slot=stat-label]:col-start-2 **:data-[slot=stat-indicator]:row-start-1 **:data-[slot=stat-label]:row-start-1 **:data-[slot=stat-value]:row-start-2 **:data-[slot=stat-indicator]:self-center **:data-[slot=stat-label]:self-center max-md:p-3">
+              <StatLabel>{label}</StatLabel>
+              <StatIndicator color={color} variant={variant}>
+                <Icon />
+              </StatIndicator>
+              <StatValue>{value}</StatValue>
+            </div>
+            <div className="flex flex-col items-start gap-2 px-4 py-3 max-md:px-3 max-md:py-2">
+              <StatDescription className="min-w-0 flex-1">
+                {sub}
+              </StatDescription>
+            </div>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <Stat>
+      <StatPanel>
+        <StatIndicator color={color} variant={variant}>
+          <Icon className="size-4" />
+        </StatIndicator>
+        <StatLabel>{label}</StatLabel>
+        <StatValue>{value}</StatValue>
+      </StatPanel>
+      <StatFooter className="min-h-12 px-4 py-3">
+        <StatDescription>{sub}</StatDescription>
+      </StatFooter>
+    </Stat>
+  );
+};
 
 const rateColor = (rate: number): string => {
   if (rate >= 90) {
@@ -173,13 +217,16 @@ const getInitials = (name: string): string =>
     .join("");
 
 const weekDayButtonClass = (day: WeekDayView, selectedDate: string): string => {
+  if (day.isToday && selectedDate === day.date) {
+    return "border-primary bg-primary text-primary-foreground shadow-sm ring-2 ring-primary ring-offset-1";
+  }
   if (day.isToday) {
     return "border-primary bg-primary text-primary-foreground shadow-sm";
   }
   if (selectedDate === day.date) {
-    return "border-primary/30 bg-primary/10 text-primary";
+    return "border-primary/30 bg-primary/10 text-primary ring-1 ring-primary/20";
   }
-  return "border-border bg-card hover:border-primary/30 hover:bg-muted/50";
+  return "border-border bg-card hover:border-primary/20 hover:bg-muted/40";
 };
 
 const weekDayDotClass = (day: WeekDayView): string => {
@@ -187,7 +234,7 @@ const weekDayDotClass = (day: WeekDayView): string => {
     return "bg-white/70";
   }
   if (day.totalCount === 0) {
-    return "bg-transparent";
+    return "bg-border";
   }
   if (day.savedCount >= day.totalCount) {
     return "bg-emerald-500";
@@ -200,21 +247,21 @@ const SessionListBadge = ({ session }: { session: SessionView }) => {
 
   if (session.saved) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 font-bold text-[10px] text-emerald-600">
-        <CheckSquare className="size-3" />
+      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 font-bold text-[10px] text-emerald-700 dark:border-emerald-900/30 dark:bg-emerald-950/40 dark:text-emerald-300">
+        <Check className="size-3" strokeWidth={3} />
         Done
       </span>
     );
   }
   if (unmarked > 0) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-1.5 py-0.5 font-bold text-[10px] text-amber-600">
+      <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 font-bold text-[10px] text-amber-700 dark:border-amber-900/30 dark:bg-amber-950/30 dark:text-amber-300">
         {unmarked} left
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-1.5 py-0.5 font-bold text-[10px] text-primary">
+    <span className="inline-flex items-center gap-1 rounded-full border border-primary/15 bg-primary/10 px-2 py-0.5 font-bold text-[10px] text-primary">
       <CheckSquare className="size-3" />
       Ready
     </span>
@@ -226,7 +273,7 @@ const LEGEND: Array<{ dot: string; label: string }> = [
   { dot: "bg-amber-400", label: "Late" },
   { dot: "bg-rose-500", label: "Absent" },
   { dot: "bg-blue-500", label: "MC / Excused" },
-  { dot: "bg-muted", label: "Unmarked" },
+  { dot: "bg-muted-foreground/30", label: "Unmarked" },
 ];
 
 interface AttendanceViewProps {
@@ -238,6 +285,7 @@ interface AttendanceViewProps {
   weekDays: WeekDayView[];
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: attendance view orchestrates week/day/session/history state in one place
 export function AttendanceView({
   canMark,
   historyRows,
@@ -395,22 +443,35 @@ export function AttendanceView({
   };
 
   return (
-    <Tabs className="gap-4" defaultValue="today">
+    <Tabs className="gap-5" defaultValue="today">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
+        <div className="min-w-0">
           <h1 className="font-heading font-semibold text-2xl tracking-tight">
             Attendance
           </h1>
-          <p className="text-muted-foreground text-sm">
-            {formatDaySubtitle(selectedDate)} · {savedCount}/
-            {daySessions.length} sessions saved
+          <p className="mt-1 flex flex-wrap items-center gap-2 text-muted-foreground text-sm">
+            <span className="inline-flex items-center gap-1.5">
+              <CalendarDays className="size-3.5" />
+              {formatDaySubtitle(selectedDate)}
+            </span>
+            <span className="hidden size-1 rounded-full bg-border sm:inline-block" />
+            <span className="font-medium text-foreground">
+              {savedCount}/{daySessions.length}
+            </span>
+            <span>registers saved</span>
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           {unmarkedToday > 0 ? (
             <Badge variant="warning">
               <AlertTriangle className="size-3.5" />
               {unmarkedToday} unmarked
+            </Badge>
+          ) : null}
+          {unmarkedToday === 0 && totalToday > 0 ? (
+            <Badge variant="success">
+              <Check className="size-3.5" />
+              All marked
             </Badge>
           ) : null}
           <TabsList>
@@ -422,59 +483,98 @@ export function AttendanceView({
 
       <TabsContent className="flex-1" value="today">
         <div className="grid gap-5">
-          {/* Week strip */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1">
-            <p className="mr-1 shrink-0 font-semibold text-muted-foreground text-xs uppercase tracking-widest">
-              This week
-            </p>
-            {weekDays.map((day) => (
-              <button
-                className={cn(
-                  "flex min-w-14 shrink-0 flex-col items-center gap-1 rounded-xl border px-3 py-2 transition-all",
-                  weekDayButtonClass(day, selectedDate)
-                )}
-                key={day.date}
-                onClick={() => setSelectedDate(day.date)}
-                type="button"
-              >
-                <span
+          {/* Week rail — ledger index */}
+          <Card className="overflow-hidden">
+            <div className="flex items-center gap-2 border-border border-b bg-muted/20 px-4 py-2.5">
+              <p className="shrink-0 font-semibold text-muted-foreground text-xs uppercase tracking-widest">
+                Week
+              </p>
+              <span className="hidden text-muted-foreground/40 text-xs sm:inline">
+                ·
+              </span>
+              <p className="hidden text-muted-foreground text-xs sm:block">
+                Tap a day to open its registers
+              </p>
+              <span className="ml-auto hidden items-center gap-1.5 text-[11px] text-muted-foreground sm:flex">
+                <span className="size-2 rounded-full bg-emerald-500" /> done
+                <span className="size-2 rounded-full bg-amber-400" /> pending
+                <span className="size-2 rounded-full bg-rose-400" /> overdue
+              </span>
+            </div>
+            <div className="flex gap-2 overflow-x-auto p-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {weekDays.map((day) => (
+                <button
+                  aria-pressed={selectedDate === day.date}
                   className={cn(
-                    "font-semibold text-[10px] uppercase",
-                    day.isToday
-                      ? "text-primary-foreground/70"
-                      : "text-muted-foreground"
+                    "flex min-w-[66px] flex-1 shrink-0 flex-col items-center gap-1 rounded-xl border px-3 py-3 text-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 sm:min-w-14",
+                    weekDayButtonClass(day, selectedDate)
                   )}
+                  key={day.date}
+                  onClick={() => setSelectedDate(day.date)}
+                  type="button"
                 >
-                  {day.label}
-                </span>
-                <span
-                  className={cn(
-                    "font-bold text-sm",
-                    day.isToday && "text-primary-foreground"
-                  )}
-                >
-                  {day.day}
-                </span>
-                <span
-                  className={cn("size-1.5 rounded-full", weekDayDotClass(day))}
-                />
-              </button>
-            ))}
-          </div>
+                  <span
+                    className={cn(
+                      "font-semibold text-[10px] uppercase tracking-widest",
+                      day.isToday
+                        ? "text-primary-foreground/70"
+                        : "text-muted-foreground"
+                    )}
+                  >
+                    {day.label}
+                  </span>
+                  <span
+                    className={cn(
+                      "font-bold font-heading text-lg tabular-nums leading-none",
+                      day.isToday && "text-primary-foreground"
+                    )}
+                  >
+                    {day.day}
+                  </span>
+                  <span className="mt-0.5 flex items-center gap-1 text-[10px]">
+                    {day.totalCount > 0 ? (
+                      <>
+                        <span
+                          className={cn(
+                            "size-1.5 rounded-full",
+                            weekDayDotClass(day)
+                          )}
+                        />
+                        <span
+                          className={cn(
+                            "font-medium tabular-nums",
+                            day.isToday
+                              ? "text-primary-foreground/80"
+                              : "text-muted-foreground"
+                          )}
+                        >
+                          {day.savedCount}/{day.totalCount}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-muted-foreground/60">—</span>
+                    )}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </Card>
 
           {/* KPIs */}
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <KpiCard
               color="default"
               icon={Percent}
-              label="Attendance Rate"
-              sub="Present + late today"
+              label="Today's Rate"
+              striped
+              sub="Present + late"
               value={`${rateToday}%`}
+              variant="stacked"
             />
             <KpiCard
               color="success"
               icon={Users}
-              label="Present Today"
+              label="Present"
               sub={`of ${totalToday} students`}
               value={presentToday}
             />
@@ -482,94 +582,140 @@ export function AttendanceView({
               color="error"
               icon={AlertTriangle}
               label="Absent"
-              sub="Including excused / MC"
+              sub="Excused incl."
               value={absentToday}
             />
             <KpiCard
-              color="info"
+              color={
+                daySessions.length > 0 && savedCount === daySessions.length
+                  ? "success"
+                  : "info"
+              }
               icon={CheckSquare}
-              label="Sessions"
-              sub="Registers saved"
+              label="Registers"
+              sub={
+                daySessions.length === 0
+                  ? "No classes today"
+                  : `${savedCount} saved`
+              }
               value={`${savedCount}/${daySessions.length}`}
             />
           </div>
 
-          {/* Session list + panel */}
-          <div className="grid items-start gap-4 xl:grid-cols-[280px_1fr]">
-            <Card className="overflow-hidden">
-              <div className="border-border border-b bg-muted/20 px-4 py-3">
-                <p className="font-semibold text-muted-foreground text-xs uppercase tracking-widest">
-                  Today&apos;s Sessions
-                </p>
-              </div>
-              {daySessions.length === 0 ? (
-                <p className="px-4 py-6 text-center text-muted-foreground text-sm">
-                  No sessions for this day.
-                </p>
-              ) : (
-                daySessions.map((session) => {
-                  const sTotal = session.students.length;
-                  const sPresent = session.students.filter(
-                    (student) =>
-                      student.status === "PRESENT" || student.status === "LATE"
-                  ).length;
-                  const sRate =
-                    sTotal > 0 ? Math.round((sPresent / sTotal) * 100) : 0;
-                  const isActive = activeSession?.id === session.id;
+          {/* Session list + ledger */}
+          <div className="grid items-start gap-4 xl:grid-cols-[340px_1fr]">
+            <CardFrame className="overflow-hidden">
+              <CardFrameHeader className="border-border border-b bg-muted/20 px-4 py-3">
+                <CardFrameTitle className="flex items-center gap-2 text-xs uppercase tracking-widest">
+                  <FileText className="size-3.5 text-muted-foreground" />
+                  Registers
+                  <span className="rounded-full bg-muted px-1.5 py-0.5 font-bold font-mono text-[10px] text-muted-foreground">
+                    {daySessions.length}
+                  </span>
+                </CardFrameTitle>
+                {daySessions.length > 0 ? (
+                  <CardFrameAction>
+                    <span className="text-muted-foreground text-xs">
+                      {activeSession
+                        ? `${daySessions.findIndex((s) => s.id === activeSession.id) + 1} / ${daySessions.length}`
+                        : ""}
+                    </span>
+                  </CardFrameAction>
+                ) : null}
+              </CardFrameHeader>
 
-                  return (
-                    <button
-                      className={cn(
-                        "w-full border-border border-b text-left transition-colors last:border-0",
-                        isActive
-                          ? "border-l-2 border-l-primary bg-primary/5"
-                          : "hover:bg-muted/40"
-                      )}
-                      key={session.id}
-                      onClick={() => setActiveSessionId(session.id)}
-                      type="button"
-                    >
-                      <div className="px-4 py-3.5">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <p
+              {daySessions.length === 0 ? (
+                <div className="grid place-items-center gap-2 px-4 py-10 text-center">
+                  <div className="rounded-full bg-muted p-3">
+                    <CalendarDays className="size-5 text-muted-foreground" />
+                  </div>
+                  <p className="font-medium text-foreground text-sm">
+                    No registers for this day
+                  </p>
+                  <p className="max-w-[26ch] text-muted-foreground text-xs">
+                    {selectedDate === todayDate
+                      ? "Create today's sessions from the Today page, then return to mark attendance."
+                      : "No classes are scheduled for this date."}
+                  </p>
+                </div>
+              ) : (
+                <div className="divide-y divide-border">
+                  {daySessions.map((session) => {
+                    const sTotal = session.students.length;
+                    const sPresent = session.students.filter(
+                      (student) =>
+                        student.status === "PRESENT" ||
+                        student.status === "LATE"
+                    ).length;
+                    const sRate =
+                      sTotal > 0 ? Math.round((sPresent / sTotal) * 100) : 0;
+                    const isActive = activeSession?.id === session.id;
+
+                    return (
+                      <button
+                        aria-pressed={isActive}
+                        className={cn(
+                          "w-full text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
+                          isActive
+                            ? "border-l-2 border-l-primary bg-primary/[0.04]"
+                            : "border-l-2 border-l-transparent hover:bg-muted/40"
+                        )}
+                        key={session.id}
+                        onClick={() => setActiveSessionId(session.id)}
+                        type="button"
+                      >
+                        <div className="px-4 py-3.5">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p
+                                className={cn(
+                                  "truncate font-semibold text-sm leading-none",
+                                  isActive ? "text-primary" : "text-foreground"
+                                )}
+                              >
+                                {session.grade}
+                              </p>
+                              <p className="mt-1 truncate text-muted-foreground text-xs">
+                                {session.className}
+                              </p>
+                              <p className="mt-1.5 inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 font-medium font-mono text-[11px] text-muted-foreground">
+                                <Clock className="size-3" />
+                                {session.startsAt}–{session.endsAt}
+                              </p>
+                            </div>
+                            <div className="flex shrink-0 flex-col items-end gap-1">
+                              <SessionListBadge session={session} />
+                              <p className="text-[10px] text-muted-foreground tabular-nums">
+                                {sTotal} students
+                              </p>
+                            </div>
+                          </div>
+                          <div className="mt-3 flex items-center gap-2">
+                            <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
+                              <div
+                                className={cn(
+                                  "h-full rounded-full transition-all",
+                                  rateBg(sRate)
+                                )}
+                                style={{ width: `${sRate}%` }}
+                              />
+                            </div>
+                            <span
                               className={cn(
-                                "truncate font-semibold text-sm",
-                                isActive ? "text-primary" : "text-foreground"
+                                "font-bold text-[11px] tabular-nums",
+                                rateColor(sRate)
                               )}
                             >
-                              {session.grade}
-                            </p>
-                            <p className="mt-0.5 truncate text-muted-foreground text-xs">
-                              {session.className}
-                            </p>
-                            <p className="mt-0.5 flex items-center gap-1 text-muted-foreground text-xs">
-                              <Clock className="size-3" />
-                              {session.startsAt}
-                            </p>
-                          </div>
-                          <div className="shrink-0 text-right">
-                            <SessionListBadge session={session} />
-                            <p className="mt-1 text-[10px] text-muted-foreground">
-                              {sTotal} students
-                            </p>
+                              {sRate}%
+                            </span>
                           </div>
                         </div>
-                        <div className="mt-2.5 h-1 overflow-hidden rounded-full bg-muted">
-                          <div
-                            className={cn(
-                              "h-full rounded-full transition-all",
-                              rateBg(sRate)
-                            )}
-                            style={{ width: `${sRate}%` }}
-                          />
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })
+                      </button>
+                    );
+                  })}
+                </div>
               )}
-            </Card>
+            </CardFrame>
 
             {activeSession ? (
               <SessionPanel
@@ -586,13 +732,13 @@ export function AttendanceView({
                 session={activeSession}
               />
             ) : (
-              <Empty className="border">
+              <Empty className="border border-dashed">
                 <EmptyHeader>
-                  <EmptyTitle>No sessions for this day</EmptyTitle>
+                  <EmptyTitle>No register selected</EmptyTitle>
                   <EmptyDescription>
-                    {selectedDate === todayDate
-                      ? "Create today&apos;s sessions from the Today page if classes are scheduled, then mark attendance here."
-                      : "There are no classes scheduled for this day."}
+                    {daySessions.length > 0
+                      ? "Select a register from the left to begin marking."
+                      : "There are no registers to display for this date."}
                   </EmptyDescription>
                 </EmptyHeader>
               </Empty>
@@ -600,8 +746,10 @@ export function AttendanceView({
           </div>
 
           {/* Legend */}
-          <div className="flex flex-wrap items-center gap-4 text-muted-foreground text-xs">
-            <span className="font-semibold">Status legend:</span>
+          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-dashed bg-muted/20 px-4 py-3 text-xs">
+            <span className="font-semibold text-[11px] text-muted-foreground uppercase tracking-widest">
+              Key
+            </span>
             {LEGEND.map((item) => (
               <span className="flex items-center gap-1.5" key={item.label}>
                 <span className={cn("size-2 rounded-full", item.dot)} />
@@ -609,8 +757,8 @@ export function AttendanceView({
               </span>
             ))}
             {canMark ? (
-              <span className="ml-auto text-[11px]">
-                Click a status button to mark · click again to unmark
+              <span className="ml-auto hidden text-[11px] text-muted-foreground sm:inline">
+                Click a status to mark · again to clear · note for MC / remarks
               </span>
             ) : null}
           </div>
@@ -624,14 +772,16 @@ export function AttendanceView({
             <KpiCard
               color="default"
               icon={Percent}
-              label={`Avg Rate (${historyStats.monthLabel})`}
-              sub="Present + late"
+              label={"Avg Rate"}
+              striped
+              sub={historyStats.monthLabel}
               value={`${historyStats.avgRate}%`}
+              variant="stacked"
             />
             <KpiCard
               color="info"
               icon={BookOpen}
-              label="Total Sessions"
+              label="Sessions Filed"
               sub={historyStats.monthLabel}
               value={historyStats.totalSessions}
             />
@@ -639,155 +789,157 @@ export function AttendanceView({
               color="success"
               icon={TrendingUp}
               label="Perfect Days"
-              sub="100% attendance days"
+              sub="100% attendance"
               value={historyStats.perfectDays}
             />
             <KpiCard
               color="error"
               icon={AlertTriangle}
               label="Absent Events"
-              sub="Across saved registers"
+              sub="This month"
               value={historyStats.absentEvents}
             />
           </div>
 
-          {/* Filter bar */}
-          <Card className="overflow-hidden">
-            <CardContent className="p-0">
-              <div className="flex flex-wrap items-center gap-3 border-border border-b p-3">
-                <div className="relative min-w-0 flex-1">
-                  <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    className="pl-9"
-                    nativeInput
-                    onChange={(event) => setHistorySearch(event.target.value)}
-                    placeholder="Search session or class..."
-                    value={historySearch}
-                  />
-                </div>
-                <Select
-                  onValueChange={(value) => setHistoryClass(value ?? "All")}
-                  value={historyClass}
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="All classes" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {classOptions.map((option) => (
-                      <SelectItem key={option} value={option}>
-                        {option}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          {/* Filter bar + table */}
+          <CardFrame className="overflow-hidden">
+            <CardFrameHeader className="flex flex-wrap items-center gap-3 border-border border-b p-3">
+              <div className="relative min-w-0 flex-1">
+                <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  className="pl-9"
+                  nativeInput
+                  onChange={(event) => setHistorySearch(event.target.value)}
+                  placeholder="Search class or date…"
+                  value={historySearch}
+                />
               </div>
+              <Select
+                onValueChange={(value) => setHistoryClass(value ?? "All")}
+                value={historyClass}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="All classes" />
+                </SelectTrigger>
+                <SelectContent>
+                  {classOptions.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardFrameHeader>
 
-              {filteredHistory.length === 0 ? (
-                <Empty>
-                  <EmptyHeader>
-                    <EmptyTitle>No registers yet</EmptyTitle>
-                    <EmptyDescription>
-                      Saved attendance registers for this month will appear
-                      here.
-                    </EmptyDescription>
-                  </EmptyHeader>
-                </Empty>
-              ) : (
-                <Table variant="card">
-                  <TableHeader>
-                    <TableRow>
-                      {[
-                        "Date",
-                        "Session",
-                        "Grade",
-                        "Total",
-                        "Present",
-                        "Late",
-                        "Absent",
-                        "Rate",
-                        "",
-                      ].map((header) => (
-                        <TableHead
-                          className="bg-muted/30 px-4 py-2.5 font-semibold text-[11px] uppercase tracking-wider"
-                          key={header}
-                        >
-                          {header}
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredHistory.map((row) => (
-                      <TableRow key={row.id}>
-                        <TableCell className="px-4 py-3 font-medium text-foreground text-sm">
-                          {row.date}
-                        </TableCell>
-                        <TableCell className="px-4 py-3 text-foreground text-sm">
-                          {row.session}
-                        </TableCell>
-                        <TableCell className="px-4 py-3">
-                          <span className="rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary text-xs">
-                            {row.grade}
-                          </span>
-                        </TableCell>
-                        <TableCell className="px-4 py-3 text-muted-foreground text-sm">
-                          {row.total}
-                        </TableCell>
-                        <TableCell className="px-4 py-3 font-semibold text-emerald-600 text-xs">
-                          {row.present}
-                        </TableCell>
-                        <TableCell className="px-4 py-3 font-semibold text-amber-600 text-xs">
-                          {row.late || "—"}
-                        </TableCell>
-                        <TableCell
-                          className={cn(
-                            "px-4 py-3 font-semibold text-xs",
-                            row.absent > 0
-                              ? "text-rose-600"
-                              : "text-muted-foreground"
-                          )}
-                        >
-                          {row.absent || "—"}
-                        </TableCell>
-                        <TableCell className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <div className="h-1.5 w-16 overflow-hidden rounded-full bg-muted">
-                              <div
-                                className={cn(
-                                  "h-full rounded-full",
-                                  rateBg(row.rate)
-                                )}
-                                style={{ width: `${row.rate}%` }}
-                              />
-                            </div>
-                            <span
-                              className={cn(
-                                "font-bold text-xs",
-                                rateColor(row.rate)
-                              )}
-                            >
-                              {row.rate}%
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="px-4 py-3">
-                          <Button
-                            className="h-8 px-2.5 text-xs"
-                            onClick={() => openRoster(row)}
-                            size="sm"
-                            type="button"
-                            variant="ghost"
+            {filteredHistory.length === 0 ? (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyTitle>No registers yet</EmptyTitle>
+                  <EmptyDescription>
+                    Saved registers for {historyStats.monthLabel} will appear
+                    here once teachers file them.
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            ) : (
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table variant="card">
+                    <TableHeader>
+                      <TableRow>
+                        {[
+                          "Date",
+                          "Class",
+                          "Grade",
+                          "Total",
+                          "Present",
+                          "Late",
+                          "Absent",
+                          "Rate",
+                          "",
+                        ].map((header) => (
+                          <TableHead
+                            className="bg-muted/30 px-4 py-2.5 font-semibold text-[11px] uppercase tracking-wider"
+                            key={header}
                           >
-                            View <ChevronRight className="size-3.5" />
-                          </Button>
-                        </TableCell>
+                            {header}
+                          </TableHead>
+                        ))}
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredHistory.map((row) => (
+                        <TableRow key={row.id}>
+                          <TableCell className="px-4 py-3 font-medium text-foreground text-sm tabular-nums">
+                            {row.date}
+                          </TableCell>
+                          <TableCell className="px-4 py-3 text-foreground text-sm">
+                            {row.session}
+                          </TableCell>
+                          <TableCell className="px-4 py-3">
+                            <span className="rounded-full border border-border bg-muted/50 px-2 py-0.5 font-medium text-muted-foreground text-xs">
+                              {row.grade}
+                            </span>
+                          </TableCell>
+                          <TableCell className="px-4 py-3 text-muted-foreground text-sm tabular-nums">
+                            {row.total}
+                          </TableCell>
+                          <TableCell className="px-4 py-3 font-semibold text-emerald-600 text-xs tabular-nums">
+                            {row.present}
+                          </TableCell>
+                          <TableCell className="px-4 py-3 font-semibold text-amber-600 text-xs tabular-nums">
+                            {row.late || "—"}
+                          </TableCell>
+                          <TableCell
+                            className={cn(
+                              "px-4 py-3 font-semibold text-xs tabular-nums",
+                              row.absent > 0
+                                ? "text-rose-600"
+                                : "text-muted-foreground"
+                            )}
+                          >
+                            {row.absent || "—"}
+                          </TableCell>
+                          <TableCell className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              <div className="h-1.5 w-16 overflow-hidden rounded-full bg-muted">
+                                <div
+                                  className={cn(
+                                    "h-full rounded-full",
+                                    rateBg(row.rate)
+                                  )}
+                                  style={{ width: `${row.rate}%` }}
+                                />
+                              </div>
+                              <span
+                                className={cn(
+                                  "font-bold text-xs tabular-nums",
+                                  rateColor(row.rate)
+                                )}
+                              >
+                                {row.rate}%
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="px-4 py-3">
+                            <Button
+                              className="h-8 px-2.5 text-xs"
+                              onClick={() => openRoster(row)}
+                              size="sm"
+                              type="button"
+                              variant="ghost"
+                            >
+                              View <ChevronRight className="size-3.5" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            )}
+          </CardFrame>
         </div>
       </TabsContent>
 
@@ -825,7 +977,7 @@ export function AttendanceView({
                     key={student.id}
                   >
                     <Avatar className="size-8">
-                      <AvatarFallback className="text-muted-foreground">
+                      <AvatarFallback className="bg-muted text-muted-foreground text-xs">
                         {getInitials(student.name)}
                       </AvatarFallback>
                     </Avatar>

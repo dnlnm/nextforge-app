@@ -43,7 +43,7 @@ const STATUS_OPTIONS: StatusOption[] = [
       "border-transparent bg-emerald-500 text-white shadow-sm ring-2 ring-emerald-500 ring-offset-1",
     dot: "bg-emerald-500",
     pill: "bg-emerald-500 text-white",
-    rowTint: "bg-emerald-500/5",
+    rowTint: "bg-emerald-500/[0.04]",
   },
   {
     value: "LATE",
@@ -65,7 +65,7 @@ const STATUS_OPTIONS: StatusOption[] = [
       "border-transparent bg-rose-500 text-white shadow-sm ring-2 ring-rose-500 ring-offset-1",
     dot: "bg-rose-500",
     pill: "bg-rose-500 text-white",
-    rowTint: "bg-rose-500/5",
+    rowTint: "bg-rose-500/[0.04]",
   },
   {
     value: "EXCUSED",
@@ -76,7 +76,7 @@ const STATUS_OPTIONS: StatusOption[] = [
       "border-transparent bg-blue-500 text-white shadow-sm ring-2 ring-blue-500 ring-offset-1",
     dot: "bg-blue-500",
     pill: "bg-blue-500 text-white",
-    rowTint: "bg-blue-500/10",
+    rowTint: "bg-blue-500/[0.06]",
   },
 ];
 
@@ -108,6 +108,21 @@ export const StatusPill = ({ status }: { status: AttendanceStatus | null }) => {
   );
 };
 
+const accentForStatus = (status: AttendanceStatus | null): string => {
+  switch (status) {
+    case "PRESENT":
+      return "border-l-emerald-500";
+    case "LATE":
+      return "border-l-amber-400";
+    case "ABSENT":
+      return "border-l-rose-500";
+    case "EXCUSED":
+      return "border-l-blue-500";
+    default:
+      return "border-l-transparent";
+  }
+};
+
 const AttendRow = ({
   canMark,
   noteOpen,
@@ -131,13 +146,14 @@ const AttendRow = ({
   return (
     <div
       className={cn(
-        "border-border border-b transition-colors last:border-0",
+        "border-border border-b border-l-2 pl-px transition-colors last:border-b-0",
+        accentForStatus(student.status),
         config && !saved && config.rowTint
       )}
     >
-      <div className="flex items-center gap-3 px-4 py-3">
-        <Avatar className="size-8">
-          <AvatarFallback className="text-muted-foreground">
+      <div className="flex items-center gap-3 px-3 py-3 sm:px-4">
+        <Avatar className="size-8 shrink-0">
+          <AvatarFallback className="bg-muted text-muted-foreground text-xs">
             {student.initials}
           </AvatarFallback>
         </Avatar>
@@ -146,6 +162,12 @@ const AttendRow = ({
           <p className="truncate font-medium text-foreground text-sm">
             {student.name}
           </p>
+          {student.note && !noteOpen ? (
+            <p className="flex items-center gap-1 truncate text-muted-foreground text-xs">
+              <FileText className="size-3 shrink-0" />
+              {student.note}
+            </p>
+          ) : null}
         </div>
 
         {editable ? (
@@ -156,31 +178,33 @@ const AttendRow = ({
 
               return (
                 <button
+                  aria-label={`${option.label} — ${student.name}`}
+                  aria-pressed={active}
                   className={cn(
-                    "flex size-8 items-center justify-center rounded-lg border font-bold text-[11px] transition-all",
+                    "flex size-8 items-center justify-center rounded-lg border font-bold text-[11px] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
                     active
                       ? option.active
-                      : "border-border bg-muted text-muted-foreground hover:border-primary/30 hover:bg-muted/80"
+                      : "border-border bg-card text-muted-foreground hover:border-primary/30 hover:bg-muted/80"
                   )}
                   key={option.value}
                   onClick={() => onUpdateStatus(active ? null : option.value)}
-                  title={option.label}
+                  title={`${option.label} — click again to clear`}
                   type="button"
                 >
-                  {option.short === "A" ||
-                  option.short === "L" ||
-                  option.short === "P" ? (
-                    <Icon className="size-3.5" strokeWidth={2.5} />
+                  {option.short === "EX" ? (
+                    <span className="text-[10px] leading-none">EX</span>
                   ) : (
-                    option.short
+                    <Icon className="size-3.5" strokeWidth={2.5} />
                   )}
                 </button>
               );
             })}
             <button
+              aria-label={`Add note for ${student.name}`}
+              aria-pressed={noteOpen}
               className={cn(
-                "ml-1 flex size-8 items-center justify-center rounded-lg border transition-colors",
-                student.note
+                "ml-1 flex size-8 items-center justify-center rounded-lg border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+                student.note || noteOpen
                   ? "border-primary/30 bg-primary/10 text-primary"
                   : "border-border text-muted-foreground hover:bg-muted"
               )}
@@ -188,7 +212,7 @@ const AttendRow = ({
               title="Add note"
               type="button"
             >
-              <FileText className="size-3" />
+              <FileText className="size-3.5" />
             </button>
           </div>
         ) : (
@@ -197,13 +221,18 @@ const AttendRow = ({
       </div>
 
       {noteOpen && editable && (
-        <div className="px-4 pb-3">
+        <div className="px-3 pb-3 sm:px-4">
           <Input
             autoFocus
             className="h-8 text-xs"
             nativeInput
             onChange={(event) => onUpdateNote(event.target.value)}
-            placeholder="e.g. MC submitted, parent called ahead, arrived late..."
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                onToggleNote();
+              }
+            }}
+            placeholder="MC submitted, parent called ahead, arrived late..."
             value={student.note}
           />
         </div>
@@ -251,49 +280,63 @@ const RateBreakdown = ({
 }) => (
   <div className="mt-4">
     <div className="mb-1.5 flex flex-wrap items-center justify-between gap-3 text-xs">
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2.5">
         {present > 0 ? (
-          <span className="font-semibold text-emerald-600">
+          <span className="inline-flex items-center gap-1 font-semibold text-emerald-600">
+            <span className="size-2 rounded-full bg-emerald-500" />
             {present} present
           </span>
         ) : null}
         {late > 0 ? (
-          <span className="font-semibold text-amber-600">{late} late</span>
+          <span className="inline-flex items-center gap-1 font-semibold text-amber-600">
+            <span className="size-2 rounded-full bg-amber-400" />
+            {late} late
+          </span>
         ) : null}
         {absent > 0 ? (
-          <span className="font-semibold text-rose-600">{absent} absent</span>
+          <span className="inline-flex items-center gap-1 font-semibold text-rose-600">
+            <span className="size-2 rounded-full bg-rose-500" />
+            {absent} absent
+          </span>
         ) : null}
         {excused > 0 ? (
-          <span className="font-semibold text-blue-600">{excused} MC</span>
+          <span className="inline-flex items-center gap-1 font-semibold text-blue-600">
+            <span className="size-2 rounded-full bg-blue-500" />
+            {excused} MC
+          </span>
         ) : null}
         {unmarked > 0 ? (
-          <span className="text-muted-foreground">{unmarked} unmarked</span>
+          <span className="rounded-full bg-muted px-2 py-0.5 font-medium text-[11px] text-muted-foreground">
+            {unmarked} unmarked
+          </span>
         ) : null}
       </div>
-      <span className={cn("font-bold", panelRateColor(rate))}>{rate}%</span>
+      <span className={cn("font-bold tabular-nums", panelRateColor(rate))}>
+        {rate}%
+      </span>
     </div>
-    <div className="flex h-2 gap-0.5 overflow-hidden rounded-full bg-muted">
+    <div className="flex h-2 gap-0.5 overflow-hidden rounded-full bg-muted p-0.5">
       {present > 0 ? (
         <div
-          className="h-full bg-emerald-500 transition-all"
+          className="h-full rounded-full bg-emerald-500 transition-all"
           style={{ width: `${(present / total) * 100}%` }}
         />
       ) : null}
       {late > 0 ? (
         <div
-          className="h-full bg-amber-400 transition-all"
+          className="h-full rounded-full bg-amber-400 transition-all"
           style={{ width: `${(late / total) * 100}%` }}
         />
       ) : null}
       {absent > 0 ? (
         <div
-          className="h-full bg-rose-500 transition-all"
+          className="h-full rounded-full bg-rose-500 transition-all"
           style={{ width: `${(absent / total) * 100}%` }}
         />
       ) : null}
       {excused > 0 ? (
         <div
-          className="h-full bg-blue-500 transition-all"
+          className="h-full rounded-full bg-blue-500 transition-all"
           style={{ width: `${(excused / total) * 100}%` }}
         />
       ) : null}
@@ -310,22 +353,21 @@ const MarkAllToolbar = ({
   onSearchChange: (value: string) => void;
   search: string;
 }) => (
-  <div className="flex items-center gap-2 border-border border-b bg-muted/10 px-4 py-2.5">
-    <div className="relative max-w-xs flex-1">
+  <div className="flex flex-wrap items-center gap-2 border-border border-b bg-muted/10 px-3 py-2.5 sm:px-4">
+    <div className="relative max-w-[220px] flex-1">
       <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
       <Input
-        className="pl-8"
+        className="h-8 pl-8 text-sm"
         nativeInput
         onChange={(event) => onSearchChange(event.target.value)}
-        placeholder="Search student..."
-        size="sm"
+        placeholder="Find student…"
         value={search}
       />
     </div>
     <div className="ml-auto flex items-center gap-1.5 font-medium text-muted-foreground text-xs">
       <span className="hidden sm:inline">Mark all:</span>
       <Button
-        className="h-8 gap-1 px-2.5 text-xs hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
+        className="h-8 gap-1 px-2.5 text-xs hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/30"
         onClick={() => onMarkAll("PRESENT")}
         size="sm"
         type="button"
@@ -335,7 +377,7 @@ const MarkAllToolbar = ({
         Present
       </Button>
       <Button
-        className="h-8 gap-1 px-2.5 text-xs hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+        className="h-8 gap-1 px-2.5 text-xs hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/30"
         onClick={() => onMarkAll("ABSENT")}
         size="sm"
         type="button"
@@ -347,6 +389,56 @@ const MarkAllToolbar = ({
     </div>
   </div>
 );
+
+const PERF_HOLES = ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8"] as const;
+
+const LedgerPerforation = () => (
+  <div
+    aria-hidden="true"
+    className="pointer-events-none absolute inset-y-0 left-0 flex w-[14px] flex-col items-center justify-around border-border/60 border-r border-dashed bg-muted/30 py-3"
+  >
+    {PERF_HOLES.map((id) => (
+      <span
+        className="size-[9px] shrink-0 rounded-full border border-border bg-background shadow-xs"
+        key={id}
+      />
+    ))}
+  </div>
+);
+
+const AttendanceTape = ({ students }: { students: SessionStudentView[] }) => {
+  if (students.length === 0) {
+    return null;
+  }
+
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-y-0 left-[14px] w-[3px] overflow-hidden"
+    >
+      <div className="flex h-full flex-col gap-px py-1">
+        {students.map((student) => {
+          let color = "bg-border";
+          if (student.status === "PRESENT") {
+            color = "bg-emerald-500";
+          } else if (student.status === "LATE") {
+            color = "bg-amber-400";
+          } else if (student.status === "ABSENT") {
+            color = "bg-rose-500";
+          } else if (student.status === "EXCUSED") {
+            color = "bg-blue-500";
+          }
+          return (
+            <span
+              className={cn("flex-1 rounded-full opacity-80", color)}
+              key={student.id}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+};
 
 export function SessionPanel({
   canMark,
@@ -394,88 +486,118 @@ export function SessionPanel({
   }
 
   return (
-    <Card className="overflow-hidden">
-      <div className="border-border border-b bg-muted/20 px-5 py-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="font-bold text-base text-foreground">
-              {session.className}
-            </p>
-            <div className="mt-1 flex flex-wrap items-center gap-3">
-              <span className="flex items-center gap-1 text-muted-foreground text-xs">
-                <Clock className="size-3.5" />
-                {session.startsAt} – {session.endsAt}
-              </span>
-              <span className="flex items-center gap-1 text-muted-foreground text-xs">
-                <FileText className="size-3.5" />
-                {session.grade}
-              </span>
-              {session.teacher ? (
-                <span className="text-muted-foreground text-xs">
-                  {session.teacher}
+    <Card className="relative overflow-hidden pl-[14px]">
+      <LedgerPerforation />
+      <div className="relative">
+        {/* subtle ledger paper wash */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(transparent,transparent_31px,var(--border)_32px)] opacity-[0.035] dark:opacity-[0.06]"
+        />
+
+        <div className="relative border-border border-b bg-muted/20 px-4 py-4 sm:px-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="font-heading font-semibold text-foreground text-lg leading-none tracking-tight">
+                  {session.className}
+                </p>
+                <span className="rounded bg-primary px-1.5 py-0.5 font-mono font-semibold text-[10px] text-primary-foreground uppercase tracking-widest">
+                  Roll
                 </span>
-              ) : null}
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-1 font-medium text-muted-foreground">
+                  <Clock className="size-3.5" />
+                  {session.startsAt} – {session.endsAt}
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-1 font-medium text-muted-foreground">
+                  <FileText className="size-3.5" />
+                  {session.grade}
+                </span>
+                {session.teacher ? (
+                  <span className="text-muted-foreground text-xs">
+                    {session.teacher}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              {headerAction}
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-2">{headerAction}</div>
+
+          <RateBreakdown
+            absent={absent}
+            excused={excused}
+            late={late}
+            present={present}
+            rate={rate}
+            total={total}
+            unmarked={unmarked}
+          />
         </div>
 
-        <RateBreakdown
-          absent={absent}
-          excused={excused}
-          late={late}
-          present={present}
-          rate={rate}
-          total={total}
-          unmarked={unmarked}
-        />
-      </div>
+        {editable ? (
+          <MarkAllToolbar
+            onMarkAll={onMarkAll}
+            onSearchChange={setSearch}
+            search={search}
+          />
+        ) : null}
 
-      {editable ? (
-        <MarkAllToolbar
-          onMarkAll={onMarkAll}
-          onSearchChange={setSearch}
-          search={search}
-        />
-      ) : null}
-
-      <div>
-        {filtered.length === 0 ? (
-          <p className="px-4 py-6 text-center text-muted-foreground text-sm">
-            No students match your search.
-          </p>
-        ) : (
-          filtered.map((student) => (
-            <AttendRow
-              canMark={canMark}
-              key={student.id}
-              noteOpen={noteOpenFor === student.id}
-              onToggleNote={() =>
-                setNoteOpenFor((current) =>
-                  current === student.id ? null : student.id
-                )
-              }
-              onUpdateNote={(note) => onUpdateNote(student.id, note)}
-              onUpdateStatus={(status) => onUpdateStatus(student.id, status)}
-              saved={session.saved}
-              student={student}
-            />
-          ))
-        )}
-      </div>
-
-      {editable && unmarked === 0 ? (
-        <div className="flex items-center justify-between gap-3 border-border border-t bg-primary/5 px-4 py-3">
-          <p className="flex items-center gap-1.5 font-medium text-primary text-xs">
-            <CheckSquare className="size-3.5" />
-            All students marked — ready to save
-          </p>
-          <Button loading={saving} onClick={onSave} size="sm" type="button">
-            <Save className="size-3.5" />
-            Save Register
-          </Button>
+        <div className="relative">
+          <AttendanceTape students={filtered} />
+          <div className="ml-[3px]">
+            {filtered.length === 0 ? (
+              <p className="px-4 py-10 text-center text-muted-foreground text-sm">
+                {search
+                  ? "No students match your search."
+                  : "No enrolled students."}
+              </p>
+            ) : (
+              filtered.map((student) => (
+                <AttendRow
+                  canMark={canMark}
+                  key={student.id}
+                  noteOpen={noteOpenFor === student.id}
+                  onToggleNote={() =>
+                    setNoteOpenFor((current) =>
+                      current === student.id ? null : student.id
+                    )
+                  }
+                  onUpdateNote={(note) => onUpdateNote(student.id, note)}
+                  onUpdateStatus={(status) =>
+                    onUpdateStatus(student.id, status)
+                  }
+                  saved={session.saved}
+                  student={student}
+                />
+              ))
+            )}
+          </div>
         </div>
-      ) : null}
+
+        {editable && unmarked === 0 ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 border-border border-t bg-primary/[0.04] px-4 py-3">
+            <p className="flex items-center gap-1.5 font-medium text-primary text-xs">
+              <CheckSquare className="size-3.5" />
+              All students marked — ready to save
+            </p>
+            <Button loading={saving} onClick={onSave} size="sm" type="button">
+              <Save className="size-3.5" />
+              Save Register
+            </Button>
+          </div>
+        ) : null}
+
+        {!editable && session.saved ? (
+          <div className="flex items-center gap-2 border-border border-t bg-success/5 px-4 py-2.5 text-success-foreground text-xs">
+            <Check className="size-3.5" />
+            Register locked — saved and filed.
+          </div>
+        ) : null}
+      </div>
     </Card>
   );
 }

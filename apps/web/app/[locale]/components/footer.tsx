@@ -51,49 +51,43 @@ export const Footer = async ({ locale }: FooterProps) => {
 
   return (
     <section className="dark border-foreground/10 border-t">
-      <div className="w-full bg-background py-20 text-foreground lg:py-40">
+      <div className="w-full bg-background py-16 text-foreground lg:py-24">
         <div className="container mx-auto">
-          <div className="grid items-center gap-10 lg:grid-cols-2">
-            <div className="flex flex-col items-start gap-8">
+          <div className="grid items-start gap-12 lg:grid-cols-[1.1fr_1.4fr]">
+            <div className="flex flex-col items-start gap-5">
               <div className="flex flex-col gap-2">
-                <h2 className="max-w-xl text-left font-regular text-3xl tracking-tighter md:text-5xl">
+                <h2 className="text-left font-brand text-2xl tracking-tight">
                   {appName}
                 </h2>
-                <p className="max-w-lg text-left text-foreground/75 text-lg leading-relaxed tracking-tight">
+                <p className="max-w-[32ch] text-left text-sm leading-relaxed text-foreground/70 text-pretty">
                   Tuition centre management for Malaysian owners, admins, and
-                  teachers.
+                  teachers. Attendance, invoices, and reports — without the
+                  spreadsheet drift.
                 </p>
               </div>
               <Status />
             </div>
-            <div className="grid items-start gap-10 lg:grid-cols-3">
+            <div className="grid items-start gap-10 sm:grid-cols-3">
               {navigationItems.map((item) => (
                 <div
-                  className="flex flex-col items-start gap-1 text-base"
+                  className="flex flex-col items-start gap-3 text-sm"
                   key={item.title}
                 >
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-3">
                     {item.href ? (
                       <Link
-                        className="flex items-center justify-between"
+                        className="text-sm font-semibold tracking-tight hover:underline"
                         href={item.href}
-                        rel={
-                          item.href.includes("http")
-                            ? "noopener noreferrer"
-                            : undefined
-                        }
-                        target={
-                          item.href.includes("http") ? "_blank" : undefined
-                        }
                       >
-                        <span className="text-xl">{item.title}</span>
+                        {item.title}
                       </Link>
                     ) : (
-                      <p className="text-xl">{item.title}</p>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-foreground/60">{item.title}</p>
                     )}
+                    <div className="flex flex-col gap-2">
                     {item.items?.map((subItem) => (
                       <Link
-                        className="flex items-center justify-between"
+                        className="text-sm text-foreground/70 transition-colors hover:text-foreground"
                         href={subItem.href}
                         key={subItem.title}
                         rel={
@@ -105,11 +99,10 @@ export const Footer = async ({ locale }: FooterProps) => {
                           subItem.href.includes("http") ? "_blank" : undefined
                         }
                       >
-                        <span className="text-foreground/75">
-                          {subItem.title}
-                        </span>
+                        {subItem.title}
                       </Link>
                     ))}
+                    </div>
                   </div>
                 </div>
               ))}
