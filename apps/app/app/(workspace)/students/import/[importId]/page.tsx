@@ -7,7 +7,6 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@repo/design-system/components/ui/alert";
-import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
   CardContent,
@@ -29,13 +28,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Header } from "../../../components/header";
 import { ImportStepper } from "../import-stepper";
+import { ImportStatusChop } from "../import-status";
 import { columns as importColumns } from "../lib/validation";
 import { issuesToMessages } from "../lib/workbook";
 import { ImportReview } from "./import-review";
 import { ImportRunner } from "./import-runner";
 
 const terminalStatuses = new Set(["COMPLETED", "COMPLETED_WITH_ERRORS"]);
-const label = (status: string) => status.toLowerCase().replaceAll("_", " ");
 
 const ImportDetailPage = async ({
   params,
@@ -81,22 +80,25 @@ const ImportDetailPage = async ({
           { href: "/students/import", label: "Import Students" },
         ]}
       />
-      <main className="grid gap-5 p-4 pt-4">
-        <div className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
-          <div>
-            <div className="mb-2 flex items-center gap-2">
-              <h1 className="font-semibold text-2xl tracking-tight">
+      <main className="mx-auto grid w-full max-w-6xl gap-5 p-4 pt-4 [scrollbar-gutter:stable]">
+        <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="max-w-[36ch] truncate font-semibold text-2xl tracking-tight">
                 {studentImport.filename}
               </h1>
-              <Badge className="capitalize" variant="outline">
-                {label(studentImport.status)}
-              </Badge>
+              <ImportStatusChop status={studentImport.status} />
             </div>
-            <p className="text-muted-foreground text-sm">
-              Created {formatDateTime(studentImport.createdAt)}
+            <p className="mt-1 text-muted-foreground text-sm">
+              Created {formatDateTime(studentImport.createdAt)} ·{" "}
+              {studentImport.totalRows.toLocaleString()} rows
             </p>
           </div>
-          <Button render={<Link href="/students/import" />} variant="outline">
+          <Button
+            className="shrink-0"
+            render={<Link href="/students/import" />}
+            variant="outline"
+          >
             <ArrowLeftIcon className="size-4" />
             Import History
           </Button>

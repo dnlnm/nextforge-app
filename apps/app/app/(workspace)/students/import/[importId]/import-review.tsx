@@ -28,6 +28,11 @@ import {
   TableHeader,
   TableRow,
 } from "@repo/design-system/components/ui/table";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@repo/design-system/components/ui/alert";
 import { toastManager } from "@repo/design-system/components/ui/toast";
 import { cn } from "@repo/design-system/lib/utils";
 import {
@@ -515,9 +520,9 @@ export const ImportReview = ({
   }
 
   return (
-    <div className="grid gap-3">
+    <div className="grid gap-4">
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex rounded-lg border bg-muted/40 p-0.5">
+        <div className="flex rounded-lg border bg-muted p-0.5">
           {tabs.map((entry) => (
             <Button
               className="h-7 px-2.5"
@@ -537,9 +542,9 @@ export const ImportReview = ({
         <div className="relative min-w-44 flex-1 sm:max-w-xs">
           <SearchIcon className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            className="pl-8"
+            className="h-8 pl-8"
             onChange={(event) => setSearchInput(event.target.value)}
-            placeholder="Search"
+            placeholder="Search rows"
             value={searchInput}
           />
         </div>
@@ -654,16 +659,23 @@ export const ImportReview = ({
         </div>
       </div>
       {summary && summary.blockingRows > 0 && (
-        <p className="text-destructive text-sm">
-          {summary.blockingRows.toLocaleString()} row(s) still have blocking
-          errors. Fix every highlighted cell or remove those rows to unlock the
-          import.
-        </p>
+        <Alert variant="error">
+          <AlertCircleIcon />
+          <AlertTitle>
+            {summary.blockingRows.toLocaleString()} row(s) need fixing
+          </AlertTitle>
+          <AlertDescription>
+            Fix every highlighted cell or remove those rows to unlock the
+            import.
+          </AlertDescription>
+        </Alert>
       )}
       {summary?.notes && (
-        <p className="text-muted-foreground text-sm">{summary.notes}</p>
+        <Alert variant="info">
+          <AlertDescription>{summary.notes}</AlertDescription>
+        </Alert>
       )}
-      <div className="overflow-x-auto rounded-md border">
+      <div className="overflow-x-auto rounded-lg border">
         <Table>
           <TableHeader className="sticky top-0 z-10 bg-background">
             <TableRow>

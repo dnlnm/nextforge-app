@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import { CardContent } from "@repo/design-system/components/ui/card";
 import { CardShell } from "@repo/design-system/components/ui/card-shell";
@@ -8,6 +9,7 @@ import {
   FileSpreadsheetIcon,
   Loader2Icon,
   UploadCloudIcon,
+  XIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
@@ -20,11 +22,15 @@ interface SignResponse {
   uploadUrl?: string;
 }
 
+const MAX_LABEL = "10 MiB";
+const ROW_LABEL = "5,000 rows";
+
 export const StudentImportUpload = () => {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File>();
   const [pending, setPending] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
   const chooseFile = (selected?: File) => {
     if (!selected) {
       return;
@@ -35,7 +41,7 @@ export const StudentImportUpload = () => {
     }
     if (selected.size > MAX_IMPORT_BYTES) {
       toastManager.add({
-        title: "The workbook exceeds the 10 MiB limit.",
+        title: `The workbook exceeds the ${MAX_LABEL} limit.`,
         type: "error",
       });
       return;
@@ -91,34 +97,66 @@ export const StudentImportUpload = () => {
       setPending(false);
     }
   };
+
+  const isXlsx = file?.name.toLowerCase().endsWith(".xlsx") ?? false;
+  const underSize = file ? file.size <= MAX_IMPORT_BYTES : false;
+
   return (
     <CardShell>
       <CardContent className="grid gap-4 p-6">
         <button
-          className="grid min-h-48 place-items-center rounded-lg border border-dashed bg-muted/20 p-6 text-center transition-colors hover:bg-muted/40"
+          aria-label={
+            file
+              ? `Selected ${file.name}, click to change`
+              : "Choose Excel workbook"
+          }
+          className={`grid min-h-48 place-items-center rounded-lg border p-6 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+            dragOver
+              ? "border-primary bg-primary/5"
+              : "border-dashed bg-muted/20 hover:bg-muted/40"
+          }`}
           disabled={pending}
           onClick={() => inputRef.current?.click()}
-          onDragOver={(event) => event.preventDefault()}
+          onDragEnter={() => setDragOver(true)}
+          onDragLeave={() => setDragOver(false)}
+          onDragOver={(event) => {
+            event.preventDefault();
+            setDragOver(true);
+          }}
           onDrop={(event) => {
             event.preventDefault();
+            setDragOver(false);
             chooseFile(event.dataTransfer.files[0]);
           }}
           type="button"
         >
           <span className="grid justify-items-center gap-2">
-            {file ? (
-              <FileSpreadsheetIcon className="size-10 text-primary" />
-            ) : (
-              <UploadCloudIcon className="size-10 text-muted-foreground" />
-            )}
-            <span className="font-medium">
+            <span
+              className={`grid size-10 place-items-center rounded-lg border ${
+                file
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "bg-card text-muted-foreground"
+              }`}
+            >
+              {file ? (
+                <FileSpreadsheetIcon className="size-5" />
+              ) : (
+                <UploadCloudIcon className="size-5" />
+              )}
+            </span>
+            <span className="max-w-[28ch] truncate font-medium text-sm">
               {file?.name ?? "Drop an Excel workbook here"}
             </span>
-            <span className="text-muted-foreground text-sm">
+            <span className="text-muted-foreground text-xs">
               {file
-                ? `${(file.size / 1024).toFixed(1)} KiB`
-                : ".xlsx only, up to 10 MiB and 5,000 data rows"}
+                ? `${(file.size / 1024).toFixed(1)} KiB \u00B7 ${isXlsx ? ".xlsx" : "wrong type"}`
+                : `.xlsx only \u00B7 up to ${MAX_LABEL} \u00B7 ${ROW_LABEL}`}
             </span>
+            {!file && (
+              <span className="text-muted-foreground text-xs">
+                Click to browse · validation before import
+              </span>
+            )}
           </span>
         </button>
         <input
@@ -129,23 +167,35 @@ export const StudentImportUpload = () => {
           ref={inputRef}
           type="file"
         />
-        <div className="flex justify-end gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant={file ? (isXlsx ? "success" : "error") : "outline"}>
+            .xlsx
+          </Badge>
+          <Badge variant={file ? (underSize ? "success" : "error") : "outline"}>
+            ≤ {MAX_LABEL}
+          </Badge>
+          <Badge variant="outline">≤ {ROW_LABEL}</Badge>
           {file && (
             <Button
+              className="ml-auto"
               disabled={pending}
               onClick={() => setFile(undefined)}
-              variant="outline"
+              size="sm"
+              variant="ghost"
             >
+              <XIcon className="size-4" />
               Remove
             </Button>
           )}
+        </div>
+        <div className="flex justify-end">
           <Button disabled={!file || pending} onClick={upload}>
             {pending ? (
               <Loader2Icon className="size-4 animate-spin" />
             ) : (
               <UploadCloudIcon className="size-4" />
             )}
-            {pending ? "Uploading and validating..." : "Upload and Review"}
+            {pending ? "Validating…" : "Upload and Review"}
           </Button>
         </div>
       </CardContent>
