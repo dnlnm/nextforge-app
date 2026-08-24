@@ -1,0 +1,12 @@
+{
+  "title": "Centre Setup",
+  "pages": [
+    "students",
+    "teachers",
+    "classes",
+    "rooms",
+    "subjects",
+    "academic-levels",
+    "members"
+  ]
+}
