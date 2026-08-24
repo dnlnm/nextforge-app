@@ -53,6 +53,32 @@
           }
         ]
       },
+      "availability": {
+        "title": "Ketersediaan",
+        "description": "Tetapkan waktu kelas mingguan untuk setiap subjek dan guru, kemudian guna semula setiap penggal.",
+        "card": {
+          "step": "02",
+          "title": "Tetapkan ketersediaan anda",
+          "description": "Nak sekat hujung minggu? Nak set sebarang tempoh sandaran? Kami jadikan ia mudah.",
+          "rows": [
+            {
+              "day": "Isn",
+              "start": "8:30 pagi",
+              "end": "5:00 petang"
+            },
+            {
+              "day": "Sel",
+              "start": "9:00 pagi",
+              "end": "6:30 petang"
+            },
+            {
+              "day": "Rab",
+              "start": "10:00 pagi",
+              "end": "7:00 petang"
+            }
+          ]
+        }
+      },
       "stats": {
         "title": "Direka untuk pusat yang tidak perlukan sistem perusahaan",
         "description": "Mulakan dengan asas operasi, kemudian berkembang kepada langganan, had pelan, aliran kerja guru dan laporan yang kemas.",

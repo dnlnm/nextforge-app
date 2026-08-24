@@ -1,5 +1,3 @@
-import { match as matchLocale } from "@formatjs/intl-localematcher";
-import Negotiator from "negotiator";
 import type { NextRequest } from "next/server";
 import { createI18nMiddleware } from "next-international/middleware";
 import languine from "./languine.json" with { type: "json" };
@@ -11,26 +9,18 @@ const I18nMiddleware = createI18nMiddleware({
   defaultLocale: "en",
   urlMappingStrategy: "rewriteDefault",
   resolveLocaleFromRequest: (request: NextRequest) => {
-    try {
-      const headers = Object.fromEntries(request.headers.entries());
-      const negotiator = new Negotiator({ headers });
-      const acceptedLanguages = negotiator
-        .languages()
-        .filter((lang) => lang !== "*");
-
-      if (acceptedLanguages.length === 0) {
-        return "en";
-      }
-
-      return matchLocale(acceptedLanguages, locales, "en");
-    } catch {
-      return "en";
-    }
+    const locale = request.nextUrl.pathname.split("/")[1];
+    return locales.includes(locale) ? locale : "en";
   },
 });
 
-export const internationalizationMiddleware = (request: NextRequest) =>
-  I18nMiddleware(request);
+export const internationalizationMiddleware = (request: NextRequest) => {
+  // next-international reads the Next-Locale cookie before running the
+  // resolver, so a stale cookie would still force a locale redirect. Clear it
+  // and resolve purely from the URL path.
+  request.cookies.delete("Next-Locale");
+  return I18nMiddleware(request);
+};
 
 export const config = {
   matcher: [

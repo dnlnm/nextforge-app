@@ -2,6 +2,7 @@ import { showBetaFeature } from "@repo/feature-flags";
 import { getDictionary } from "@repo/internationalization";
 import { createMetadata } from "@repo/seo/metadata";
 import type { Metadata } from "next";
+import { Availability } from "./components/availability";
 import { Cases } from "./components/cases";
 import { CTA } from "./components/cta";
 import { FAQ } from "./components/faq";
@@ -41,6 +42,7 @@ const Home = async ({ params }: HomeProps) => {
       <Hero dictionary={dictionary} locale={locale} />
       {/* <Cases dictionary={dictionary} /> */}
       <Features dictionary={dictionary} />
+      <Availability dictionary={dictionary} />
       {/* <Stats dictionary={dictionary} /> */}
       <Pricing dictionary={dictionary} locale={locale} showFullComparison />
       {/* <Testimonials dictionary={dictionary} /> */}

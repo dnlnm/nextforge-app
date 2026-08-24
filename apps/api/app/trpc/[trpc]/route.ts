@@ -1,10 +1,36 @@
 import { appRouter, createContext } from "@repo/api";
+import { mainDomain } from "@repo/config/brand";
 import { log } from "@repo/observability/log";
 import { createRateLimiter, slidingWindow } from "@repo/rate-limit";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { NextResponse } from "next/server";
 
 const allowedOrigin = process.env.NEXT_PUBLIC_APP_URL;
+const allowedOrigins = new Set<string>();
+
+if (allowedOrigin) {
+  allowedOrigins.add(allowedOrigin);
+}
+
+/**
+ * Workspace subdomains (`brightmind.klio.my`) call the api directly, so
+ * accept any origin on the main domain or a subdomain of it. The configured
+ * NEXT_PUBLIC_APP_URL is still honored verbatim for non-klio deployments.
+ */
+const isAllowedOrigin = (origin: string): boolean => {
+  if (allowedOrigins.has(origin)) {
+    return true;
+  }
+
+  try {
+    const hostname = new URL(origin).hostname.toLowerCase();
+    const domain = mainDomain.toLowerCase();
+
+    return hostname === domain || hostname.endsWith(`.${domain}`);
+  } catch {
+    return false;
+  }
+};
 
 const rateLimiterEnabled = Boolean(
   process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
@@ -18,7 +44,7 @@ const corsHeaders = (request: Request): Headers => {
   headers.set("Access-Control-Allow-Headers", "authorization, content-type");
   headers.set("Vary", "Origin");
 
-  if (origin && allowedOrigin && origin === allowedOrigin) {
+  if (origin && isAllowedOrigin(origin)) {
     headers.set("Access-Control-Allow-Origin", origin);
     headers.set("Access-Control-Allow-Credentials", "true");
   }

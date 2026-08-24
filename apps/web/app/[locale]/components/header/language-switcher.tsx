@@ -7,10 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@repo/design-system/components/ui/dropdown-menu";
-import {
-  localizePath,
-  normalizeLocale,
-} from "@repo/internationalization/path";
+import { localizePath, normalizeLocale } from "@repo/internationalization/path";
 import { Languages } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 
@@ -30,8 +27,9 @@ export const LanguageSwitcher = () => {
     let pathnameWithoutLocale = pathname;
 
     // Strip the current non-default locale prefix, then re-localize.
+    // Fall back to "/" so the default locale still resolves to the root path.
     if (currentLocale !== "en" && pathname.startsWith(`/${currentLocale}`)) {
-      pathnameWithoutLocale = pathname.slice(currentLocale.length + 1);
+      pathnameWithoutLocale = pathname.slice(currentLocale.length + 1) || "/";
     }
 
     router.push(localizePath(normalizeLocale(locale), pathnameWithoutLocale));

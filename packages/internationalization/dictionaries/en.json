@@ -53,6 +53,32 @@
           }
         ]
       },
+      "availability": {
+        "title": "Availability",
+        "description": "Set weekly class hours for each subject and teacher, then reuse them every term.",
+        "card": {
+          "step": "02",
+          "title": "Set your availability",
+          "description": "Want to block off weekends? Set up any buffers? We make that easy.",
+          "rows": [
+            {
+              "day": "Mon",
+              "start": "8:30 am",
+              "end": "5:00 pm"
+            },
+            {
+              "day": "Tue",
+              "start": "9:00 am",
+              "end": "6:30 pm"
+            },
+            {
+              "day": "Wed",
+              "start": "10:00 am",
+              "end": "7:00 pm"
+            }
+          ]
+        }
+      },
       "stats": {
         "title": "Designed for the centres that do not need enterprise software",
         "description": "Start with the operational basics, then grow into subscriptions, limits, teacher workflows, and clean reporting.",
