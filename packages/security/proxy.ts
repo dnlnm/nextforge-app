@@ -1,6 +1,31 @@
-import { defaults, type Options, withVercelToolbar } from "@nosecone/next";
+import { defaults, nosecone, type Options, withVercelToolbar } from "@nosecone/next";
 
-export { createMiddleware as securityMiddleware } from "@nosecone/next";
+/**
+ * Create a middleware step that applies Nosecone security headers to a
+ * response without discarding it. When given a response (e.g. a redirect from
+ * the auth handler) the headers are merged onto it and it is returned as-is,
+ * preserving its status and Location. When called with no response it behaves
+ * like @nosecone/next's createMiddleware and signals Next.js to continue to
+ * the route handler.
+ */
+export const securityMiddleware =
+  (options: Options) =>
+  async (response?: Response): Promise<Response> => {
+    const headers = nosecone(options);
+
+    if (response) {
+      for (const [name, value] of headers) {
+        response.headers.set(name, value);
+      }
+
+      return response;
+    }
+
+    // Standalone mode: setting `x-middleware-next` is how Next.js middleware
+    // continues to the route handler while applying the security headers.
+    headers.set("x-middleware-next", "1");
+    return new Response(null, { headers });
+  };
 
 // Nosecone security headers configuration
 // https://docs.arcjet.com/nosecone/quick-start
