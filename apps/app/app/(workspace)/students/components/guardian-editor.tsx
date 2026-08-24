@@ -10,27 +10,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/design-system/components/ui/select";
+import { Textarea } from "@repo/design-system/components/ui/textarea";
 import { cn } from "@repo/design-system/lib/utils";
-import { AlertCircleIcon, InfoIcon, StarIcon, XIcon } from "lucide-react";
+import { AlertCircleIcon } from "lucide-react";
 
 export interface GuardianDraft {
+  readonly address: string;
   readonly email: string;
-  readonly fullName: string;
+  readonly firstName: string;
   readonly icNumber: string;
   readonly id: string;
+  readonly lastName: string;
   readonly phone: string;
   readonly relationship: string;
-  readonly sameAsPhone: boolean;
-  readonly whatsapp: string;
+  readonly sameAsStudent: boolean;
 }
 
 interface GuardianEditorProperties {
   readonly errors: Record<string, string>;
   readonly guardian: GuardianDraft;
-  readonly index: number;
-  readonly onRemove: (id: string) => void;
   readonly onUpdate: (id: string, patch: Partial<GuardianDraft>) => void;
-  readonly total: number;
+  readonly studentAddress: string;
 }
 
 const RELATIONSHIPS = [
@@ -43,60 +43,58 @@ const RELATIONSHIPS = [
 export const GuardianEditor = ({
   errors,
   guardian,
-  index,
-  onRemove,
   onUpdate,
-  total,
+  studentAddress,
 }: GuardianEditorProperties) => {
-  const isPrimary = index === 0;
   const fieldError = (key: string) =>
-    errors[`guardian${index}${key}`] ?? errors[key];
+    errors[`guardian0${key}`] ?? errors[key];
 
   return (
-    <div className="relative grid gap-4 rounded-xl border border-border p-4">
-      {!isPrimary && total > 1 ? (
-        <button
-          aria-label="Remove guardian"
-          className="absolute top-3 right-3 flex size-6 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/5 hover:text-destructive"
-          onClick={() => onRemove(guardian.id)}
-          type="button"
-        >
-          <XIcon className="size-3.5" />
-        </button>
-      ) : null}
-
-      {isPrimary ? (
-        <div className="flex items-center gap-1.5">
-          <StarIcon className="size-3 fill-current text-primary" />
-          <span className="font-semibold text-primary text-xs">
-            Primary contact
-          </span>
+    <div className="grid gap-4">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid content-start gap-1.5">
+          <Label htmlFor={`guardian-first-name-${guardian.id}`}>
+            First name <span className="text-destructive text-xs">*</span>
+          </Label>
+          <Input
+            aria-invalid={Boolean(fieldError("firstName"))}
+            className={cn(
+              fieldError("firstName") &&
+                "border-destructive focus-visible:ring-destructive/50"
+            )}
+            id={`guardian-first-name-${guardian.id}`}
+            onChange={(event) =>
+              onUpdate(guardian.id, { firstName: event.target.value })
+            }
+            placeholder="e.g. Nurul Aisyah / Wei Jie"
+            value={guardian.firstName}
+          />
+          <FieldMessage error={fieldError("firstName")} />
         </div>
-      ) : null}
+        <div className="grid content-start gap-1.5">
+          <Label htmlFor={`guardian-last-name-${guardian.id}`}>
+            Last name / Family name <span className="text-destructive text-xs">*</span>
+          </Label>
+          <Input
+            aria-invalid={Boolean(fieldError("lastName"))}
+            className={cn(
+              fieldError("lastName") &&
+                "border-destructive focus-visible:ring-destructive/50"
+            )}
+            id={`guardian-last-name-${guardian.id}`}
+            onChange={(event) =>
+              onUpdate(guardian.id, { lastName: event.target.value })
+            }
+            placeholder="e.g. binti Ahmad / Tan"
+            value={guardian.lastName}
+          />
+          <FieldMessage error={fieldError("lastName")} />
+        </div>
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="grid content-start gap-1.5">
-          <Label htmlFor={`guardian-name-${guardian.id}`}>
-            Full name{" "}
-            <span className="text-destructive text-xs">{isPrimary && "*"}</span>
-          </Label>
-          <Input
-            aria-invalid={Boolean(fieldError("name"))}
-            className={cn(
-              fieldError("name") &&
-                "border-destructive focus-visible:ring-destructive/50"
-            )}
-            id={`guardian-name-${guardian.id}`}
-            onChange={(event) =>
-              onUpdate(guardian.id, { fullName: event.target.value })
-            }
-            placeholder="As per IC"
-            value={guardian.fullName}
-          />
-          <FieldMessage error={fieldError("name")} />
-        </div>
-        <div className="grid content-start gap-1.5">
-          <Label>Relationship</Label>
+          <Label>Relationship <span className="text-destructive text-xs">*</span></Label>
           <Select
             items={Object.fromEntries(
               RELATIONSHIPS.map((item) => [item.value, item.label])
@@ -117,69 +115,27 @@ export const GuardianEditor = ({
               ))}
             </SelectContent>
           </Select>
-        </div>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="grid content-start gap-1.5">
-          <Label htmlFor={`guardian-phone-${guardian.id}`}>
-            Phone number <span className="text-destructive text-xs">*</span>
-          </Label>
-          <div className="flex gap-2">
-            <span className="flex items-center whitespace-nowrap rounded-lg border border-border bg-muted px-3 font-medium text-muted-foreground text-sm">
-              +60
-            </span>
-            <Input
-              aria-invalid={Boolean(fieldError("phone"))}
-              className={cn(
-                fieldError("phone") &&
-                  "border-destructive focus-visible:ring-destructive/50"
-              )}
-              id={`guardian-phone-${guardian.id}`}
-              onChange={(event) => {
-                const nextPhone = event.target.value;
-                onUpdate(guardian.id, {
-                  phone: nextPhone,
-                  ...(guardian.sameAsPhone ? { whatsapp: nextPhone } : {}),
-                });
-              }}
-              placeholder="012-345 6789"
-              value={guardian.phone}
-            />
-          </div>
-          <FieldMessage error={fieldError("phone")} />
+          <FieldMessage error={fieldError("relationship")} />
         </div>
         <div className="grid content-start gap-1.5">
-          <Label htmlFor={`guardian-whatsapp-${guardian.id}`}>
-            WhatsApp number
+          <Label htmlFor={`guardian-ic-${guardian.id}`}>
+            IC number <span className="text-destructive text-xs">*</span>
           </Label>
           <Input
-            className="border-input bg-transparent dark:bg-input/32"
-            disabled={guardian.sameAsPhone}
-            id={`guardian-whatsapp-${guardian.id}`}
+            aria-invalid={Boolean(fieldError("ic"))}
+            className={cn(
+              fieldError("ic") &&
+                "border-destructive focus-visible:ring-destructive/50"
+            )}
+            id={`guardian-ic-${guardian.id}`}
+            maxLength={12}
             onChange={(event) =>
-              onUpdate(guardian.id, { whatsapp: event.target.value })
+              onUpdate(guardian.id, { icNumber: event.target.value })
             }
-            placeholder="012-345 6789"
-            value={guardian.sameAsPhone ? guardian.phone : guardian.whatsapp}
+            placeholder="901231145678"
+            value={guardian.icNumber}
           />
-          <label
-            className="flex cursor-pointer items-center gap-2 text-muted-foreground text-xs"
-            htmlFor={`guardian-same-phone-${guardian.id}`}
-          >
-            <Checkbox
-              checked={guardian.sameAsPhone}
-              id={`guardian-same-phone-${guardian.id}`}
-              onCheckedChange={(checked) => {
-                const sameAsPhone = checked === true;
-                onUpdate(guardian.id, {
-                  sameAsPhone,
-                  whatsapp: sameAsPhone ? guardian.phone : "",
-                });
-              }}
-            />
-            Same as phone number
-          </label>
+          <FieldMessage error={fieldError("ic")} />
         </div>
       </div>
 
@@ -187,9 +143,7 @@ export const GuardianEditor = ({
         <div className="grid content-start gap-1.5">
           <Label htmlFor={`guardian-email-${guardian.id}`}>
             Email address
-            {isPrimary ? (
-              <span className="text-destructive text-xs"> *</span>
-            ) : null}
+            <span className="text-destructive text-xs"> *</span>
           </Label>
           <Input
             aria-invalid={Boolean(fieldError("email"))}
@@ -208,21 +162,51 @@ export const GuardianEditor = ({
           <FieldMessage error={fieldError("email")} />
         </div>
         <div className="grid content-start gap-1.5">
-          <Label htmlFor={`guardian-ic-${guardian.id}`}>IC number</Label>
+          <Label htmlFor={`guardian-phone-${guardian.id}`}>
+            Phone number <span className="text-destructive text-xs">*</span>
+          </Label>
           <Input
-            id={`guardian-ic-${guardian.id}`}
-            maxLength={14}
+            aria-invalid={Boolean(fieldError("phone"))}
+            className={cn(
+              fieldError("phone") &&
+                "border-destructive focus-visible:ring-destructive/50"
+            )}
+            id={`guardian-phone-${guardian.id}`}
             onChange={(event) =>
-              onUpdate(guardian.id, { icNumber: event.target.value })
+              onUpdate(guardian.id, { phone: event.target.value })
             }
-            placeholder="901231-14-5678"
-            value={guardian.icNumber}
+            placeholder="0123456789"
+            value={guardian.phone}
           />
-          <p className="flex items-center gap-1 text-muted-foreground text-xs">
-            <InfoIcon className="size-3" />
-            12 digits, no dashes
-          </p>
+          <FieldMessage error={fieldError("phone")} />
         </div>
+      </div>
+
+      <div className="grid content-start gap-1.5">
+        <Label htmlFor={`guardian-address-${guardian.id}`}>Address</Label>
+        <Textarea
+          disabled={guardian.sameAsStudent}
+          id={`guardian-address-${guardian.id}`}
+          onChange={(event) =>
+            onUpdate(guardian.id, { address: event.target.value })
+          }
+          placeholder="House number, street, city, state, postcode"
+          rows={2}
+          value={guardian.sameAsStudent ? studentAddress : guardian.address}
+        />
+        <label
+          className="flex cursor-pointer items-center gap-2 text-muted-foreground text-xs"
+          htmlFor={`guardian-same-student-${guardian.id}`}
+        >
+          <Checkbox
+            checked={guardian.sameAsStudent}
+            id={`guardian-same-student-${guardian.id}`}
+            onCheckedChange={(checked) =>
+              onUpdate(guardian.id, { sameAsStudent: checked === true })
+            }
+          />
+          Same as student
+        </label>
       </div>
     </div>
   );

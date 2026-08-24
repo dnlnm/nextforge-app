@@ -130,6 +130,7 @@ const resolveLevel = async (levelId: string | undefined) => {
 };
 
 interface GuardianContact {
+  readonly address?: string;
   readonly email?: string;
   readonly fullName: string;
   readonly icNumber?: string;
@@ -200,9 +201,9 @@ const parseGuardianInputs = (formData: FormData): ParsedGuardians => {
     };
   }
 
-  if (payloads.length < 1 || payloads.length > 3) {
+  if (payloads.length !== 1) {
     return {
-      error: "Add between one and three parent/guardian contacts.",
+      error: "Add exactly one parent/guardian contact.",
       guardians: [],
     };
   }
@@ -215,7 +216,7 @@ const parseGuardianInputs = (formData: FormData): ParsedGuardians => {
     if (!result.success) {
       return {
         error:
-          "Complete every guardian contact â€” name, Malaysian phone number and (for the primary) an email address are required.",
+          "Complete every guardian contact â€” name, relationship, Malaysian phone number, email and IC are required.",
         guardians: [],
       };
     }
@@ -238,14 +239,7 @@ const resolveStudentIdentity = (formData: FormData): StudentIdentity => {
   const rawValue = getString(formData, "icNumber");
 
   if (!rawValue) {
-    const gender = getGender(formData, "gender");
-
-    return gender
-      ? { dateOfBirth: getDate(formData, "dateOfBirth"), gender }
-      : {
-          dateOfBirth: getDate(formData, "dateOfBirth"),
-          error: "Gender is required.",
-        };
+    return { error: "IC / MyKid number is required." };
   }
 
   const icNumber = normalizeIcNumber(rawValue);
@@ -357,6 +351,10 @@ export const createStudent = async (
     return { error: "Student name is required." };
   }
 
+  if (!getString(formData, "schoolName")) {
+    return { error: "School name is required." };
+  }
+
   // â”€â”€ Guardians (1â€“3).
   const parsedGuardians = parseGuardianInputs(formData);
 
@@ -447,6 +445,7 @@ export const createStudent = async (
         const guardian = await tx.guardian.create({
           data: {
             organizationId: tenant.organizationId,
+            addressLine1: guardianInput.address,
             email: guardianInput.email,
             fullName: guardianInput.fullName,
             phone: guardianInput.phone,

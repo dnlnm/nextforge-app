@@ -1,24 +1,10 @@
 "use client";
 
-import { Badge } from "@repo/design-system/components/ui/badge";
-import { Button } from "@repo/design-system/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@repo/design-system/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@repo/design-system/components/ui/popover";
+import { Checkbox } from "@repo/design-system/components/ui/checkbox";
 import { cn } from "@repo/design-system/lib/utils";
 import { formatMoney } from "@repo/money";
-import { CheckIcon, ChevronDownIcon, InfoIcon, XIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { InfoIcon } from "lucide-react";
+import { useMemo } from "react";
 
 export interface EnrollableClassOption {
   readonly activeEnrollmentCount: number;
@@ -34,155 +20,109 @@ interface ClassPickerProperties {
   readonly classes: readonly EnrollableClassOption[];
   readonly currency: string;
   readonly error?: string;
-  readonly levels: ReadonlyArray<{
-    readonly id: string;
-    readonly name: string;
-  }>;
+  readonly filterLevelId?: string | null;
   readonly onToggle: (classId: string) => void;
   readonly selectedIds: readonly string[];
 }
-
-const levelNameFor = (
-  levels: ClassPickerProperties["levels"],
-  levelId: string | null
-) => levels.find((level) => level.id === levelId)?.name ?? "Other classes";
 
 export const ClassPicker = ({
   classes,
   currency,
   error,
-  levels,
-  selectedIds,
+  filterLevelId,
   onToggle,
+  selectedIds,
 }: ClassPickerProperties) => {
-  const [open, setOpen] = useState(false);
   const format = (amountSen: number) => formatMoney(amountSen, { currency });
 
-  const grouped = useMemo(() => {
-    const groups = new Map<
-      string,
-      Array<EnrollableClassOption & { isFull: boolean }>
-    >();
+  const hasLevel = Boolean(filterLevelId);
 
-    for (const learningClass of classes) {
-      const key = levelNameFor(levels, learningClass.levelId);
-      const isFull =
-        learningClass.capacity !== null &&
-        learningClass.activeEnrollmentCount >= learningClass.capacity &&
-        !selectedIds.includes(learningClass.id);
-      const current = groups.get(key) ?? [];
+  const visibleClasses = useMemo(
+    () =>
+      hasLevel
+        ? classes.filter(
+            (learningClass) => learningClass.levelId === filterLevelId
+          )
+        : [],
+    [classes, filterLevelId, hasLevel]
+  );
 
-      current.push({ ...learningClass, isFull });
-      groups.set(key, current);
-    }
+  const isFull = (learningClass: EnrollableClassOption) =>
+    learningClass.capacity !== null &&
+    learningClass.activeEnrollmentCount >= learningClass.capacity &&
+    !selectedIds.includes(learningClass.id);
 
-    return groups;
-  }, [classes, levels, selectedIds]);
-
-  const remaining = classes.filter(
-    (learningClass) => !selectedIds.includes(learningClass.id)
-  ).length;
-  const selectedClasses = classes.filter((learningClass) =>
+  const allSelected =
+    visibleClasses.length > 0 &&
+    visibleClasses.every((learningClass) =>
+      selectedIds.includes(learningClass.id)
+    );
+  const someSelected = visibleClasses.some((learningClass) =>
     selectedIds.includes(learningClass.id)
   );
 
+  const handleSelectAll = (checked: boolean) => {
+    const targets = checked
+      ? visibleClasses.filter(
+          (learningClass) =>
+            !selectedIds.includes(learningClass.id) && !isFull(learningClass)
+        )
+      : visibleClasses.filter((learningClass) =>
+          selectedIds.includes(learningClass.id)
+        );
+
+    targets.forEach((learningClass) => onToggle(learningClass.id));
+  };
+
   return (
-    <div className="grid gap-3">
-      {selectedClasses.length > 0 ? (
-        <div className="flex flex-wrap gap-2">
-          {selectedClasses.map((learningClass) => (
-            <Badge
-              className="h-auto gap-2 py-1.5 pl-3"
-              key={learningClass.id}
-              variant="secondary"
-            >
-              <span className="grid text-left leading-tight">
-                <span className="font-semibold text-xs">
-                  {learningClass.subjectName}
-                </span>
-                <span className="text-[10px] text-primary">
-                  {format(learningClass.monthlyFeeSen)}/mo
-                </span>
-              </span>
-              <button
-                aria-label={`Remove ${learningClass.name}`}
-                className="ml-1 text-muted-foreground transition-colors hover:text-destructive"
-                onClick={() => onToggle(learningClass.id)}
-                type="button"
-              >
-                <XIcon className="size-3" />
-              </button>
-            </Badge>
-          ))}
-        </div>
+    <div className="grid gap-2">
+      {visibleClasses.length > 0 ? (
+        <label className="flex cursor-pointer items-center gap-2 font-medium text-sm">
+          <Checkbox
+            checked={allSelected}
+            indeterminate={!allSelected && someSelected}
+            onCheckedChange={(checked) => handleSelectAll(checked === true)}
+          />
+          Select all subjects
+        </label>
       ) : null}
 
-      <Popover onOpenChange={setOpen} open={open}>
-        <PopoverTrigger
-          render={
-            <Button
-              aria-invalid={Boolean(error)}
-              className={cn(
-                "w-full justify-between font-normal",
-                error && "border-destructive",
-                open && "border-primary ring-2 ring-primary/30"
-              )}
-              type="button"
-              variant="outline"
-            />
-          }
-        >
-          <span className="text-muted-foreground">
-            {remaining > 0 ? "Add subject..." : "All subjects added"}
-          </span>
-          <ChevronDownIcon
-            className={cn(
-              "size-4 text-muted-foreground transition-transform",
-              open && "rotate-180"
-            )}
-          />
-        </PopoverTrigger>
-        <PopoverContent align="start" className="w-80 p-0">
-          <Command>
-            <CommandInput placeholder="Search subject or class..." />
-            <CommandList>
-              <CommandEmpty>No matching classes.</CommandEmpty>
-              {[...grouped.entries()].map(([groupName, groupClasses]) => (
-                <CommandGroup heading={groupName} key={groupName}>
-                  {groupClasses.map((learningClass) => {
-                    const isSelected = selectedIds.includes(learningClass.id);
+      {!hasLevel ? (
+        <p className="text-muted-foreground text-sm">
+          Select a stage and level to choose subjects
+        </p>
+      ) : visibleClasses.length === 0 ? (
+        <p className="text-muted-foreground text-sm">No available subjects</p>
+      ) : (
+        visibleClasses.map((learningClass) => {
+          const full = isFull(learningClass);
 
-                    return (
-                      <CommandItem
-                        className="gap-2"
-                        disabled={learningClass.isFull}
-                        key={learningClass.id}
-                        onSelect={() => onToggle(learningClass.id)}
-                        value={`${learningClass.subjectName} ${learningClass.name}`}
-                      >
-                        <CheckIcon
-                          className={cn(
-                            "size-4 shrink-0 text-primary",
-                            isSelected ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        <span className="min-w-0 flex-1 truncate">
-                          {learningClass.subjectName} · {learningClass.name}
-                        </span>
-                        <span className="shrink-0 text-muted-foreground text-xs">
-                          {learningClass.isFull
-                            ? "Full"
-                            : `${format(learningClass.monthlyFeeSen)}/mo`}
-                        </span>
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
-              ))}
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+          return (
+            <label
+              className={cn(
+                "ms-4 flex cursor-pointer items-start gap-2 text-sm",
+                full && "cursor-not-allowed opacity-60"
+              )}
+              key={learningClass.id}
+            >
+              <Checkbox
+                checked={selectedIds.includes(learningClass.id)}
+                disabled={full}
+                onCheckedChange={() => onToggle(learningClass.id)}
+              />
+              <span className="min-w-0">
+                <span className="font-medium">
+                  {learningClass.subjectName} · {learningClass.name}
+                </span>
+                <span className="block text-muted-foreground text-xs">
+                  {format(learningClass.monthlyFeeSen)}/mo
+                  {full ? " · Full" : ""}
+                </span>
+              </span>
+            </label>
+          );
+        })
+      )}
 
       {error ? (
         <p className="flex items-center gap-1 text-destructive text-xs">

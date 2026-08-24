@@ -16,7 +16,7 @@ const AddStudentPage = async () => {
     }),
     database.organizationSettings.findUnique({
       where: { organizationId: tenant.organizationId },
-      select: { currency: true, defaultInvoiceDueDay: true },
+      select: { currency: true },
     }),
     database.learningClass.findMany({
       where: {
@@ -67,7 +67,6 @@ const AddStudentPage = async () => {
             subjectName: learningClass.subject.name,
           }))}
           currency={settings?.currency ?? "MYR"}
-          defaultFeeDueDay={settings?.defaultInvoiceDueDay ?? 1}
           levels={levels}
         />
       </main>

@@ -50,15 +50,19 @@ const studentFields = {
 
 /**
  * One parent/guardian contact block from the Add Student flow. The web form
- * serializes 1–3 of these into a JSON hidden field; API callers may pass the
+ * serializes one of these into a JSON hidden field; API callers may pass the
  * array directly.
  */
 export const guardianInputSchema = z.strictObject({
-  email,
+  address: optionalText,
+  email: z.email(),
   fullName: z.string().trim().min(1),
-  icNumber: optionalText,
+  icNumber: z
+    .string()
+    .trim()
+    .regex(/^\d{12}$/, "Enter a valid 12-digit IC number."),
   phone,
-  relationship: guardianRelationshipSchema.optional(),
+  relationship: guardianRelationshipSchema,
   whatsapp: optionalText,
 });
 
@@ -72,7 +76,7 @@ export const createStudentInputSchema = z
   .strictObject({
     ...studentFields,
     enrollments: z.array(enrollmentRequestSchema).min(1).optional(),
-    guardians: z.array(guardianInputSchema).min(1).max(3).optional(),
+    guardians: z.array(guardianInputSchema).length(1).optional(),
   })
   .refine(({ guardianEmail, studentEmail }) => guardianEmail || studentEmail, {
     message: "At least one student or guardian email address is required.",

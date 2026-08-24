@@ -63,7 +63,6 @@ import {
   InfoIcon,
   Loader2Icon,
   MoreHorizontalIcon,
-  PlusIcon,
   UserRoundIcon,
   UsersRoundIcon,
   XIcon,
@@ -79,11 +78,7 @@ import {
   isValidIcNumber,
   normalizeIcNumber,
 } from "../lib/ic-number";
-import {
-  FEE_DUE_DAYS,
-  ordinalSuffix,
-  REFERRAL_SOURCES,
-} from "../lib/options";
+import { REFERRAL_SOURCES } from "../lib/options";
 import { ClassPicker, type EnrollableClassOption } from "./class-picker";
 import { CreateProfilePreview } from "./create-profile-preview";
 import { FormSectionCard } from "./form-section-card";
@@ -99,7 +94,6 @@ interface LevelOption {
 interface StudentCreateFormProperties {
   readonly classes: readonly EnrollableClassOption[];
   readonly currency: string;
-  readonly defaultFeeDueDay: number;
   readonly levels: readonly LevelOption[];
   readonly nextCode: string;
 }
@@ -120,14 +114,15 @@ const phoneStripRegex = /[-\s]/g;
 const uid = () => Math.random().toString(36).slice(2, 10);
 
 const blankGuardian = (): GuardianDraft => ({
+  address: "",
   email: "",
-  fullName: "",
+  firstName: "",
   icNumber: "",
   id: uid(),
+  lastName: "",
   phone: "",
   relationship: "",
-  sameAsPhone: true,
-  whatsapp: "",
+  sameAsStudent: false,
 });
 
 const parseMoney = (value: string): number | null => {
@@ -146,8 +141,16 @@ const validateGuardians = (
   const errors: Record<string, string> = {};
 
   guardians.forEach((guardian, index) => {
-    if (!guardian.fullName.trim()) {
-      errors[`guardian${index}name`] = "Guardian name is required.";
+    if (!guardian.firstName.trim()) {
+      errors[`guardian${index}firstName`] = "First name is required.";
+    }
+
+    if (!guardian.lastName.trim()) {
+      errors[`guardian${index}lastName`] = "Last name is required.";
+    }
+
+    if (!guardian.relationship) {
+      errors[`guardian${index}relationship`] = "Relationship is required.";
     }
 
     if (!phoneRegex.test(guardian.phone.replace(phoneStripRegex, ""))) {
@@ -155,14 +158,19 @@ const validateGuardians = (
         "Enter a valid Malaysian phone number (e.g. 012-3456789).";
     }
 
-    if (index === 0) {
-      if (!guardian.email.trim()) {
-        errors.guardian0email = "Primary guardian email is required.";
-      } else if (!emailRegex.test(guardian.email)) {
-        errors.guardian0email = "Enter a valid email address.";
-      }
-    } else if (guardian.email && !emailRegex.test(guardian.email)) {
+    if (!guardian.email.trim()) {
+      errors[`guardian${index}email`] = "Guardian email is required.";
+    } else if (!emailRegex.test(guardian.email)) {
       errors[`guardian${index}email`] = "Enter a valid email address.";
+    }
+
+    const ic = normalizeIcNumber(guardian.icNumber);
+
+    if (!ic) {
+      errors[`guardian${index}ic`] = "Guardian IC number is required.";
+    } else if (!isValidIcNumber(ic)) {
+      errors[`guardian${index}ic`] =
+        "Guardian IC number must be exactly 12 digits.";
     }
   });
 
@@ -430,7 +438,6 @@ const getStageSelection = (
 export const StudentCreateForm = ({
   classes,
   currency,
-  defaultFeeDueDay,
   levels,
   nextCode,
 }: StudentCreateFormProperties) => {
@@ -448,11 +455,10 @@ export const StudentCreateForm = ({
   const [selectedStage, setSelectedStage] = useState("");
   const [levelId, setLevelId] = useState("");
   const [schoolName, setSchoolName] = useState("");
+  const [studentAddress, setStudentAddress] = useState("");
   const [studentEmail, setStudentEmail] = useState("");
   const [studentPhone, setStudentPhone] = useState("");
-  const [guardians, setGuardians] = useState<GuardianDraft[]>([
-    blankGuardian(),
-  ]);
+  const [guardian, setGuardian] = useState<GuardianDraft>(blankGuardian());
   const [selectedClassIds, setSelectedClassIds] = useState<string[]>([]);
   const [customFee, setCustomFee] = useState("");
   const [startDate, setStartDate] = useState(getMalaysiaCalendarDate());
@@ -505,7 +511,11 @@ export const StudentCreateForm = ({
     placeholder: levelPlaceholder,
   } = getStageSelection(levels, selectedStage);
   const gradeLabel = levels.find((level) => level.id === levelId)?.name ?? "";
-  const primaryGuardian = guardians[0];
+  const primaryGuardian = guardian;
+  const guardianFullName = [guardian.firstName, guardian.lastName]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
   const genderLabel =
     gender === ""
       ? ""
@@ -531,22 +541,8 @@ export const StudentCreateForm = ({
   };
 
   const updateGuardian = (id: string, patch: Partial<GuardianDraft>) =>
-    setGuardians((previous) =>
-      previous.map((guardian) =>
-        guardian.id === id ? { ...guardian, ...patch } : guardian
-      )
-    );
-
-  const removeGuardian = (id: string) =>
-    setGuardians((previous) =>
-      previous.length > 1
-        ? previous.filter((guardian) => guardian.id !== id)
-        : previous
-    );
-
-  const addGuardian = () =>
-    setGuardians((previous) =>
-      previous.length < 3 ? [...previous, blankGuardian()] : previous
+    setGuardian((previous) =>
+      previous.id === id ? { ...previous, ...patch } : previous
     );
 
   const toggleClass = (classId: string) => {
@@ -580,6 +576,10 @@ export const StudentCreateForm = ({
       next.firstName = "First name is required.";
     }
 
+    if (!lastName.trim()) {
+      next.lastName = "Last name is required.";
+    }
+
     if (!gender) {
       next.gender = "Please select a gender.";
     }
@@ -588,8 +588,18 @@ export const StudentCreateForm = ({
       next.levelId = "Please select the current level.";
     }
 
-    if (icDigits && !isValidIcNumber(icDigits)) {
+    if (!icDigits) {
+      next.icNumber = "IC / MyKid number is required.";
+    } else if (!isValidIcNumber(icDigits)) {
       next.icNumber = "IC / MyKid number must be exactly 12 digits.";
+    }
+
+    if (!dobDate) {
+      next.dateOfBirth = "Date of birth is required.";
+    }
+
+    if (!schoolName.trim()) {
+      next.schoolName = "School name is required.";
     }
 
     if (studentEmail && !emailRegex.test(studentEmail)) {
@@ -612,7 +622,7 @@ export const StudentCreateForm = ({
       next.customFee = "Enter a valid amount greater than zero.";
     }
 
-    Object.assign(next, validateGuardians(guardians));
+    Object.assign(next, validateGuardians([guardian]));
 
     return next;
   };
@@ -627,16 +637,19 @@ export const StudentCreateForm = ({
     }
   };
 
-  const guardiansPayload = guardians.map((guardian) => ({
-    email: guardian.email.trim() || undefined,
-    fullName: guardian.fullName.trim(),
-    icNumber: normalizeIcNumber(guardian.icNumber) || undefined,
-    phone: guardian.phone.trim(),
-    relationship: guardian.relationship || undefined,
-    whatsapp:
-      (guardian.sameAsPhone ? guardian.phone : guardian.whatsapp).trim() ||
-      undefined,
-  }));
+  const guardiansPayload = [
+    {
+      address:
+        (guardian.sameAsStudent ? studentAddress : guardian.address).trim() ||
+        undefined,
+      email: guardian.email.trim() || undefined,
+      fullName: guardianFullName,
+      icNumber: normalizeIcNumber(guardian.icNumber) || undefined,
+      phone: guardian.phone.trim(),
+      relationship: guardian.relationship || undefined,
+      whatsapp: guardian.phone.trim() || undefined,
+    },
+  ];
 
   const enrollmentsPayload = selectedClasses.map((learningClass) => ({
     classId: learningClass.id,
@@ -694,22 +707,30 @@ export const StudentCreateForm = ({
                 <FieldErrorText message={errors.firstName} />
               </div>
               <div className="grid content-start gap-1.5">
-                <FieldLabel htmlFor="lastName">
+                <FieldLabel htmlFor="lastName" required>
                   Last name / Family name
                 </FieldLabel>
                 <Input
+                  aria-invalid={errors.lastName ? true : undefined}
+                  className={errorClassName(Boolean(errors.lastName))}
                   id="lastName"
-                  onChange={(event) => setLastName(event.target.value)}
+                  onChange={(event) => {
+                    setLastName(event.target.value);
+                    clearError("lastName");
+                  }}
                   placeholder="e.g. binti Ahmad / Tan / a/p Kumar"
                   value={lastName}
                 />
+                <FieldErrorText message={errors.lastName} />
               </div>
             </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="grid content-start gap-1.5">
-              <FieldLabel htmlFor="icNumber">IC / MyKid number</FieldLabel>
+              <FieldLabel htmlFor="icNumber" required>
+                IC / MyKid number
+              </FieldLabel>
               {/* Align the trio with the app's control rhythm: upstream
                   InputGroup is content-height (34/30px) while Button and
                   SelectTrigger render 36/32px. */}
@@ -738,7 +759,7 @@ export const StudentCreateForm = ({
                   inputMode="numeric"
                   maxLength={12}
                   onChange={(event) => handleIcChange(event.target.value)}
-                  placeholder="e.g. 120304-14-5678"
+                  placeholder="e.g. 120304145678"
                   value={icDigits}
                 />
               </InputGroup>
@@ -747,7 +768,7 @@ export const StudentCreateForm = ({
               ) : null}
             </div>
             <div className="grid content-start gap-1.5">
-              <FieldLabel>Date of birth</FieldLabel>
+              <FieldLabel required>Date of birth</FieldLabel>
               <IsoDatePicker
                 endMonth={getMalaysiaToday()}
                 name="dateOfBirth"
@@ -757,6 +778,7 @@ export const StudentCreateForm = ({
                 toDisplay={(selected) => formatNumericShortDate(selected)}
                 value={dobDate}
               />
+              <FieldErrorText message={errors.dateOfBirth} />
             </div>
             <div className="grid content-start gap-1.5">
               <FieldLabel required>Gender</FieldLabel>
@@ -793,10 +815,6 @@ export const StudentCreateForm = ({
             <div className="grid content-start gap-1.5">
               <FieldLabel htmlFor="studentEmail">
                 Email address
-                <span className="text-muted-foreground text-xs font-normal">
-                  {" "}
-                  (optional)
-                </span>
               </FieldLabel>
               <Input
                 aria-invalid={errors.studentEmail ? true : undefined}
@@ -816,10 +834,6 @@ export const StudentCreateForm = ({
             <div className="grid content-start gap-1.5">
               <FieldLabel htmlFor="studentPhone">
                 Phone number
-                <span className="text-muted-foreground text-xs font-normal">
-                  {" "}
-                  (optional)
-                </span>
               </FieldLabel>
               <Input
                 aria-invalid={errors.studentPhone ? true : undefined}
@@ -830,42 +844,38 @@ export const StudentCreateForm = ({
                   setStudentPhone(event.target.value);
                   clearError("studentPhone");
                 }}
-                placeholder="e.g. 012-345 6789"
+                placeholder="e.g. 0123456789"
                 value={studentPhone}
               />
               <FieldErrorText message={errors.studentPhone} />
             </div>
           </div>
+
+          <div className="grid content-start gap-1.5">
+            <FieldLabel htmlFor="addressLine1">Address</FieldLabel>
+            <Textarea
+              id="addressLine1"
+              name="addressLine1"
+              onChange={(event) => setStudentAddress(event.target.value)}
+              placeholder="House number, street, city, state, postcode"
+              rows={2}
+              value={studentAddress}
+            />
+            <Hint>Student's home address</Hint>
+          </div>
         </FormSectionCard>
 
         <FormSectionCard
           icon={UsersRoundIcon}
-          subtitle="At least one contact is required"
           title="Parent / Guardian"
         >
           <div className="grid gap-4">
-            {guardians.map((guardian, index) => (
-              <GuardianEditor
-                errors={errors}
-                guardian={guardian}
-                index={index}
-                key={guardian.id}
-                onRemove={removeGuardian}
-                onUpdate={updateGuardian}
-                total={guardians.length}
-              />
-            ))}
-            {guardians.length < 3 ? (
-              <Button
-                className="w-fit text-primary"
-                onClick={addGuardian}
-                type="button"
-                variant="ghost"
-              >
-                <PlusIcon className="size-4" />
-                Add second parent / guardian
-              </Button>
-            ) : null}
+            <GuardianEditor
+              errors={errors}
+              guardian={guardian}
+              onUpdate={updateGuardian}
+              studentAddress={studentAddress}
+            />
           </div>
         </FormSectionCard>
 
@@ -945,14 +955,22 @@ export const StudentCreateForm = ({
                   <FieldErrorText message={errors.levelId} />
                 </div>
                 <div className="grid content-start gap-1.5 sm:col-span-2">
-                  <FieldLabel htmlFor="schoolName">School name</FieldLabel>
+                  <FieldLabel htmlFor="schoolName" required>
+                    School name
+                  </FieldLabel>
                   <Input
+                    aria-invalid={errors.schoolName ? true : undefined}
+                    className={errorClassName(Boolean(errors.schoolName))}
                     id="schoolName"
                     name="schoolName"
-                    onChange={(event) => setSchoolName(event.target.value)}
+                    onChange={(event) => {
+                      setSchoolName(event.target.value);
+                      clearError("schoolName");
+                    }}
                     placeholder="e.g. SMK Kajang, SJKC Chong Hwa..."
                     value={schoolName}
                   />
+                  <FieldErrorText message={errors.schoolName} />
                 </div>
               </div>
             </TabsPanel>
@@ -961,7 +979,7 @@ export const StudentCreateForm = ({
               keepMounted
               value="enrollment"
             >
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4">
                 <div className="grid content-start gap-1.5">
                   <FieldLabel>Start date</FieldLabel>
                   <IsoDatePicker
@@ -971,26 +989,6 @@ export const StudentCreateForm = ({
                     value={startDate}
                   />
                 </div>
-                <div className="grid content-start gap-1.5">
-                  <FieldLabel>Fee due day</FieldLabel>
-                  <Select
-                    defaultValue={String(defaultFeeDueDay)}
-                    name="invoiceDueDay"
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {FEE_DUE_DAYS.map((day) => (
-                        <SelectItem key={day} value={day}>
-                          {day}
-                          {ordinalSuffix(day)} of each month
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Hint>Day of month invoices are due</Hint>
-                </div>
               </div>
 
               <div className="grid content-start gap-1.5">
@@ -999,7 +997,7 @@ export const StudentCreateForm = ({
                   classes={classes}
                   currency={currency}
                   error={errors.subjects}
-                  levels={levels}
+                  filterLevelId={levelId}
                   onToggle={toggleClass}
                   selectedIds={selectedClassIds}
                 />
@@ -1142,7 +1140,7 @@ export const StudentCreateForm = ({
           genderLabel={genderLabel}
           gradeLabel={gradeLabel}
           guardianEmail={primaryGuardian?.email ?? ""}
-          guardianName={primaryGuardian?.fullName ?? ""}
+          guardianName={guardianFullName}
           guardianPhone={primaryGuardian?.phone ?? ""}
           nextCode={nextCode}
           photoUrl={photoUrl}
