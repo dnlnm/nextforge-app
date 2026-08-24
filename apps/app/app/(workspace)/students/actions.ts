@@ -18,8 +18,6 @@ import {
   type GuardianRelationship,
   genders,
   guardianRelationships,
-  type StudentStatus,
-  studentStatuses,
 } from "@repo/schemas/enums";
 import {
   type EnrollmentRequest,
@@ -37,6 +35,7 @@ import {
   isValidIcNumber,
   normalizeIcNumber,
 } from "./lib/ic-number";
+import { foldFilterRules } from "./lib/student-filters";
 import { reserveStudentCode } from "./lib/student-code";
 
 export type { StudentsQueryParams } from "@repo/schemas/students";
@@ -77,7 +76,6 @@ const isValidPhone = (phone: string) =>
 const isValidPostcode = (postcode: string) => postcodeRegex.test(postcode);
 
 const relationships = new Set<GuardianRelationship>(guardianRelationships);
-const statuses = new Set<StudentStatus>(studentStatuses);
 
 /** Parses a hidden JSON array input posted by a dynamic client collection. */
 const parseJsonArray = (
@@ -945,90 +943,25 @@ export async function getStudentsForTable(params: StudentsQueryParams) {
     ];
   }
 
-  // Apply column filters
-  if (params.filters && params.filters.length > 0) {
-    for (const filter of params.filters) {
-      switch (filter.id) {
-        case "status": {
-          const values = Array.isArray(filter.value)
-            ? filter.value
-            : [filter.value];
-          const validStatuses = values.filter(
-            (v): v is StudentStatus =>
-              typeof v === "string" && statuses.has(v as StudentStatus)
-          );
-          if (validStatuses.length > 0) {
-            where.status = { in: validStatuses };
-            // Toggle the archivedAt filter based on the selected statuses.
-            // Selecting both Active and Archived shows all students.
-            const hasArchived = validStatuses.includes("ARCHIVED");
-            const hasActive = validStatuses.includes("ACTIVE");
+  // Apply advanced-filter rules. Each rule carries the operator used to join
+  // it with the previous one, so consecutive OR-joined rules fold into a
+  // single OR group and the groups are AND-ed together:
+  //   A and (B or C) → where.AND = [A, { OR: [B, C] }]
+  // The teacher-scope enrollment filter above stays on the base where, so
+  // class/tutor rules narrow it instead of overwriting it.
+  const { orGroups, statusScope } = foldFilterRules(params.filters ?? []);
 
-            if (hasArchived && hasActive) {
-              where.archivedAt = undefined;
-            } else if (hasArchived) {
-              where.archivedAt = { not: null };
-            } else {
-              where.archivedAt = null;
-            }
-          }
-          break;
-        }
-        case "class": {
-          const values = Array.isArray(filter.value)
-            ? filter.value
-            : [filter.value];
-          where.enrollments = {
-            some: {
-              classId: { in: values as string[] },
-              status: "ACTIVE",
-              archivedAt: null,
-            },
-          };
-          break;
-        }
-        case "tutor": {
-          const values = Array.isArray(filter.value)
-            ? filter.value
-            : [filter.value];
-          where.enrollments = {
-            some: {
-              class: {
-                teacherId: { in: values as string[] },
-              },
-              status: "ACTIVE",
-              archivedAt: null,
-            },
-          };
-          break;
-        }
-        case "gender": {
-          const values = Array.isArray(filter.value)
-            ? filter.value
-            : [filter.value];
-          const validGenders = values.filter(
-            (v): v is Gender =>
-              typeof v === "string" && genderSet.has(v as Gender)
-          );
-          if (validGenders.length > 0) {
-            where.gender = { in: validGenders };
-          }
-          break;
-        }
-        case "academicLevel": {
-          const values = Array.isArray(filter.value)
-            ? filter.value
-            : [filter.value];
-          if (values.length > 0) {
-            where.level = {
-              name: { in: values as string[] },
-            };
-          }
-          break;
-        }
-        default:
-          break;
-      }
+  if (orGroups.length > 0) {
+    const conditions = orGroups.map((group) =>
+      group.length === 1 ? group[0] : { OR: group }
+    );
+    where.AND = conditions;
+
+    // A status rule explicitly including ARCHIVED widens the base scope.
+    if (statusScope === "all") {
+      where.archivedAt = undefined;
+    } else if (statusScope === "archivedOnly") {
+      where.archivedAt = { not: null };
     }
   }
 
@@ -1120,10 +1053,6 @@ export async function getStudentFilterOptions() {
     classes: classes.map((c) => ({ label: c.name, value: c.id })),
     levels: levels.map((l) => ({ label: l.name, value: l.name })),
     tutors: teachers.map((t) => ({ label: t.fullName, value: t.id })),
-    statuses: [
-      { label: "Active", value: "ACTIVE" },
-      { label: "Archived", value: "ARCHIVED" },
-    ],
     genders: genders.map((value) => ({
       label: value.charAt(0).toUpperCase() + value.slice(1).toLowerCase(),
       value,

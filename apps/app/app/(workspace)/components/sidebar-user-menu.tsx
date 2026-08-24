@@ -6,6 +6,7 @@ import {
   Avatar,
   AvatarFallback,
 } from "@repo/design-system/components/ui/avatar";
+import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
   DropdownMenu,
@@ -31,14 +32,29 @@ import {
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { useOrganization } from "./organization-context";
 
 const initials = (email: string) =>
   (email.split("@")[0]?.slice(0, 2) ?? "AC").toUpperCase();
+
+const roleBadgeVariant = (
+  role: "TEACHER" | "ADMIN" | "OWNER"
+): "default" | "secondary" | "outline" => {
+  switch (role) {
+    case "OWNER":
+      return "default";
+    case "ADMIN":
+      return "secondary";
+    default:
+      return "outline";
+  }
+};
 
 export const SidebarUserMenu = () => {
   const router = useRouter();
   const { setTheme } = useTheme();
   const { state, isMobile } = useSidebar();
+  const organization = useOrganization();
   const collapsed = state === "collapsed" || isMobile;
   const [email, setEmail] = useState<string | null>(null);
   const supabase = createClient();
@@ -86,6 +102,11 @@ export const SidebarUserMenu = () => {
           <span className="block font-medium text-sm">
             {email ?? "Account"}
           </span>
+          {organization?.role && (
+            <Badge className="mt-1" variant={roleBadgeVariant(organization.role)}>
+              {organization.role}
+            </Badge>
+          )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem

@@ -1,6 +1,5 @@
 "use client";
 
-import { Badge } from "@repo/design-system/components/ui/badge";
 import {
   Collapsible,
   CollapsibleContent,
@@ -42,11 +41,10 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { Brand, BrandLogo } from "@/components/brand";
-import { useOrganization } from "./organization-context";
 
 type SidebarRole = "TEACHER" | "ADMIN" | "OWNER";
 
-type SidebarBadgeKey = "outstandingInvoices" | "pendingPayments" | "students";
+type SidebarBadgeKey = "outstandingInvoices" | "pendingPayments";
 
 export type SidebarBadges = Partial<Record<SidebarBadgeKey, number>>;
 
@@ -84,7 +82,6 @@ const navigationSections: NavigationSection[] = [
   {
     items: [
       {
-        badge: "students",
         title: "Students",
         url: "/students",
         icon: UsersIcon,
@@ -156,28 +153,12 @@ const getNavigationForRole = (role: SidebarRole): typeof navigationSections => {
   return navigationSections;
 };
 
-const getRoleBadgeVariant = (
-  role: SidebarRole
-): "default" | "secondary" | "outline" => {
-  switch (role) {
-    case "OWNER":
-      return "default";
-    case "ADMIN":
-      return "secondary";
-    case "TEACHER":
-      return "outline";
-    default:
-      return "outline";
-  }
-};
-
 export const GlobalSidebar = ({
   badges,
   children,
   role,
 }: GlobalSidebarProperties) => {
   const pathname = usePathname();
-  const organization = useOrganization();
   const { isMobile, setOpenMobile, state } = useSidebar();
   const collapsed = !isMobile && state === "collapsed";
   const filteredSections = getNavigationForRole(role);
@@ -229,18 +210,6 @@ export const GlobalSidebar = ({
                 )}
               </Link>
             </SidebarMenuItem>
-            {!collapsed && organization?.role && (
-              <SidebarMenuItem>
-                <div className="flex justify-center px-2 pb-2">
-                  <Badge
-                    className="text-xs"
-                    variant={getRoleBadgeVariant(organization.role)}
-                  >
-                    {organization.role}
-                  </Badge>
-                </div>
-              </SidebarMenuItem>
-            )}
           </SidebarMenu>
         </SidebarHeader>
         <SidebarContent>
@@ -255,6 +224,7 @@ export const GlobalSidebar = ({
               >
                 <SidebarGroup>
                   <SidebarGroupLabel
+                    className="cursor-pointer transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                     render={<CollapsibleTrigger className="w-full" />}
                   >
                     {section.title}

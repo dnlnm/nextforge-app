@@ -147,7 +147,6 @@ const StudentsPage = async () => {
           monthLabel={formatMonthShort(today)}
           newStudentsThisMonth={newStudentsThisMonth}
           outstandingSen={totalOutstandingSen}
-          statusOptions={filterOptions.statuses}
           studentsWithOutstanding={studentsWithInvoiceBalance.length}
           totalStudents={totalStudents}
           tutorOptions={filterOptions.tutors}

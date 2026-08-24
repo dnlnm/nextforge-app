@@ -46,10 +46,7 @@ const WorkspaceLayout = async ({ children }: WorkspaceLayoutProperties) => {
     redirect("/");
   }
 
-  const [students, outstandingInvoices, pendingPayments] = await Promise.all([
-    database.student.count({
-      where: { organizationId: tenant.organizationId, status: "ACTIVE" },
-    }),
+  const [outstandingInvoices, pendingPayments] = await Promise.all([
     database.invoice.count({
       where: {
         organizationId: tenant.organizationId,
@@ -67,7 +64,6 @@ const WorkspaceLayout = async ({ children }: WorkspaceLayoutProperties) => {
   const badges: SidebarBadges = {
     outstandingInvoices,
     pendingPayments,
-    students,
   };
 
   return (

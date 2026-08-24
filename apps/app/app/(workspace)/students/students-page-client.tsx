@@ -53,7 +53,6 @@ type StudentsPageClientProps = {
   monthLabel: string;
   newStudentsThisMonth: number;
   outstandingSen: number;
-  statusOptions: FilterOption[];
   studentsWithOutstanding: number;
   totalStudents: number;
   tutorOptions: FilterOption[];
@@ -71,7 +70,6 @@ export function StudentsPageClient({
   monthLabel,
   newStudentsThisMonth,
   outstandingSen,
-  statusOptions,
   studentsWithOutstanding,
   totalStudents,
   tutorOptions,
@@ -196,7 +194,6 @@ export function StudentsPageClient({
           initialTotalCount={initialTotalCount}
           levelOptions={levelOptions}
           onRowClick={(studentId) => onSelectStudent(studentId)}
-          statusOptions={statusOptions}
           tutorOptions={tutorOptions}
         />
       </section>

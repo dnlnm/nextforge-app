@@ -48,6 +48,18 @@ export type Student = {
   }>;
 };
 
+export interface FilterOption {
+  label: string;
+  value: string;
+}
+
+interface StudentColumnOptions {
+  classOptions: FilterOption[];
+  genderOptions: FilterOption[];
+  levelOptions: FilterOption[];
+  tutorOptions: FilterOption[];
+}
+
 export const StudentRowActions = ({ student }: { student: Student }) => {
   const [isArchiveOpen, setIsArchiveOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -122,7 +134,22 @@ export const StudentRowActions = ({ student }: { student: Student }) => {
   );
 };
 
-export const columns: DataTableColumnDef<Student>[] = [
+/**
+ * Column set for the students table. Built per-render-input because the
+ * advanced filter reads filter options from column `meta` (auto-generated
+ * options would only cover the current server-side page).
+ *
+ * `class` and `tutor` are filter-only columns: they have no backing field on
+ * the Student row (the server maps them to enrollment queries), so they are
+ * hidden from the grid via `initialState.columnVisibility` but stay visible to
+ * the filter menu, which lists every column with `enableColumnFilter`.
+ */
+export const getStudentColumns = ({
+  classOptions,
+  genderOptions,
+  levelOptions,
+  tutorOptions,
+}: StudentColumnOptions): DataTableColumnDef<Student>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -176,7 +203,9 @@ export const columns: DataTableColumnDef<Student>[] = [
     },
     meta: {
       label: "Student",
+      variant: "text",
     },
+    enableColumnFilter: true,
     enableHiding: false,
   },
   {
@@ -189,7 +218,10 @@ export const columns: DataTableColumnDef<Student>[] = [
     cell: ({ row }) => row.original.level?.name ?? "-",
     meta: {
       label: "Level/Year",
+      options: levelOptions,
+      variant: "multiSelect",
     },
+    enableColumnFilter: true,
     enableHiding: false,
   },
   {
@@ -230,7 +262,10 @@ export const columns: DataTableColumnDef<Student>[] = [
     },
     meta: {
       label: "Gender",
+      options: genderOptions,
+      variant: "multiSelect",
     },
+    enableColumnFilter: true,
     enableHiding: false,
   },
   {
@@ -240,4 +275,33 @@ export const columns: DataTableColumnDef<Student>[] = [
     enableSorting: false,
     enableHiding: false,
   },
+  {
+    id: "class",
+    header: () => null,
+    cell: () => null,
+    meta: {
+      label: "Class",
+      options: classOptions,
+      variant: "multiSelect",
+    },
+    enableColumnFilter: true,
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    id: "tutor",
+    header: () => null,
+    cell: () => null,
+    meta: {
+      label: "Tutor",
+      options: tutorOptions,
+      variant: "multiSelect",
+    },
+    enableColumnFilter: true,
+    enableSorting: false,
+    enableHiding: false,
+  },
 ];
+
+/** Filter-only columns never rendered in the grid. */
+export const studentHiddenColumns = { class: false, tutor: false };

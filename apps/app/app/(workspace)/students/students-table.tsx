@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import { DataTableClearFilter } from "@repo/design-system/components/niko-table/components/data-table-clear-filter";
-import { DataTableFacetedFilter } from "@repo/design-system/components/niko-table/components/data-table-faceted-filter";
+import { DataTableFilterMenu } from "@repo/design-system/components/niko-table/components/data-table-filter-menu";
 import { DataTablePagination } from "@repo/design-system/components/niko-table/components/data-table-pagination";
 import { DataTableSearchFilter } from "@repo/design-system/components/niko-table/components/data-table-search-filter";
 import { DataTableToolbarSection } from "@repo/design-system/components/niko-table/components/data-table-toolbar-section";
@@ -13,9 +13,23 @@ import {
   DataTableHeader,
   DataTableSkeleton,
 } from "@repo/design-system/components/niko-table/core/data-table-structure";
-import type { GlobalFilter } from "@repo/design-system/components/niko-table/types";
+import {
+  normalizeFiltersFromUrl,
+  serializeFiltersForUrl,
+} from "@repo/design-system/components/niko-table/filters/table-filter-menu";
+import type {
+  ExtendedColumnFilter,
+  GlobalFilter,
+} from "@repo/design-system/components/niko-table/types";
 import { CardContent } from "@repo/design-system/components/ui/card";
 import { CardShell } from "@repo/design-system/components/ui/card-shell";
+import type { StudentTableFilter } from "@repo/schemas/students";
+import { studentTableFilterSchema } from "@repo/schemas/students";
+import type {
+  ColumnFiltersState,
+  PaginationState,
+  Updater,
+} from "@tanstack/react-table";
 import {
   parseAsInteger,
   parseAsJson,
@@ -27,31 +41,29 @@ import { z } from "zod";
 import { DataTableMobileCards } from "../../../components/data-table-mobile-cards";
 import type { StudentsQueryParams } from "./actions";
 import { getStudentsForTable } from "./actions";
-import { columns, type Student } from "./columns";
+import {
+  type FilterOption,
+  getStudentColumns,
+  type Student,
+  studentHiddenColumns,
+} from "./columns";
 import { StudentCard } from "./student-card";
 
-type FilterOption = {
-  label: string;
-  value: string;
-};
-
-type StudentsTableProps = {
+interface StudentsTableProps {
+  classOptions: FilterOption[];
+  genderOptions: FilterOption[];
   initialData: Student[];
   initialTotalCount: number;
-  classOptions: FilterOption[];
-  tutorOptions: FilterOption[];
-  statusOptions: FilterOption[];
-  genderOptions: FilterOption[];
   levelOptions: FilterOption[];
   onRowClick?: (studentId: string) => void;
-};
+  tutorOptions: FilterOption[];
+}
 
 export function StudentsTable({
   initialData,
   initialTotalCount,
   classOptions,
   tutorOptions,
-  statusOptions,
   genderOptions,
   levelOptions,
   onRowClick,
@@ -60,35 +72,58 @@ export function StudentsTable({
   const [totalCount, setTotalCount] = useState(initialTotalCount);
   const [isLoading, setIsLoading] = useState(false);
 
-  // URL state management
-  const filtersSchema = z.array(
-    z.object({ id: z.string(), value: z.unknown() })
+  const columns = useMemo(
+    () =>
+      getStudentColumns({
+        classOptions,
+        genderOptions,
+        levelOptions,
+        tutorOptions,
+      }),
+    [classOptions, genderOptions, levelOptions, tutorOptions]
   );
 
+  // URL state management. Filters are niko-table advanced-filter rules
+  // (ExtendedColumnFilter minus the regenerable filterId).
   const [urlParams, setUrlParams] = useQueryStates(
     {
       page: parseAsInteger.withDefault(0),
       pageSize: parseAsInteger.withDefault(10),
       search: parseAsString.withDefault(""),
       filters: parseAsJson((value) => {
-        const parsed = filtersSchema.safeParse(value);
+        const parsed = z.array(studentTableFilterSchema).safeParse(value);
         return parsed.success ? parsed.data : [];
-      }).withDefault([]),
+      }).withDefault([] as StudentTableFilter[]),
     },
     { history: "replace" }
   );
 
-  // Derive table state from URL
+  // Derive table state from URL. columnFilters only feeds UI that reads table
+  // state (Reset button visibility, empty-state copy); the filter menu is fully
+  // controlled and the server query is driven by the URL params directly.
   const tableState = useMemo(
     () => ({
       pagination: {
         pageIndex: urlParams.page,
         pageSize: urlParams.pageSize,
       },
-      columnFilters: urlParams.filters,
+      columnFilters: urlParams.filters.map((filter) => ({
+        id: filter.id,
+        value: filter,
+      })),
       globalFilter: urlParams.search,
     }),
     [urlParams]
+  );
+
+  // The menu expects ExtendedColumnFilter (with filterId); regenerate the ids
+  // deterministically from the serialized rules.
+  const menuFilters = useMemo(
+    () =>
+      normalizeFiltersFromUrl(
+        urlParams.filters as unknown as ExtendedColumnFilter<Student>[]
+      ),
+    [urlParams.filters]
   );
 
   // Fetch data when URL params change. A request id guards against out-of-order
@@ -149,7 +184,7 @@ export function StudentsTable({
 
   // State update handlers
   const handlePaginationChange = useCallback(
-    (updater: any) => {
+    (updater: Updater<PaginationState>) => {
       const newPagination =
         typeof updater === "function"
           ? updater(tableState.pagination)
@@ -162,13 +197,35 @@ export function StudentsTable({
     [tableState.pagination, setUrlParams]
   );
 
+  // Advanced-filter rule edits (controlled menu).
+  const handleFiltersChange = useCallback(
+    (next: ExtendedColumnFilter<Student>[] | null) => {
+      setUrlParams({
+        filters: next
+          ? (serializeFiltersForUrl(next) as StudentTableFilter[])
+          : [],
+        page: 0,
+      });
+    },
+    [setUrlParams]
+  );
+
+  // Table-state writers (the Reset button) route here; convert back to the
+  // extended rule shape stored in the URL.
   const handleColumnFiltersChange = useCallback(
-    (updater: any) => {
+    (updater: Updater<ColumnFiltersState>) => {
       const newFilters =
         typeof updater === "function"
           ? updater(tableState.columnFilters)
           : updater;
-      setUrlParams({ filters: newFilters, page: 0 }); // Reset to first page
+      const rules = newFilters
+        .map((cf) =>
+          cf.value && typeof cf.value === "object" && "operator" in cf.value
+            ? (cf.value as StudentTableFilter)
+            : null
+        )
+        .filter((rule): rule is StudentTableFilter => rule !== null);
+      setUrlParams({ filters: rules, page: 0 });
     },
     [tableState.columnFilters, setUrlParams]
   );
@@ -204,6 +261,7 @@ export function StudentsTable({
           }}
           data={data}
           getRowId={(row) => row.id}
+          initialState={{ columnVisibility: studentHiddenColumns }}
           isLoading={isLoading}
           onColumnFiltersChange={handleColumnFiltersChange}
           onGlobalFilterChange={handleGlobalFilterChange}
@@ -217,35 +275,9 @@ export function StudentsTable({
                 placeholder="Search students..."
               />
               <div className="flex flex-wrap items-center gap-2">
-                <DataTableFacetedFilter
-                  accessorKey="class"
-                  multiple
-                  options={classOptions}
-                  title="Class"
-                />
-                <DataTableFacetedFilter
-                  accessorKey="tutor"
-                  multiple
-                  options={tutorOptions}
-                  title="Tutor"
-                />
-                <DataTableFacetedFilter
-                  accessorKey="status"
-                  multiple
-                  options={statusOptions}
-                  title="Status"
-                />
-                <DataTableFacetedFilter
-                  accessorKey="gender"
-                  multiple
-                  options={genderOptions}
-                  title="Gender"
-                />
-                <DataTableFacetedFilter
-                  accessorKey="academicLevel"
-                  multiple
-                  options={levelOptions}
-                  title="Level"
+                <DataTableFilterMenu
+                  filters={menuFilters}
+                  onFiltersChange={handleFiltersChange}
                 />
                 <DataTableClearFilter />
               </div>

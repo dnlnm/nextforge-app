@@ -2,7 +2,6 @@ import { z } from "zod";
 import {
   dateStringSchema,
   entityIdSchema,
-  filterSchema,
   paginationSchema,
   sortingSchema,
 } from "./common";
@@ -86,8 +85,22 @@ export const updateStudentInputSchema = z.strictObject({
   studentId: entityIdSchema,
 });
 
+/**
+ * One advanced-filter rule from the niko-table filter menu (ExtendedColumnFilter
+ * minus its regenerable `filterId`). `joinOperator` is how this rule joins with
+ * the previous one ("and" | "or"); `operator` follows niko-table's SQL-style
+ * names (eq, neq, in, not.in, ilike, not.ilike, empty, not.empty, ...).
+ */
+export const studentTableFilterSchema = z.object({
+  id: z.string().trim().min(1),
+  joinOperator: z.string().optional(),
+  operator: z.string(),
+  value: z.union([z.string(), z.array(z.string()), z.null()]),
+  variant: z.string(),
+});
+
 export const studentsQueryParamsSchema = paginationSchema.extend({
-  filters: z.array(filterSchema).optional(),
+  filters: z.array(studentTableFilterSchema).optional(),
   search: z.string().trim().min(1).optional(),
   sorting: sortingSchema.optional(),
 });
@@ -100,5 +113,6 @@ export type CreateStudentInput = z.infer<typeof createStudentInputSchema>;
 export type GuardianInput = z.infer<typeof guardianInputSchema>;
 export type EnrollmentRequest = z.infer<typeof enrollmentRequestSchema>;
 export type UpdateStudentInput = z.infer<typeof updateStudentInputSchema>;
+export type StudentTableFilter = z.infer<typeof studentTableFilterSchema>;
 export type StudentsQueryParams = z.infer<typeof studentsQueryParamsSchema>;
 export type StudentIdInput = z.infer<typeof studentIdInputSchema>;

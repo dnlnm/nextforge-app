@@ -59,14 +59,30 @@ const orientationConfig = {
   },
 };
 
+/**
+ * Minimal asChild slot. Unlike plain `cloneElement` propagation, className and
+ * style are composed instead of overwritten — consumers (niko-table filter/sort
+ * menus) pass semantic children like `<li className="flex …">` that must keep
+ * their own styling alongside the drag-and-drop attributes injected here.
+ */
 const Slot = React.forwardRef<
   HTMLElement,
   React.HTMLAttributes<HTMLElement>
->(function Slot({ children, ...props }, ref) {
-  const child = React.Children.only(children) as React.ReactElement;
+>(function Slot({ children, className, style, ...props }, ref) {
+  if (!React.isValidElement(children)) {
+    return null;
+  }
+  const child = children as React.ReactElement<{
+    className?: string;
+    style?: React.CSSProperties;
+  }>;
   return React.cloneElement(child, {
     ...props,
     ref,
+    // Child classes win conflicts (tailwind-merge); dnd transform style wins
+    // over any child inline style so dragging never breaks.
+    className: cn(className, child.props.className),
+    style: { ...child.props.style, ...style },
   } as React.HTMLAttributes<HTMLElement> & { ref?: React.Ref<HTMLElement> });
 });
 

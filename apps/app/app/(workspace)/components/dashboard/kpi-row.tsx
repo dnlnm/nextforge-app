@@ -126,10 +126,11 @@ export const KpiRow = ({ currency, data }: KpiRowProps) => {
                 </StatIndicator>
                 <StatValue>{stat.value}</StatValue>
               </div>
-              <div className="flex flex-col items-start gap-2 px-4 py-3 max-md:px-3 max-md:py-2">
+              <div className="flex flex-wrap items-center gap-2 px-4 py-3 max-md:px-3 max-md:py-2">
                 {stat.progress !== null ? (
                   <Progress
                     aria-label={`${data.fees.targetPercent}% of target collected`}
+                    className="w-full"
                     value={data.fees.targetPercent}
                   >
                     <ProgressTrack>
@@ -147,7 +148,7 @@ export const KpiRow = ({ currency, data }: KpiRowProps) => {
                 </StatDescription>
                 {stat.action ? (
                   <Button
-                    className="relative z-10 mt-1"
+                    className="relative z-10"
                     render={<Link href={stat.action.href} />}
                     size="sm"
                     variant="outline"

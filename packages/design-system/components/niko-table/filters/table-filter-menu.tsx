@@ -797,6 +797,12 @@ export function TableFilterMenu<TData>({
   joinOperator?: JoinOperator;
   onJoinOperatorChange?: (operator: JoinOperator) => void;
 }) {
+  // Extract className/style so caller overrides merge instead of replacing the default layout
+  const {
+    className: propsClassName,
+    style: propsStyle,
+    ...restProps
+  } = props as { className?: string; style?: React.CSSProperties } & typeof props;
   const id = React.useId();
   const labelId = React.useId();
   const descriptionId = React.useId();
@@ -970,8 +976,17 @@ export function TableFilterMenu<TData>({
           <PopoverContent
             aria-describedby={descriptionId}
             aria-labelledby={labelId}
-            className="flex w-full max-w-(--radix-popover-content-available-width) origin-(--radix-popover-content-transform-origin) flex-col gap-3.5 p-4 sm:min-w-[380px]"
-            {...props}
+            className={cn(
+              "flex w-full max-w-[calc(100vw-2rem)] flex-col gap-3.5 p-4 sm:min-w-[620px]",
+              propsClassName
+            )}
+            style={
+              {
+                minWidth: "min(620px, calc(100vw - 2rem))",
+                ...(propsStyle as React.CSSProperties),
+              } as React.CSSProperties
+            }
+            {...restProps}
           >
             <div className="flex flex-col gap-1">
               <h4 id={labelId} className="leading-none font-medium">
@@ -1597,14 +1612,14 @@ function FilterJoinOperator<TData>({
 
   if (index === 0) {
     return (
-      <div className="min-w-[72px] text-center">
+      <div className="w-[72px] shrink-0 text-center">
         <span className="text-sm text-muted-foreground">Where</span>
       </div>
     );
   }
 
   return (
-    <div className="min-w-[72px] text-center">
+    <div className="w-[72px] shrink-0 text-center">
       <Select
         value={filter.joinOperator || JOIN_OPERATORS.AND}
         onValueChange={(value: string | null) =>
@@ -1619,7 +1634,7 @@ function FilterJoinOperator<TData>({
           aria-label="Select join operator"
           aria-controls={joinOperatorListboxId}
           size="sm"
-          className="rounded lowercase"
+          className="w-full min-w-0 rounded lowercase"
         >
           <SelectValue placeholder={filter.joinOperator || "and"} />
         </SelectTrigger>
