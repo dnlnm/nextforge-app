@@ -1,6 +1,7 @@
 "use client";
 
 import { Checkbox } from "@repo/design-system/components/ui/checkbox";
+import { Group, GroupSeparator } from "@repo/design-system/components/ui/group";
 import { cn } from "@repo/design-system/lib/utils";
 import { formatMoney } from "@repo/money";
 import { InfoIcon } from "lucide-react";
@@ -9,6 +10,7 @@ import { useMemo } from "react";
 export interface EnrollableClassOption {
   readonly activeEnrollmentCount: number;
   readonly capacity: number | null;
+  readonly code: string;
   readonly id: string;
   readonly levelId: string | null;
   readonly monthlyFeeSen: number;
@@ -98,28 +100,31 @@ export const ClassPicker = ({
           const full = isFull(learningClass);
 
           return (
-            <label
-              className={cn(
-                "ms-4 flex cursor-pointer items-start gap-2 text-sm",
-                full && "cursor-not-allowed opacity-60"
-              )}
+            <Group
+              className={cn("ms-4", full && "opacity-60")}
               key={learningClass.id}
             >
-              <Checkbox
-                checked={selectedIds.includes(learningClass.id)}
-                disabled={full}
-                onCheckedChange={() => onToggle(learningClass.id)}
-              />
-              <span className="min-w-0">
-                <span className="font-medium">
-                  {learningClass.subjectName} · {learningClass.name}
-                </span>
-                <span className="block text-muted-foreground text-xs">
-                  {format(learningClass.monthlyFeeSen)}/mo
-                  {full ? " · Full" : ""}
-                </span>
+              <span className="flex items-center py-1.5 pr-2 pl-3">
+                <Checkbox
+                  checked={selectedIds.includes(learningClass.id)}
+                  disabled={full}
+                  onCheckedChange={() => onToggle(learningClass.id)}
+                />
               </span>
-            </label>
+              <GroupSeparator />
+              <span className="self-center px-2 text-muted-foreground font-mono text-xs">
+                {learningClass.code}
+              </span>
+              <GroupSeparator />
+              <span className="min-w-0 self-center px-2 text-sm font-medium">
+                {learningClass.name}
+              </span>
+              <GroupSeparator />
+              <span className="self-center pr-3 pl-2 text-muted-foreground text-xs">
+                {format(learningClass.monthlyFeeSen)}/mo
+                {full ? " · Full" : ""}
+              </span>
+            </Group>
           );
         })
       )}

@@ -27,6 +27,7 @@ const AddStudentPage = async () => {
       orderBy: [{ level: { order: "asc" } }, { name: "asc" }],
       select: {
         id: true,
+        code: true,
         name: true,
         monthlyFeeSen: true,
         capacity: true,
@@ -60,6 +61,7 @@ const AddStudentPage = async () => {
           classes={classes.map((learningClass) => ({
             activeEnrollmentCount: learningClass._count.enrollments,
             capacity: learningClass.capacity,
+            code: learningClass.code,
             id: learningClass.id,
             levelId: learningClass.levelId,
             monthlyFeeSen: learningClass.monthlyFeeSen,

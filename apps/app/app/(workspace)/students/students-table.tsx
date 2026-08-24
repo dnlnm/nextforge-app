@@ -279,7 +279,6 @@ export function StudentsTable({
                   filters={menuFilters}
                   onFiltersChange={handleFiltersChange}
                 />
-                <DataTableClearFilter />
               </div>
             </DataTableToolbarSection>
           </div>

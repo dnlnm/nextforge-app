@@ -614,10 +614,6 @@ export const StudentCreateForm = ({
         "Enter a valid Malaysian phone number (e.g. 012-3456789).";
     }
 
-    if (selectedClassIds.length === 0) {
-      next.subjects = "Enroll at least one subject.";
-    }
-
     if (customFee.trim() !== "" && customFeeSen === null) {
       next.customFee = "Enter a valid amount greater than zero.";
     }
@@ -992,7 +988,7 @@ export const StudentCreateForm = ({
               </div>
 
               <div className="grid content-start gap-1.5">
-                <FieldLabel required>Subjects / programmes enrolled</FieldLabel>
+                <FieldLabel>Subjects / programmes enrolled</FieldLabel>
                 <ClassPicker
                   classes={classes}
                   currency={currency}
@@ -1065,16 +1061,11 @@ export const StudentCreateForm = ({
                     <FieldLabel htmlFor="emergencyContactPhone">
                       Emergency contact phone
                     </FieldLabel>
-                    <div className="flex gap-2">
-                      <span className="flex items-center whitespace-nowrap rounded-lg border border-border bg-muted px-3 font-medium text-muted-foreground text-sm">
-                        +60
-                      </span>
-                      <Input
-                        id="emergencyContactPhone"
-                        name="emergencyContactPhone"
-                        placeholder="012-345 6789"
-                      />
-                    </div>
+                    <Input
+                      id="emergencyContactPhone"
+                      name="emergencyContactPhone"
+                      placeholder="0123456789"
+                    />
                   </div>
                 </div>
 
@@ -1088,7 +1079,6 @@ export const StudentCreateForm = ({
                     placeholder="e.g. Peanut allergy, asthma inhaler required, wears glasses..."
                     rows={2}
                   />
-                  <Hint>Visible to centre staff only</Hint>
                 </div>
 
                 <div className="grid content-start gap-1.5">
