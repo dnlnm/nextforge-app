@@ -1,0 +1,9 @@
+# Next.js
+.next/
+next-env.d.ts
+
+# Turborepo
+.turbo/
+
+# Fumadocs generated source
+.source/

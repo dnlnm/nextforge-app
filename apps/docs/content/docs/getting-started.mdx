@@ -1,0 +1,26 @@
+---
+title: Getting Started
+description: How to run the docs site locally
+---
+
+## Install dependencies
+
+The workspace installs everything from the repository root:
+
+```bash
+bun install
+```
+
+## Run the docs
+
+```bash
+bunx turbo run dev --filter=docs
+```
+
+The docs are served at `http://localhost:3004` and redirect to `/docs`.
+
+## Build
+
+```bash
+bunx turbo run build --filter=docs
+```
