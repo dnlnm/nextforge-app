@@ -1070,6 +1070,7 @@ export async function getStudentDetail(studentId: string) {
   return database.student.findFirst({
     where: { id: studentId, organizationId: tenant.organizationId },
     select: {
+      addressLine1: true,
       code: true,
       createdAt: true,
       dateOfBirth: true,
@@ -1077,13 +1078,16 @@ export async function getStudentDetail(studentId: string) {
       enrolledAt: true,
       fullName: true,
       gender: true,
+      icNumber: true,
       id: true,
       phone: true,
       photoKey: true,
+      schoolName: true,
       status: true,
       guardians: {
         where: { isPrimary: true },
         select: {
+          relationship: true,
           guardian: {
             select: {
               addressLine1: true,
@@ -1091,6 +1095,7 @@ export async function getStudentDetail(studentId: string) {
               city: true,
               email: true,
               fullName: true,
+              icNumber: true,
               phone: true,
               state: true,
             },

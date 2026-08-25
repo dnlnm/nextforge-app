@@ -9,6 +9,7 @@ export const ThemeProvider = ({
     attribute="class"
     defaultTheme="system"
     disableTransitionOnChange
+    enableColorScheme
     enableSystem
     {...properties}
   >

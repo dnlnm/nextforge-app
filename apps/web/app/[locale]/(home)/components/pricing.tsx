@@ -42,13 +42,13 @@ export const Pricing = ({
             <CardShell
               className={
                 plan.highlighted
-                  ? "relative flex w-full flex-col overflow-hidden border-accent-blue/20 bg-card shadow-panel lg:-mt-3 lg:scale-[1.02]"
-                  : "relative flex w-full flex-col bg-card shadow-card"
+                  ? "relative flex w-full flex-col overflow-hidden border-foreground/20 bg-card shadow-lg lg:-mt-3 lg:scale-[1.02]"
+                  : "relative flex w-full flex-col bg-card shadow-md"
               }
               key={plan.name}
             >
               {plan.highlighted && (
-                <div className="absolute inset-x-0 top-0 h-0.5 bg-[linear-gradient(90deg,var(--accent-blue),color-mix(in_oklab,var(--accent-blue)_60%,white))]" aria-hidden />
+                <div className="absolute inset-x-0 top-0 h-0.5 bg-[linear-gradient(90deg,var(--primary),color-mix(in_srgb,var(--primary)_60%,var(--background)))]" aria-hidden />
               )}
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
@@ -56,7 +56,7 @@ export const Pricing = ({
                     {plan.name}
                   </CardTitle>
                   {plan.highlighted && (
-                    <span className="rounded-full bg-[color-mix(in_oklab,var(--accent-blue)_12%,transparent)] px-2.5 py-1 text-[11px] font-medium tracking-wide text-[var(--accent-blue)] ring-1 ring-[color-mix(in_oklab,var(--accent-blue)_20%,transparent)]">
+                    <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium tracking-wide text-foreground ring-1 ring-border">
                       Popular
                     </span>
                   )}
@@ -75,8 +75,8 @@ export const Pricing = ({
                   <div className="flex flex-1 flex-col gap-4">
                     {plan.features.map((feature) => (
                       <div className="flex gap-3" key={feature.title}>
-                        <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--accent-blue)_10%,transparent)] ring-1 ring-[color-mix(in_oklab,var(--accent-blue)_15%,transparent)]">
-                          <Check className="h-3 w-3 text-[var(--accent-blue)]" />
+                        <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-muted ring-1 ring-border">
+                          <Check className="h-3 w-3 text-primary" />
                         </span>
                         <div className="flex flex-col gap-0.5">
                           <p className="text-sm font-medium leading-none">{feature.title}</p>

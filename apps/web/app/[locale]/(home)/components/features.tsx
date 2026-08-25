@@ -32,10 +32,10 @@ export const Features = ({ dictionary }: FeaturesProps) => (
             return (
               <div
                 key={item.title}
-                className={`group relative flex min-h-[280px] flex-col justify-between overflow-hidden rounded-2xl border bg-card p-7 shadow-card transition-all hover:shadow-md hover:-translate-y-0.5 ${span}`}
+                className={`group relative flex min-h-[280px] flex-col justify-between overflow-hidden rounded-2xl border bg-card p-7 shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5 ${span}`}
               >
                 <div className="absolute inset-0 -z-10 opacity-0 transition-opacity group-hover:opacity-100" aria-hidden>
-                  <div className="absolute inset-0 bg-[radial-gradient(600px_circle_at_0%_0%,color-mix(in_oklab,var(--accent-blue)_7%,transparent),transparent_60%)]" />
+                  <div className="absolute inset-0 bg-[radial-gradient(600px_circle_at_0%_0%,color-mix(in_oklab,var(--foreground)_7%,transparent),transparent_60%)]" />
                 </div>
                 <span className="flex size-9 items-center justify-center rounded-xl border bg-muted">
                   <Icon className="size-[18px] stroke-[1.6]" />

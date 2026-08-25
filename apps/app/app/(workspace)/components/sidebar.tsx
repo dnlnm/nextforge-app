@@ -224,7 +224,7 @@ export const GlobalSidebar = ({
               >
                 <SidebarGroup>
                   <SidebarGroupLabel
-                    className="cursor-pointer transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    className="mb-1 cursor-pointer text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:mb-0"
                     render={<CollapsibleTrigger className="w-full" />}
                   >
                     {section.title}

@@ -1,14 +1,14 @@
-import { isMainDomain } from "@repo/auth/domain";
 import { requireTenantRole } from "@repo/auth/authorization";
+import { isMainDomain } from "@repo/auth/domain";
 import { appName } from "@repo/config/brand";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 import { database } from "@repo/database";
 import { formatWeekdayDate, getMalaysiaToday } from "@repo/date";
 import { getDashboardKpiData } from "@repo/domain";
 import { NotificationsTrigger as NotificationsTriggerComponent } from "@repo/notifications/components/trigger";
 import { CalendarDaysIcon } from "lucide-react";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { getOrganizationCurrency } from "@/lib/currency";
 import { AnnouncementsCard } from "./components/dashboard/announcements-card";

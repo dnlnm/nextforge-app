@@ -1,14 +1,17 @@
 import { Button } from "@repo/design-system/components/ui/button";
-import { Card } from "@repo/design-system/components/ui/card";
 import {
   Progress,
   ProgressIndicator,
   ProgressTrack,
 } from "@repo/design-system/components/ui/progress";
 import {
+  Stat,
+  StatAction,
   StatDescription,
+  StatFooter,
   StatIndicator,
   StatLabel,
+  StatPanel,
   StatValue,
 } from "@repo/design-system/components/ui/stat";
 import { cn } from "@repo/design-system/lib/utils";
@@ -99,75 +102,59 @@ export const KpiRow = ({ currency, data }: KpiRowProps) => {
   ];
 
   return (
-    <section className="grid grid-cols-2 gap-3 lg:grid-cols-3 2xl:grid-cols-5">
+    <section className="grid grid-cols-2 gap-5 lg:grid-cols-3 2xl:grid-cols-5">
       {stats.map((stat, index) => (
-        <div
+        <Stat
           className={cn(
-            "relative h-full rounded-xl border border-border/70 p-1",
+            "isolate h-full after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background",
             index === stats.length - 1 && "col-span-2 lg:col-span-1"
           )}
           key={stat.label}
         >
-          <div className="relative h-full overflow-hidden rounded-lg">
-            <div
-              aria-hidden="true"
-              className="absolute inset-1 z-0 rounded-sm"
-              style={{
-                backgroundImage:
-                  "repeating-linear-gradient(45deg, transparent, transparent 2px, var(--border) 2px, var(--border) 4px)",
-                opacity: 0.5,
-              }}
-            />
-            <Card className="relative isolate z-10 h-full rounded-lg border-2 border-border bg-transparent shadow-none before:hidden">
-              <div className="grid flex-1 grid-cols-[auto_1fr] gap-x-3 gap-y-2 p-4 **:data-[slot=stat-value]:col-span-2 **:data-[slot=stat-indicator]:col-start-1 **:data-[slot=stat-label]:col-start-2 **:data-[slot=stat-indicator]:row-start-1 **:data-[slot=stat-label]:row-start-1 **:data-[slot=stat-value]:row-start-2 **:data-[slot=stat-indicator]:self-center **:data-[slot=stat-label]:self-center max-md:p-3">
-                <StatLabel>{stat.label}</StatLabel>
-                <StatIndicator color={stat.color} variant="stacked">
-                  <stat.icon />
-                </StatIndicator>
-                <StatValue>{stat.value}</StatValue>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 px-4 py-3 max-md:px-3 max-md:py-2">
-                {stat.progress !== null ? (
-                  <Progress
-                    aria-label={`${data.fees.targetPercent}% of target collected`}
-                    className="w-full"
-                    value={data.fees.targetPercent}
-                  >
-                    <ProgressTrack>
-                      <ProgressIndicator
-                        className="bg-success"
-                        style={{
-                          width: `${Math.min(100, data.fees.targetPercent)}%`,
-                        }}
-                      />
-                    </ProgressTrack>
-                  </Progress>
-                ) : null}
-                <StatDescription className="min-w-0 flex-1">
-                  {stat.detail}
-                </StatDescription>
-                {stat.action ? (
-                  <Button
-                    className="relative z-10"
-                    render={<Link href={stat.action.href} />}
-                    size="sm"
-                    variant="outline"
-                  >
-                    <PlusIcon aria-hidden="true" />
-                    <span className="hidden md:inline">
-                      {stat.action.label}
-                    </span>
-                  </Button>
-                ) : null}
-              </div>
-            </Card>
-          </div>
+          <StatPanel className="dark:bg-background">
+            <StatLabel>{stat.label}</StatLabel>
+            <StatIndicator color={stat.color} variant="stacked">
+              <stat.icon />
+            </StatIndicator>
+            <StatValue>{stat.value}</StatValue>
+          </StatPanel>
+          <StatFooter>
+            {stat.progress !== null ? (
+              <Progress
+                aria-label={`${data.fees.targetPercent}% of target collected`}
+                className="w-full"
+                value={data.fees.targetPercent}
+              >
+                <ProgressTrack>
+                  <ProgressIndicator
+                    className="bg-success"
+                    style={{
+                      width: `${Math.min(100, data.fees.targetPercent)}%`,
+                    }}
+                  />
+                </ProgressTrack>
+              </Progress>
+            ) : null}
+            <StatDescription>{stat.detail}</StatDescription>
+            {stat.action ? (
+              <StatAction className="relative z-10">
+                <Button
+                  render={<Link href={stat.action.href} />}
+                  size="sm"
+                  variant="outline"
+                >
+                  <PlusIcon aria-hidden="true" />
+                  <span className="hidden md:inline">{stat.action.label}</span>
+                </Button>
+              </StatAction>
+            ) : null}
+          </StatFooter>
           <Link
             aria-label={stat.label}
-            className="absolute inset-0 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="absolute inset-0 rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             href={stat.href}
           />
-        </div>
+        </Stat>
       ))}
     </section>
   );

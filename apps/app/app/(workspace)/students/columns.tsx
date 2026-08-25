@@ -3,7 +3,6 @@
 import { DataTableColumnHeader } from "@repo/design-system/components/niko-table/components/data-table-column-header";
 import { DataTableColumnTitle } from "@repo/design-system/components/niko-table/components/data-table-column-title";
 import type { DataTableColumnDef } from "@repo/design-system/components/niko-table/types";
-import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import { Checkbox } from "@repo/design-system/components/ui/checkbox";
 import {
@@ -28,6 +27,7 @@ import { ArchiveStudentDialog } from "../components/archive-student-dialog";
 import { DeleteStudentDialog } from "../components/delete-student-dialog";
 import { RestoreStudentDialog } from "../components/restore-student-dialog";
 import { StudentAvatar } from "../components/student-avatar";
+import { StudentStatusBadge } from "../components/student-status-badge";
 
 export type Student = {
   id: string;
@@ -232,9 +232,7 @@ export const getStudentColumns = ({
       </DataTableColumnHeader>
     ),
     cell: ({ row }) => (
-      <Badge variant="outline">
-        {row.original.status === "ACTIVE" ? "Active" : "Archived"}
-      </Badge>
+      <StudentStatusBadge status={row.original.status} />
     ),
     meta: {
       label: "Status",

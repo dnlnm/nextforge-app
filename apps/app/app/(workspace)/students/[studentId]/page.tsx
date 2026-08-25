@@ -38,6 +38,7 @@ import { getOrganizationCurrency } from "@/lib/currency";
 import { Header } from "../../components/header";
 import { StudentAvatar } from "../../components/student-avatar";
 import { StudentProfileActions } from "../../components/student-profile-actions";
+import { StudentStatusBadge } from "../../components/student-status-badge";
 import { FEE_DUE_DAYS, ordinalSuffix, REFERRAL_SOURCES } from "../lib/options";
 import { EditableField } from "./editable-field";
 import { StudentActivityTimeline } from "./student-activity-timeline";
@@ -177,9 +178,7 @@ const StudentHeader = ({
             <h1 className="font-semibold text-2xl tracking-tight md:text-3xl">
               <span className="text-balance">{student.fullName}</span>
             </h1>
-            <Badge variant="outline">
-              {student.status === "ACTIVE" ? "Active" : "Archived"}
-            </Badge>
+            <StudentStatusBadge status={student.status} />
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-muted-foreground text-sm">
             <span>{student.code}</span>

@@ -1,11 +1,11 @@
 "use client";
 
-import { Badge } from "@repo/design-system/components/ui/badge";
 import { Card } from "@repo/design-system/components/ui/card";
 import { privateFileUrl } from "@repo/storage/client";
 import Link from "next/link";
 
 import { StudentAvatar } from "../components/student-avatar";
+import { StudentStatusBadge } from "../components/student-status-badge";
 import { type Student, StudentRowActions } from "./columns";
 
 export function StudentCard({
@@ -15,8 +15,6 @@ export function StudentCard({
   onRowClick?: (student: Student) => void;
   student: Student;
 }) {
-  const statusIsActive = student.status === "ACTIVE";
-
   return (
     <Card
       className="cursor-pointer p-4 transition-colors hover:bg-muted/30"
@@ -47,9 +45,7 @@ export function StudentCard({
         <span className="text-muted-foreground text-sm">
           {student.level?.name ?? "-"}
         </span>
-        <Badge variant="outline">
-          {statusIsActive ? "Active" : "Archived"}
-        </Badge>
+        <StudentStatusBadge status={student.status} />
       </div>
     </Card>
   );

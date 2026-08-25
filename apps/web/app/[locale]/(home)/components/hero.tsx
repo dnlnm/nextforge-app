@@ -20,7 +20,7 @@ export const Hero = ({ dictionary, locale }: HeroProps) => {
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10"
       >
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,color-mix(in_oklab,var(--accent-blue)_8%,transparent),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,color-mix(in_oklab,var(--foreground)_8%,transparent),transparent_60%)]" />
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }} />
       </div>
       <div className="container mx-auto">
@@ -40,7 +40,7 @@ export const Hero = ({ dictionary, locale }: HeroProps) => {
               </span>
               {hero.announcement}
             </span>
-            <h1 className="mx-auto max-w-[22ch] text-center font-heading text-display leading-[0.95] tracking-[-0.04em] text-balance">
+            <h1 className="mx-auto max-w-[22ch] text-center font-heading text-5xl leading-[0.95] tracking-[-0.04em] text-balance md:text-6xl">
               {meta.title}
             </h1>
             <p className="mx-auto max-w-[52ch] text-center text-[15px] leading-relaxed text-muted-foreground text-balance md:text-[17px]">
@@ -59,7 +59,7 @@ export const Hero = ({ dictionary, locale }: HeroProps) => {
             </div>
           </div>
           <div className="relative mx-auto w-full max-w-5xl">
-            <div className="relative overflow-hidden rounded-[20px] border bg-card shadow-panel">
+            <div className="relative overflow-hidden rounded-[20px] border bg-card shadow-lg">
               <img
                 src="https://picsum.photos/seed/klio-classroom/1600/900"
                 alt="Tuition centre classroom — students at desks"

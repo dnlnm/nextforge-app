@@ -42,8 +42,8 @@ export const ContactForm = ({ dictionary, locale }: ContactFormProps) => {
                 className="flex flex-row items-start gap-3 text-left"
                 key={benefit.title}
               >
-                <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--accent-blue)_10%,transparent)] ring-1 ring-[color-mix(in_oklab,var(--accent-blue)_15%,transparent)]">
-                  <Check className="h-3 w-3 text-[var(--accent-blue)]" />
+                <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-muted ring-1 ring-border">
+                  <Check className="h-3 w-3 text-primary" />
                 </span>
                 <div className="flex flex-col gap-1">
                   <p className="text-sm font-medium">{benefit.title}</p>
@@ -57,7 +57,7 @@ export const ContactForm = ({ dictionary, locale }: ContactFormProps) => {
           </div>
 
           <div className="flex items-start justify-center lg:justify-end">
-            <div className="flex w-full max-w-sm flex-col gap-4 rounded-2xl border bg-card p-6 shadow-card md:p-8">
+            <div className="flex w-full max-w-sm flex-col gap-4 rounded-2xl border bg-card p-6 shadow-md md:p-8">
               <p className="text-sm font-semibold tracking-tight">{dictionary.web.contact.hero.form.title}</p>
               <div className="grid w-full max-w-sm items-center gap-1">
                 <Label htmlFor="picture">

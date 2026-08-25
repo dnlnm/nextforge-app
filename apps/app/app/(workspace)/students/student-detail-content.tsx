@@ -1,7 +1,6 @@
 "use client";
 
 import { formatShortDate } from "@repo/date";
-import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
   CardContent,
@@ -10,32 +9,40 @@ import {
 } from "@repo/design-system/components/ui/card";
 import { formatMoneyWhole as formatMoneyShared } from "@repo/money";
 import { privateFileUrl } from "@repo/storage/client";
-import { ChevronRightIcon, MoreHorizontalIcon } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
+import { ArchiveStudentDialog } from "../components/archive-student-dialog";
+import { DeleteStudentDialog } from "../components/delete-student-dialog";
 import { StudentAvatar } from "../components/student-avatar";
+import { StudentStatusBadge } from "../components/student-status-badge";
 
 export type StudentDetail = {
+  addressLine1: string | null;
   code: string;
   dateOfBirth: Date | null;
   email: string | null;
   enrolledAt: Date;
   fullName: string;
   gender: string | null;
+  icNumber: string | null;
   id: string;
   phone: string | null;
   photoKey: string | null;
+  schoolName: string | null;
   status: string;
   level: {
     name: string;
   } | null;
   guardians: Array<{
+    relationship: string | null;
     guardian: {
       addressLine1: string | null;
       addressLine2: string | null;
       city: string | null;
       email: string | null;
       fullName: string | null;
+      icNumber: string | null;
       phone: string | null;
       state: string | null;
     };
@@ -52,6 +59,16 @@ type StudentDetailContentProps = {
 };
 
 const formatDate = (date: Date) => formatShortDate(date);
+
+const RELATIONSHIP_LABELS: Record<string, string> = {
+  FATHER: "Father",
+  MOTHER: "Mother",
+  GUARDIAN: "Legal Guardian",
+  OTHER: "Other",
+};
+
+const relationshipLabel = (value: string | null | undefined) =>
+  value ? (RELATIONSHIP_LABELS[value] ?? value) : "-";
 
 export function StudentDetailContent({
   currency,
@@ -74,40 +91,46 @@ export function StudentDetailContent({
     (total, invoice) => total + invoice.amountPaidSen,
     0
   );
+  const [isArchiveOpen, setIsArchiveOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   return (
     <>
       <CardHeader className="border-b">
-        <div className="flex items-start justify-between gap-4">
-          <StudentAvatar
-            className="size-20"
-            gender={student.gender}
-            name={student.fullName}
-            photoUrl={privateFileUrl(student.photoKey)}
-          />
-          <Button size="icon" variant="ghost">
-            <MoreHorizontalIcon className="size-4" />
-          </Button>
-        </div>
+        <StudentAvatar
+          className="size-20"
+          gender={student.gender}
+          name={student.fullName}
+          photoUrl={privateFileUrl(student.photoKey)}
+        />
         <div className="min-w-0">
           <CardTitle className="text-xl">
             <span className="text-balance">{student.fullName}</span>
           </CardTitle>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-muted-foreground text-sm">
             <span>{student.code}</span>
-            <Badge variant="outline">
-              {student.status === "ACTIVE" ? "Active" : "Archived"}
-            </Badge>
+            <StudentStatusBadge status={student.status} />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-2">
+          <Button render={<Link href={`/students/${student.id}`} />}>
+            More
+          </Button>
           <Button
             render={<Link href={`https://wa.me/${guardian?.phone ?? ""}`} />}
             variant="outline"
           >
             WhatsApp
           </Button>
-          <Button variant="outline">More</Button>
+          <Button
+            onClick={() => setIsArchiveOpen(true)}
+            variant="destructive-outline"
+          >
+            Archive
+          </Button>
+          <Button onClick={() => setIsDeleteOpen(true)} variant="destructive">
+            Delete
+          </Button>
         </div>
       </CardHeader>
       <CardContent className="grid gap-5 p-0">
@@ -127,8 +150,11 @@ export function StudentDetailContent({
                 : "-",
             ],
             ["Level", student.level?.name ?? "-"],
+            ["IC Number", student.icNumber ?? "-"],
+            ["School", student.schoolName ?? "-"],
             ["Phone", student.phone ?? "-"],
             ["Email", student.email ?? "-"],
+            ["Address", student.addressLine1 ?? "-"],
           ].map(([label, value]) => (
             <div
               className="grid grid-cols-[6rem_1fr] gap-3 text-sm"
@@ -143,6 +169,8 @@ export function StudentDetailContent({
           <h2 className="font-semibold text-sm">Parent / Guardian</h2>
           {[
             ["Name", guardian?.fullName ?? "-"],
+            ["Relationship", relationshipLabel(student.guardians[0]?.relationship)],
+            ["IC Number", guardian?.icNumber ?? "-"],
             ["Phone", guardian?.phone ?? "-"],
             ["Email", guardian?.email ?? "-"],
             [
@@ -178,16 +206,18 @@ export function StudentDetailContent({
               <span>{value}</span>
             </div>
           ))}
-          <Button
-            className="mt-3 w-full"
-            render={<Link href={`/students/${student.id}`} />}
-            variant="outline"
-          >
-            View Full Profile
-            <ChevronRightIcon className="size-4" />
-          </Button>
         </section>
       </CardContent>
+      <ArchiveStudentDialog
+        onOpenChange={setIsArchiveOpen}
+        open={isArchiveOpen}
+        studentId={student.id}
+      />
+      <DeleteStudentDialog
+        onOpenChange={setIsDeleteOpen}
+        open={isDeleteOpen}
+        studentId={student.id}
+      />
     </>
   );
 }

@@ -22,7 +22,7 @@ export const Availability = ({ dictionary }: AvailabilityProps) => {
             </p>
           </div>
 
-          <div className="relative mx-auto w-full max-w-[360px] overflow-hidden rounded-[20px] border bg-card shadow-panel">
+          <div className="relative mx-auto w-full max-w-[360px] overflow-hidden rounded-[20px] border bg-card shadow-lg">
             <div className="flex flex-col gap-2.5 p-6">
               <span className="inline-flex h-7 w-12 items-center justify-center rounded-lg border bg-muted font-mono font-semibold text-muted-foreground text-sm">
                 {card.step}
