@@ -1,8 +1,9 @@
 import {
+  Card,
   CardContent,
-  CardHeader,
+  CardFrame,
+  CardFrameHeader,
 } from "@repo/design-system/components/ui/card";
-import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -23,8 +24,8 @@ export const FormSectionCard = ({
   subtitle,
   title,
 }: FormSectionCardProperties) => (
-  <CardShell>
-    <CardHeader>
+  <CardFrame className="isolate after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background">
+    <CardFrameHeader>
       <div className="flex items-center gap-3">
         <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
           <Icon className="size-4 text-primary" />
@@ -36,7 +37,9 @@ export const FormSectionCard = ({
           ) : null}
         </div>
       </div>
-    </CardHeader>
-    <CardContent className="grid gap-4">{children}</CardContent>
-  </CardShell>
+    </CardFrameHeader>
+    <Card className="min-h-0 flex-1 flex-col dark:bg-background">
+      <CardContent className="grid gap-4">{children}</CardContent>
+    </Card>
+  </CardFrame>
 );

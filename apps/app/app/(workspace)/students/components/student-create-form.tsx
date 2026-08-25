@@ -9,10 +9,11 @@ import {
 } from "@repo/date";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
+  Card,
   CardContent,
-  CardHeader,
+  CardFrame,
+  CardFrameHeader,
 } from "@repo/design-system/components/ui/card";
-import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import {
   Collapsible,
   CollapsibleContent,
@@ -294,22 +295,22 @@ const PhotoUploadTile = ({
   return (
     <div className="flex shrink-0 flex-col items-center gap-2">
       <div className="relative">
-      <button
-        aria-label="Upload student photo"
-        className={cn(
-          "group relative flex size-20 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed bg-muted transition-all hover:border-primary/50 hover:bg-primary/5",
-          isUploading && "opacity-60"
-        )}
+        <button
+          aria-label="Upload student photo"
+          className={cn(
+            "group relative flex size-20 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed bg-muted transition-all hover:border-primary/50 hover:bg-primary/5",
+            isUploading && "opacity-60"
+          )}
           onClick={() => inputRef.current?.click()}
           type="button"
         >
           {previewUrl ? (
             <>
-            <StudentAvatar
-              className="size-full"
-              name="Student photo"
-              photoUrl={previewUrl}
-            />
+              <StudentAvatar
+                className="size-full"
+                name="Student photo"
+                photoUrl={previewUrl}
+              />
               <span className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
                 <CameraIcon className="size-4 text-white" />
               </span>
@@ -429,9 +430,7 @@ const getStageSelection = (
     options: STAGE_OPTIONS.filter((option) =>
       selectable.some((level) => level.stage === option.value)
     ),
-    placeholder: selectedStage
-      ? "Select level..."
-      : "Select a stage first...",
+    placeholder: selectedStage ? "Select level..." : "Select a stage first...",
   };
 };
 
@@ -809,9 +808,7 @@ export const StudentCreateForm = ({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid content-start gap-1.5">
-              <FieldLabel htmlFor="studentEmail">
-                Email address
-              </FieldLabel>
+              <FieldLabel htmlFor="studentEmail">Email address</FieldLabel>
               <Input
                 aria-invalid={errors.studentEmail ? true : undefined}
                 className={errorClassName(Boolean(errors.studentEmail))}
@@ -828,9 +825,7 @@ export const StudentCreateForm = ({
               <FieldErrorText message={errors.studentEmail} />
             </div>
             <div className="grid content-start gap-1.5">
-              <FieldLabel htmlFor="studentPhone">
-                Phone number
-              </FieldLabel>
+              <FieldLabel htmlFor="studentPhone">Phone number</FieldLabel>
               <Input
                 aria-invalid={errors.studentPhone ? true : undefined}
                 className={errorClassName(Boolean(errors.studentPhone))}
@@ -861,10 +856,7 @@ export const StudentCreateForm = ({
           </div>
         </FormSectionCard>
 
-        <FormSectionCard
-          icon={UsersRoundIcon}
-          title="Parent / Guardian"
-        >
+        <FormSectionCard icon={UsersRoundIcon} title="Parent / Guardian">
           <div className="grid gap-4">
             <GuardianEditor
               errors={errors}
@@ -903,10 +895,7 @@ export const StudentCreateForm = ({
                   <FieldLabel required>Stage</FieldLabel>
                   <Select
                     items={Object.fromEntries(
-                      stageOptions.map((option) => [
-                        option.value,
-                        option.label,
-                      ])
+                      stageOptions.map((option) => [option.value, option.label])
                     )}
                     onValueChange={handleStageChange}
                     value={selectedStage}
@@ -1022,8 +1011,8 @@ export const StudentCreateForm = ({
         </FormSectionCard>
 
         <Collapsible>
-          <CardShell>
-            <CardHeader className="flex-row items-center justify-between gap-4">
+          <CardFrame className="isolate after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background">
+            <CardFrameHeader className="flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                   <MoreHorizontalIcon className="size-4 text-primary" />
@@ -1043,72 +1032,74 @@ export const StudentCreateForm = ({
                 <ChevronDownIcon className="size-4 in-[[data-panel-open]]:rotate-180 transition-transform" />
                 <span className="sr-only">Toggle additional information</span>
               </CollapsibleTrigger>
-            </CardHeader>
+            </CardFrameHeader>
             <CollapsibleContent>
-              <CardContent className="grid gap-4">
-                <div className="grid gap-4 sm:grid-cols-2">
+              <Card className="min-h-0 flex-1 flex-col dark:bg-background">
+                <CardContent className="grid gap-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="grid content-start gap-1.5">
+                      <FieldLabel htmlFor="emergencyContactName">
+                        Emergency contact name
+                      </FieldLabel>
+                      <Input
+                        id="emergencyContactName"
+                        name="emergencyContactName"
+                        placeholder="Name of emergency contact"
+                      />
+                    </div>
+                    <div className="grid content-start gap-1.5">
+                      <FieldLabel htmlFor="emergencyContactPhone">
+                        Emergency contact phone
+                      </FieldLabel>
+                      <Input
+                        id="emergencyContactPhone"
+                        name="emergencyContactPhone"
+                        placeholder="0123456789"
+                      />
+                    </div>
+                  </div>
+
                   <div className="grid content-start gap-1.5">
-                    <FieldLabel htmlFor="emergencyContactName">
-                      Emergency contact name
+                    <FieldLabel htmlFor="medicalNotes">
+                      Medical conditions / allergies
                     </FieldLabel>
-                    <Input
-                      id="emergencyContactName"
-                      name="emergencyContactName"
-                      placeholder="Name of emergency contact"
+                    <Textarea
+                      id="medicalNotes"
+                      name="medicalNotes"
+                      placeholder="e.g. Peanut allergy, asthma inhaler required, wears glasses..."
+                      rows={2}
                     />
                   </div>
+
                   <div className="grid content-start gap-1.5">
-                    <FieldLabel htmlFor="emergencyContactPhone">
-                      Emergency contact phone
-                    </FieldLabel>
-                    <Input
-                      id="emergencyContactPhone"
-                      name="emergencyContactPhone"
-                      placeholder="0123456789"
+                    <FieldLabel>How did they find us?</FieldLabel>
+                    <Select name="referralSource">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select source..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {REFERRAL_SOURCES.map((source) => (
+                          <SelectItem key={source} value={source}>
+                            {source}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid content-start gap-1.5">
+                    <FieldLabel htmlFor="notes">Internal notes</FieldLabel>
+                    <Textarea
+                      id="notes"
+                      name="notes"
+                      placeholder="e.g. Sibling of existing student, requires extra attention in Maths..."
+                      rows={2}
                     />
                   </div>
-                </div>
-
-                <div className="grid content-start gap-1.5">
-                  <FieldLabel htmlFor="medicalNotes">
-                    Medical conditions / allergies
-                  </FieldLabel>
-                  <Textarea
-                    id="medicalNotes"
-                    name="medicalNotes"
-                    placeholder="e.g. Peanut allergy, asthma inhaler required, wears glasses..."
-                    rows={2}
-                  />
-                </div>
-
-                <div className="grid content-start gap-1.5">
-                  <FieldLabel>How did they find us?</FieldLabel>
-                  <Select name="referralSource">
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select source..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {REFERRAL_SOURCES.map((source) => (
-                        <SelectItem key={source} value={source}>
-                          {source}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid content-start gap-1.5">
-                  <FieldLabel htmlFor="notes">Internal notes</FieldLabel>
-                  <Textarea
-                    id="notes"
-                    name="notes"
-                    placeholder="e.g. Sibling of existing student, requires extra attention in Maths..."
-                    rows={2}
-                  />
-                </div>
-              </CardContent>
+                </CardContent>
+              </Card>
             </CollapsibleContent>
-          </CardShell>
+          </CardFrame>
         </Collapsible>
 
         {Object.keys(errors).length > 0 ? (
