@@ -283,7 +283,7 @@ export function DataTableFilterList() {
           </div>
         ) : null}
 
-        <div className="flex items-center gap-2">
+        <div className="mt-3 flex items-center gap-2">
           <Button onClick={addFilter} size="sm">
             Add filter
           </Button>
