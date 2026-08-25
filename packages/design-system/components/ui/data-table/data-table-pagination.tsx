@@ -47,7 +47,7 @@ export function DataTablePagination() {
             className="w-fit min-w-none"
             size="sm"
           >
-            <SelectValue />
+            <SelectValue className="flex-none" />
           </SelectTrigger>
           <SelectPopup>
             {rangeOptions.map((option) => (
