@@ -2,6 +2,11 @@
 
 import { Button } from "@repo/design-system/components/ui/button";
 import { Checkbox } from "@repo/design-system/components/ui/checkbox";
+import { DataTableSortableHeader } from "@repo/design-system/components/ui/data-table/data-table-column-header";
+import {
+  type ColumnMeta,
+  createAppColumnHelper,
+} from "@repo/design-system/components/ui/data-table/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,7 +14,6 @@ import {
   DropdownMenuTrigger,
 } from "@repo/design-system/components/ui/dropdown-menu";
 import { privateFileUrl } from "@repo/storage/client";
-import type { ColumnDef } from "@tanstack/react-table";
 import {
   ArchiveIcon,
   EyeIcon,
@@ -43,6 +47,11 @@ export type Student = {
     };
   }>;
 };
+
+export interface FilterOption {
+  label: string;
+  value: string;
+}
 
 export const StudentRowActions = ({ student }: { student: Student }) => {
   const [isArchiveOpen, setIsArchiveOpen] = useState(false);
@@ -118,88 +127,124 @@ export const StudentRowActions = ({ student }: { student: Student }) => {
   );
 };
 
-/**
- * Column set for the students table. Sorting is server-side; only the columns
- * the server can order by (`fullName`, `academicLevel`, `status`) are sortable.
- */
-export const getStudentColumns = (): ColumnDef<Student>[] => [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        aria-label="Select all"
-        checked={table.getIsAllPageRowsSelected()}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        aria-label="Select row"
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        onClick={(e) => e.stopPropagation()}
-      />
-    ),
-    enableSorting: false,
-    size: 28,
-  },
-  {
-    accessorKey: "fullName",
-    size: 280,
-    header: "Student",
-    cell: ({ row }) => {
-      return (
-        <div className="flex max-w-full items-center gap-3">
-          <StudentAvatar
-            className="size-10"
-            gender={row.original.gender}
-            name={row.original.fullName}
-            photoUrl={privateFileUrl(row.original.photoKey)}
-          />
-          <div className="min-w-0 flex-1">
-            <Link
-              className="block truncate font-medium hover:underline"
-              href={`/students/${row.original.id}`}
-            >
-              {row.original.fullName}
-            </Link>
-            <span className="block truncate text-muted-foreground text-xs">
-              {row.original.code}
-            </span>
-          </div>
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "academicLevel",
-    size: 160,
-    header: "Level/Year",
-    cell: ({ row }) => row.original.level?.name ?? "-",
-  },
-  {
-    accessorKey: "status",
-    size: 140,
-    header: "Status",
-    cell: ({ row }) => <StudentStatusBadge status={row.original.status} />,
-  },
-  {
-    accessorKey: "gender",
-    size: 120,
-    header: "Gender",
-    cell: ({ row }) => {
-      const gender = row.original.gender;
-      return gender
-        ? gender.charAt(0).toUpperCase() + gender.slice(1).toLowerCase()
-        : "-";
-    },
-    enableSorting: false,
-  },
-  {
-    id: "actions",
-    size: 80,
-    header: () => <div className="text-right">Actions</div>,
-    cell: ({ row }) => <StudentRowActions student={row.original} />,
-    enableSorting: false,
-  },
+const STATUS_OPTIONS: ColumnMeta["options"] = [
+  { label: "Active", value: "ACTIVE" },
+  { label: "Archived", value: "ARCHIVED" },
 ];
+
+interface StudentColumnOptions {
+  genderOptions: FilterOption[];
+  levelOptions: FilterOption[];
+}
+
+/**
+ * Column set for the students table. Sorting + filtering are server-side; only
+ * the columns the server can order by (`fullName`, `academicLevel`, `status`)
+ * are sortable. Select filter options come from the server via `meta.options`.
+ */
+export const getStudentColumns = ({
+  genderOptions,
+  levelOptions,
+}: StudentColumnOptions) => {
+  const columnHelper = createAppColumnHelper<Student>();
+
+  return columnHelper.columns([
+    columnHelper.display({
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          aria-label="Select all"
+          checked={table.getIsAllPageRowsSelected()}
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          aria-label="Select row"
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          onClick={(e) => e.stopPropagation()}
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+      size: 28,
+    }),
+    columnHelper.accessor("fullName", {
+      header: ({ header }) => <DataTableSortableHeader header={header} />,
+      cell: ({ row }) => {
+        return (
+          <div className="flex max-w-full items-center gap-3">
+            <StudentAvatar
+              className="size-10"
+              gender={row.original.gender}
+              name={row.original.fullName}
+              photoUrl={privateFileUrl(row.original.photoKey)}
+            />
+            <div className="min-w-0 flex-1">
+              <Link
+                className="block truncate font-medium hover:underline"
+                href={`/students/${row.original.id}`}
+              >
+                {row.original.fullName}
+              </Link>
+              <span className="block truncate text-muted-foreground text-xs">
+                {row.original.code}
+              </span>
+            </div>
+          </div>
+        );
+      },
+      size: 280,
+      meta: {
+        label: "Student",
+        variant: "text",
+      },
+    }),
+    columnHelper.accessor((row) => row.level?.name, {
+      id: "academicLevel",
+      header: ({ header }) => <DataTableSortableHeader header={header} />,
+      cell: ({ row }) => row.original.level?.name ?? "-",
+      size: 160,
+      meta: {
+        label: "Level/Year",
+        variant: "select",
+        options: levelOptions,
+      },
+    }),
+    columnHelper.accessor("status", {
+      header: ({ header }) => <DataTableSortableHeader header={header} />,
+      cell: ({ row }) => <StudentStatusBadge status={row.original.status} />,
+      size: 140,
+      meta: {
+        label: "Status",
+        variant: "select",
+        options: STATUS_OPTIONS,
+      },
+    }),
+    columnHelper.accessor("gender", {
+      header: "Gender",
+      cell: ({ row }) => {
+        const gender = row.original.gender;
+        return gender
+          ? gender.charAt(0).toUpperCase() + gender.slice(1).toLowerCase()
+          : "-";
+      },
+      size: 120,
+      enableSorting: false,
+      meta: {
+        label: "Gender",
+        variant: "select",
+        options: genderOptions,
+      },
+    }),
+    columnHelper.display({
+      id: "actions",
+      header: () => <div className="text-right">Actions</div>,
+      cell: ({ row }) => <StudentRowActions student={row.original} />,
+      enableSorting: false,
+      enableHiding: false,
+      size: 80,
+    }),
+  ]);
+};

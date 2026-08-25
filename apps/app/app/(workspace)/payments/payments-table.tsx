@@ -1,35 +1,33 @@
 "use client";
 
-import { DataTableClearFilter } from "@repo/design-system/components/niko-table/components/data-table-clear-filter";
-import { DataTableFacetedFilter } from "@repo/design-system/components/niko-table/components/data-table-faceted-filter";
-import { DataTablePagination } from "@repo/design-system/components/niko-table/components/data-table-pagination";
-import { DataTableSearchFilter } from "@repo/design-system/components/niko-table/components/data-table-search-filter";
-import { DataTableToolbarSection } from "@repo/design-system/components/niko-table/components/data-table-toolbar-section";
-import { DataTable } from "@repo/design-system/components/niko-table/core/data-table";
-import { DataTableRoot } from "@repo/design-system/components/niko-table/core/data-table-root";
 import {
-  DataTableBody,
-  DataTableEmptyBody,
-  DataTableHeader,
-  DataTableSkeleton,
-} from "@repo/design-system/components/niko-table/core/data-table-structure";
-import type { GlobalFilter } from "@repo/design-system/components/niko-table/types";
-import { CardContent } from "@repo/design-system/components/ui/card";
-import { CardShell } from "@repo/design-system/components/ui/card-shell";
+  CardFrame,
+  CardFrameFooter,
+} from "@repo/design-system/components/ui/card";
+import {
+  type ExtendedColumnFilter,
+  toFilterValueArray,
+  useAppTable,
+} from "@repo/design-system/components/ui/data-table/table";
 import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
+import { Skeleton } from "@repo/design-system/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@repo/design-system/components/ui/table";
 import {
   Tabs,
   TabsList,
   TabsTab,
 } from "@repo/design-system/components/ui/tabs";
 import { formatMoney as formatMoneyShared } from "@repo/money";
-import type {
-  ColumnFiltersState,
-  PaginationState,
-  SortingState,
-  Updater,
-} from "@tanstack/react-table";
+import { flexRender } from "@tanstack/react-table";
+import { SearchIcon } from "lucide-react";
 import {
   parseAsInteger,
   parseAsJson,
@@ -65,6 +63,13 @@ const STATUS_TABS: Array<{ value: StatusTab; label: string }> = [
   { value: "REVERSED", label: "Reversed" },
 ];
 
+const FILTERS_SCHEMA = z.array(
+  z.object({ id: z.string(), value: z.unknown() })
+);
+
+// Stable keys for the 5 skeleton rows.
+const SKELETON_ROW_KEYS = ["a", "b", "c", "d", "e"] as const;
+
 export function PaymentsTable({
   currency,
   filterOptions,
@@ -77,24 +82,19 @@ export function PaymentsTable({
   const [totalCount, setTotalCount] = useState(initialTotalCount);
   const [isLoading, setIsLoading] = useState(false);
 
-  const filtersSchema = z.array(
-    z.object({ id: z.string(), value: z.unknown() })
-  );
-  const sortingSchema = z.array(
-    z.object({ desc: z.boolean(), id: z.string() })
-  );
-
   const [urlParams, setUrlParams] = useQueryStates(
     {
       page: parseAsInteger.withDefault(0),
       pageSize: parseAsInteger.withDefault(10),
       search: parseAsString.withDefault(""),
       filters: parseAsJson((value) => {
-        const parsed = filtersSchema.safeParse(value);
+        const parsed = FILTERS_SCHEMA.safeParse(value);
         return parsed.success ? parsed.data : [];
-      }).withDefault([]),
+      }).withDefault([] as Array<{ id: string; value: unknown }>),
       sorting: parseAsJson((value) => {
-        const parsed = sortingSchema.safeParse(value);
+        const parsed = z
+          .array(z.object({ desc: z.boolean(), id: z.string() }))
+          .safeParse(value);
         return parsed.success ? parsed.data : [];
       }).withDefault([]),
       status: parseAsString.withDefault("all"),
@@ -104,21 +104,10 @@ export function PaymentsTable({
     { history: "replace" }
   );
 
-  const tableState = useMemo(
-    () => ({
-      columnFilters: urlParams.filters,
-      globalFilter: urlParams.search,
-      pagination: {
-        pageIndex: urlParams.page,
-        pageSize: urlParams.pageSize,
-      },
-      sorting: urlParams.sorting,
-    }),
-    [urlParams]
-  );
+  const pageCount = Math.max(1, Math.ceil(totalCount / urlParams.pageSize));
 
-  // Fold the status tab and date range (URL params, not TanStack column
-  // filters) into the single wire contract sent to the server.
+  // Fold the status tab and date range (URL params, not column filters) into
+  // the single wire contract sent to the server.
   const serverFilters = useMemo(() => {
     const filters: Array<{ id: string; value: unknown }> = [
       ...urlParams.filters,
@@ -140,6 +129,83 @@ export function PaymentsTable({
 
     return filters;
   }, [urlParams]);
+
+  const serializeFilters = useCallback(
+    (filters: ExtendedColumnFilter[]): Array<{ id: string; value: unknown }> =>
+      filters
+        .filter((filter) => filter.id)
+        .map((filter) => ({
+          id: filter.id,
+          value: toFilterValueArray(filter.value),
+        })),
+    []
+  );
+
+  const hydrateFilters = useCallback(
+    (filters: Array<{ id: string; value: unknown }>): ExtendedColumnFilter[] =>
+      filters.map((filter, index) => ({
+        id: filter.id,
+        value: toFilterValueArray(filter.value),
+        operator: "equals",
+        joinOperator: "and",
+        variant: "multi-select",
+        filterId: `${filter.id}-${index}`,
+      })),
+    []
+  );
+
+  const hydratedFilters = useMemo(
+    () => hydrateFilters(urlParams.filters),
+    [hydrateFilters, urlParams.filters]
+  );
+
+  const formatMoney = useMemo(
+    () => (amountSen: number) => formatMoneyShared(amountSen, { currency }),
+    [currency]
+  );
+
+  const columns = useMemo(
+    () => createColumns(formatMoney, { methods: filterOptions.methods }),
+    [formatMoney, filterOptions.methods]
+  );
+
+  const table = useAppTable({
+    columns,
+    data,
+    manualFiltering: true,
+    manualPagination: true,
+    manualSorting: true,
+    pageCount,
+    state: {
+      columnFilters: hydratedFilters,
+      pagination: {
+        pageIndex: urlParams.page,
+        pageSize: urlParams.pageSize,
+      },
+      sorting: urlParams.sorting,
+    },
+    onColumnFiltersChange: (updater) => {
+      const next =
+        typeof updater === "function" ? updater(hydratedFilters) : updater;
+      setUrlParams({ filters: serializeFilters(next), page: 0 });
+    },
+    onPaginationChange: (updater) => {
+      const next =
+        typeof updater === "function"
+          ? updater({
+              pageIndex: urlParams.page,
+              pageSize: urlParams.pageSize,
+            })
+          : updater;
+      setUrlParams({ page: next.pageIndex, pageSize: next.pageSize });
+    },
+    onSortingChange: (updater) => {
+      const next =
+        typeof updater === "function" ? updater(urlParams.sorting) : updater;
+      setUrlParams({ sorting: next, page: 0 });
+    },
+    meta: { totalCount },
+  });
 
   const requestIdRef = useRef(0);
   const [debouncedSearch, setDebouncedSearch] = useState(urlParams.search);
@@ -167,7 +233,7 @@ export function PaymentsTable({
       const result = await getPaymentsForTable(params);
 
       if (requestId !== requestIdRef.current) {
-        return; // A newer request superseded this one.
+        return;
       }
       setData(result.data);
       setTotalCount(result.totalCount);
@@ -184,8 +250,8 @@ export function PaymentsTable({
     fetchPayments();
   }, [fetchPayments]);
 
-  // Re-fetch when the server-side data changes and the page was refreshed via
-  // revalidatePath/router.refresh (e.g. a payment was recorded or verified).
+  // Re-fetch when the server-side data changes (e.g. a payment was recorded or
+  // verified and the page was refreshed via revalidatePath/router.refresh).
   const prevInitial = useRef({ data: initialData, total: initialTotalCount });
 
   useEffect(() => {
@@ -198,49 +264,6 @@ export function PaymentsTable({
     }
   }, [fetchPayments, initialData, initialTotalCount]);
 
-  const handlePaginationChange = useCallback(
-    (updater: Updater<PaginationState>) => {
-      const newPagination =
-        typeof updater === "function"
-          ? updater(tableState.pagination)
-          : updater;
-      setUrlParams({
-        page: newPagination.pageIndex,
-        pageSize: newPagination.pageSize,
-      });
-    },
-    [tableState.pagination, setUrlParams]
-  );
-
-  const handleColumnFiltersChange = useCallback(
-    (updater: Updater<ColumnFiltersState>) => {
-      const newFilters =
-        typeof updater === "function"
-          ? updater(tableState.columnFilters)
-          : updater;
-      setUrlParams({ filters: newFilters, page: 0 });
-    },
-    [tableState.columnFilters, setUrlParams]
-  );
-
-  const handleSortingChange = useCallback(
-    (updater: Updater<SortingState>) => {
-      const newSorting =
-        typeof updater === "function" ? updater(tableState.sorting) : updater;
-      setUrlParams({ sorting: newSorting, page: 0 });
-    },
-    [tableState.sorting, setUrlParams]
-  );
-
-  const handleGlobalFilterChange = useCallback(
-    (value: GlobalFilter) => {
-      if (typeof value === "string") {
-        setUrlParams({ search: value, page: 0 });
-      }
-    },
-    [setUrlParams]
-  );
-
   const handleRowClick = useCallback(
     (row: Payment) => {
       onSelectPayment(row);
@@ -248,23 +271,55 @@ export function PaymentsTable({
     [onSelectPayment]
   );
 
-  const handleStatusTabChange = useCallback(
-    (value: string | null) => {
-      setUrlParams({ status: value ?? "all", page: 0 });
-    },
-    [setUrlParams]
-  );
+  const renderBody = () => {
+    if (isLoading) {
+      return SKELETON_ROW_KEYS.map((key) => (
+        <TableRow key={key}>
+          {columns.map((column) => (
+            <TableCell key={column.id}>
+              <Skeleton className="h-5 w-full" />
+            </TableCell>
+          ))}
+        </TableRow>
+      ));
+    }
 
-  const formatMoney = useMoneyFormatter(currency);
-  const columns = useMemo(() => createColumns(formatMoney), [formatMoney]);
+    const rows = table.getRowModel().rows;
+
+    if (rows.length === 0) {
+      return (
+        <TableRow>
+          <TableCell className="h-24 text-center" colSpan={columns.length}>
+            No payments found.
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    return rows.map((row) => (
+      <TableRow
+        className="cursor-pointer"
+        key={row.id}
+        onClick={() => handleRowClick(row.original)}
+      >
+        {row.getVisibleCells().map((cell) => (
+          <TableCell key={cell.id}>
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </TableCell>
+        ))}
+      </TableRow>
+    ));
+  };
 
   return (
-    <CardShell>
-      <CardContent className="p-0">
+    <CardFrame className="isolate after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background">
+      <table.AppTable>
         {/* Status tabs (mirrors the reference page's underline tabs). */}
         <Tabs
           className="border-b px-4 pt-1"
-          onValueChange={handleStatusTabChange}
+          onValueChange={(value) =>
+            setUrlParams({ status: value ?? "all", page: 0 })
+          }
           value={urlParams.status}
         >
           <TabsList variant="underline">
@@ -279,70 +334,70 @@ export function PaymentsTable({
           </TabsList>
         </Tabs>
 
-        <DataTableRoot
-          columns={columns}
-          config={{
-            manualPagination: true,
-            manualSorting: true,
-            enableSorting: true,
-            manualFiltering: true,
-            pageCount: Math.ceil(totalCount / urlParams.pageSize),
-          }}
-          data={data}
-          getRowId={(row) => row.id}
-          isLoading={isLoading}
-          onColumnFiltersChange={handleColumnFiltersChange}
-          onGlobalFilterChange={handleGlobalFilterChange}
-          onPaginationChange={handlePaginationChange}
-          onSortingChange={handleSortingChange}
-          state={tableState}
-        >
-          <div className="grid gap-4 p-4">
-            <DataTableToolbarSection>
-              <DataTableSearchFilter placeholder="Search student, receipt, invoice, or reference..." />
-              <DataTableFacetedFilter
-                accessorKey="method"
-                multiple
-                options={filterOptions.methods}
-                title="Method"
-              />
-              <DateRangeFilter
-                dateFrom={urlParams.dateFrom}
-                dateTo={urlParams.dateTo}
-                onDateFromChange={(value) =>
-                  setUrlParams({ dateFrom: value, page: 0 })
+        <div className="grid gap-4 p-4">
+          <div className="flex flex-wrap items-end gap-2">
+            <div className="relative w-full max-w-sm">
+              <SearchIcon className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                className="pl-8"
+                onChange={(event) =>
+                  setUrlParams({ search: event.target.value, page: 0 })
                 }
-                onDateToChange={(value) =>
-                  setUrlParams({ dateTo: value, page: 0 })
-                }
+                placeholder="Search student, receipt, invoice, or reference..."
+                type="search"
+                value={urlParams.search}
               />
-              <DataTableClearFilter />
-            </DataTableToolbarSection>
+            </div>
+            <table.FilterList />
+            <table.SortList />
+            <DateRangeFilter
+              dateFrom={urlParams.dateFrom}
+              dateTo={urlParams.dateTo}
+              onDateFromChange={(value) =>
+                setUrlParams({ dateFrom: value, page: 0 })
+              }
+              onDateToChange={(value) =>
+                setUrlParams({ dateTo: value, page: 0 })
+              }
+            />
           </div>
+        </div>
 
-          <div className="overflow-x-auto px-4">
-            <DataTable aria-label="Payments">
-              <DataTableHeader />
-              <DataTableBody onRowClick={handleRowClick}>
-                <DataTableSkeleton />
-                <DataTableEmptyBody />
-              </DataTableBody>
-            </DataTable>
-          </div>
+        <div className="overflow-x-auto px-4">
+          <Table className="table-fixed" variant="card">
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    const columnSize = header.column.getSize();
+                    return (
+                      <TableHead
+                        key={header.id}
+                        style={
+                          columnSize ? { width: `${columnSize}px` } : undefined
+                        }
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>{renderBody()}</TableBody>
+          </Table>
+        </div>
 
-          <div className="px-4 pb-4">
-            <DataTablePagination totalCount={totalCount} />
-          </div>
-        </DataTableRoot>
-      </CardContent>
-    </CardShell>
-  );
-}
-
-function useMoneyFormatter(currency: string) {
-  return useMemo(
-    () => (amountSen: number) => formatMoneyShared(amountSen, { currency }),
-    [currency]
+        <CardFrameFooter className="p-2">
+          <table.Pagination />
+        </CardFrameFooter>
+      </table.AppTable>
+    </CardFrame>
   );
 }
 

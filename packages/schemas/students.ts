@@ -90,9 +90,9 @@ export const updateStudentInputSchema = z.strictObject({
 });
 
 /**
- * One advanced-filter rule from the niko-table filter menu (ExtendedColumnFilter
+ * One advanced-filter rule from the data-table filter menu (ExtendedColumnFilter
  * minus its regenerable `filterId`). `joinOperator` is how this rule joins with
- * the previous one ("and" | "or"); `operator` follows niko-table's SQL-style
+ * the previous one ("and" | "or"); `operator` follows SQL-style
  * names (eq, neq, in, not.in, ilike, not.ilike, empty, not.empty, ...).
  */
 export const studentTableFilterSchema = z.object({

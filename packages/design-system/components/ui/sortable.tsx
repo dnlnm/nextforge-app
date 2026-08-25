@@ -61,7 +61,7 @@ const orientationConfig = {
 
 /**
  * Minimal asChild slot. Unlike plain `cloneElement` propagation, className and
- * style are composed instead of overwritten — consumers (niko-table filter/sort
+ * style are composed instead of overwritten — consumers (data-table filter/sort
  * menus) pass semantic children like `<li className="flex …">` that must keep
  * their own styling alongside the drag-and-drop attributes injected here.
  */

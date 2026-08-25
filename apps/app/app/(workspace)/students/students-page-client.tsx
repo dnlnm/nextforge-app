@@ -37,12 +37,19 @@ import {
 } from "./student-detail-content";
 import { StudentsTable } from "./students-table";
 
+type FilterOption = {
+  label: string;
+  value: string;
+};
+
 type StudentsPageClientProps = {
   activeStudents: number;
   currency: string;
   defaultStudentDetail: StudentDetail | null;
+  genderOptions: FilterOption[];
   initialData: Student[];
   initialTotalCount: number;
+  levelOptions: FilterOption[];
   monthLabel: string;
   newStudentsThisMonth: number;
   outstandingSen: number;
@@ -54,8 +61,10 @@ export function StudentsPageClient({
   activeStudents,
   currency,
   defaultStudentDetail,
+  genderOptions,
   initialData,
   initialTotalCount,
+  levelOptions,
   monthLabel,
   newStudentsThisMonth,
   outstandingSen,
@@ -159,8 +168,10 @@ export function StudentsPageClient({
         </AnimatePresence>
 
         <StudentsTable
+          genderOptions={genderOptions}
           initialData={initialData}
           initialTotalCount={initialTotalCount}
+          levelOptions={levelOptions}
           onRowClick={(studentId) => onSelectStudent(studentId)}
         />
       </section>

@@ -1,27 +1,26 @@
 "use client";
 
-import { DataTableClearFilter } from "@repo/design-system/components/niko-table/components/data-table-clear-filter";
-import { DataTableFacetedFilter } from "@repo/design-system/components/niko-table/components/data-table-faceted-filter";
-import { DataTableFilterMenu } from "@repo/design-system/components/niko-table/components/data-table-filter-menu";
-import { DataTablePagination } from "@repo/design-system/components/niko-table/components/data-table-pagination";
-import { DataTableSearchFilter } from "@repo/design-system/components/niko-table/components/data-table-search-filter";
-import { DataTableToolbarSection } from "@repo/design-system/components/niko-table/components/data-table-toolbar-section";
-import { DataTable } from "@repo/design-system/components/niko-table/core/data-table";
-import { DataTableRoot } from "@repo/design-system/components/niko-table/core/data-table-root";
 import {
-  DataTableBody,
-  DataTableEmptyBody,
-  DataTableHeader,
-  DataTableSkeleton,
-} from "@repo/design-system/components/niko-table/core/data-table-structure";
-import type { GlobalFilter } from "@repo/design-system/components/niko-table/types";
-import { CardContent } from "@repo/design-system/components/ui/card";
-import { CardShell } from "@repo/design-system/components/ui/card-shell";
-import type {
-  ColumnFiltersState,
-  PaginationState,
-  Updater,
-} from "@tanstack/react-table";
+  CardFrame,
+  CardFrameFooter,
+} from "@repo/design-system/components/ui/card";
+import {
+  type ExtendedColumnFilter,
+  toFilterValueArray,
+  useAppTable,
+} from "@repo/design-system/components/ui/data-table/table";
+import { Input } from "@repo/design-system/components/ui/input";
+import { Skeleton } from "@repo/design-system/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@repo/design-system/components/ui/table";
+import { flexRender } from "@tanstack/react-table";
+import { SearchIcon } from "lucide-react";
 import {
   parseAsInteger,
   parseAsJson,
@@ -32,12 +31,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import type { TeachersQueryParams } from "./actions";
 import { getTeachersForTable } from "./actions";
-import { columns, type Teacher } from "./columns";
-
-interface FilterOption {
-  label: string;
-  value: string;
-}
+import { createColumns, type FilterOption, type Teacher } from "./columns";
 
 interface TeachersTableProps {
   branchOptions: FilterOption[];
@@ -46,6 +40,13 @@ interface TeachersTableProps {
   onRowClick?: (teacherId: string) => void;
   subjectOptions: FilterOption[];
 }
+
+const FILTERS_SCHEMA = z.array(
+  z.object({ id: z.string(), value: z.unknown() })
+);
+
+// Stable keys for the 5 skeleton rows.
+const SKELETON_ROW_KEYS = ["a", "b", "c", "d", "e"] as const;
 
 export function TeachersTable({
   initialData,
@@ -58,38 +59,87 @@ export function TeachersTable({
   const [totalCount, setTotalCount] = useState(initialTotalCount);
   const [isLoading, setIsLoading] = useState(false);
 
-  const filtersSchema = z.array(
-    z.object({ id: z.string(), value: z.unknown() })
-  );
-
   const [urlParams, setUrlParams] = useQueryStates(
     {
       page: parseAsInteger.withDefault(0),
       pageSize: parseAsInteger.withDefault(10),
       search: parseAsString.withDefault(""),
       filters: parseAsJson((value) => {
-        const parsed = filtersSchema.safeParse(value);
+        const parsed = FILTERS_SCHEMA.safeParse(value);
         return parsed.success ? parsed.data : [];
-      }).withDefault([]),
+      }).withDefault([] as Array<{ id: string; value: unknown }>),
     },
     { history: "replace" }
   );
 
-  const tableState = useMemo(
-    () => ({
+  const pageCount = Math.max(1, Math.ceil(totalCount / urlParams.pageSize));
+
+  const serializeFilters = useCallback(
+    (filters: ExtendedColumnFilter[]): Array<{ id: string; value: unknown }> =>
+      filters
+        .filter((filter) => filter.id)
+        .map((filter) => ({
+          id: filter.id,
+          value: toFilterValueArray(filter.value),
+        })),
+    []
+  );
+
+  const hydrateFilters = useCallback(
+    (filters: Array<{ id: string; value: unknown }>): ExtendedColumnFilter[] =>
+      filters.map((filter, index) => ({
+        id: filter.id,
+        value: toFilterValueArray(filter.value),
+        operator: "equals",
+        joinOperator: "and",
+        variant: "multi-select",
+        filterId: `${filter.id}-${index}`,
+      })),
+    []
+  );
+
+  const hydratedFilters = useMemo(
+    () => hydrateFilters(urlParams.filters),
+    [hydrateFilters, urlParams.filters]
+  );
+
+  const columns = useMemo(
+    () => createColumns({ branchOptions, subjectOptions }),
+    [branchOptions, subjectOptions]
+  );
+
+  const table = useAppTable({
+    columns,
+    data,
+    manualFiltering: true,
+    manualPagination: true,
+    pageCount,
+    state: {
+      columnFilters: hydratedFilters,
       pagination: {
         pageIndex: urlParams.page,
         pageSize: urlParams.pageSize,
       },
-      columnFilters: urlParams.filters,
-      globalFilter: urlParams.search,
-    }),
-    [urlParams]
-  );
+    },
+    onColumnFiltersChange: (updater) => {
+      const next =
+        typeof updater === "function" ? updater(hydratedFilters) : updater;
+      setUrlParams({ filters: serializeFilters(next), page: 0 });
+    },
+    onPaginationChange: (updater) => {
+      const next =
+        typeof updater === "function"
+          ? updater({
+              pageIndex: urlParams.page,
+              pageSize: urlParams.pageSize,
+            })
+          : updater;
+      setUrlParams({ page: next.pageIndex, pageSize: next.pageSize });
+    },
+    meta: { totalCount },
+  });
 
-  // Debounce the search term and guard against out-of-order responses so rapid
-  // typing doesn't hammer the DB and a stale request never overwrites a newer
-  // one (same pattern as the students table).
+  // Debounce the search term and guard against out-of-order responses.
   const requestIdRef = useRef(0);
   const [debouncedSearch, setDebouncedSearch] = useState(urlParams.search);
 
@@ -101,134 +151,149 @@ export function TeachersTable({
     return () => window.clearTimeout(handle);
   }, [urlParams.search]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const requestId = ++requestIdRef.current;
-      setIsLoading(true);
-      try {
-        const params: TeachersQueryParams = {
-          page: urlParams.page,
-          pageSize: urlParams.pageSize,
-          search: debouncedSearch || undefined,
-          filters: urlParams.filters.length > 0 ? urlParams.filters : undefined,
-        };
+  const fetchTeachers = useCallback(async () => {
+    const requestId = ++requestIdRef.current;
+    setIsLoading(true);
+    try {
+      const params: TeachersQueryParams = {
+        page: urlParams.page,
+        pageSize: urlParams.pageSize,
+        search: debouncedSearch || undefined,
+        filters: urlParams.filters.length > 0 ? urlParams.filters : undefined,
+      };
 
-        const result = await getTeachersForTable(params);
+      const result = await getTeachersForTable(params);
 
-        if (requestId !== requestIdRef.current) {
-          return;
-        }
-        setData(result.data);
-        setTotalCount(result.totalCount);
-      } catch (error) {
-        console.error("Failed to fetch teachers:", error);
-      } finally {
-        if (requestId === requestIdRef.current) {
-          setIsLoading(false);
-        }
+      if (requestId !== requestIdRef.current) {
+        return;
       }
-    };
-
-    fetchData();
+      setData(result.data);
+      setTotalCount(result.totalCount);
+    } catch (error) {
+      console.error("Failed to fetch teachers:", error);
+    } finally {
+      if (requestId === requestIdRef.current) {
+        setIsLoading(false);
+      }
+    }
   }, [debouncedSearch, urlParams]);
 
-  const handlePaginationChange = useCallback(
-    (updater: Updater<PaginationState>) => {
-      const newPagination =
-        typeof updater === "function"
-          ? updater(tableState.pagination)
-          : updater;
-      setUrlParams({
-        page: newPagination.pageIndex,
-        pageSize: newPagination.pageSize,
-      });
-    },
-    [tableState.pagination, setUrlParams]
-  );
+  useEffect(() => {
+    fetchTeachers();
+  }, [fetchTeachers]);
 
-  const handleColumnFiltersChange = useCallback(
-    (updater: Updater<ColumnFiltersState>) => {
-      const newFilters =
-        typeof updater === "function"
-          ? updater(tableState.columnFilters)
-          : updater;
-      setUrlParams({ filters: newFilters, page: 0 });
-    },
-    [tableState.columnFilters, setUrlParams]
-  );
+  // Re-fetch when the server-side data changes (e.g. a teacher was archived).
+  const prevTotalCount = useRef(initialTotalCount);
 
-  const handleGlobalFilterChange = useCallback(
-    (value: GlobalFilter) => {
-      if (typeof value === "string") {
-        setUrlParams({ search: value, page: 0 });
-      }
-    },
-    [setUrlParams]
-  );
+  useEffect(() => {
+    if (prevTotalCount.current !== initialTotalCount) {
+      prevTotalCount.current = initialTotalCount;
+      fetchTeachers();
+    }
+  }, [fetchTeachers, initialTotalCount]);
 
   const handleRowClick = useCallback(
     (row: Teacher) => {
-      if (onRowClick) {
-        onRowClick(row.id);
-      }
+      onRowClick?.(row.id);
     },
     [onRowClick]
   );
 
+  const renderBody = () => {
+    if (isLoading) {
+      return SKELETON_ROW_KEYS.map((key) => (
+        <TableRow key={key}>
+          {columns.map((column) => (
+            <TableCell key={column.id}>
+              <Skeleton className="h-5 w-full" />
+            </TableCell>
+          ))}
+        </TableRow>
+      ));
+    }
+
+    const rows = table.getRowModel().rows;
+
+    if (rows.length === 0) {
+      return (
+        <TableRow>
+          <TableCell className="h-24 text-center" colSpan={columns.length}>
+            No teachers found.
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    return rows.map((row) => (
+      <TableRow
+        className="cursor-pointer"
+        key={row.id}
+        onClick={() => handleRowClick(row.original)}
+      >
+        {row.getVisibleCells().map((cell) => (
+          <TableCell key={cell.id}>
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </TableCell>
+        ))}
+      </TableRow>
+    ));
+  };
+
   return (
-    <CardShell>
-      <CardContent className="p-0">
-        <DataTableRoot
-          columns={columns}
-          config={{
-            manualPagination: true,
-            enableSorting: false,
-            manualFiltering: true,
-            pageCount: Math.ceil(totalCount / urlParams.pageSize),
-          }}
-          data={data}
-          getRowId={(row) => row.id}
-          isLoading={isLoading}
-          onColumnFiltersChange={handleColumnFiltersChange}
-          onGlobalFilterChange={handleGlobalFilterChange}
-          onPaginationChange={handlePaginationChange}
-          state={tableState}
-        >
-          <div className="grid gap-4 p-4">
-            <DataTableToolbarSection>
-              <DataTableSearchFilter placeholder="Search teachers..." />
-              <DataTableFacetedFilter
-                accessorKey="subject"
-                multiple
-                options={subjectOptions}
-                title="Subject"
+    <CardFrame className="isolate after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background">
+      <table.AppTable>
+        <div className="grid gap-4 p-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative w-full max-w-sm">
+              <SearchIcon className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                className="pl-8"
+                onChange={(event) =>
+                  setUrlParams({ search: event.target.value, page: 0 })
+                }
+                placeholder="Search teachers..."
+                type="search"
+                value={urlParams.search}
               />
-              <DataTableFacetedFilter
-                accessorKey="branch"
-                multiple
-                options={branchOptions}
-                title="Branch"
-              />
-              <DataTableFilterMenu />
-              <DataTableClearFilter />
-            </DataTableToolbarSection>
+            </div>
+            <table.FilterList />
           </div>
+        </div>
 
-          <div className="overflow-x-auto px-4">
-            <DataTable aria-label="Teachers">
-              <DataTableHeader />
-              <DataTableBody onRowClick={handleRowClick}>
-                <DataTableSkeleton />
-                <DataTableEmptyBody />
-              </DataTableBody>
-            </DataTable>
-          </div>
+        <div className="overflow-x-auto px-4">
+          <Table className="table-fixed" variant="card">
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    const columnSize = header.column.getSize();
+                    return (
+                      <TableHead
+                        key={header.id}
+                        style={
+                          columnSize ? { width: `${columnSize}px` } : undefined
+                        }
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>{renderBody()}</TableBody>
+          </Table>
+        </div>
 
-          <div className="px-4 pb-4">
-            <DataTablePagination totalCount={totalCount} />
-          </div>
-        </DataTableRoot>
-      </CardContent>
-    </CardShell>
+        <CardFrameFooter className="p-2">
+          <table.Pagination />
+        </CardFrameFooter>
+      </table.AppTable>
+    </CardFrame>
   );
 }

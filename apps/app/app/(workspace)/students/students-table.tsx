@@ -1,25 +1,16 @@
 ﻿"use client";
 
-import { Button } from "@repo/design-system/components/ui/button";
 import {
   CardFrame,
   CardFrameFooter,
 } from "@repo/design-system/components/ui/card";
+import {
+  type ExtendedColumnFilter,
+  mapOperatorForServer,
+  mapOperatorForUi,
+  useAppTable,
+} from "@repo/design-system/components/ui/data-table/table";
 import { Input } from "@repo/design-system/components/ui/input";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationNext,
-  PaginationPrevious,
-} from "@repo/design-system/components/ui/pagination";
-import {
-  Select,
-  SelectItem,
-  SelectPopup,
-  SelectTrigger,
-  SelectValue,
-} from "@repo/design-system/components/ui/select";
 import { Skeleton } from "@repo/design-system/components/ui/skeleton";
 import {
   Table,
@@ -31,13 +22,11 @@ import {
 } from "@repo/design-system/components/ui/table";
 import { sortingSchema } from "@repo/schemas/common";
 import {
-  flexRender,
-  getCoreRowModel,
-  type Header,
-  type SortingState,
-  useReactTable,
-} from "@tanstack/react-table";
-import { ChevronDownIcon, ChevronUpIcon, SearchIcon } from "lucide-react";
+  type StudentTableFilter,
+  studentTableFilterSchema,
+} from "@repo/schemas/students";
+import { flexRender } from "@tanstack/react-table";
+import { SearchIcon } from "lucide-react";
 import {
   parseAsInteger,
   parseAsJson,
@@ -45,15 +34,18 @@ import {
   useQueryStates,
 } from "nuqs";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { z } from "zod";
 import { DataTableMobileCards } from "../../../components/data-table-mobile-cards";
 import type { StudentsQueryParams } from "./actions";
 import { getStudentsForTable } from "./actions";
-import { getStudentColumns, type Student } from "./columns";
+import { type FilterOption, getStudentColumns, type Student } from "./columns";
 import { StudentCard } from "./student-card";
 
 interface StudentsTableProps {
+  genderOptions: FilterOption[];
   initialData: Student[];
   initialTotalCount: number;
+  levelOptions: FilterOption[];
   onRowClick?: (studentId: string) => void;
 }
 
@@ -61,17 +53,22 @@ interface StudentsTableProps {
 const SKELETON_ROW_KEYS = ["a", "b", "c", "d", "e"] as const;
 
 export function StudentsTable({
+  genderOptions,
   initialData,
   initialTotalCount,
+  levelOptions,
   onRowClick,
 }: StudentsTableProps) {
   const [data, setData] = useState(initialData);
   const [totalCount, setTotalCount] = useState(initialTotalCount);
   const [isLoading, setIsLoading] = useState(false);
 
-  const columns = useMemo(() => getStudentColumns(), []);
+  const columns = useMemo(
+    () => getStudentColumns({ genderOptions, levelOptions }),
+    [genderOptions, levelOptions]
+  );
 
-  // URL state: server-side pagination + sorting + debounced search.
+  // URL state: server-side pagination + sorting + debounced search + filters.
   const [urlParams, setUrlParams] = useQueryStates(
     {
       page: parseAsInteger.withDefault(0),
@@ -80,29 +77,89 @@ export function StudentsTable({
       sorting: parseAsJson((value) => {
         const parsed = sortingSchema.safeParse(value);
         return parsed.success ? parsed.data : [];
-      }).withDefault([] as SortingState),
+      }).withDefault([]),
+      filters: parseAsJson((value) => {
+        const parsed = z.array(studentTableFilterSchema).safeParse(value);
+        return parsed.success ? parsed.data : [];
+      }).withDefault([] as StudentTableFilter[]),
     },
     { history: "replace" }
   );
 
   const pageCount = Math.max(1, Math.ceil(totalCount / urlParams.pageSize));
 
-  const table = useReactTable({
+  // Translate between the wire contract (StudentTableFilter, niko operator
+  // names) and the UI filter state (ExtendedColumnFilter, v9 operator names).
+  const serializeFilters = useCallback(
+    (filters: ExtendedColumnFilter[]): StudentTableFilter[] =>
+      filters
+        .filter((filter) => filter.id)
+        .map((filter) => ({
+          id: filter.id,
+          operator: mapOperatorForServer(filter.operator ?? "includesString"),
+          value: (filter.value ?? "") as string | string[] | null,
+          joinOperator: filter.joinOperator ?? "and",
+          variant:
+            columns.find((column) => column.id === filter.id)?.meta?.variant ??
+            "text",
+        })),
+    [columns]
+  );
+
+  const hydrateFilters = useCallback(
+    (filters: StudentTableFilter[]): ExtendedColumnFilter[] =>
+      filters.map((filter, index) => ({
+        id: filter.id,
+        value: filter.value ?? "",
+        operator: mapOperatorForUi(filter.operator ?? "ilike"),
+        joinOperator: (filter.joinOperator ?? "and") as "and" | "or",
+        variant: filter.variant,
+        filterId: `${filter.id}-${index}`,
+      })),
+    []
+  );
+
+  const hydratedFilters = useMemo(
+    () => hydrateFilters(urlParams.filters),
+    [hydrateFilters, urlParams.filters]
+  );
+
+  const table = useAppTable({
     columns,
     data,
-    getCoreRowModel: getCoreRowModel(),
-    getRowId: (row) => row.id,
+    manualFiltering: true,
     manualPagination: true,
     manualSorting: true,
     pageCount,
     state: {
+      columnFilters: hydratedFilters,
+      pagination: {
+        pageIndex: urlParams.page,
+        pageSize: urlParams.pageSize,
+      },
       sorting: urlParams.sorting,
+    },
+    onColumnFiltersChange: (updater) => {
+      const next =
+        typeof updater === "function" ? updater(hydratedFilters) : updater;
+      setUrlParams({ filters: serializeFilters(next), page: 0 });
+    },
+    onPaginationChange: (updater) => {
+      const next =
+        typeof updater === "function"
+          ? updater({
+              pageIndex: urlParams.page,
+              pageSize: urlParams.pageSize,
+            })
+          : updater;
+      setUrlParams({ page: next.pageIndex, pageSize: next.pageSize });
     },
     onSortingChange: (updater) => {
       const next =
         typeof updater === "function" ? updater(urlParams.sorting) : updater;
       setUrlParams({ sorting: next, page: 0 });
     },
+    meta: { totalCount },
   });
 
   // Debounce the search term before hitting the server.
@@ -128,6 +185,7 @@ export function StudentsTable({
         pageSize: urlParams.pageSize,
         search: debouncedSearch || undefined,
         sorting: urlParams.sorting.length > 0 ? urlParams.sorting : undefined,
+        filters: urlParams.filters.length > 0 ? urlParams.filters : undefined,
       };
 
       const result = await getStudentsForTable(params);
@@ -161,68 +219,8 @@ export function StudentsTable({
     }
   }, [fetchStudents, initialTotalCount]);
 
-  const setPageIndex = (index: number) => {
-    setUrlParams({ page: Math.max(0, Math.min(index, pageCount - 1)) });
-  };
-
-  const handleRowClick = (row: Student) => {
-    onRowClick?.(row.id);
-  };
-
-  const rangeOptions = useMemo(
-    () =>
-      Array.from({ length: pageCount }, (_, index) => {
-        const start = index * urlParams.pageSize + 1;
-        const end = Math.min((index + 1) * urlParams.pageSize, totalCount);
-        return { label: `${start}-${end}`, value: index + 1 };
-      }),
-    [pageCount, totalCount, urlParams.pageSize]
-  );
-
-  const renderHeaderContent = (header: Header<Student, unknown>) => {
-    if (header.isPlaceholder) {
-      return null;
-    }
-
-    if (!header.column.getCanSort()) {
-      return flexRender(header.column.columnDef.header, header.getContext());
-    }
-
-    const isSorted = header.column.getIsSorted();
-    const sortIcons = {
-      asc: (
-        <ChevronUpIcon
-          aria-hidden="true"
-          className="size-4 shrink-0 opacity-80"
-        />
-      ),
-      desc: (
-        <ChevronDownIcon
-          aria-hidden="true"
-          className="size-4 shrink-0 opacity-80"
-        />
-      ),
-    };
-    const sortedIndicator = isSorted
-      ? sortIcons[isSorted as keyof typeof sortIcons]
-      : null;
-
-    return (
-      <button
-        className="flex h-full w-full cursor-pointer select-none items-center justify-between gap-2 text-left"
-        onClick={header.column.getToggleSortingHandler()}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            header.column.getToggleSortingHandler()?.(event);
-          }
-        }}
-        type="button"
-      >
-        {flexRender(header.column.columnDef.header, header.getContext())}
-        {sortedIndicator}
-      </button>
-    );
+  const handleRowClick = (student: Student) => {
+    onRowClick?.(student.id);
   };
 
   const renderBody = () => {
@@ -268,125 +266,72 @@ export function StudentsTable({
 
   return (
     <CardFrame className="isolate after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background">
-      <div className="grid gap-4 p-4">
-        <div className="relative w-full max-w-sm">
-          <SearchIcon className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            className="pl-8"
-            onChange={(event) =>
-              setUrlParams({ search: event.target.value, page: 0 })
-            }
-            placeholder="Search students..."
-            type="search"
-            value={urlParams.search}
+      <table.AppTable>
+        <div className="grid gap-3 p-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative w-full max-w-sm">
+              <SearchIcon className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                className="pl-8"
+                onChange={(event) =>
+                  setUrlParams({ search: event.target.value, page: 0 })
+                }
+                placeholder="Search students..."
+                type="search"
+                value={urlParams.search}
+              />
+            </div>
+            <table.FilterList />
+            <table.SortList />
+          </div>
+        </div>
+
+        <div className="hidden overflow-x-auto px-4 md:block">
+          <Table className="table-fixed" variant="card">
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    const columnSize = header.column.getSize();
+                    return (
+                      <TableHead
+                        key={header.id}
+                        style={
+                          columnSize ? { width: `${columnSize}px` } : undefined
+                        }
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>{renderBody()}</TableBody>
+          </Table>
+        </div>
+
+        <div className="px-4 md:hidden">
+          <DataTableMobileCards
+            emptyLabel="No students found"
+            getRowKey={(student) => student.id}
+            isLoading={isLoading}
+            items={data}
+            renderCard={(student) => (
+              <StudentCard onRowClick={handleRowClick} student={student} />
+            )}
           />
         </div>
-      </div>
 
-      <div className="hidden overflow-x-auto px-4 md:block">
-        <Table className="table-fixed" variant="card">
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  const columnSize = header.column.getSize();
-                  return (
-                    <TableHead
-                      key={header.id}
-                      style={
-                        columnSize ? { width: `${columnSize}px` } : undefined
-                      }
-                    >
-                      {renderHeaderContent(header)}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>{renderBody()}</TableBody>
-        </Table>
-      </div>
-
-      <div className="px-4 md:hidden">
-        <DataTableMobileCards
-          emptyLabel="No students found"
-          getRowKey={(student) => student.id}
-          isLoading={isLoading}
-          items={data}
-          renderCard={(student) => (
-            <StudentCard onRowClick={handleRowClick} student={student} />
-          )}
-        />
-      </div>
-
-      <CardFrameFooter className="p-2">
-        <div className="flex items-center justify-between gap-2">
-          {/* Results range selector */}
-          <div className="flex items-center gap-2 whitespace-nowrap">
-            <p className="text-muted-foreground text-sm">Viewing</p>
-            <Select
-              items={rangeOptions}
-              onValueChange={(value) => setPageIndex((value as number) - 1)}
-              value={urlParams.page + 1}
-            >
-              <SelectTrigger
-                aria-label="Select result range"
-                className="w-fit min-w-none"
-                size="sm"
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectPopup>
-                {rangeOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectPopup>
-            </Select>
-            <p className="text-muted-foreground text-sm">
-              of{" "}
-              <strong className="font-medium text-foreground">
-                {totalCount}
-              </strong>{" "}
-              results
-            </p>
-          </div>
-
-          {/* Pagination */}
-          <Pagination className="justify-end">
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  className="sm:*:[svg]:hidden"
-                  render={
-                    <Button
-                      disabled={urlParams.page === 0}
-                      onClick={() => setPageIndex(urlParams.page - 1)}
-                      size="sm"
-                      variant="outline"
-                    />
-                  }
-                />
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationNext
-                  className="sm:*:[svg]:hidden"
-                  render={
-                    <Button
-                      disabled={urlParams.page >= pageCount - 1}
-                      onClick={() => setPageIndex(urlParams.page + 1)}
-                      size="sm"
-                      variant="outline"
-                    />
-                  }
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        </div>
-      </CardFrameFooter>
+        <CardFrameFooter className="p-2">
+          <table.Pagination />
+        </CardFrameFooter>
+      </table.AppTable>
     </CardFrame>
   );
 }

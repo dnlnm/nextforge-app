@@ -1,22 +1,25 @@
 "use client";
 
-import { DataTableClearFilter } from "@repo/design-system/components/niko-table/components/data-table-clear-filter";
-import { DataTableFacetedFilter } from "@repo/design-system/components/niko-table/components/data-table-faceted-filter";
-import { DataTablePagination } from "@repo/design-system/components/niko-table/components/data-table-pagination";
-import { DataTableSearchFilter } from "@repo/design-system/components/niko-table/components/data-table-search-filter";
-import { DataTableToolbarSection } from "@repo/design-system/components/niko-table/components/data-table-toolbar-section";
-import { DataTable } from "@repo/design-system/components/niko-table/core/data-table";
-import { DataTableRoot } from "@repo/design-system/components/niko-table/core/data-table-root";
-import {
-  DataTableBody,
-  DataTableEmptyBody,
-  DataTableHeader,
-  DataTableSkeleton,
-} from "@repo/design-system/components/niko-table/core/data-table-structure";
-import type { GlobalFilter } from "@repo/design-system/components/niko-table/types";
 import { Button } from "@repo/design-system/components/ui/button";
-import { CardContent } from "@repo/design-system/components/ui/card";
-import { CardShell } from "@repo/design-system/components/ui/card-shell";
+import {
+  CardFrame,
+  CardFrameFooter,
+} from "@repo/design-system/components/ui/card";
+import {
+  type ExtendedColumnFilter,
+  toFilterValueArray,
+  useAppTable,
+} from "@repo/design-system/components/ui/data-table/table";
+import { Input } from "@repo/design-system/components/ui/input";
+import { Skeleton } from "@repo/design-system/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@repo/design-system/components/ui/table";
 import {
   Tabs,
   TabsList,
@@ -25,14 +28,8 @@ import {
 import { formatMoney as formatMoneyShared } from "@repo/money";
 import type { InvoiceStatus } from "@repo/schemas/enums";
 import type { InvoicesQueryParams } from "@repo/schemas/invoices";
-import type {
-  ColumnFiltersState,
-  PaginationState,
-  RowSelectionState,
-  SortingState,
-  Updater,
-} from "@tanstack/react-table";
-import { BanIcon, XIcon } from "lucide-react";
+import { flexRender, type RowSelectionState } from "@tanstack/react-table";
+import { BanIcon, SearchIcon, XIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   parseAsInteger,
@@ -62,6 +59,13 @@ interface InvoicesTableProps {
   };
 }
 
+const FILTERS_SCHEMA = z.array(
+  z.object({ id: z.string(), value: z.unknown() })
+);
+
+// Stable keys for the 5 skeleton rows.
+const SKELETON_ROW_KEYS = ["a", "b", "c", "d", "e"] as const;
+
 export function InvoicesTable({
   currency,
   filterOptions,
@@ -75,14 +79,6 @@ export function InvoicesTable({
   const [totalCount, setTotalCount] = useState(initialTotalCount);
   const [isLoading, setIsLoading] = useState(false);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-  const [selectedInvoices, setSelectedInvoices] = useState<Invoice[]>([]);
-
-  const filtersSchema = z.array(
-    z.object({ id: z.string(), value: z.unknown() })
-  );
-  const sortingSchema = z.array(
-    z.object({ desc: z.boolean(), id: z.string() })
-  );
 
   const [urlParams, setUrlParams] = useQueryStates(
     {
@@ -90,11 +86,13 @@ export function InvoicesTable({
       pageSize: parseAsInteger.withDefault(10),
       search: parseAsString.withDefault(""),
       filters: parseAsJson((value) => {
-        const parsed = filtersSchema.safeParse(value);
+        const parsed = FILTERS_SCHEMA.safeParse(value);
         return parsed.success ? parsed.data : [];
-      }).withDefault([]),
+      }).withDefault([] as Array<{ id: string; value: unknown }>),
       sorting: parseAsJson((value) => {
-        const parsed = sortingSchema.safeParse(value);
+        const parsed = z
+          .array(z.object({ desc: z.boolean(), id: z.string() }))
+          .safeParse(value);
         return parsed.success ? parsed.data : [];
       }).withDefault([]),
       status: parseAsString.withDefault("all"),
@@ -102,22 +100,13 @@ export function InvoicesTable({
     { history: "replace" }
   );
 
-  const tableState = useMemo(
-    () => ({
-      columnFilters: urlParams.filters,
-      globalFilter: urlParams.search,
-      pagination: {
-        pageIndex: urlParams.page,
-        pageSize: urlParams.pageSize,
-      },
-      rowSelection,
-      sorting: urlParams.sorting,
-    }),
-    [rowSelection, urlParams]
+  const pageCount = Math.max(1, Math.ceil(totalCount / urlParams.pageSize));
+  const selectedInvoiceIds = useMemo(
+    () => Object.keys(rowSelection).filter((id) => rowSelection[id]),
+    [rowSelection]
   );
 
-  // Fold the status tab (URL param, not a TanStack column filter) into the
-  // single wire contract sent to the server.
+  // Fold the status tab (URL param, not a column filter) into the wire filters.
   const serverFilters = useMemo(() => {
     const filters: Array<{ id: string; value: unknown }> = [
       ...urlParams.filters,
@@ -129,6 +118,93 @@ export function InvoicesTable({
 
     return filters;
   }, [urlParams]);
+
+  // Serialize UI filters ({id, value[]}) from the v9 filter list.
+  const serializeFilters = useCallback(
+    (filters: ExtendedColumnFilter[]): Array<{ id: string; value: unknown }> =>
+      filters
+        .filter((filter) => filter.id)
+        .map((filter) => ({
+          id: filter.id,
+          value: toFilterValueArray(filter.value),
+        })),
+    []
+  );
+
+  const hydrateFilters = useCallback(
+    (filters: Array<{ id: string; value: unknown }>): ExtendedColumnFilter[] =>
+      filters.map((filter, index) => ({
+        id: filter.id,
+        value: toFilterValueArray(filter.value),
+        operator: "equals",
+        joinOperator: "and",
+        variant: "select",
+        filterId: `${filter.id}-${index}`,
+      })),
+    []
+  );
+
+  const hydratedFilters = useMemo(
+    () => hydrateFilters(urlParams.filters),
+    [hydrateFilters, urlParams.filters]
+  );
+
+  const formatMoney = useMemo(
+    () => (amountSen: number) => formatMoneyShared(amountSen, { currency }),
+    [currency]
+  );
+
+  const columns = useMemo(
+    () =>
+      createColumns(formatMoney, onSelectInvoice, {
+        months: filterOptions.months,
+      }),
+    [formatMoney, onSelectInvoice, filterOptions.months]
+  );
+
+  const table = useAppTable({
+    columns,
+    data,
+    manualFiltering: true,
+    manualPagination: true,
+    manualSorting: true,
+    pageCount,
+    state: {
+      columnFilters: hydratedFilters,
+      pagination: {
+        pageIndex: urlParams.page,
+        pageSize: urlParams.pageSize,
+      },
+      rowSelection,
+      sorting: urlParams.sorting,
+    },
+    onColumnFiltersChange: (updater) => {
+      const next =
+        typeof updater === "function" ? updater(hydratedFilters) : updater;
+      setUrlParams({ filters: serializeFilters(next), page: 0 });
+    },
+    onPaginationChange: (updater) => {
+      const next =
+        typeof updater === "function"
+          ? updater({
+              pageIndex: urlParams.page,
+              pageSize: urlParams.pageSize,
+            })
+          : updater;
+      setUrlParams({ page: next.pageIndex, pageSize: next.pageSize });
+    },
+    onRowSelectionChange: (updater) => {
+      setRowSelection((previous) =>
+        typeof updater === "function" ? updater(previous) : updater
+      );
+    },
+    onSortingChange: (updater) => {
+      const next =
+        typeof updater === "function" ? updater(urlParams.sorting) : updater;
+      setUrlParams({ sorting: next, page: 0 });
+    },
+    meta: { totalCount },
+  });
 
   const requestIdRef = useRef(0);
   const [debouncedSearch, setDebouncedSearch] = useState(urlParams.search);
@@ -156,7 +232,7 @@ export function InvoicesTable({
       const result = await getInvoicesForTable(params);
 
       if (requestId !== requestIdRef.current) {
-        return; // A newer request superseded this one.
+        return;
       }
       setData(result.data);
       setTotalCount(result.totalCount);
@@ -173,8 +249,7 @@ export function InvoicesTable({
     fetchInvoices();
   }, [fetchInvoices]);
 
-  // Re-fetch when the server-side data changes and the page was refreshed via
-  // revalidatePath/router.refresh (e.g. invoices were generated or voided).
+  // Re-fetch when the server-side data changes (e.g. invoices generated/voided).
   const prevInitial = useRef({ data: initialData, total: initialTotalCount });
 
   useEffect(() => {
@@ -187,77 +262,8 @@ export function InvoicesTable({
     }
   }, [fetchInvoices, initialData, initialTotalCount]);
 
-  const handlePaginationChange = useCallback(
-    (updater: Updater<PaginationState>) => {
-      const newPagination =
-        typeof updater === "function"
-          ? updater(tableState.pagination)
-          : updater;
-      setUrlParams({
-        page: newPagination.pageIndex,
-        pageSize: newPagination.pageSize,
-      });
-    },
-    [tableState.pagination, setUrlParams]
-  );
-
-  const handleColumnFiltersChange = useCallback(
-    (updater: Updater<ColumnFiltersState>) => {
-      const newFilters =
-        typeof updater === "function"
-          ? updater(tableState.columnFilters)
-          : updater;
-      setUrlParams({ filters: newFilters, page: 0 });
-    },
-    [tableState.columnFilters, setUrlParams]
-  );
-
-  const handleSortingChange = useCallback(
-    (updater: Updater<SortingState>) => {
-      const newSorting =
-        typeof updater === "function" ? updater(tableState.sorting) : updater;
-      setUrlParams({ sorting: newSorting, page: 0 });
-    },
-    [tableState.sorting, setUrlParams]
-  );
-
-  const handleGlobalFilterChange = useCallback(
-    (value: GlobalFilter) => {
-      if (typeof value === "string") {
-        setUrlParams({ search: value, page: 0 });
-      }
-    },
-    [setUrlParams]
-  );
-
-  const handleRowSelectionChange = useCallback(
-    (updater: Updater<RowSelectionState>) => {
-      setRowSelection((prev) =>
-        typeof updater === "function" ? updater(prev) : updater
-      );
-    },
-    []
-  );
-
-  const handleRowClick = useCallback(
-    (row: Invoice) => {
-      onSelectInvoice(row);
-    },
-    [onSelectInvoice]
-  );
-
-  const handleStatusTabChange = useCallback(
-    (value: string | null) => {
-      setUrlParams({ status: value ?? "all", page: 0 });
-    },
-    [setUrlParams]
-  );
-
-  const getRowId = useCallback((row: Invoice) => row.id, []);
-
   const clearSelection = useCallback(() => {
     setRowSelection({});
-    setSelectedInvoices([]);
   }, []);
 
   const handleVoidSelected = useCallback(
@@ -269,120 +275,163 @@ export function InvoicesTable({
     [clearSelection, router]
   );
 
-  const formatMoney = useMemo(
-    () => (amountSen: number) => formatMoneyShared(amountSen, { currency }),
-    [currency]
+  const handleRowClick = useCallback(
+    (row: Invoice) => {
+      onSelectInvoice(row);
+    },
+    [onSelectInvoice]
   );
-  const columns = useMemo(
-    () => createColumns(formatMoney, onSelectInvoice),
-    [formatMoney, onSelectInvoice]
-  );
+
+  const renderBody = () => {
+    if (isLoading) {
+      return SKELETON_ROW_KEYS.map((key) => (
+        <TableRow key={key}>
+          {columns.map((column) => (
+            <TableCell key={column.id}>
+              <Skeleton className="h-5 w-full" />
+            </TableCell>
+          ))}
+        </TableRow>
+      ));
+    }
+
+    const rows = table.getRowModel().rows;
+
+    if (rows.length === 0) {
+      return (
+        <TableRow>
+          <TableCell className="h-24 text-center" colSpan={columns.length}>
+            No invoices found.
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    return rows.map((row) => (
+      <TableRow
+        className="cursor-pointer"
+        data-state={row.getIsSelected() ? "selected" : undefined}
+        key={row.id}
+        onClick={() => handleRowClick(row.original)}
+      >
+        {row.getVisibleCells().map((cell) => (
+          <TableCell key={cell.id}>
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </TableCell>
+        ))}
+      </TableRow>
+    ));
+  };
 
   return (
-    <CardShell>
-      <CardContent className="p-0">
-        <DataTableRoot
-          columns={columns}
-          config={{
-            enableRowSelection: true,
-            manualPagination: true,
-            manualSorting: true,
-            enableSorting: true,
-            manualFiltering: true,
-            pageCount: Math.ceil(totalCount / urlParams.pageSize),
-          }}
-          data={data}
-          getRowId={getRowId}
-          initialState={{ columnVisibility: { billingMonth: false } }}
-          isLoading={isLoading}
-          onColumnFiltersChange={handleColumnFiltersChange}
-          onGlobalFilterChange={handleGlobalFilterChange}
-          onPaginationChange={handlePaginationChange}
-          onRowSelection={setSelectedInvoices}
-          onRowSelectionChange={handleRowSelectionChange}
-          onSortingChange={handleSortingChange}
-          state={tableState}
-        >
-          <div className="grid gap-4 p-4 pb-3">
-            <DataTableToolbarSection>
-              <DataTableSearchFilter placeholder="Search student, guardian, or invoice number..." />
-              <DataTableFacetedFilter
-                accessorKey="billingMonth"
-                options={filterOptions.months}
-                title="Month"
+    <CardFrame className="isolate after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background">
+      <table.AppTable>
+        <div className="grid gap-4 p-4 pb-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative w-full max-w-sm">
+              <SearchIcon className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                className="pl-8"
+                onChange={(event) =>
+                  setUrlParams({ search: event.target.value, page: 0 })
+                }
+                placeholder="Search student, guardian, or invoice number..."
+                type="search"
+                value={urlParams.search}
               />
-              <DataTableClearFilter />
-            </DataTableToolbarSection>
-          </div>
-
-          {/* Status tabs (mirrors the reference page's underline tabs). */}
-          <Tabs
-            className="border-b px-4 pt-1"
-            onValueChange={handleStatusTabChange}
-            value={urlParams.status}
-          >
-            <TabsList variant="underline">
-              {STATUS_TABS.map((tab) => (
-                <TabsTab key={tab.value} value={tab.value}>
-                  {tab.label}
-                  <span className="rounded-full bg-muted px-1.5 py-0.5 font-semibold text-muted-foreground text-xs">
-                    {(statusCounts[tab.value] ?? 0).toLocaleString()}
-                  </span>
-                </TabsTab>
-              ))}
-            </TabsList>
-          </Tabs>
-
-          {/* Bulk action bar */}
-          {selectedInvoices.length > 0 && (
-            <div className="flex items-center gap-3 border-b bg-primary/5 px-4 py-2.5">
-              <span className="font-semibold text-primary text-xs">
-                {selectedInvoices.length} selected
-              </span>
-              <div className="h-4 w-px bg-border" />
-              <form action={handleVoidSelected}>
-                <input
-                  name="invoiceIds"
-                  type="hidden"
-                  value={JSON.stringify(
-                    selectedInvoices.map((invoice) => invoice.id)
-                  )}
-                />
-                <Button
-                  className="h-auto px-2 py-1 font-medium text-destructive text-xs hover:bg-destructive/5 hover:text-destructive"
-                  type="submit"
-                  variant="ghost"
-                >
-                  <BanIcon className="size-3.5" />
-                  Void selected
-                </Button>
-              </form>
-              <button
-                aria-label="Clear selection"
-                className="ml-auto text-muted-foreground transition-colors hover:text-foreground"
-                onClick={clearSelection}
-                type="button"
-              >
-                <XIcon className="size-4" />
-              </button>
             </div>
-          )}
-
-          <div className="overflow-x-auto px-4">
-            <DataTable aria-label="Invoices">
-              <DataTableHeader />
-              <DataTableBody onRowClick={handleRowClick}>
-                <DataTableSkeleton />
-                <DataTableEmptyBody />
-              </DataTableBody>
-            </DataTable>
+            <table.FilterList />
+            <table.SortList />
           </div>
+        </div>
 
-          <div className="px-4 pb-4">
-            <DataTablePagination totalCount={totalCount} />
+        {/* Status tabs (mirrors the reference page's underline tabs). */}
+        <Tabs
+          className="border-b px-4 pt-1"
+          onValueChange={(value) =>
+            setUrlParams({ status: value ?? "all", page: 0 })
+          }
+          value={urlParams.status}
+        >
+          <TabsList variant="underline">
+            {STATUS_TABS.map((tab) => (
+              <TabsTab key={tab.value} value={tab.value}>
+                {tab.label}
+                <span className="rounded-full bg-muted px-1.5 py-0.5 font-semibold text-muted-foreground text-xs">
+                  {(statusCounts[tab.value] ?? 0).toLocaleString()}
+                </span>
+              </TabsTab>
+            ))}
+          </TabsList>
+        </Tabs>
+
+        {/* Bulk action bar */}
+        {selectedInvoiceIds.length > 0 ? (
+          <div className="flex items-center gap-3 border-b bg-primary/5 px-4 py-2.5">
+            <span className="font-semibold text-primary text-xs">
+              {selectedInvoiceIds.length} selected
+            </span>
+            <div className="h-4 w-px bg-border" />
+            <form action={handleVoidSelected}>
+              <input
+                name="invoiceIds"
+                type="hidden"
+                value={JSON.stringify(selectedInvoiceIds)}
+              />
+              <Button
+                className="h-auto px-2 py-1 font-medium text-destructive text-xs hover:bg-destructive/5 hover:text-destructive"
+                type="submit"
+                variant="ghost"
+              >
+                <BanIcon className="size-3.5" />
+                Void selected
+              </Button>
+            </form>
+            <button
+              aria-label="Clear selection"
+              className="ml-auto text-muted-foreground transition-colors hover:text-foreground"
+              onClick={clearSelection}
+              type="button"
+            >
+              <XIcon className="size-4" />
+            </button>
           </div>
-        </DataTableRoot>
-      </CardContent>
-    </CardShell>
+        ) : null}
+
+        <div className="overflow-x-auto px-4">
+          <Table className="table-fixed" variant="card">
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    const columnSize = header.column.getSize();
+                    return (
+                      <TableHead
+                        key={header.id}
+                        style={
+                          columnSize ? { width: `${columnSize}px` } : undefined
+                        }
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>{renderBody()}</TableBody>
+          </Table>
+        </div>
+
+        <CardFrameFooter className="p-2">
+          <table.Pagination />
+        </CardFrameFooter>
+      </table.AppTable>
+    </CardFrame>
   );
 }

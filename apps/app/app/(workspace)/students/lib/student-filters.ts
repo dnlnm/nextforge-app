@@ -27,7 +27,7 @@ const ACTIVE_ENROLLMENT = {
 const statuses = new Set<StudentStatus>(studentStatuses);
 const genderSet = new Set<Gender>(genders);
 
-/** Operator strings mirror niko-table's FILTER_OPERATORS ("not.in", ...). */
+/** Operator strings used by the students filter rules ("not.in", ...). */
 const isNegated = (operator: string) =>
   operator === "neq" || operator === "not.in" || operator === "not.ilike";
 
