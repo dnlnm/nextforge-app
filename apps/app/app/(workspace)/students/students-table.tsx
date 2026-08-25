@@ -1,6 +1,8 @@
 ﻿"use client";
 
 import {
+  Card,
+  CardContent,
   CardFrame,
   CardFrameFooter,
 } from "@repo/design-system/components/ui/card";
@@ -265,72 +267,86 @@ export function StudentsTable({
   };
 
   return (
-    <CardFrame className="isolate after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background">
-      <table.AppTable>
-        <div className="grid gap-3 p-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="relative w-full max-w-sm">
-              <SearchIcon className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                className="pl-8"
-                onChange={(event) =>
-                  setUrlParams({ search: event.target.value, page: 0 })
-                }
-                placeholder="Search students..."
-                type="search"
-                value={urlParams.search}
-              />
+    <table.AppTable>
+      <CardFrame className="isolate after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background">
+        <Card className="min-h-0 flex-1 flex-col dark:bg-background">
+          <CardContent className="flex min-h-0 flex-1 flex-col p-0">
+            <div className="grid gap-3 p-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative w-full max-w-sm">
+                  <SearchIcon className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    className="pl-8"
+                    onChange={(event) =>
+                      setUrlParams({ search: event.target.value, page: 0 })
+                    }
+                    placeholder="Search students..."
+                    type="search"
+                    value={urlParams.search}
+                  />
+                </div>
+                <table.FilterList />
+                <table.SortList />
+              </div>
             </div>
-            <table.FilterList />
-            <table.SortList />
-          </div>
-        </div>
-        <div className="hidden overflow-x-auto px-4 md:block">
-          <Table className="table-fixed" variant="card">
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    const columnSize = header.column.getSize();
-                    return (
-                      <TableHead
-                        key={header.id}
-                        style={
-                          columnSize ? { width: `${columnSize}px` } : undefined
-                        }
-                      >
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>{renderBody()}</TableBody>
-          </Table>
-        </div>
 
-        <div className="px-4 md:hidden">
-          <DataTableMobileCards
-            emptyLabel="No students found"
-            getRowKey={(student) => student.id}
-            isLoading={isLoading}
-            items={data}
-            renderCard={(student) => (
-              <StudentCard onRowClick={handleRowClick} student={student} />
-            )}
-          />
-        </div>
+            <div className="min-h-0 px-4 pb-4">
+              <CardFrame className="w-full">
+                <div className="hidden overflow-x-auto md:block">
+                  <Table className="table-fixed" variant="card">
+                    <TableHeader>
+                      {table.getHeaderGroups().map((headerGroup) => (
+                        <TableRow key={headerGroup.id}>
+                          {headerGroup.headers.map((header) => {
+                            const columnSize = header.column.getSize();
+                            return (
+                              <TableHead
+                                key={header.id}
+                                style={
+                                  columnSize
+                                    ? { width: `${columnSize}px` }
+                                    : undefined
+                                }
+                              >
+                                {header.isPlaceholder
+                                  ? null
+                                  : flexRender(
+                                      header.column.columnDef.header,
+                                      header.getContext()
+                                    )}
+                              </TableHead>
+                            );
+                          })}
+                        </TableRow>
+                      ))}
+                    </TableHeader>
+                    <TableBody>{renderBody()}</TableBody>
+                  </Table>
+                </div>
 
-        <CardFrameFooter className="p-2">
-          <table.Pagination />
-        </CardFrameFooter>
-      </table.AppTable>
-    </CardFrame>
+                <div className="px-4 md:hidden">
+                  <DataTableMobileCards
+                    emptyLabel="No students found"
+                    getRowKey={(student) => student.id}
+                    isLoading={isLoading}
+                    items={data}
+                    renderCard={(student) => (
+                      <StudentCard
+                        onRowClick={handleRowClick}
+                        student={student}
+                      />
+                    )}
+                  />
+                </div>
+
+                <CardFrameFooter className="p-2">
+                  <table.Pagination />
+                </CardFrameFooter>
+              </CardFrame>
+            </div>
+          </CardContent>
+        </Card>
+      </CardFrame>
+    </table.AppTable>
   );
 }
