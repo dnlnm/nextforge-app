@@ -7,12 +7,11 @@ import {
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  CardAction,
-  CardContent,
-  CardHeader,
-  CardTitle,
+  Card,
+  CardFrameAction,
+  CardFrameHeader,
+  CardFrameTitle,
 } from "@repo/design-system/components/ui/card";
-import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import {
   Empty,
   EmptyContent,
@@ -21,6 +20,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@repo/design-system/components/ui/empty";
+import { Stat } from "@repo/design-system/components/ui/stat";
 import { cn } from "@repo/design-system/lib/utils";
 import {
   type DashboardSessionRow,
@@ -152,16 +152,18 @@ export const TodaysClassesCard = async ({
   const { sessions } = await getTodaysClassesData(database, organizationId);
 
   return (
-    <CardShell className="h-full">
-      <CardHeader>
-        <CardTitle>Today&apos;s Classes</CardTitle>
-        <CardAction>
+    <Stat className="isolate h-full after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background">
+      <CardFrameHeader>
+        <CardFrameTitle className="text-base">
+          Today&apos;s Classes
+        </CardFrameTitle>
+        <CardFrameAction>
           <Button render={<Link href="/schedules" />} size="sm" variant="link">
             View Schedule
           </Button>
-        </CardAction>
-      </CardHeader>
-      <CardContent className="flex min-h-0 flex-1 flex-col">
+        </CardFrameAction>
+      </CardFrameHeader>
+      <Card className="min-h-0 flex-1 flex-col dark:bg-background">
         {sessions.length === 0 ? (
           <Empty>
             <EmptyContent>
@@ -200,7 +202,7 @@ export const TodaysClassesCard = async ({
             </div>
           </div>
         )}
-      </CardContent>
-    </CardShell>
+      </Card>
+    </Stat>
   );
 };

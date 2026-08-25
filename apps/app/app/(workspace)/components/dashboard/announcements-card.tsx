@@ -1,11 +1,10 @@
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  CardAction,
-  CardContent,
-  CardHeader,
-  CardTitle,
+  Card,
+  CardFrameAction,
+  CardFrameHeader,
+  CardFrameTitle,
 } from "@repo/design-system/components/ui/card";
-import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import {
   Empty,
   EmptyContent,
@@ -14,19 +13,20 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@repo/design-system/components/ui/empty";
+import { Stat } from "@repo/design-system/components/ui/stat";
 import { MegaphoneIcon } from "lucide-react";
 
 export const AnnouncementsCard = () => (
-  <CardShell className="h-full">
-    <CardHeader>
-      <CardTitle>Announcements</CardTitle>
-      <CardAction>
+  <Stat className="isolate h-full after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background">
+    <CardFrameHeader>
+      <CardFrameTitle className="text-base">Announcements</CardFrameTitle>
+      <CardFrameAction>
         <Button disabled size="sm" variant="link">
           View All
         </Button>
-      </CardAction>
-    </CardHeader>
-    <CardContent className="flex min-h-0 flex-1 flex-col">
+      </CardFrameAction>
+    </CardFrameHeader>
+    <Card className="min-h-0 flex-1 flex-col dark:bg-background">
       <Empty>
         <EmptyContent>
           <EmptyHeader>
@@ -43,6 +43,6 @@ export const AnnouncementsCard = () => (
           </Button>
         </EmptyContent>
       </Empty>
-    </CardContent>
-  </CardShell>
+    </Card>
+  </Stat>
 );

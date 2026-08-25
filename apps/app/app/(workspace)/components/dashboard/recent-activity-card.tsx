@@ -1,11 +1,10 @@
 import { database } from "@repo/database";
 import { formatRelativeTime } from "@repo/date";
 import {
-  CardContent,
-  CardHeader,
-  CardTitle,
+  Card,
+  CardFrameHeader,
+  CardFrameTitle,
 } from "@repo/design-system/components/ui/card";
-import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import {
   Empty,
   EmptyDescription,
@@ -13,6 +12,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@repo/design-system/components/ui/empty";
+import { Stat } from "@repo/design-system/components/ui/stat";
 import { cn } from "@repo/design-system/lib/utils";
 import { type ActivityIconKey, getRecentActivityData } from "@repo/domain";
 import {
@@ -43,11 +43,11 @@ export const RecentActivityCard = async ({
   const { items } = await getRecentActivityData(database, organizationId);
 
   return (
-    <CardShell className="h-full">
-      <CardHeader>
-        <CardTitle>Recent Activity</CardTitle>
-      </CardHeader>
-      <CardContent className="flex min-h-0 flex-1 flex-col">
+    <Stat className="isolate h-full after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background">
+      <CardFrameHeader>
+        <CardFrameTitle className="text-base">Recent Activity</CardFrameTitle>
+      </CardFrameHeader>
+      <Card className="min-h-0 flex-1 flex-col dark:bg-background">
         {items.length === 0 ? (
           <Empty>
             <EmptyHeader>
@@ -88,7 +88,7 @@ export const RecentActivityCard = async ({
             })}
           </div>
         )}
-      </CardContent>
-    </CardShell>
+      </Card>
+    </Stat>
   );
 };

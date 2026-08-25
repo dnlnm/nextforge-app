@@ -2,12 +2,11 @@ import { database } from "@repo/database";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  CardAction,
-  CardContent,
-  CardHeader,
-  CardTitle,
+  Card,
+  CardFrameAction,
+  CardFrameHeader,
+  CardFrameTitle,
 } from "@repo/design-system/components/ui/card";
-import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import {
   Empty,
   EmptyContent,
@@ -21,6 +20,7 @@ import {
   ProgressIndicator,
   ProgressTrack,
 } from "@repo/design-system/components/ui/progress";
+import { Stat } from "@repo/design-system/components/ui/stat";
 import { type FeeCollectionPoint, getFeeCollectionData } from "@repo/domain";
 import { formatMoneyWhole } from "@repo/money";
 import { ReceiptTextIcon } from "lucide-react";
@@ -43,16 +43,18 @@ export const FeeCollectionCard = async ({
   const trend: FeeCollectionPoint[] = data.trend;
 
   return (
-    <CardShell className="h-full">
-      <CardHeader>
-        <CardTitle>Fee Collection (This Month)</CardTitle>
-        <CardAction>
+    <Stat className="isolate h-full after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background">
+      <CardFrameHeader>
+        <CardFrameTitle className="text-base">
+          Fee Collection (This Month)
+        </CardFrameTitle>
+        <CardFrameAction>
           <Button render={<Link href="/reports" />} size="sm" variant="link">
             View Report
           </Button>
-        </CardAction>
-      </CardHeader>
-      <CardContent className="flex min-h-0 flex-1 flex-col">
+        </CardFrameAction>
+      </CardFrameHeader>
+      <Card className="min-h-0 flex-1 flex-col dark:bg-background">
         {hasTarget ? (
           <>
             <div className="mb-3 shrink-0">
@@ -113,7 +115,7 @@ export const FeeCollectionCard = async ({
             </EmptyContent>
           </Empty>
         )}
-      </CardContent>
-    </CardShell>
+      </Card>
+    </Stat>
   );
 };
