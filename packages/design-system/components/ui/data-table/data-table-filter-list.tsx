@@ -144,7 +144,7 @@ export function DataTableFilterList() {
 
     return (
       <div
-        className="grid grid-cols-[3.5rem_8rem_7.5rem_minmax(0,1fr)_2rem] items-center gap-2"
+        className="grid grid-cols-[70px_9rem_8.5rem_minmax(0,14rem)_2rem] items-center gap-2"
         key={filter.filterId}
       >
         {index === 0 ? (
@@ -164,7 +164,10 @@ export function DataTableFilterList() {
             }}
             value={(filter.joinOperator ?? "and") as JoinOperator}
           >
-            <SelectTrigger aria-label="Select join operator" className="h-8">
+            <SelectTrigger
+              aria-label="Select join operator"
+              className="h-8 min-w-none"
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectPopup>
@@ -186,7 +189,7 @@ export function DataTableFilterList() {
           }}
           value={filter.id}
         >
-          <SelectTrigger aria-label="Select filter field" className="h-8">
+          <SelectTrigger aria-label="Select filter field" className="h-8 min-w-none">
             <SelectValue />
           </SelectTrigger>
           <SelectPopup>
@@ -212,7 +215,7 @@ export function DataTableFilterList() {
           }}
           value={(filter.operator ?? operators[0].value) as FilterOperator}
         >
-          <SelectTrigger aria-label="Select filter operator" className="h-8">
+          <SelectTrigger aria-label="Select filter operator" className="h-8 min-w-none">
             <SelectValue />
           </SelectTrigger>
           <SelectPopup>
@@ -259,7 +262,7 @@ export function DataTableFilterList() {
       </PopoverTrigger>
       <PopoverPopup
         align="start"
-        className="flex min-w-80 max-w-[38rem] flex-col gap-3 p-4"
+        className="flex w-[min(40rem,calc(100vw-2rem))] flex-col gap-3 p-4"
       >
         <div className="flex flex-col gap-1">
           <h4 className="font-medium leading-none">Filters</h4>
