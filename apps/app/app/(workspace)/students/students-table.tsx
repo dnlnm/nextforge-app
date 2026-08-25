@@ -265,25 +265,26 @@ export function StudentsTable({
   };
 
   return (
-    <table.AppTable>
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative w-full max-w-sm">
-          <SearchIcon className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            className="pl-8"
-            onChange={(event) =>
-              setUrlParams({ search: event.target.value, page: 0 })
-            }
-            placeholder="Search students..."
-            type="search"
-            value={urlParams.search}
-          />
+    <CardFrame className="isolate after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background">
+      <table.AppTable>
+        <div className="grid gap-3 p-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative w-full max-w-sm">
+              <SearchIcon className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                className="pl-8"
+                onChange={(event) =>
+                  setUrlParams({ search: event.target.value, page: 0 })
+                }
+                placeholder="Search students..."
+                type="search"
+                value={urlParams.search}
+              />
+            </div>
+            <table.FilterList />
+            <table.SortList />
+          </div>
         </div>
-        <table.FilterList />
-        <table.SortList />
-      </div>
-
-      <CardFrame className="isolate after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background">
         <div className="hidden overflow-x-auto px-4 md:block">
           <Table className="table-fixed" variant="card">
             <TableHeader>
@@ -329,7 +330,7 @@ export function StudentsTable({
         <CardFrameFooter className="p-2">
           <table.Pagination />
         </CardFrameFooter>
-      </CardFrame>
-    </table.AppTable>
+      </table.AppTable>
+    </CardFrame>
   );
 }
