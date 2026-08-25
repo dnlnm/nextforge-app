@@ -35,7 +35,7 @@ model User {
 }
 
 model Organization {
-  id                  String                    @id @default(cuid())
+  id                  String                    @id @default(nanoid(12))
   name                String
   slug                String                    @unique
   imageUrl            String?
@@ -182,7 +182,7 @@ model Branch {
 }
 
 model Student {
-  id                    String             @id @default(cuid())
+  id                    String             @id @default(nanoid(12))
   organizationId        String
   branchId              String?
   code                  String
@@ -230,7 +230,7 @@ model Student {
 }
 
 model StudentImport {
-  id                  String              @id @default(cuid())
+  id                  String              @id @default(nanoid(12))
   organizationId      String
   createdByUserId     String
   filename            String
@@ -321,7 +321,7 @@ model StudentGuardian {
 }
 
 model TeacherProfile {
-  id             String          @id @default(cuid())
+  id             String          @id @default(nanoid(12))
   organizationId String
   branchId       String?
   code           String
@@ -346,7 +346,7 @@ model TeacherProfile {
 }
 
 model Subject {
-  id             String          @id @default(cuid())
+  id             String          @id @default(nanoid(12))
   organizationId String
   code           String
   name           String
@@ -366,7 +366,7 @@ model Subject {
 }
 
 model Level {
-  id             String          @id @default(cuid())
+  id             String          @id @default(nanoid(12))
   organizationId String
   code           String
   name           String
@@ -385,7 +385,7 @@ model Level {
 }
 
 model LearningClass {
-  id             String            @id @default(cuid())
+  id             String            @id @default(nanoid(12))
   organizationId String
   branchId       String?
   subjectId      String
@@ -438,7 +438,7 @@ model ClassSchedule {
 }
 
 model Room {
-  id             String          @id @default(cuid())
+  id             String          @id @default(nanoid(12))
   organizationId String
   name           String
   capacity       Int?
@@ -477,7 +477,7 @@ model Enrollment {
 }
 
 model ClassSession {
-  id             String             @id @default(cuid())
+  id             String             @id @default(nanoid(12))
   organizationId String
   classId        String
   sessionDate    DateTime
@@ -518,7 +518,7 @@ model AttendanceRecord {
 }
 
 model Invoice {
-  id             String              @id @default(cuid())
+  id             String              @id @default(nanoid(12))
   organizationId String
   studentId      String
   invoiceNumber  String
@@ -563,7 +563,7 @@ model InvoiceLineItem {
 }
 
 model Payment {
-  id               String              @id @default(cuid())
+  id               String              @id @default(nanoid(12))
   organizationId   String
   studentId        String
   receiptNumber    String
