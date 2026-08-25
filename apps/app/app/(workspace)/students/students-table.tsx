@@ -268,7 +268,7 @@ export function StudentsTable({
 
   return (
     <table.AppTable>
-      <CardFrame className="isolate after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background">
+      <CardFrame className="isolate overflow-visible! after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background">
         <Card className="min-h-0 flex-1 flex-col dark:bg-background">
           <CardContent className="flex min-h-0 flex-1 flex-col p-0">
             <div className="grid gap-3 p-4">
