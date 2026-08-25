@@ -124,11 +124,12 @@ export function DataTableFilterList() {
 
     return (
       <Input
-        className="h-8"
+        className="min-w-0"
         onChange={(event) =>
           updateFilter(filter.filterId as string, { value: event.target.value })
         }
         placeholder={`Search ${columnLabel}...`}
+        size="sm"
         type="text"
         value={(filter.value ?? "") as string}
       />
@@ -166,7 +167,8 @@ export function DataTableFilterList() {
           >
             <SelectTrigger
               aria-label="Select join operator"
-              className="h-8 min-w-none"
+              className="min-w-none"
+              size="sm"
             >
               <SelectValue />
             </SelectTrigger>
@@ -189,7 +191,11 @@ export function DataTableFilterList() {
           }}
           value={filter.id}
         >
-          <SelectTrigger aria-label="Select filter field" className="h-8 min-w-none">
+          <SelectTrigger
+            aria-label="Select filter field"
+            className="min-w-none"
+            size="sm"
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectPopup>
@@ -215,7 +221,11 @@ export function DataTableFilterList() {
           }}
           value={(filter.operator ?? operators[0].value) as FilterOperator}
         >
-          <SelectTrigger aria-label="Select filter operator" className="h-8 min-w-none">
+          <SelectTrigger
+            aria-label="Select filter operator"
+            className="min-w-none"
+            size="sm"
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectPopup>
@@ -262,7 +272,7 @@ export function DataTableFilterList() {
       </PopoverTrigger>
       <PopoverPopup
         align="start"
-        className="flex w-[min(40rem,calc(100vw-2rem))] flex-col gap-3 p-4"
+        className="flex w-[min(40rem,calc(100vw-2rem))] flex-col gap-2 p-3"
       >
         <div className="flex flex-col gap-1">
           <h4 className="font-medium leading-none">Filters</h4>

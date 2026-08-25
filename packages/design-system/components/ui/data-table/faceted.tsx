@@ -108,9 +108,10 @@ export function Faceted({
           <Button
             aria-label={placeholder}
             className={cn(
-              "h-8 w-full justify-between gap-2 font-normal",
+              "min-w-0 w-full justify-between gap-2 font-normal",
               triggerClassName
             )}
+            size="sm"
             variant="outline"
           />
         }
