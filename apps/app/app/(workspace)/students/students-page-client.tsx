@@ -37,43 +37,30 @@ import {
 } from "./student-detail-content";
 import { StudentsTable } from "./students-table";
 
-type FilterOption = {
-  label: string;
-  value: string;
-};
-
 type StudentsPageClientProps = {
   activeStudents: number;
-  classOptions: FilterOption[];
   currency: string;
   defaultStudentDetail: StudentDetail | null;
-  genderOptions: FilterOption[];
   initialData: Student[];
   initialTotalCount: number;
-  levelOptions: FilterOption[];
   monthLabel: string;
   newStudentsThisMonth: number;
   outstandingSen: number;
   studentsWithOutstanding: number;
   totalStudents: number;
-  tutorOptions: FilterOption[];
 };
 
 export function StudentsPageClient({
   activeStudents,
-  classOptions,
   currency,
   defaultStudentDetail,
-  genderOptions,
   initialData,
   initialTotalCount,
-  levelOptions,
   monthLabel,
   newStudentsThisMonth,
   outstandingSen,
   studentsWithOutstanding,
   totalStudents,
-  tutorOptions,
 }: StudentsPageClientProps) {
   const formatMoney = (amountSen: number) =>
     formatMoneyShared(amountSen, { currency });
@@ -172,13 +159,9 @@ export function StudentsPageClient({
         </AnimatePresence>
 
         <StudentsTable
-          classOptions={classOptions}
-          genderOptions={genderOptions}
           initialData={initialData}
           initialTotalCount={initialTotalCount}
-          levelOptions={levelOptions}
           onRowClick={(studentId) => onSelectStudent(studentId)}
-          tutorOptions={tutorOptions}
         />
       </section>
 

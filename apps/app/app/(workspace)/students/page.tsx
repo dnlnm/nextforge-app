@@ -8,11 +8,7 @@ import { PlusIcon, UploadIcon } from "lucide-react";
 import Link from "next/link";
 import { getOrganizationCurrency } from "@/lib/currency";
 import { Header } from "../components/header";
-import {
-  getStudentDetail,
-  getStudentFilterOptions,
-  getStudentsForTable,
-} from "./actions";
+import { getStudentDetail, getStudentsForTable } from "./actions";
 import { KpiToggleButton, KpiVisibilityProvider } from "./kpi-visibility";
 import { StudentsPageClient } from "./students-page-client";
 
@@ -38,7 +34,6 @@ const StudentsPage = async () => {
     newStudentsThisMonth,
     outstanding,
     initialTableData,
-    filterOptions,
   ] = await Promise.all([
     getOrganizationCurrency(tenant.organizationId),
     database.student.count({
@@ -71,7 +66,6 @@ const StudentsPage = async () => {
       page: 0,
       pageSize: 10,
     }),
-    getStudentFilterOptions(),
   ]);
 
   // Fields set by InvoiceStatus.PAID/voided rows never factor into outstanding
@@ -137,19 +131,15 @@ const StudentsPage = async () => {
 
         <StudentsPageClient
           activeStudents={activeStudents}
-          classOptions={filterOptions.classes}
           currency={currency}
           defaultStudentDetail={defaultStudentDetail}
-          genderOptions={filterOptions.genders}
           initialData={initialTableData.data}
           initialTotalCount={initialTableData.totalCount}
-          levelOptions={filterOptions.levels}
           monthLabel={formatMonthShort(today)}
           newStudentsThisMonth={newStudentsThisMonth}
           outstandingSen={totalOutstandingSen}
           studentsWithOutstanding={studentsWithInvoiceBalance.length}
           totalStudents={totalStudents}
-          tutorOptions={filterOptions.tutors}
         />
       </main>
     </KpiVisibilityProvider>

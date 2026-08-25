@@ -1,8 +1,5 @@
 "use client";
 
-import { DataTableColumnHeader } from "@repo/design-system/components/niko-table/components/data-table-column-header";
-import { DataTableColumnTitle } from "@repo/design-system/components/niko-table/components/data-table-column-title";
-import type { DataTableColumnDef } from "@repo/design-system/components/niko-table/types";
 import { Button } from "@repo/design-system/components/ui/button";
 import { Checkbox } from "@repo/design-system/components/ui/checkbox";
 import {
@@ -12,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@repo/design-system/components/ui/dropdown-menu";
 import { privateFileUrl } from "@repo/storage/client";
+import type { ColumnDef } from "@tanstack/react-table";
 import {
   ArchiveIcon,
   EyeIcon,
@@ -39,26 +37,12 @@ export type Student = {
   level: {
     name: string;
   } | null;
-  class?: never;
-  tutor?: never;
   guardians: Array<{
     guardian: {
       phone: string | null;
     };
   }>;
 };
-
-export interface FilterOption {
-  label: string;
-  value: string;
-}
-
-interface StudentColumnOptions {
-  classOptions: FilterOption[];
-  genderOptions: FilterOption[];
-  levelOptions: FilterOption[];
-  tutorOptions: FilterOption[];
-}
 
 export const StudentRowActions = ({ student }: { student: Student }) => {
   const [isArchiveOpen, setIsArchiveOpen] = useState(false);
@@ -135,21 +119,10 @@ export const StudentRowActions = ({ student }: { student: Student }) => {
 };
 
 /**
- * Column set for the students table. Built per-render-input because the
- * advanced filter reads filter options from column `meta` (auto-generated
- * options would only cover the current server-side page).
- *
- * `class` and `tutor` are filter-only columns: they have no backing field on
- * the Student row (the server maps them to enrollment queries), so they are
- * hidden from the grid via `initialState.columnVisibility` but stay visible to
- * the filter menu, which lists every column with `enableColumnFilter`.
+ * Column set for the students table. Sorting is server-side; only the columns
+ * the server can order by (`fullName`, `academicLevel`, `status`) are sortable.
  */
-export const getStudentColumns = ({
-  classOptions,
-  genderOptions,
-  levelOptions,
-  tutorOptions,
-}: StudentColumnOptions): DataTableColumnDef<Student>[] => [
+export const getStudentColumns = (): ColumnDef<Student>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -168,16 +141,12 @@ export const getStudentColumns = ({
       />
     ),
     enableSorting: false,
-    enableHiding: false,
+    size: 28,
   },
   {
     accessorKey: "fullName",
     size: 280,
-    header: () => (
-      <DataTableColumnHeader>
-        <DataTableColumnTitle />
-      </DataTableColumnHeader>
-    ),
+    header: "Student",
     cell: ({ row }) => {
       return (
         <div className="flex max-w-full items-center gap-3">
@@ -201,105 +170,36 @@ export const getStudentColumns = ({
         </div>
       );
     },
-    meta: {
-      label: "Student",
-      variant: "text",
-    },
-    enableColumnFilter: true,
-    enableHiding: false,
   },
   {
     accessorKey: "academicLevel",
-    header: () => (
-      <DataTableColumnHeader>
-        <DataTableColumnTitle />
-      </DataTableColumnHeader>
-    ),
+    size: 160,
+    header: "Level/Year",
     cell: ({ row }) => row.original.level?.name ?? "-",
-    meta: {
-      label: "Level/Year",
-      options: levelOptions,
-      variant: "multiSelect",
-    },
-    enableColumnFilter: true,
-    enableHiding: false,
   },
   {
     accessorKey: "status",
-    header: () => (
-      <DataTableColumnHeader>
-        <DataTableColumnTitle />
-      </DataTableColumnHeader>
-    ),
-    cell: ({ row }) => (
-      <StudentStatusBadge status={row.original.status} />
-    ),
-    meta: {
-      label: "Status",
-      options: [
-        { label: "Active", value: "ACTIVE" },
-        { label: "Archived", value: "ARCHIVED" },
-      ],
-      variant: "select",
-    },
-    enableColumnFilter: true,
-    enableHiding: false,
+    size: 140,
+    header: "Status",
+    cell: ({ row }) => <StudentStatusBadge status={row.original.status} />,
   },
   {
     accessorKey: "gender",
-    header: () => (
-      <DataTableColumnHeader>
-        <DataTableColumnTitle />
-      </DataTableColumnHeader>
-    ),
+    size: 120,
+    header: "Gender",
     cell: ({ row }) => {
       const gender = row.original.gender;
       return gender
         ? gender.charAt(0).toUpperCase() + gender.slice(1).toLowerCase()
         : "-";
     },
-    meta: {
-      label: "Gender",
-      options: genderOptions,
-      variant: "multiSelect",
-    },
-    enableColumnFilter: true,
-    enableHiding: false,
+    enableSorting: false,
   },
   {
     id: "actions",
+    size: 80,
     header: () => <div className="text-right">Actions</div>,
     cell: ({ row }) => <StudentRowActions student={row.original} />,
     enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    id: "class",
-    header: () => null,
-    cell: () => null,
-    meta: {
-      label: "Class",
-      options: classOptions,
-      variant: "multiSelect",
-    },
-    enableColumnFilter: true,
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    id: "tutor",
-    header: () => null,
-    cell: () => null,
-    meta: {
-      label: "Tutor",
-      options: tutorOptions,
-      variant: "multiSelect",
-    },
-    enableColumnFilter: true,
-    enableSorting: false,
-    enableHiding: false,
   },
 ];
-
-/** Filter-only columns never rendered in the grid. */
-export const studentHiddenColumns = { class: false, tutor: false };

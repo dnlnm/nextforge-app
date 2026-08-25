@@ -1,35 +1,43 @@
 ﻿"use client";
 
-import { DataTableClearFilter } from "@repo/design-system/components/niko-table/components/data-table-clear-filter";
-import { DataTableFilterMenu } from "@repo/design-system/components/niko-table/components/data-table-filter-menu";
-import { DataTablePagination } from "@repo/design-system/components/niko-table/components/data-table-pagination";
-import { DataTableSearchFilter } from "@repo/design-system/components/niko-table/components/data-table-search-filter";
-import { DataTableToolbarSection } from "@repo/design-system/components/niko-table/components/data-table-toolbar-section";
-import { DataTable } from "@repo/design-system/components/niko-table/core/data-table";
-import { DataTableRoot } from "@repo/design-system/components/niko-table/core/data-table-root";
+import { Button } from "@repo/design-system/components/ui/button";
 import {
-  DataTableBody,
-  DataTableEmptyBody,
-  DataTableHeader,
-  DataTableSkeleton,
-} from "@repo/design-system/components/niko-table/core/data-table-structure";
+  CardFrame,
+  CardFrameFooter,
+} from "@repo/design-system/components/ui/card";
+import { Input } from "@repo/design-system/components/ui/input";
 import {
-  normalizeFiltersFromUrl,
-  serializeFiltersForUrl,
-} from "@repo/design-system/components/niko-table/filters/table-filter-menu";
-import type {
-  ExtendedColumnFilter,
-  GlobalFilter,
-} from "@repo/design-system/components/niko-table/types";
-import { CardContent } from "@repo/design-system/components/ui/card";
-import { CardShell } from "@repo/design-system/components/ui/card-shell";
-import type { StudentTableFilter } from "@repo/schemas/students";
-import { studentTableFilterSchema } from "@repo/schemas/students";
-import type {
-  ColumnFiltersState,
-  PaginationState,
-  Updater,
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "@repo/design-system/components/ui/pagination";
+import {
+  Select,
+  SelectItem,
+  SelectPopup,
+  SelectTrigger,
+  SelectValue,
+} from "@repo/design-system/components/ui/select";
+import { Skeleton } from "@repo/design-system/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@repo/design-system/components/ui/table";
+import { sortingSchema } from "@repo/schemas/common";
+import {
+  flexRender,
+  getCoreRowModel,
+  type Header,
+  type SortingState,
+  useReactTable,
 } from "@tanstack/react-table";
+import { ChevronDownIcon, ChevronUpIcon, SearchIcon } from "lucide-react";
 import {
   parseAsInteger,
   parseAsJson,
@@ -37,99 +45,67 @@ import {
   useQueryStates,
 } from "nuqs";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { z } from "zod";
 import { DataTableMobileCards } from "../../../components/data-table-mobile-cards";
 import type { StudentsQueryParams } from "./actions";
 import { getStudentsForTable } from "./actions";
-import {
-  type FilterOption,
-  getStudentColumns,
-  type Student,
-  studentHiddenColumns,
-} from "./columns";
+import { getStudentColumns, type Student } from "./columns";
 import { StudentCard } from "./student-card";
 
 interface StudentsTableProps {
-  classOptions: FilterOption[];
-  genderOptions: FilterOption[];
   initialData: Student[];
   initialTotalCount: number;
-  levelOptions: FilterOption[];
   onRowClick?: (studentId: string) => void;
-  tutorOptions: FilterOption[];
 }
+
+// Stable keys for the 5 skeleton rows (bodies use index-free keys).
+const SKELETON_ROW_KEYS = ["a", "b", "c", "d", "e"] as const;
 
 export function StudentsTable({
   initialData,
   initialTotalCount,
-  classOptions,
-  tutorOptions,
-  genderOptions,
-  levelOptions,
   onRowClick,
 }: StudentsTableProps) {
   const [data, setData] = useState(initialData);
   const [totalCount, setTotalCount] = useState(initialTotalCount);
   const [isLoading, setIsLoading] = useState(false);
 
-  const columns = useMemo(
-    () =>
-      getStudentColumns({
-        classOptions,
-        genderOptions,
-        levelOptions,
-        tutorOptions,
-      }),
-    [classOptions, genderOptions, levelOptions, tutorOptions]
-  );
+  const columns = useMemo(() => getStudentColumns(), []);
 
-  // URL state management. Filters are niko-table advanced-filter rules
-  // (ExtendedColumnFilter minus the regenerable filterId).
+  // URL state: server-side pagination + sorting + debounced search.
   const [urlParams, setUrlParams] = useQueryStates(
     {
       page: parseAsInteger.withDefault(0),
       pageSize: parseAsInteger.withDefault(10),
       search: parseAsString.withDefault(""),
-      filters: parseAsJson((value) => {
-        const parsed = z.array(studentTableFilterSchema).safeParse(value);
+      sorting: parseAsJson((value) => {
+        const parsed = sortingSchema.safeParse(value);
         return parsed.success ? parsed.data : [];
-      }).withDefault([] as StudentTableFilter[]),
+      }).withDefault([] as SortingState),
     },
     { history: "replace" }
   );
 
-  // Derive table state from URL. columnFilters only feeds UI that reads table
-  // state (Reset button visibility, empty-state copy); the filter menu is fully
-  // controlled and the server query is driven by the URL params directly.
-  const tableState = useMemo(
-    () => ({
-      pagination: {
-        pageIndex: urlParams.page,
-        pageSize: urlParams.pageSize,
-      },
-      columnFilters: urlParams.filters.map((filter) => ({
-        id: filter.id,
-        value: filter,
-      })),
-      globalFilter: urlParams.search,
-    }),
-    [urlParams]
-  );
+  const pageCount = Math.max(1, Math.ceil(totalCount / urlParams.pageSize));
 
-  // The menu expects ExtendedColumnFilter (with filterId); regenerate the ids
-  // deterministically from the serialized rules.
-  const menuFilters = useMemo(
-    () =>
-      normalizeFiltersFromUrl(
-        urlParams.filters as unknown as ExtendedColumnFilter<Student>[]
-      ),
-    [urlParams.filters]
-  );
+  const table = useReactTable({
+    columns,
+    data,
+    getCoreRowModel: getCoreRowModel(),
+    getRowId: (row) => row.id,
+    manualPagination: true,
+    manualSorting: true,
+    pageCount,
+    state: {
+      sorting: urlParams.sorting,
+    },
+    onSortingChange: (updater) => {
+      const next =
+        typeof updater === "function" ? updater(urlParams.sorting) : updater;
+      setUrlParams({ sorting: next, page: 0 });
+    },
+  });
 
-  // Fetch data when URL params change. A request id guards against out-of-order
-  // responses (the newest request always wins), and the search term is debounced
-  // so the DB isn't hammered on every keystroke.
-  const requestIdRef = useRef(0);
+  // Debounce the search term before hitting the server.
   const [debouncedSearch, setDebouncedSearch] = useState(urlParams.search);
 
   useEffect(() => {
@@ -140,6 +116,9 @@ export function StudentsTable({
     return () => window.clearTimeout(handle);
   }, [urlParams.search]);
 
+  // A request id guards against out-of-order responses (newest wins).
+  const requestIdRef = useRef(0);
+
   const fetchStudents = useCallback(async () => {
     const requestId = ++requestIdRef.current;
     setIsLoading(true);
@@ -148,13 +127,13 @@ export function StudentsTable({
         page: urlParams.page,
         pageSize: urlParams.pageSize,
         search: debouncedSearch || undefined,
-        filters: urlParams.filters.length > 0 ? urlParams.filters : undefined,
+        sorting: urlParams.sorting.length > 0 ? urlParams.sorting : undefined,
       };
 
       const result = await getStudentsForTable(params);
 
       if (requestId !== requestIdRef.current) {
-        return; // A newer request superseded this one.
+        return;
       }
       setData(result.data);
       setTotalCount(result.totalCount);
@@ -171,8 +150,8 @@ export function StudentsTable({
     fetchStudents();
   }, [fetchStudents]);
 
-  // Re-fetch when the server-side data changes (e.g. a student was archived
-  // or deleted and the page was refreshed via revalidatePath).
+  // Re-fetch when the server-side data changes (e.g. a student was archived,
+  // deleted, or the page was refreshed via revalidatePath).
   const prevTotalCount = useRef(initialTotalCount);
 
   useEffect(() => {
@@ -182,134 +161,232 @@ export function StudentsTable({
     }
   }, [fetchStudents, initialTotalCount]);
 
-  // State update handlers
-  const handlePaginationChange = useCallback(
-    (updater: Updater<PaginationState>) => {
-      const newPagination =
-        typeof updater === "function"
-          ? updater(tableState.pagination)
-          : updater;
-      setUrlParams({
-        page: newPagination.pageIndex,
-        pageSize: newPagination.pageSize,
-      });
-    },
-    [tableState.pagination, setUrlParams]
+  const setPageIndex = (index: number) => {
+    setUrlParams({ page: Math.max(0, Math.min(index, pageCount - 1)) });
+  };
+
+  const handleRowClick = (row: Student) => {
+    onRowClick?.(row.id);
+  };
+
+  const rangeOptions = useMemo(
+    () =>
+      Array.from({ length: pageCount }, (_, index) => {
+        const start = index * urlParams.pageSize + 1;
+        const end = Math.min((index + 1) * urlParams.pageSize, totalCount);
+        return { label: `${start}-${end}`, value: index + 1 };
+      }),
+    [pageCount, totalCount, urlParams.pageSize]
   );
 
-  // Advanced-filter rule edits (controlled menu).
-  const handleFiltersChange = useCallback(
-    (next: ExtendedColumnFilter<Student>[] | null) => {
-      setUrlParams({
-        filters: next
-          ? (serializeFiltersForUrl(next) as StudentTableFilter[])
-          : [],
-        page: 0,
-      });
-    },
-    [setUrlParams]
-  );
+  const renderHeaderContent = (header: Header<Student, unknown>) => {
+    if (header.isPlaceholder) {
+      return null;
+    }
 
-  // Table-state writers (the Reset button) route here; convert back to the
-  // extended rule shape stored in the URL.
-  const handleColumnFiltersChange = useCallback(
-    (updater: Updater<ColumnFiltersState>) => {
-      const newFilters =
-        typeof updater === "function"
-          ? updater(tableState.columnFilters)
-          : updater;
-      const rules = newFilters
-        .map((cf) =>
-          cf.value && typeof cf.value === "object" && "operator" in cf.value
-            ? (cf.value as StudentTableFilter)
-            : null
-        )
-        .filter((rule): rule is StudentTableFilter => rule !== null);
-      setUrlParams({ filters: rules, page: 0 });
-    },
-    [tableState.columnFilters, setUrlParams]
-  );
+    if (!header.column.getCanSort()) {
+      return flexRender(header.column.columnDef.header, header.getContext());
+    }
 
-  const handleGlobalFilterChange = useCallback(
-    (value: GlobalFilter) => {
-      if (typeof value === "string") {
-        setUrlParams({ search: value, page: 0 }); // Reset to first page
-      }
-    },
-    [setUrlParams]
-  );
+    const isSorted = header.column.getIsSorted();
+    const sortIcons = {
+      asc: (
+        <ChevronUpIcon
+          aria-hidden="true"
+          className="size-4 shrink-0 opacity-80"
+        />
+      ),
+      desc: (
+        <ChevronDownIcon
+          aria-hidden="true"
+          className="size-4 shrink-0 opacity-80"
+        />
+      ),
+    };
+    const sortedIndicator = isSorted
+      ? sortIcons[isSorted as keyof typeof sortIcons]
+      : null;
 
-  const handleRowClick = useCallback(
-    (row: Student) => {
-      if (onRowClick) {
-        onRowClick(row.id);
-      }
-    },
-    [onRowClick]
-  );
+    return (
+      <button
+        className="flex h-full w-full cursor-pointer select-none items-center justify-between gap-2 text-left"
+        onClick={header.column.getToggleSortingHandler()}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            header.column.getToggleSortingHandler()?.(event);
+          }
+        }}
+        type="button"
+      >
+        {flexRender(header.column.columnDef.header, header.getContext())}
+        {sortedIndicator}
+      </button>
+    );
+  };
+
+  const renderBody = () => {
+    if (isLoading) {
+      return SKELETON_ROW_KEYS.map((key) => (
+        <TableRow key={key}>
+          {columns.map((column) => (
+            <TableCell key={column.id}>
+              <Skeleton className="h-5 w-full" />
+            </TableCell>
+          ))}
+        </TableRow>
+      ));
+    }
+
+    const rows = table.getRowModel().rows;
+
+    if (rows.length === 0) {
+      return (
+        <TableRow>
+          <TableCell className="h-24 text-center" colSpan={columns.length}>
+            No students found.
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    return rows.map((row) => (
+      <TableRow
+        className="cursor-pointer"
+        data-state={row.getIsSelected() ? "selected" : undefined}
+        key={row.id}
+        onClick={() => handleRowClick(row.original)}
+      >
+        {row.getVisibleCells().map((cell) => (
+          <TableCell key={cell.id}>
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </TableCell>
+        ))}
+      </TableRow>
+    ));
+  };
 
   return (
-    <CardShell>
-      <CardContent className="p-0">
-        <DataTableRoot
-          columns={columns}
-          config={{
-            manualPagination: true,
-            enableSorting: false,
-            manualFiltering: true,
-            pageCount: Math.ceil(totalCount / urlParams.pageSize),
-          }}
-          data={data}
-          getRowId={(row) => row.id}
-          initialState={{ columnVisibility: studentHiddenColumns }}
+    <CardFrame className="isolate after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background">
+      <div className="grid gap-4 p-4">
+        <div className="relative w-full max-w-sm">
+          <SearchIcon className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            className="pl-8"
+            onChange={(event) =>
+              setUrlParams({ search: event.target.value, page: 0 })
+            }
+            placeholder="Search students..."
+            type="search"
+            value={urlParams.search}
+          />
+        </div>
+      </div>
+
+      <div className="hidden overflow-x-auto px-4 md:block">
+        <Table className="table-fixed" variant="card">
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  const columnSize = header.column.getSize();
+                  return (
+                    <TableHead
+                      key={header.id}
+                      style={
+                        columnSize ? { width: `${columnSize}px` } : undefined
+                      }
+                    >
+                      {renderHeaderContent(header)}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>{renderBody()}</TableBody>
+        </Table>
+      </div>
+
+      <div className="px-4 md:hidden">
+        <DataTableMobileCards
+          emptyLabel="No students found"
+          getRowKey={(student) => student.id}
           isLoading={isLoading}
-          onColumnFiltersChange={handleColumnFiltersChange}
-          onGlobalFilterChange={handleGlobalFilterChange}
-          onPaginationChange={handlePaginationChange}
-          state={tableState}
-        >
-          <div className="grid gap-4 p-4">
-            <DataTableToolbarSection className="flex-col items-stretch sm:flex-row sm:items-center">
-              <DataTableSearchFilter
-                className="w-full sm:max-w-sm sm:flex-none"
-                placeholder="Search students..."
-              />
-              <div className="flex flex-wrap items-center gap-2">
-                <DataTableFilterMenu
-                  filters={menuFilters}
-                  onFiltersChange={handleFiltersChange}
+          items={data}
+          renderCard={(student) => (
+            <StudentCard onRowClick={handleRowClick} student={student} />
+          )}
+        />
+      </div>
+
+      <CardFrameFooter className="p-2">
+        <div className="flex items-center justify-between gap-2">
+          {/* Results range selector */}
+          <div className="flex items-center gap-2 whitespace-nowrap">
+            <p className="text-muted-foreground text-sm">Viewing</p>
+            <Select
+              items={rangeOptions}
+              onValueChange={(value) => setPageIndex((value as number) - 1)}
+              value={urlParams.page + 1}
+            >
+              <SelectTrigger
+                aria-label="Select result range"
+                className="w-fit min-w-none"
+                size="sm"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectPopup>
+                {rangeOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectPopup>
+            </Select>
+            <p className="text-muted-foreground text-sm">
+              of{" "}
+              <strong className="font-medium text-foreground">
+                {totalCount}
+              </strong>{" "}
+              results
+            </p>
+          </div>
+
+          {/* Pagination */}
+          <Pagination className="justify-end">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  className="sm:*:[svg]:hidden"
+                  render={
+                    <Button
+                      disabled={urlParams.page === 0}
+                      onClick={() => setPageIndex(urlParams.page - 1)}
+                      size="sm"
+                      variant="outline"
+                    />
+                  }
                 />
-              </div>
-            </DataTableToolbarSection>
-          </div>
-
-          <div className="hidden overflow-x-auto px-4 md:block">
-            <DataTable aria-label="Students">
-              <DataTableHeader />
-              <DataTableBody onRowClick={handleRowClick}>
-                <DataTableSkeleton />
-                <DataTableEmptyBody />
-              </DataTableBody>
-            </DataTable>
-          </div>
-
-          <div className="px-4 md:hidden">
-            <DataTableMobileCards
-              emptyLabel="No students found"
-              getRowKey={(student) => student.id}
-              isLoading={isLoading}
-              items={data}
-              renderCard={(student) => (
-                <StudentCard onRowClick={handleRowClick} student={student} />
-              )}
-            />
-          </div>
-
-          <div className="px-4 pb-4">
-            <DataTablePagination totalCount={totalCount} />
-          </div>
-        </DataTableRoot>
-      </CardContent>
-    </CardShell>
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationNext
+                  className="sm:*:[svg]:hidden"
+                  render={
+                    <Button
+                      disabled={urlParams.page >= pageCount - 1}
+                      onClick={() => setPageIndex(urlParams.page + 1)}
+                      size="sm"
+                      variant="outline"
+                    />
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      </CardFrameFooter>
+    </CardFrame>
   );
 }
