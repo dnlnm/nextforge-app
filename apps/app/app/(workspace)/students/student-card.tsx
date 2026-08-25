@@ -17,7 +17,7 @@ export function StudentCard({
 }) {
   return (
     <Card
-      className="cursor-pointer p-4 transition-colors hover:bg-muted/30"
+      className="isolate cursor-pointer p-4 transition-colors after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 hover:bg-muted/30 dark:bg-background"
       onClick={() => onRowClick?.(student)}
     >
       <div className="flex items-center gap-3">

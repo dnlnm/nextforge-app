@@ -1,6 +1,5 @@
 "use client";
 
-import { Card } from "@repo/design-system/components/ui/card";
 import {
   Drawer,
   DrawerDescription,
@@ -10,13 +9,15 @@ import {
   DrawerTitle,
 } from "@repo/design-system/components/ui/drawer";
 import {
+  Stat,
   StatDescription,
+  StatFooter,
   StatIndicator,
   StatLabel,
+  StatPanel,
   StatValue,
 } from "@repo/design-system/components/ui/stat";
 import { EASE, INSTANT } from "@repo/design-system/lib/motion";
-import { cn } from "@repo/design-system/lib/utils";
 import { formatMoneyWhole as formatMoneyShared } from "@repo/money";
 import {
   LandmarkIcon,
@@ -103,7 +104,7 @@ export function StudentsPageClient({
           {showKpis && (
             <motion.section
               animate={{ opacity: 1, height: "auto", marginBottom: "1.25rem" }}
-              className="grid grid-cols-2 gap-3 overflow-hidden xl:grid-cols-4"
+              className="grid grid-cols-2 gap-5 overflow-hidden py-1.5 xl:grid-cols-4"
               exit={{ opacity: 0, height: 0, marginBottom: 0 }}
               initial={{ opacity: 0, height: 0, marginBottom: 0 }}
               transition={reduced ? INSTANT : { duration: 0.28, ease: EASE }}
@@ -145,43 +146,26 @@ export function StudentsPageClient({
                   value: formatMoney(outstandingSen),
                 },
               ].map((stat) => (
-                <div
-                  className={cn(
-                    "relative h-full rounded-xl border border-border/70 p-1"
-                  )}
+                <Stat
+                  className="isolate h-full after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background"
                   key={stat.label}
                 >
-                  <div className="relative h-full overflow-hidden rounded-lg">
-                    <div
-                      aria-hidden="true"
-                      className="absolute inset-1 z-0 rounded-sm"
-                      style={{
-                        backgroundImage:
-                          "repeating-linear-gradient(45deg, transparent, transparent 2px, var(--border) 2px, var(--border) 4px)",
-                        opacity: 0.5,
-                      }}
-                    />
-                    <Card className="relative isolate z-10 h-full rounded-lg border-2 border-border bg-transparent shadow-none before:hidden">
-                      <div className="grid flex-1 grid-cols-[auto_1fr] gap-x-3 gap-y-2 p-4 **:data-[slot=stat-value]:col-span-2 **:data-[slot=stat-indicator]:col-start-1 **:data-[slot=stat-label]:col-start-2 **:data-[slot=stat-indicator]:row-start-1 **:data-[slot=stat-label]:row-start-1 **:data-[slot=stat-value]:row-start-2 **:data-[slot=stat-indicator]:self-center **:data-[slot=stat-label]:self-center max-md:p-3">
-                        <StatLabel>{stat.label}</StatLabel>
-                        <StatIndicator color={stat.color} variant="stacked">
-                          <stat.icon />
-                        </StatIndicator>
-                        <StatValue>{stat.value}</StatValue>
-                      </div>
-                      <div className="flex flex-col items-start gap-2 px-4 py-3 max-md:px-3 max-md:py-2">
-                        <StatDescription className="min-w-0 flex-1">
-                          {stat.detail}
-                        </StatDescription>
-                      </div>
-                    </Card>
-                  </div>
+                  <StatPanel className="dark:bg-background">
+                    <StatLabel>{stat.label}</StatLabel>
+                    <StatIndicator color={stat.color} variant="stacked">
+                      <stat.icon />
+                    </StatIndicator>
+                    <StatValue>{stat.value}</StatValue>
+                  </StatPanel>
+                  <StatFooter>
+                    <StatDescription>{stat.detail}</StatDescription>
+                  </StatFooter>
                   <Link
                     aria-label={stat.label}
-                    className="absolute inset-0 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    className="absolute inset-0 rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     href={stat.href}
                   />
-                </div>
+                </Stat>
               ))}
             </motion.section>
           )}
