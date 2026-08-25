@@ -294,3 +294,5 @@ apps/mobile/android/
 
 # reference codes
 /ref_code/
+# Playwright MCP session artifacts
+/.playwright-mcp/
