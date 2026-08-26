@@ -73,7 +73,7 @@ export function DataTableSortList() {
       </PopoverTrigger>
       <PopoverPopup
         align="start"
-        className="flex min-w-72 max-w-[26rem] flex-col gap-3 p-4"
+        className="flex w-[min(26rem,calc(100vw-2rem))] flex-col gap-2 p-3"
       >
         <div className="flex flex-col gap-1">
           <h4 className="font-medium leading-none">
@@ -93,7 +93,7 @@ export function DataTableSortList() {
               const columnLabel = column?.columnDef.meta?.label ?? sort.id;
               return (
                 <div
-                  className="grid grid-cols-[minmax(0,1fr)_6rem_2rem] items-center gap-2"
+                  className="grid grid-cols-[minmax(0,1fr)_5rem_2rem] items-center gap-2"
                   key={sort.id}
                 >
                   <Select
@@ -122,7 +122,11 @@ export function DataTableSortList() {
                     }}
                     value={sort.id}
                   >
-                    <SelectTrigger aria-label="Select column to sort by" className="h-8">
+                    <SelectTrigger
+                      aria-label="Select column to sort by"
+                      className="min-w-none"
+                      size="sm"
+                    >
                       <SelectValue />
                     </SelectTrigger>
                     <SelectPopup>
@@ -155,7 +159,8 @@ export function DataTableSortList() {
                   >
                     <SelectTrigger
                       aria-label={`Sort direction for ${columnLabel}`}
-                      className="h-8"
+                      className="min-w-none"
+                      size="sm"
                     >
                       <SelectValue />
                     </SelectTrigger>
@@ -180,7 +185,7 @@ export function DataTableSortList() {
           </div>
         ) : null}
 
-        <div className="flex items-center gap-2">
+        <div className="mt-2 flex items-center gap-2">
           <Button
             disabled={sorting.length >= sortableColumns.length}
             onClick={addSort}
