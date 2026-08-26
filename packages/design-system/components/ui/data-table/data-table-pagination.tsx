@@ -33,9 +33,9 @@ export function DataTablePagination() {
   }, [pageCount, pageSize, totalCount]);
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 gap-y-2">
+    <div className="flex items-center justify-between gap-2">
       {/* Results range selector */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex items-center gap-2 whitespace-nowrap">
         <p className="text-muted-foreground text-sm">Viewing</p>
         <Select
           items={rangeOptions}
@@ -44,10 +44,10 @@ export function DataTablePagination() {
         >
           <SelectTrigger
             aria-label="Select result range"
-            className="w-auto min-w-[5rem] shrink-0"
+            className="min-w-[4.5rem] shrink-0"
             size="sm"
           >
-            <SelectValue className="flex-none" />
+            <SelectValue className="flex-none overflow-visible whitespace-nowrap" />
           </SelectTrigger>
           <SelectPopup>
             {rangeOptions.map((option) => (
