@@ -9,7 +9,15 @@ import {
   differenceInMalaysiaCalendarDays,
 } from "@repo/date";
 import { sendTeacherInvitation } from "@repo/email/teacher-invite";
+import { parseMoneyToSen } from "@repo/money";
+import {
+  type Gender,
+  genders,
+  type TeacherEmploymentType,
+  teacherEmploymentTypes,
+} from "@repo/schemas/enums";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { assertWithinPlanLimit } from "../billing/limits";
 
 const getString = (formData: FormData, key: string) => {
@@ -17,6 +25,9 @@ const getString = (formData: FormData, key: string) => {
 
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 };
+
+const genderSet = new Set<string>(genders);
+const employmentTypeSet = new Set<string>(teacherEmploymentTypes);
 
 const formatCode = (prefix: string, sequence: number) =>
   `${prefix}${String(sequence).padStart(4, "0")}`;
@@ -30,36 +41,134 @@ export const getNextTeacherCode = async () => {
   return formatCode("TCH", count + 1);
 };
 
-export const createTeacher = async (formData: FormData) => {
+export const createTeacher = async (
+  formData: FormData
+): Promise<{ error?: string }> => {
   const tenant = await requireTenantRole(["ADMIN"]);
-  const fullName = getString(formData, "fullName");
+  const parsed = parseTeacherCreateInput(formData);
 
-  if (!fullName) {
-    throw new Error("Teacher name is required.");
+  if ("error" in parsed) {
+    return { error: parsed.error };
   }
 
-  await assertWithinPlanLimit({
-    organizationId: tenant.organizationId,
-    resource: "teachers",
-    userId: tenant.authUserId,
-  });
+  const { email, fullName, sendInvite, data } = parsed.fields;
+
+  if (sendInvite) {
+    const existingInvite = await database.teacherInvitation.findFirst({
+      where: {
+        organizationId: tenant.organizationId,
+        email,
+        status: "PENDING",
+      },
+      select: { id: true },
+    });
+
+    if (existingInvite) {
+      return { error: "A teacher with this email has already been invited." };
+    }
+  }
+
+  try {
+    await assertWithinPlanLimit({
+      organizationId: tenant.organizationId,
+      resource: "teachers",
+      userId: tenant.authUserId,
+    });
+  } catch {
+    return { error: "Teacher limit reached for your plan." };
+  }
 
   const count = await database.teacherProfile.count({
     where: { organizationId: tenant.organizationId },
   });
 
-  await database.teacherProfile.create({
+  const created = await database.teacherProfile.create({
     data: {
+      ...data,
       organizationId: tenant.organizationId,
-      email: getString(formData, "email"),
-      fullName,
       code: formatCode("TCH", count + 1),
-      phone: getString(formData, "phone"),
-      notes: getString(formData, "notes"),
     },
+    select: { id: true },
   });
 
+  if (sendInvite) {
+    await createInvitationAndNotify(tenant, email, fullName);
+  }
+
   revalidatePath("/teachers");
+  redirect(`/teachers/${created.id}`);
+};
+
+interface ParsedTeacherFields {
+  data: Omit<
+    Prisma.TeacherProfileUncheckedCreateInput,
+    "code" | "organizationId"
+  >;
+  email: string;
+  fullName: string;
+  sendInvite: boolean;
+}
+
+const parseTeacherCreateInput = (
+  formData: FormData
+): { error: string } | { fields: ParsedTeacherFields } => {
+  const firstName = getString(formData, "firstName");
+  const lastName = getString(formData, "lastName");
+  const fullName =
+    [firstName, lastName].filter(Boolean).join(" ").trim() ||
+    getString(formData, "fullName");
+  const email = parseEmail(getString(formData, "email"));
+  const phone = getString(formData, "phone");
+
+  if (!fullName) {
+    return { error: "Teacher name is required." };
+  }
+
+  if (!email) {
+    return { error: "A valid email address is required." };
+  }
+
+  if (!phone) {
+    return { error: "Phone number is required." };
+  }
+
+  const gender = getString(formData, "gender");
+  const employmentType = getString(formData, "employmentType");
+  const salarySen = parseMoneyToSen(getString(formData, "salary"));
+  const hourlyRateSen = parseMoneyToSen(getString(formData, "hourlyRate"));
+
+  if (getString(formData, "salary") && salarySen === undefined) {
+    return { error: "Enter a valid monthly salary." };
+  }
+
+  if (getString(formData, "hourlyRate") && hourlyRateSen === undefined) {
+    return { error: "Enter a valid hourly rate." };
+  }
+
+  return {
+    fields: {
+      data: {
+        email,
+        fullName,
+        gender:
+          gender && genderSet.has(gender) ? (gender as Gender) : undefined,
+        qualification: getString(formData, "qualification"),
+        salarySen,
+        hourlyRateSen,
+        photoKey: getString(formData, "photoKey"),
+        icNumber: getString(formData, "icNumber"),
+        employmentType:
+          employmentType && employmentTypeSet.has(employmentType)
+            ? (employmentType as TeacherEmploymentType)
+            : undefined,
+        phone,
+        notes: getString(formData, "notes"),
+      },
+      email,
+      fullName,
+      sendInvite: getString(formData, "sendInvite") === "on",
+    },
+  };
 };
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -76,34 +185,16 @@ const parseEmail = (value: string | undefined) => {
 
 const INVITATION_TTL_DAYS = 7;
 
-export const inviteTeacher = async (formData: FormData) => {
-  const tenant = await requireTenantRole(["ADMIN"]);
-  const fullName = getString(formData, "fullName");
-  const email = parseEmail(getString(formData, "email"));
+interface TenantContext {
+  readonly organizationId: string;
+  readonly userId: string;
+}
 
-  if (!fullName) {
-    throw new Error("Teacher name is required.");
-  }
-
-  if (!email) {
-    throw new Error("A valid email address is required.");
-  }
-
-  await assertWithinPlanLimit({
-    organizationId: tenant.organizationId,
-    resource: "teachers",
-    userId: tenant.authUserId,
-  });
-
-  const existing = await database.teacherInvitation.findFirst({
-    where: { organizationId: tenant.organizationId, email, status: "PENDING" },
-    select: { id: true },
-  });
-
-  if (existing) {
-    throw new Error("A teacher with this email has already been invited.");
-  }
-
+const createInvitationAndNotify = async (
+  tenant: TenantContext,
+  email: string,
+  fullName: string
+) => {
   const token = randomBytes(32).toString("base64url");
   const expiresAt = addMalaysiaCalendarDays(new Date(), INVITATION_TTL_DAYS);
 
@@ -162,6 +253,37 @@ export const inviteTeacher = async (formData: FormData) => {
     inviteeName: fullName,
     organizationName: organization?.name ?? "your centre",
   });
+};
+
+export const inviteTeacher = async (formData: FormData) => {
+  const tenant = await requireTenantRole(["ADMIN"]);
+  const fullName = getString(formData, "fullName");
+  const email = parseEmail(getString(formData, "email"));
+
+  if (!fullName) {
+    throw new Error("Teacher name is required.");
+  }
+
+  if (!email) {
+    throw new Error("A valid email address is required.");
+  }
+
+  await assertWithinPlanLimit({
+    organizationId: tenant.organizationId,
+    resource: "teachers",
+    userId: tenant.authUserId,
+  });
+
+  const existing = await database.teacherInvitation.findFirst({
+    where: { organizationId: tenant.organizationId, email, status: "PENDING" },
+    select: { id: true },
+  });
+
+  if (existing) {
+    throw new Error("A teacher with this email has already been invited.");
+  }
+
+  await createInvitationAndNotify(tenant, email, fullName);
 
   revalidatePath("/teachers");
 };

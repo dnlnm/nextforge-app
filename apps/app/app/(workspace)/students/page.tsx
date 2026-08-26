@@ -9,11 +9,14 @@ import Link from "next/link";
 import { getOrganizationCurrency } from "@/lib/currency";
 import { Header } from "../components/header";
 import {
+  KpiToggleButton,
+  KpiVisibilityProvider,
+} from "../components/kpi-visibility";
+import {
   getStudentDetail,
   getStudentFilterOptions,
   getStudentsForTable,
 } from "./actions";
-import { KpiToggleButton, KpiVisibilityProvider } from "./kpi-visibility";
 import { StudentsPageClient } from "./students-page-client";
 
 const openInvoiceStatuses: InvoiceStatus[] = [

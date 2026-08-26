@@ -321,22 +321,29 @@ model StudentGuardian {
 }
 
 model TeacherProfile {
-  id             String          @id @default(nanoid(12))
+  id             String                 @id @default(nanoid(12))
   organizationId String
   branchId       String?
   code           String
   fullName       String
+  gender         Gender?
+  qualification  String?
+  salarySen      Int?
+  hourlyRateSen  Int?
+  photoKey       String?
+  icNumber       String?
+  employmentType TeacherEmploymentType?
   email          String?
   phone          String?
   notes          String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
   archivedAt     DateTime?
   userId         String?
   classes        LearningClass[]
-  branch         Branch?         @relation(fields: [branchId], references: [id])
-  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  User           User?           @relation(fields: [userId], references: [id])
+  branch         Branch?                @relation(fields: [branchId], references: [id])
+  organization   Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  User           User?                  @relation(fields: [userId], references: [id])
 
   @@unique([organizationId, code])
   @@index([organizationId, fullName])
@@ -759,6 +766,12 @@ enum Gender {
   MALE
   FEMALE
   OTHER
+}
+
+enum TeacherEmploymentType {
+  FULL_TIME
+  PART_TIME
+  FREELANCE
 }
 
 enum GuardianRelationship {

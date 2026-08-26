@@ -1012,7 +1012,7 @@ export const StudentCreateForm = ({
 
         <Collapsible>
           <CardFrame className="isolate after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background">
-            <CardFrameHeader className="flex-row items-center justify-between gap-4">
+            <CardFrameHeader className="grid-cols-[1fr_auto] items-center gap-4">
               <div className="flex items-center gap-3">
                 <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                   <MoreHorizontalIcon className="size-4 text-primary" />

@@ -28,9 +28,9 @@ import {
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useState } from "react";
+import { useKpiVisibility } from "../components/kpi-visibility";
 import { getStudentDetail } from "./actions";
 import type { Student } from "./columns";
-import { useKpiVisibility } from "./kpi-visibility";
 import {
   type StudentDetail,
   StudentDetailContent,

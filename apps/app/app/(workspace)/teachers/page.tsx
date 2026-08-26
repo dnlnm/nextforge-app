@@ -2,9 +2,13 @@ import { requireTenantRole } from "@repo/auth/authorization";
 import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { Button } from "@repo/design-system/components/ui/button";
-import { ChevronDownIcon, PlusIcon, SendIcon } from "lucide-react";
+import { PlusIcon, SendIcon } from "lucide-react";
 import Link from "next/link";
 import { Header } from "../components/header";
+import {
+  KpiToggleButton,
+  KpiVisibilityProvider,
+} from "../components/kpi-visibility";
 import { getTeachersForTable } from "./actions";
 import { PendingInvitations } from "./pending-invitations";
 import { TeachersPageClient } from "./teachers-page-client";
@@ -13,35 +17,35 @@ const TeachersPage = async () => {
   const tenant = await requireTenantRole(["ADMIN"]);
 
   const [teachers, archivedTeachers, initialTableData] = await Promise.all([
-      database.teacherProfile.findMany({
-        where: { organizationId: tenant.organizationId, archivedAt: null },
-        orderBy: { fullName: "asc" },
-        include: {
-          branch: true,
-          classes: {
-            where: { archivedAt: null },
-            include: {
-              branch: true,
-              enrollments: {
-                where: { archivedAt: null, status: "ACTIVE" },
-                select: { id: true },
-              },
-              subject: true,
+    database.teacherProfile.findMany({
+      where: { organizationId: tenant.organizationId, archivedAt: null },
+      orderBy: { fullName: "asc" },
+      include: {
+        branch: true,
+        classes: {
+          where: { archivedAt: null },
+          include: {
+            branch: true,
+            enrollments: {
+              where: { archivedAt: null, status: "ACTIVE" },
+              select: { id: true },
             },
+            subject: true,
           },
         },
-      }),
-      database.teacherProfile.count({
-        where: {
-          organizationId: tenant.organizationId,
-          archivedAt: { not: null },
-        },
-      }),
-      getTeachersForTable({
-        page: 0,
-        pageSize: 10,
-      }),
-    ]);
+      },
+    }),
+    database.teacherProfile.count({
+      where: {
+        organizationId: tenant.organizationId,
+        archivedAt: { not: null },
+      },
+    }),
+    getTeachersForTable({
+      page: 0,
+      pageSize: 10,
+    }),
+  ]);
 
   const assignedTeachers = teachers.filter(
     (teacher) => teacher.classes.length > 0
@@ -52,7 +56,7 @@ const TeachersPage = async () => {
   const totalTeachers = teachers.length + archivedTeachers;
 
   return (
-    <>
+    <KpiVisibilityProvider>
       <Header page="Teachers" pages={[`${appName}`]} />
       <main className="mx-auto grid w-full max-w-6xl gap-5 p-4 pt-4 [scrollbar-gutter:stable]">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
@@ -62,9 +66,9 @@ const TeachersPage = async () => {
               Manage teacher profiles, assignments, and contact details.
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex w-full gap-2 md:w-auto">
             <Button
-              className="flex-1 md:flex-none"
+              className="min-w-0 flex-1 md:flex-none"
               render={<Link href="/teachers/invite" />}
               variant="outline"
             >
@@ -73,16 +77,14 @@ const TeachersPage = async () => {
               <span className="sm:hidden">Invite</span>
             </Button>
             <Button
-              className="flex-1 md:flex-none"
+              className="min-w-0 flex-1 md:flex-none"
               render={<Link href="/teachers/new" />}
             >
               <PlusIcon className="size-4" />
               <span className="hidden sm:inline">Add Teacher</span>
               <span className="sm:hidden">Add</span>
             </Button>
-            <Button size="icon" variant="outline">
-              <ChevronDownIcon className="size-4" />
-            </Button>
+            <KpiToggleButton />
           </div>
         </div>
 
@@ -99,7 +101,7 @@ const TeachersPage = async () => {
           unassignedTeachers={unassignedTeachers.length}
         />
       </main>
-    </>
+    </KpiVisibilityProvider>
   );
 };
 

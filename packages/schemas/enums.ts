@@ -25,6 +25,16 @@ export const genders = ["MALE", "FEMALE", "OTHER"] as const;
 export const genderSchema = z.enum(genders);
 export type Gender = z.infer<typeof genderSchema>;
 
+export const teacherEmploymentTypes = [
+  "FULL_TIME",
+  "PART_TIME",
+  "FREELANCE",
+] as const;
+export const teacherEmploymentTypeSchema = z.enum(teacherEmploymentTypes);
+export type TeacherEmploymentType = z.infer<
+  typeof teacherEmploymentTypeSchema
+>;
+
 export const guardianRelationships = [
   "FATHER",
   "MOTHER",
