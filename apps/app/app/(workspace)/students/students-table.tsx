@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import { Button } from "@repo/design-system/components/ui/button";
 import {
   Card,
   CardContent,
@@ -28,7 +29,7 @@ import {
   studentTableFilterSchema,
 } from "@repo/schemas/students";
 import { flexRender } from "@tanstack/react-table";
-import { SearchIcon } from "lucide-react";
+import { RotateCcwIcon, SearchIcon } from "lucide-react";
 import {
   parseAsInteger,
   parseAsJson,
@@ -89,6 +90,11 @@ export function StudentsTable({
   );
 
   const pageCount = Math.max(1, Math.ceil(totalCount / urlParams.pageSize));
+
+  const hasActiveState =
+    urlParams.search !== "" ||
+    urlParams.filters.length > 0 ||
+    urlParams.sorting.length > 0;
 
   // Translate between the wire contract (StudentTableFilter, niko operator
   // names) and the UI filter state (ExtendedColumnFilter, v9 operator names).
@@ -286,6 +292,24 @@ export function StudentsTable({
                   />
                 </div>
                 <div className="flex items-center gap-2">
+                  {hasActiveState ? (
+                    <Button
+                      className="[&_svg]:size-3"
+                      onClick={() =>
+                        setUrlParams({
+                          filters: [],
+                          page: 0,
+                          search: "",
+                          sorting: [],
+                        })
+                      }
+                      size="sm"
+                      variant="outline"
+                    >
+                      <RotateCcwIcon aria-hidden="true" />
+                      Reset
+                    </Button>
+                  ) : null}
                   <table.FilterList />
                   <table.SortList />
                 </div>
