@@ -44,10 +44,10 @@ export function DataTablePagination() {
         >
           <SelectTrigger
             aria-label="Select result range"
-            className="min-w-[4.5rem] shrink-0"
+            className="w-fit min-w-none"
             size="sm"
           >
-            <SelectValue className="flex-none overflow-visible whitespace-nowrap" />
+            <SelectValue className="flex-none" />
           </SelectTrigger>
           <SelectPopup>
             {rangeOptions.map((option) => (
