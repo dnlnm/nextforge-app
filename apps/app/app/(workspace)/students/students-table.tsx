@@ -272,7 +272,7 @@ export function StudentsTable({
         <Card className="min-h-0 flex-1 flex-col dark:bg-background">
           <CardContent className="flex min-h-0 flex-1 flex-col p-0">
             <div className="grid gap-3 p-4">
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="relative w-full max-w-sm">
                   <SearchIcon className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -285,8 +285,10 @@ export function StudentsTable({
                     value={urlParams.search}
                   />
                 </div>
-                <table.FilterList />
-                <table.SortList />
+                <div className="flex items-center gap-2">
+                  <table.FilterList />
+                  <table.SortList />
+                </div>
               </div>
             </div>
 
