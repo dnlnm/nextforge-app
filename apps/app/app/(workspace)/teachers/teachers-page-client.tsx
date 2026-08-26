@@ -1,14 +1,13 @@
 "use client";
 
-import { formatShortDate } from "@repo/date";
-import { Badge } from "@repo/design-system/components/ui/badge";
-import { Button } from "@repo/design-system/components/ui/button";
 import {
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@repo/design-system/components/ui/card";
-import { CardShell } from "@repo/design-system/components/ui/card-shell";
+  Drawer,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerPanel,
+  DrawerPopup,
+  DrawerTitle,
+} from "@repo/design-system/components/ui/drawer";
 import {
   Stat,
   StatDescription,
@@ -19,16 +18,17 @@ import {
   StatValue,
 } from "@repo/design-system/components/ui/stat";
 import {
-  ChevronRightIcon,
-  MoreHorizontalIcon,
   UserRoundCheckIcon,
   UserRoundIcon,
   UserRoundXIcon,
   UsersRoundIcon,
 } from "lucide-react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
+import {
+  type TeacherDetail,
+  TeacherDetailContent,
+} from "./teacher-detail-content";
 import { TeachersTable } from "./teachers-table";
 
 interface Teacher {
@@ -50,17 +50,11 @@ interface Teacher {
   phone: string | null;
 }
 
-interface FilterOption {
-  label: string;
-  value: string;
-}
-
 interface TeachersPageClientProps {
   activeTeachers: number;
   allTeachers: Teacher[];
   archivedTeachers: number;
   assignedTeachers: number;
-  branchOptions: FilterOption[];
   initialData: Array<{
     id: string;
     fullName: string;
@@ -73,22 +67,17 @@ interface TeachersPageClientProps {
     status: string;
   }>;
   initialTotalCount: number;
-  subjectOptions: FilterOption[];
   totalTeachers: number;
   unassignedTeachers: number;
 }
-
-const formatDate = (date: Date) => formatShortDate(date);
 
 export function TeachersPageClient({
   activeTeachers,
   allTeachers,
   archivedTeachers,
   assignedTeachers,
-  branchOptions,
   initialData,
   initialTotalCount,
-  subjectOptions,
   totalTeachers,
   unassignedTeachers,
 }: TeachersPageClientProps) {
@@ -96,25 +85,11 @@ export function TeachersPageClient({
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(
     () => searchParams.get("teacherId") ?? allTeachers[0]?.id ?? null
   );
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const selectedTeacher = allTeachers.find(
     (teacher) => teacher.id === selectedTeacherId
   );
-  const selectedSubjects = selectedTeacher
-    ? Array.from(
-        new Set(
-          selectedTeacher.classes.map(
-            (learningClass) => learningClass.subject.name
-          )
-        )
-      )
-    : [];
-  const selectedStudentsCount = selectedTeacher
-    ? selectedTeacher.classes.reduce(
-        (total, learningClass) => total + learningClass.enrollments.length,
-        0
-      )
-    : 0;
 
   const stats = [
     {
@@ -147,8 +122,13 @@ export function TeachersPageClient({
     },
   ];
 
+  const onSelectTeacher = (teacherId: string) => {
+    setSelectedTeacherId(teacherId);
+    setDrawerOpen(true);
+  };
+
   return (
-    <div className="grid items-start gap-5 xl:grid-cols-[1fr_320px] 2xl:grid-cols-[1fr_380px]">
+    <div className="grid gap-5">
       <section className="grid content-start gap-5">
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {stats.map(({ color, detail, icon: Icon, label, value }) => (
@@ -168,110 +148,36 @@ export function TeachersPageClient({
         </section>
 
         <TeachersTable
-          branchOptions={branchOptions}
           initialData={initialData}
           initialTotalCount={initialTotalCount}
-          onRowClick={(teacherId) => setSelectedTeacherId(teacherId)}
-          subjectOptions={subjectOptions}
+          onRowClick={onSelectTeacher}
         />
       </section>
 
-      <aside className="xl:sticky xl:top-4 xl:self-start">
-        <CardShell>
+      <Drawer
+        onOpenChange={setDrawerOpen}
+        open={drawerOpen && !!selectedTeacher}
+        position="right"
+      >
+        <DrawerPopup variant="inset">
           {selectedTeacher ? (
             <>
-              <CardHeader className="border-b">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex size-20 items-center justify-center rounded-full border bg-muted text-muted-foreground">
-                    <UserRoundIcon className="size-10" />
-                  </div>
-                  <Button size="icon" variant="ghost">
-                    <MoreHorizontalIcon className="size-4" />
-                  </Button>
-                </div>
-                <div>
-                  <CardTitle className="text-xl">
-                    {selectedTeacher.fullName}
-                  </CardTitle>
-                  <div className="mt-2 flex flex-wrap items-center gap-2 text-muted-foreground text-sm">
-                    <span>{selectedTeacher.code}</span>
-                    <span>+</span>
-                    <span>{selectedTeacher.branch?.name ?? "No branch"}</span>
-                    <Badge variant="outline">Active</Badge>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    render={
-                      <Link
-                        href={`https://wa.me/${selectedTeacher.phone ?? ""}`}
-                      />
-                    }
-                    variant="outline"
-                  >
-                    WhatsApp
-                  </Button>
-                  <Button variant="outline">More</Button>
-                </div>
-              </CardHeader>
-              <CardContent className="grid gap-5 p-0">
-                <section className="grid gap-3 border-b p-4">
-                  <h2 className="font-semibold text-sm">Teacher Information</h2>
-                  {[
-                    ["Joined", formatDate(selectedTeacher.createdAt)],
-                    ["Phone", selectedTeacher.phone ?? "-"],
-                    ["Email", selectedTeacher.email ?? "-"],
-                    ["Branch", selectedTeacher.branch?.name ?? "-"],
-                    ["Status", "Active"],
-                  ].map(([label, value]) => (
-                    <div
-                      className="grid grid-cols-[6rem_1fr] gap-3 text-sm"
-                      key={label}
-                    >
-                      <span className="text-muted-foreground">{label}</span>
-                      <span>{value}</span>
-                    </div>
-                  ))}
-                </section>
-                <section className="grid gap-3 border-b p-4">
-                  <h2 className="font-semibold text-sm">Teaching Load</h2>
-                  {[
-                    ["Classes", selectedTeacher.classes.length],
-                    ["Subjects", selectedSubjects.join(", ") || "-"],
-                    ["Students", selectedStudentsCount],
-                  ].map(([label, value]) => (
-                    <div
-                      className="grid grid-cols-[6rem_1fr] gap-3 text-sm"
-                      key={label}
-                    >
-                      <span className="text-muted-foreground">{label}</span>
-                      <span>{value}</span>
-                    </div>
-                  ))}
-                  <Button
-                    className="mt-1 w-full"
-                    render={<Link href={`/teachers/${selectedTeacher.id}`} />}
-                    variant="outline"
-                  >
-                    View Full Profile
-                    <ChevronRightIcon className="size-4" />
-                  </Button>
-                </section>
-                <section className="grid gap-3 p-4">
-                  <h2 className="font-semibold text-sm">Notes</h2>
-                  <p className="text-muted-foreground text-sm">
-                    {selectedTeacher.notes ?? "No notes recorded."}
-                  </p>
-                </section>
-              </CardContent>
+              <DrawerHeader>
+                <DrawerTitle>{selectedTeacher.fullName}</DrawerTitle>
+                <DrawerDescription>
+                  {selectedTeacher.code} ·{" "}
+                  {selectedTeacher.branch?.name ?? "No branch"} · Active
+                </DrawerDescription>
+              </DrawerHeader>
+              <DrawerPanel className="p-0">
+                <TeacherDetailContent
+                  teacher={selectedTeacher as TeacherDetail}
+                />
+              </DrawerPanel>
             </>
-          ) : (
-            <CardContent className="p-6 text-center text-muted-foreground text-sm">
-              No teachers to display.
-            </CardContent>
-          )}
-        </CardShell>
-      </aside>
+          ) : null}
+        </DrawerPopup>
+      </Drawer>
     </div>
   );
 }

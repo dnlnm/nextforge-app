@@ -3,6 +3,7 @@
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import { Checkbox } from "@repo/design-system/components/ui/checkbox";
+import { DataTableSortableHeader } from "@repo/design-system/components/ui/data-table/data-table-column-header";
 import { createAppColumnHelper } from "@repo/design-system/components/ui/data-table/table";
 import {
   DropdownMenu,
@@ -33,20 +34,53 @@ export interface Teacher {
   subjects: string[];
 }
 
-export interface FilterOption {
-  label: string;
-  value: string;
-}
+export const TeacherRowActions = ({ teacher }: { teacher: Teacher }) => (
+  <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={<Button aria-label="Row actions" size="icon" variant="ghost" />}
+      >
+        <MoreHorizontalIcon className="size-4" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-44">
+        <DropdownMenuItem
+          render={<Link href={`/teachers?teacherId=${teacher.id}`} />}
+        >
+          <EyeIcon />
+          View profile
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          render={
+            <Link
+              href={teacher.phone ? `https://wa.me/${teacher.phone}` : "#"}
+            />
+          }
+        >
+          <MessageCircleIcon />
+          WhatsApp
+        </DropdownMenuItem>
+        <DropdownMenuItem className="text-destructive focus:text-destructive">
+          <form
+            action={archiveTeacher}
+            onSubmit={(e) => {
+              if (!window.confirm("Archive this teacher?")) {
+                e.preventDefault();
+              }
+            }}
+          >
+            <input name="teacherId" type="hidden" value={teacher.id} />
+            <button className="flex items-center gap-2" type="submit">
+              <ArchiveIcon />
+              Archive
+            </button>
+          </form>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  </div>
+);
 
-interface TeacherColumnOptions {
-  branchOptions: FilterOption[];
-  subjectOptions: FilterOption[];
-}
-
-export const createColumns = ({
-  branchOptions,
-  subjectOptions,
-}: TeacherColumnOptions) => {
+export const createColumns = () => {
   const columnHelper = createAppColumnHelper<Teacher>();
 
   return columnHelper.columns([
@@ -71,7 +105,8 @@ export const createColumns = ({
       enableHiding: false,
     }),
     columnHelper.accessor("fullName", {
-      header: "Teacher",
+      id: "fullName",
+      header: ({ header }) => <DataTableSortableHeader header={header} />,
       cell: ({ row }) => {
         return (
           <div className="flex max-w-full items-center gap-3">
@@ -94,34 +129,8 @@ export const createColumns = ({
       },
       meta: { label: "Teacher" },
       enableColumnFilter: false,
-      enableSorting: false,
       enableHiding: false,
       size: 280,
-    }),
-    columnHelper.accessor((row) => row.subjects, {
-      id: "subject",
-      header: "Subject",
-      cell: ({ row }) => (
-        <div className="flex max-w-56 flex-wrap gap-1.5">
-          {row.original.subjects.length > 0 ? (
-            row.original.subjects.slice(0, 3).map((subject) => (
-              <Badge key={subject} variant="secondary">
-                {subject}
-              </Badge>
-            ))
-          ) : (
-            <span className="text-muted-foreground">-</span>
-          )}
-        </div>
-      ),
-      meta: {
-        label: "Subject",
-        variant: "multi-select",
-        options: subjectOptions,
-      },
-      enableColumnFilter: true,
-      enableSorting: false,
-      enableHiding: false,
     }),
     columnHelper.accessor("classCount", {
       header: "Classes",
@@ -130,33 +139,6 @@ export const createColumns = ({
       enableColumnFilter: false,
       enableSorting: false,
       enableHiding: false,
-    }),
-    columnHelper.accessor((row) => row.branchName, {
-      id: "branch",
-      header: "Branch",
-      cell: ({ row }) => row.original.branchName ?? "-",
-      meta: {
-        label: "Branch",
-        variant: "multi-select",
-        options: branchOptions,
-      },
-      enableColumnFilter: true,
-      enableSorting: false,
-      enableHiding: false,
-    }),
-    columnHelper.accessor("phone", {
-      header: "Phone",
-      cell: ({ row }) => row.original.phone ?? "-",
-      meta: { label: "Phone" },
-      enableColumnFilter: false,
-      enableSorting: false,
-    }),
-    columnHelper.accessor("email", {
-      header: "Email",
-      cell: ({ row }) => row.original.email ?? "-",
-      meta: { label: "Email" },
-      enableColumnFilter: false,
-      enableSorting: false,
     }),
     columnHelper.accessor((row) => row.status, {
       id: "status",
@@ -174,63 +156,7 @@ export const createColumns = ({
     columnHelper.display({
       id: "actions",
       header: () => <div className="text-right">Actions</div>,
-      cell: ({ row }) => (
-        <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button aria-label="Row actions" size="icon" variant="ghost" />
-              }
-            >
-              <MoreHorizontalIcon className="size-4" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuItem
-                render={
-                  <Link href={`/teachers?teacherId=${row.original.id}`} />
-                }
-              >
-                <EyeIcon />
-                View profile
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                render={
-                  <Link
-                    href={
-                      row.original.phone
-                        ? `https://wa.me/${row.original.phone}`
-                        : "#"
-                    }
-                  />
-                }
-              >
-                <MessageCircleIcon />
-                WhatsApp
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive focus:text-destructive">
-                <form
-                  action={archiveTeacher}
-                  onSubmit={(e) => {
-                    if (!window.confirm("Archive this teacher?")) {
-                      e.preventDefault();
-                    }
-                  }}
-                >
-                  <input
-                    name="teacherId"
-                    type="hidden"
-                    value={row.original.id}
-                  />
-                  <button className="flex items-center gap-2" type="submit">
-                    <ArchiveIcon />
-                    Archive
-                  </button>
-                </form>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      ),
+      cell: ({ row }) => <TeacherRowActions teacher={row.original} />,
       enableSorting: false,
       enableHiding: false,
     }),

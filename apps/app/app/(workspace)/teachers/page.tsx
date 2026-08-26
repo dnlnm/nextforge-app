@@ -5,15 +5,14 @@ import { Button } from "@repo/design-system/components/ui/button";
 import { ChevronDownIcon, PlusIcon, SendIcon } from "lucide-react";
 import Link from "next/link";
 import { Header } from "../components/header";
-import { getTeacherFilterOptions, getTeachersForTable } from "./actions";
+import { getTeachersForTable } from "./actions";
 import { PendingInvitations } from "./pending-invitations";
 import { TeachersPageClient } from "./teachers-page-client";
 
 const TeachersPage = async () => {
   const tenant = await requireTenantRole(["ADMIN"]);
 
-  const [teachers, archivedTeachers, initialTableData, filterOptions] =
-    await Promise.all([
+  const [teachers, archivedTeachers, initialTableData] = await Promise.all([
       database.teacherProfile.findMany({
         where: { organizationId: tenant.organizationId, archivedAt: null },
         orderBy: { fullName: "asc" },
@@ -42,7 +41,6 @@ const TeachersPage = async () => {
         page: 0,
         pageSize: 10,
       }),
-      getTeacherFilterOptions(),
     ]);
 
   const assignedTeachers = teachers.filter(
@@ -56,7 +54,7 @@ const TeachersPage = async () => {
   return (
     <>
       <Header page="Teachers" pages={[`${appName}`]} />
-      <main className="grid gap-5 p-4 pt-4">
+      <main className="mx-auto grid w-full max-w-6xl gap-5 p-4 pt-4 [scrollbar-gutter:stable]">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
             <h1 className="font-semibold text-2xl tracking-tight">Teachers</h1>
@@ -95,10 +93,8 @@ const TeachersPage = async () => {
           allTeachers={teachers}
           archivedTeachers={archivedTeachers}
           assignedTeachers={assignedTeachers.length}
-          branchOptions={filterOptions.branches}
           initialData={initialTableData.data}
           initialTotalCount={initialTableData.totalCount}
-          subjectOptions={filterOptions.subjects}
           totalTeachers={totalTeachers}
           unassignedTeachers={unassignedTeachers.length}
         />

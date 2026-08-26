@@ -335,10 +335,28 @@ export async function getTeachersForTable(params: TeachersQueryParams) {
     applyTeacherFilters(where, params.filters);
   }
 
+  const orderBy: Prisma.TeacherProfileOrderByWithRelationInput[] = [];
+  if (params.sorting && params.sorting.length > 0) {
+    for (const sort of params.sorting) {
+      switch (sort.id) {
+        case "fullName":
+          orderBy.push({ fullName: sort.desc ? "desc" : "asc" });
+          break;
+        case "branch":
+          orderBy.push({ branch: { name: sort.desc ? "desc" : "asc" } });
+          break;
+        default:
+          break;
+      }
+    }
+  } else {
+    orderBy.push({ fullName: "asc" });
+  }
+
   const [teachers, totalCount] = await Promise.all([
     database.teacherProfile.findMany({
       where,
-      orderBy: { fullName: "asc" },
+      orderBy,
       skip: params.page * params.pageSize,
       take: params.pageSize,
       include: {
@@ -375,34 +393,5 @@ export async function getTeachersForTable(params: TeachersQueryParams) {
       ),
     })),
     totalCount,
-  };
-}
-
-export async function getTeacherFilterOptions() {
-  const tenant = await requireTenant();
-
-  const [subjects, branches] = await Promise.all([
-    database.subject.findMany({
-      where: { organizationId: tenant.organizationId, archivedAt: null },
-      select: { name: true },
-      orderBy: { name: "asc" },
-    }),
-    database.branch.findMany({
-      where: { organizationId: tenant.organizationId },
-      select: { name: true },
-      orderBy: { name: "asc" },
-    }),
-  ]);
-
-  return {
-    branches: branches.map((branch) => ({
-      label: branch.name,
-      value: branch.name,
-    })),
-    statuses: [{ label: "Active", value: "ACTIVE" }],
-    subjects: subjects.map((subject) => ({
-      label: subject.name,
-      value: subject.name,
-    })),
   };
 }
