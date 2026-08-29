@@ -4,7 +4,7 @@ import { billingSDKPlans } from "@repo/payments/billingsdk-plans";
 
 interface BillingState {
   subscription: {
-    plan: "TRIAL" | "STARTER" | "PRO";
+    plan: "STARTER" | "PRO" | "MAX";
     status:
       | "TRIALING"
       | "ACTIVE"
@@ -36,8 +36,7 @@ export const mapToCurrentPlan = (
   paymentMethod: string
 ): CurrentPlan => {
   const plan =
-    billingSDKPlans.find((p) => p.id === state.subscription.plan) ??
-    billingSDKPlans[0];
+    billingSDKPlans.find((p) => p.id === state.subscription.plan) ?? null;
 
   if (!plan) {
     throw new Error("No billing plan configuration found.");

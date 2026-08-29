@@ -1,8 +1,6 @@
 import type { SubscriptionPlan, SubscriptionStatus } from "@repo/database";
 import { keys } from "./keys";
 
-export type BillablePlan = Exclude<SubscriptionPlan, "TRIAL">;
-
 export interface PlanDefinition {
   readonly classes: number;
   readonly invoicesPerMonth: number;
@@ -15,6 +13,14 @@ export interface PlanDefinition {
 export const trialDays = 14;
 
 export const planDefinitions: Record<SubscriptionPlan, PlanDefinition> = {
+  MAX: {
+    classes: 200,
+    invoicesPerMonth: 1000,
+    monthlyPrice: "RM199/month",
+    name: "Max",
+    students: 500,
+    teachers: 100,
+  },
   PRO: {
     classes: 60,
     invoicesPerMonth: 300,
@@ -31,14 +37,6 @@ export const planDefinitions: Record<SubscriptionPlan, PlanDefinition> = {
     students: 100,
     teachers: 10,
   },
-  TRIAL: {
-    classes: 10,
-    invoicesPerMonth: 50,
-    monthlyPrice: "Free trial",
-    name: "Trial",
-    students: 50,
-    teachers: 5,
-  },
 };
 
 export const activeSubscriptionStatuses = new Set<SubscriptionStatus>([
@@ -46,28 +44,36 @@ export const activeSubscriptionStatuses = new Set<SubscriptionStatus>([
   "TRIALING",
 ]);
 
-export const getStripePriceId = (plan: BillablePlan) => {
+export const getStripePriceId = (plan: SubscriptionPlan) => {
   const env = keys();
 
-  return plan === "STARTER"
-    ? (env.KLIO_STRIPE_STARTER_PRICE_ID ?? env.TLAS_STRIPE_STARTER_PRICE_ID)
-    : (env.KLIO_STRIPE_PRO_PRICE_ID ?? env.TLAS_STRIPE_PRO_PRICE_ID);
+  const priceIds: Record<SubscriptionPlan, string | undefined> = {
+    STARTER:
+      env.KLIO_STRIPE_STARTER_PRICE_ID ?? env.TLAS_STRIPE_STARTER_PRICE_ID,
+    PRO: env.KLIO_STRIPE_PRO_PRICE_ID ?? env.TLAS_STRIPE_PRO_PRICE_ID,
+    MAX: env.KLIO_STRIPE_MAX_PRICE_ID ?? env.TLAS_STRIPE_MAX_PRICE_ID,
+  };
+
+  return priceIds[plan];
 };
 
 /**
- * Maps a Stripe price id to the billable plan, or `null` when the price id is
- * not recognised. Callers must not silently downgrade to TRIAL on an unknown id
- * — a misconfigured env var should never turn a paying customer into a trial.
+ * Maps a Stripe price id to the plan, or `null` when the price id is not
+ * recognised. Callers must not silently change the plan on an unknown id — a
+ * misconfigured env var should never turn a paying customer into a different
+ * plan.
  */
 export const getPlanFromStripePriceId = (
   priceId?: string | null
-): BillablePlan | null => {
+): SubscriptionPlan | null => {
   const env = keys();
 
   const starterPriceId =
     env.KLIO_STRIPE_STARTER_PRICE_ID ?? env.TLAS_STRIPE_STARTER_PRICE_ID;
   const proPriceId =
     env.KLIO_STRIPE_PRO_PRICE_ID ?? env.TLAS_STRIPE_PRO_PRICE_ID;
+  const maxPriceId =
+    env.KLIO_STRIPE_MAX_PRICE_ID ?? env.TLAS_STRIPE_MAX_PRICE_ID;
 
   if (priceId && priceId === starterPriceId) {
     return "STARTER";
@@ -75,6 +81,10 @@ export const getPlanFromStripePriceId = (
 
   if (priceId && priceId === proPriceId) {
     return "PRO";
+  }
+
+  if (priceId && priceId === maxPriceId) {
+    return "MAX";
   }
 
   return null;

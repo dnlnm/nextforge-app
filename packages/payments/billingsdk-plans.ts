@@ -1,4 +1,3 @@
-import { appName } from "@repo/config/brand";
 export interface PlanFeature {
   icon: string;
   iconColor?: string;
@@ -46,16 +45,6 @@ const planColumns = (
 
 export const billingSDKPlans: Plan[] = [
   {
-    id: "TRIAL",
-    title: "Trial",
-    description: `Free 14-day trial to explore everything ${appName} has to offer.`,
-    currency: "RM",
-    monthlyPrice: "0",
-    yearlyPrice: "0",
-    buttonText: "Trial",
-    features: planColumns(50, 5, 10, 50),
-  },
-  {
     id: "STARTER",
     title: "Starter",
     description: "Perfect for small tuition centres just getting started.",
@@ -76,5 +65,15 @@ export const billingSDKPlans: Plan[] = [
     yearlyPrice: "99",
     buttonText: "Upgrade to Pro",
     features: planColumns(300, 30, 60, 300),
+  },
+  {
+    id: "MAX",
+    title: "Max",
+    description: "For established centres with the largest workloads.",
+    currency: "RM",
+    monthlyPrice: "199",
+    yearlyPrice: "199",
+    buttonText: "Upgrade to Max",
+    features: planColumns(500, 100, 200, 1000),
   },
 ];

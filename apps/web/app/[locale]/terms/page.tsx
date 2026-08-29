@@ -23,7 +23,7 @@ const content = {
       ],
       [
         "Subscriptions and trials",
-        `Centres may start with a trial and then subscribe to Starter or Pro. Plan limits may apply to students, teachers, classes, and monthly invoices. Stripe handles ${appName} subscription payments.`,
+        `Centres may start with a 14-day free trial on any plan and then subscribe to Starter, Pro, or Max. Plan limits may apply to students, teachers, classes, and monthly invoices. Stripe handles ${appName} subscription payments.`,
       ],
       [
         "Tuition payments",
@@ -54,7 +54,7 @@ const content = {
       ],
       [
         "Langganan dan percubaan",
-        `Pusat boleh bermula dengan percubaan dan kemudian melanggan Starter atau Pro. Had pelan mungkin dikenakan pada pelajar, guru, kelas dan invois bulanan. Stripe mengendalikan bayaran langganan ${appName}.`,
+        `Pusat boleh bermula dengan percubaan percuma 14 hari pada mana-mana pelan dan kemudian melanggan Starter, Pro atau Max. Had pelan mungkin dikenakan pada pelajar, guru, kelas dan invois bulanan. Stripe mengendalikan bayaran langganan ${appName}.`,
       ],
       [
         "Bayaran tuisyen",

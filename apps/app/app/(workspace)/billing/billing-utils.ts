@@ -5,9 +5,9 @@ import {
 } from "@repo/date";
 
 export const paidPlanRank: Record<SubscriptionPlan, number> = {
+  MAX: 3,
   PRO: 2,
   STARTER: 1,
-  TRIAL: 0,
 };
 
 export const formatDate = (date?: Date | null) =>

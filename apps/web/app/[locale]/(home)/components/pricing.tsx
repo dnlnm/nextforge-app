@@ -8,7 +8,7 @@ import {
 import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import type { Dictionary } from "@repo/internationalization";
 import { localizePath } from "@repo/internationalization";
-import { Check, MoveRight, PhoneCall } from "lucide-react";
+import { Check, MoveRight } from "lucide-react";
 import Link from "next/link";
 import { env } from "@/env";
 
@@ -38,7 +38,7 @@ export const Pricing = ({
           </p>
         </div>
         <div className="grid w-full grid-cols-1 gap-5 pt-12 text-left lg:grid-cols-3 lg:items-stretch">
-          {dictionary.web.home.pricing.plans.map((plan, planIndex) => (
+          {dictionary.web.home.pricing.plans.map((plan) => (
             <CardShell
               className={
                 plan.highlighted
@@ -89,23 +89,11 @@ export const Pricing = ({
                   </div>
                   <Button
                     className="mt-auto w-full gap-2"
-                    render={
-                      <Link
-                        href={
-                          planIndex === 2
-                            ? localizePath(locale, "/contact")
-                            : env.NEXT_PUBLIC_APP_URL
-                        }
-                      />
-                    }
+                    render={<Link href={env.NEXT_PUBLIC_APP_URL} />}
                     variant={plan.highlighted ? "default" : "outline"}
                   >
-                    {plan.cta}{" "}
-                    {planIndex === 2 ? (
-                      <PhoneCall className="h-4 w-4" />
-                    ) : (
-                      <MoveRight className="h-4 w-4" />
-                    )}
+                    {plan.cta}
+                    <MoveRight className="h-4 w-4" />
                   </Button>
                 </div>
               </CardContent>

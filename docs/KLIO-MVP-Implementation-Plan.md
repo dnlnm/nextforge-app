@@ -240,7 +240,7 @@ Ranked by spec impact:
   superadmin bypass parity with web.
 
 **2.3 Fix `getPlanFromStripePriceId` silent-downgrade** â€” unrecognised price id must
-**not** silently map to `TRIAL` (`packages/payments/plans.ts:73`); log + keep previous
+**not** silently change the plan (`packages/payments/plans.ts`); log + keep previous
 plan or mark `INCOMPLETE` instead. Verify webhook sync test.
 
 **2.4 Fix webhook unconfigured path** â€” `apps/api/app/webhooks/payments/route.ts:205-208`
@@ -450,7 +450,7 @@ Executed per this plan. Verification results:
 - **Tests:** apps/api 41 passed + 3 skipped (integration suite gated on TEST_DATABASE_URL); apps/app 10 passed.
 - **Typecheck:** packages (api, auth, payments, schemas), apps (app, api), and mobile all pass 	sc --noEmit.
 - **Lint:** files changed by this plan are Biome-clean; the repo-wide baseline lint debt (vendored .agents/skills, pre-existing) is unchanged.
-- **Build:** 	urbo build --filter=app --filter=api — 5 tasks, all successful.
+- **Build:** 	urbo build --filter=app --filter=api ï¿½ 5 tasks, all successful.
 - **Migrations:** chain verified structurally (pg-mem) after in-place fixes + repair migration; fresh prisma migrate deploy now produces the schema.
 
 ### Completed
@@ -462,7 +462,7 @@ Executed per this plan. Verification results:
 - Web cleanup: org switcher wired into the sidebar, sidebar Account link fixed, dead code removed, classes table search/filter/pagination made functional.
 
 ### Deferred
-- Mobile test runner (vitest/RN) — post-MVP.
+- Mobile test runner (vitest/RN) ï¿½ post-MVP.
 - (main)/centres/[id]/settings archive-centre action (stays disabled).
 - Pre-existing 
 oExcessiveCognitiveComplexity in getStudentsForTable and repo-wide lint debt in vendored skill files.

@@ -8,7 +8,6 @@ import type { InvoiceItem } from "@repo/design-system/components/billingsdk/invo
 import { formatMoneyRm as formatRM } from "@repo/money";
 import { stripe } from "@repo/payments";
 import {
-  type BillablePlan,
   getPlanFromStripePriceId,
   getStripePriceId,
   planDefinitions,
@@ -23,7 +22,7 @@ const getString = (formData: FormData, key: string) => {
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 };
 
-const paidPlans = new Set<SubscriptionPlan>(["STARTER", "PRO"]);
+const paidPlans = new Set<SubscriptionPlan>(["STARTER", "PRO", "MAX"]);
 
 const requireOwner = async (organizationId: string) => {
   const user = await ensureLocalUser();
@@ -97,7 +96,7 @@ export const startSubscriptionCheckout = async (
     );
   }
 
-  const priceId = getStripePriceId(plan as Exclude<SubscriptionPlan, "TRIAL">);
+  const priceId = getStripePriceId(plan);
 
   if (!(stripe && priceId)) {
     throw new Error("Stripe price is not configured for this plan.");
@@ -112,6 +111,8 @@ export const startSubscriptionCheckout = async (
     mode: "subscription",
     subscription_data: {
       metadata: { organizationId, plan },
+      // Every plan grants a 14-day trial, after which Stripe bills the plan.
+      trial_period_days: 14,
     },
     success_url: `${env.NEXT_PUBLIC_APP_URL}/centres/${organizationId}/subscription?checkout=success`,
     cancel_url: `${env.NEXT_PUBLIC_APP_URL}/centres/${organizationId}/subscription?checkout=cancelled`,
@@ -268,10 +269,6 @@ export const updateSubscriptionPlan = async (
 ) => {
   await requireOwner(organizationId);
 
-  if (newPlan === "TRIAL") {
-    throw new Error("You cannot switch to the trial plan.");
-  }
-
   const { subscription, stripeInstance } =
     await getSubscription(organizationId);
 
@@ -283,7 +280,7 @@ export const updateSubscriptionPlan = async (
     throw new Error("Please subscribe to a plan first.");
   }
 
-  const priceId = getStripePriceId(newPlan as BillablePlan);
+  const priceId = getStripePriceId(newPlan);
 
   if (!priceId) {
     throw new Error("Stripe price is not configured for this plan.");
@@ -299,10 +296,21 @@ export const updateSubscriptionPlan = async (
     throw new Error("Unable to find the subscription item to update.");
   }
 
+  // Preserve any remaining trial balance when changing plans mid-trial
+  // (e.g. switching from an unpaid Starter trial to Pro), so a plan change
+  // does not start billing immediately.
+  const trialEndsAt =
+    stripeSubscription.status === "trialing" &&
+    stripeSubscription.trial_end &&
+    stripeSubscription.trial_end > Math.floor(Date.now() / 1000)
+      ? stripeSubscription.trial_end
+      : "now";
+
   await stripeInstance.subscriptions.update(subscription.stripeSubscriptionId, {
     items: [{ id: itemId, price: priceId }],
     metadata: { organizationId, plan: newPlan },
     proration_behavior: "always_invoice",
+    trial_end: trialEndsAt,
   });
 
   revalidatePath(`/centres/${organizationId}/subscription`);

@@ -29,7 +29,7 @@ interface SubscriptionManagementWrapperProps {
   readonly organizationId: string;
 }
 
-const paidPlans = billingSDKPlans.filter((plan) => plan.id !== "TRIAL");
+const paidPlans = billingSDKPlans;
 
 export const SubscriptionManagementWrapper = ({
   currentPlan,
@@ -146,6 +146,9 @@ export const SubscriptionManagementWrapper = ({
               <CardDescription>{plan.description}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <p className="text-muted-foreground text-sm">
+                14-day free trial, then
+              </p>
               <p className="font-semibold text-2xl">
                 RM{plan.monthlyPrice}
                 <span className="font-normal text-muted-foreground text-sm">

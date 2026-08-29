@@ -112,31 +112,9 @@
       "pricing": {
         "badge": "Harga",
         "title": "Pelan bulanan mudah untuk pusat tuisyen",
-        "description": "Mula secara percuma, kemudian pilih pelan mengikut saiz pusat anda. Stripe hanya digunakan untuk langganan {appName}; bayaran tuisyen direkod secara manual.",
+        "description": "Setiap pelan bermula dengan percubaan percuma 14 hari, kemudian pilih pelan mengikut saiz pusat anda. Stripe hanya digunakan untuk langganan {appName}; bayaran tuisyen direkod secara manual.",
         "fullComparison": "Perbandingan penuh",
         "plans": [
-          {
-            "name": "Percubaan",
-            "description": "Cuba aliran kerja operasi sebelum memilih pelan berbayar.",
-            "price": "Percuma",
-            "period": " / 14 hari",
-            "cta": "Mula percubaan",
-            "highlighted": false,
-            "features": [
-              {
-                "title": "50 pelajar aktif",
-                "description": "Sesuai untuk pilot pusat kecil."
-              },
-              {
-                "title": "5 guru dan 10 kelas",
-                "description": "Cukup untuk jadual sebenar dan kehadiran."
-              },
-              {
-                "title": "Invois dan laporan",
-                "description": "Uji invois bulanan dan eksport CSV."
-              }
-            ]
-          },
           {
             "name": "Starter",
             "description": "Untuk pusat kecil yang mahu operasi lebih kemas.",
@@ -178,6 +156,28 @@
               {
                 "title": "300 invois sebulan",
                 "description": "Urus jumlah bil bulanan yang lebih tinggi."
+              }
+            ]
+          },
+          {
+            "name": "Max",
+            "description": "Untuk pusat yang mantap dengan beban kerja terbesar.",
+            "price": "RM199",
+            "period": " / bulan",
+            "cta": "Pilih Max",
+            "highlighted": false,
+            "features": [
+              {
+                "title": "500 pelajar aktif",
+                "description": "Sokong jumlah pelajar terbesar."
+              },
+              {
+                "title": "100 guru dan 200 kelas",
+                "description": "Kendalikan operasi berkapasiti tinggi merentas banyak jadual."
+              },
+              {
+                "title": "1000 invois sebulan",
+                "description": "Urus jumlah bil bulanan tertinggi."
               }
             ]
           }
@@ -243,7 +243,7 @@
           },
           {
             "question": "Apa berlaku selepas percubaan tamat?",
-            "answer": "Pilih Starter atau Pro dari Billing. Jika percubaan atau langganan tidak aktif, penciptaan rekod baharu akan dihadkan sehingga bil diselesaikan."
+            "answer": "Pilih Starter, Pro atau Max dari Billing. Jika percubaan atau langganan tidak aktif, penciptaan rekod baharu akan dihadkan sehingga bil diselesaikan."
           }
         ]
       },

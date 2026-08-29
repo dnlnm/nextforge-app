@@ -112,31 +112,9 @@
       "pricing": {
         "badge": "Pricing",
         "title": "Simple monthly plans for tuition centres",
-        "description": "Start free, then choose the plan that matches your centre size. Stripe is used only for your {appName} subscription; tuition payments are recorded manually.",
+        "description": "Every plan starts with a 14-day free trial, then choose the plan that matches your centre size. Stripe is used only for your {appName} subscription; tuition payments are recorded manually.",
         "fullComparison": "Full comparison",
         "plans": [
-          {
-            "name": "Trial",
-            "description": "Try the full operating workflow before choosing a paid plan.",
-            "price": "Free",
-            "period": " / 14 days",
-            "cta": "Start trial",
-            "highlighted": false,
-            "features": [
-              {
-                "title": "50 active students",
-                "description": "Enough to pilot with a small centre."
-              },
-              {
-                "title": "5 teachers and 10 classes",
-                "description": "Set up real schedules and attendance."
-              },
-              {
-                "title": "Invoices and reports",
-                "description": "Test monthly invoicing and CSV exports."
-              }
-            ]
-          },
           {
             "name": "Starter",
             "description": "For small centres that want a cleaner operating system.",
@@ -178,6 +156,28 @@
               {
                 "title": "300 invoices per month",
                 "description": "Handle higher monthly billing volume."
+              }
+            ]
+          },
+          {
+            "name": "Max",
+            "description": "For established centres with the largest workloads.",
+            "price": "RM199",
+            "period": " / month",
+            "cta": "Choose Max",
+            "highlighted": false,
+            "features": [
+              {
+                "title": "500 active students",
+                "description": "Support the largest student base."
+              },
+              {
+                "title": "100 teachers and 200 classes",
+                "description": "Run high-volume operations across many schedules."
+              },
+              {
+                "title": "1000 invoices per month",
+                "description": "Handle the highest monthly billing volume."
               }
             ]
           }
@@ -243,7 +243,7 @@
           },
           {
             "question": "What happens after the trial?",
-            "answer": "Choose Starter or Pro from Billing. If a trial or subscription is inactive, new record creation is limited until billing is resolved."
+            "answer": "Choose Starter, Pro, or Max from Billing. If a trial or subscription is inactive, new record creation is limited until billing is resolved."
           }
         ]
       },
