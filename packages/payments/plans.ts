@@ -14,19 +14,19 @@ export const trialDays = 14;
 
 export const planDefinitions: Record<SubscriptionPlan, PlanDefinition> = {
   TRIAL: {
-    classes: 10,
-    invoicesPerMonth: 50,
+    classes: 5,
+    invoicesPerMonth: 20,
     monthlyPrice: "Free trial",
     name: "Trial",
-    students: 50,
+    students: 20,
     teachers: 5,
   },
   STARTER: {
     classes: 20,
-    invoicesPerMonth: 100,
+    invoicesPerMonth: 50,
     monthlyPrice: "RM49/month",
     name: "Starter",
-    students: 100,
+    students: 50,
     teachers: 10,
   },
   PRO: {

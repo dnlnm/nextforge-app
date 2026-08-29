@@ -52,7 +52,7 @@ export const billingSDKPlans: Plan[] = [
     monthlyPrice: "0",
     yearlyPrice: "0",
     buttonText: "Trial",
-    features: planColumns(50, 5, 10, 50),
+    features: planColumns(20, 5, 5, 20),
   },
   {
     id: "STARTER",
@@ -64,7 +64,7 @@ export const billingSDKPlans: Plan[] = [
     buttonText: "Upgrade to Starter",
     badge: "Most Popular",
     highlight: true,
-    features: planColumns(100, 10, 20, 100),
+    features: planColumns(50, 10, 20, 50),
   },
   {
     id: "PRO",

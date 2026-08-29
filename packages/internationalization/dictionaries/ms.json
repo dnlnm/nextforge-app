@@ -91,7 +91,7 @@
           },
           {
             "title": "Pelajar pelan Starter",
-            "metric": "100",
+            "metric": "50",
             "delta": "0",
             "type": "unit"
           },
@@ -124,15 +124,19 @@
             "highlighted": true,
             "features": [
               {
-                "title": "100 pelajar aktif",
+                "title": "50 pelajar aktif",
                 "description": "Urus rekod asas untuk pusat yang sedang berkembang."
               },
               {
-                "title": "10 guru dan 20 kelas",
-                "description": "Sesuai untuk beberapa subjek dan jadual."
+                "title": "10 guru",
+                "description": "Sesuai untuk beberapa subjek."
               },
               {
-                "title": "100 invois sebulan",
+                "title": "20 kelas",
+                "description": "Sesuai untuk beberapa jadual."
+              },
+              {
+                "title": "50 invois sebulan",
                 "description": "Jana bil bulanan daripada enrolmen."
               }
             ]
@@ -150,8 +154,12 @@
                 "description": "Sokong jumlah pelajar yang lebih besar."
               },
               {
-                "title": "30 guru dan 60 kelas",
-                "description": "Kembangkan operasi kelas tanpa spreadsheet berselerak."
+                "title": "30 guru",
+                "description": "Kembangkan pasukan pengajar."
+              },
+              {
+                "title": "60 kelas",
+                "description": "Jalankan lebih banyak jadual tanpa spreadsheet berselerak."
               },
               {
                 "title": "300 invois sebulan",
@@ -172,8 +180,12 @@
                 "description": "Sokong jumlah pelajar terbesar."
               },
               {
-                "title": "100 guru dan 200 kelas",
-                "description": "Kendalikan operasi berkapasiti tinggi merentas banyak jadual."
+                "title": "100 guru",
+                "description": "Sokong pasukan pengajar penuh."
+              },
+              {
+                "title": "200 kelas",
+                "description": "Kendalikan jadual dan operasi berkapasiti tinggi."
               },
               {
                 "title": "1000 invois sebulan",

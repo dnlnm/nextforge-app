@@ -91,7 +91,7 @@
           },
           {
             "title": "Starter students",
-            "metric": "100",
+            "metric": "50",
             "delta": "0",
             "type": "unit"
           },
@@ -124,15 +124,19 @@
             "highlighted": true,
             "features": [
               {
-                "title": "100 active students",
+                "title": "50 active students",
                 "description": "Manage the core records for a growing centre."
               },
               {
-                "title": "10 teachers and 20 classes",
-                "description": "Enough for multiple subjects and schedules."
+                "title": "10 teachers",
+                "description": "Enough for multiple subjects."
               },
               {
-                "title": "100 invoices per month",
+                "title": "20 classes",
+                "description": "Enough for multiple schedules."
+              },
+              {
+                "title": "50 invoices per month",
                 "description": "Generate monthly billing from enrolments."
               }
             ]
@@ -150,8 +154,12 @@
                 "description": "Support a larger student base."
               },
               {
-                "title": "30 teachers and 60 classes",
-                "description": "Scale class operations without spreadsheet drift."
+                "title": "30 teachers",
+                "description": "Scale your teaching team."
+              },
+              {
+                "title": "60 classes",
+                "description": "Run more schedules without spreadsheet drift."
               },
               {
                 "title": "300 invoices per month",
@@ -172,8 +180,12 @@
                 "description": "Support the largest student base."
               },
               {
-                "title": "100 teachers and 200 classes",
-                "description": "Run high-volume operations across many schedules."
+                "title": "100 teachers",
+                "description": "Support a full teaching staff."
+              },
+              {
+                "title": "200 classes",
+                "description": "Run high-volume schedules and operations."
               },
               {
                 "title": "1000 invoices per month",
