@@ -1,11 +1,11 @@
 import localFont from "next/font/local";
+import { Geist } from "next/font/google";
 
-/** Cal Sans 2.0 variable font, as used by coss.com (`@coss/ui/fonts`). */
-export const fontSans = localFont({
+/** Geist variable font, as used by the trovecn theme. */
+export const fontSans = Geist({
   display: "swap",
-  src: "./CalSansVF.woff2",
   variable: "--font-sans",
-  weight: "300 700",
+  subsets: ["latin"],
 });
 
 /** Same variable font as `fontSans`; aliased in the theme via `--font-heading: var(--font-sans)`. */

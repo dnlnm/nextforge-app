@@ -23,6 +23,7 @@
     "@shadcnblocks": "https://shadcnblocks.com/r/{name}.json",
     "@coss": "https://coss.com/ui/r/{name}.json",
     "@evilcharts": "https://evilcharts.com/r/{name}.json",
-    "@cardcn": "https://cardcn.dev/r/{name}.json"
+    "@cardcn": "https://cardcn.dev/r/{name}.json",
+    "@trovecn": "https://trovecn.dev/r/{name}.json"
   }
 }

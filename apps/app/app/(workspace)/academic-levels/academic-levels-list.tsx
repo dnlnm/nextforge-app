@@ -14,11 +14,11 @@ import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import { Card, CardContent } from "@repo/design-system/components/ui/card";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@repo/design-system/components/ui/dropdown-menu";
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuTrigger,
+} from "@repo/design-system/components/ui/menu";
 import {
   Empty,
   EmptyContent,
@@ -196,8 +196,8 @@ const SectionHeader = ({
         </Badge>
       </div>
       {canAddLevel && (
-        <DropdownMenu>
-          <DropdownMenuTrigger
+        <Menu>
+          <MenuTrigger
             render={
               <Button
                 aria-label={`Options for ${meta.label}`}
@@ -207,14 +207,14 @@ const SectionHeader = ({
             }
           >
             <MoreHorizontalIcon aria-hidden="true" className="size-4" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={onAddLevel}>
+          </MenuTrigger>
+          <MenuContent align="end">
+            <MenuItem onClick={onAddLevel}>
               <PlusIcon aria-hidden="true" className="size-4" />
               Add level here
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </MenuItem>
+          </MenuContent>
+        </Menu>
       )}
     </div>
   );

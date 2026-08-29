@@ -17,15 +17,15 @@ import {
   CollapsibleTrigger,
 } from "@repo/design-system/components/ui/collapsible";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
-  DropdownMenuTrigger,
-} from "@repo/design-system/components/ui/dropdown-menu";
+  Menu,
+  MenuContent,
+  MenuGroup,
+  MenuItem,
+  MenuLabel,
+  MenuSeparator,
+  MenuShortcut,
+  MenuTrigger,
+} from "@repo/design-system/components/ui/menu";
 import { Separator } from "@repo/design-system/components/ui/separator";
 import {
   Sidebar,
@@ -223,8 +223,8 @@ export const Base: Story = {
           <SidebarHeader>
             <SidebarMenu>
               <SidebarMenuItem>
-                <DropdownMenu>
-                  <DropdownMenuTrigger
+                <Menu>
+                  <MenuTrigger
                     render={
                       <SidebarMenuButton
                         className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
@@ -244,18 +244,20 @@ export const Base: Story = {
                       </span>
                     </div>
                     <ChevronsUpDown className="ml-auto" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
+                  </MenuTrigger>
+                  <MenuContent
                     align="start"
-                    className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                    className="w-(--anchor-width) min-w-56 rounded-lg"
                     side="bottom"
                     sideOffset={4}
                   >
-                    <DropdownMenuLabel className="text-muted-foreground text-xs">
-                      Teams
-                    </DropdownMenuLabel>
+                    <MenuGroup>
+                      <MenuLabel className="text-muted-foreground text-xs">
+                        Teams
+                      </MenuLabel>
+                    </MenuGroup>
                     {data.teams.map((team, index) => (
-                      <DropdownMenuItem
+                      <MenuItem
                         className="gap-2 p-2"
                         key={team.name}
                         onClick={() => setActiveTeam(team)}
@@ -264,22 +266,22 @@ export const Base: Story = {
                           <team.logo className="size-4 shrink-0" />
                         </div>
                         {team.name}
-                        <DropdownMenuShortcut>
+                        <MenuShortcut>
                           ⌘{index + 1}
-                        </DropdownMenuShortcut>
-                      </DropdownMenuItem>
+                        </MenuShortcut>
+                      </MenuItem>
                     ))}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="gap-2 p-2">
+                    <MenuSeparator />
+                    <MenuItem className="gap-2 p-2">
                       <div className="flex size-6 items-center justify-center rounded-md border bg-background">
                         <Plus className="size-4" />
                       </div>
                       <div className="font-medium text-muted-foreground">
                         Add team
                       </div>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                    </MenuItem>
+                  </MenuContent>
+                </Menu>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarHeader>
@@ -331,33 +333,33 @@ export const Base: Story = {
                         <span>{item.name}</span>
                       </a>
                     </SidebarMenuButton>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
+                    <Menu>
+                      <MenuTrigger
                         render={<SidebarMenuAction showOnHover />}
                       >
                         <MoreHorizontal />
                         <span className="sr-only">More</span>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
+                      </MenuTrigger>
+                      <MenuContent
                         align="end"
                         className="w-48 rounded-lg"
                         side="bottom"
                       >
-                        <DropdownMenuItem>
+                        <MenuItem>
                           <Folder className="text-muted-foreground" />
                           <span>View Project</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        </MenuItem>
+                        <MenuItem>
                           <Forward className="text-muted-foreground" />
                           <span>Share Project</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem>
+                        </MenuItem>
+                        <MenuSeparator />
+                        <MenuItem>
                           <Trash2 className="text-muted-foreground" />
                           <span>Delete Project</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                        </MenuItem>
+                      </MenuContent>
+                    </Menu>
                   </SidebarMenuItem>
                 ))}
                 <SidebarMenuItem>
@@ -372,8 +374,8 @@ export const Base: Story = {
           <SidebarFooter>
             <SidebarMenu>
               <SidebarMenuItem>
-                <DropdownMenu>
-                  <DropdownMenuTrigger
+                <Menu>
+                  <MenuTrigger
                     render={
                       <SidebarMenuButton
                         className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
@@ -397,14 +399,15 @@ export const Base: Story = {
                       </span>
                     </div>
                     <ChevronsUpDown className="ml-auto size-4" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
+                  </MenuTrigger>
+                  <MenuContent
                     align="end"
-                    className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                    className="w-(--anchor-width) min-w-56 rounded-lg"
                     side="bottom"
                     sideOffset={4}
                   >
-                    <DropdownMenuLabel className="p-0 font-normal">
+                    <MenuGroup>
+                    <MenuLabel className="p-0 font-normal">
                       <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                         <Avatar className="h-8 w-8 rounded-lg">
                           <AvatarImage
@@ -424,36 +427,37 @@ export const Base: Story = {
                           </span>
                         </div>
                       </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuGroup>
-                      <DropdownMenuItem>
+                    </MenuLabel>
+                    </MenuGroup>
+                    <MenuSeparator />
+                    <MenuGroup>
+                      <MenuItem>
                         <Sparkles />
                         Upgrade to Pro
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuGroup>
-                      <DropdownMenuItem>
+                      </MenuItem>
+                    </MenuGroup>
+                    <MenuSeparator />
+                    <MenuGroup>
+                      <MenuItem>
                         <BadgeCheck />
                         Account
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      </MenuItem>
+                      <MenuItem>
                         <CreditCard />
                         Billing
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      </MenuItem>
+                      <MenuItem>
                         <Bell />
                         Notifications
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>
+                      </MenuItem>
+                    </MenuGroup>
+                    <MenuSeparator />
+                    <MenuItem>
                       <LogOut />
                       Log out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                    </MenuItem>
+                  </MenuContent>
+                </Menu>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarFooter>

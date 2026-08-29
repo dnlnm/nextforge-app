@@ -7,12 +7,6 @@ import {
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
-  CardFrameAction,
-  CardFrameHeader,
-  CardFrameTitle,
-} from "@repo/design-system/components/ui/card";
-import {
   Empty,
   EmptyContent,
   EmptyDescription,
@@ -20,7 +14,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@repo/design-system/components/ui/empty";
-import { Stat } from "@repo/design-system/components/ui/stat";
+import { PreviewCard } from "@repo/design-system/components/preview-card";
 import { cn } from "@repo/design-system/lib/utils";
 import {
   type DashboardSessionRow,
@@ -152,57 +146,58 @@ export const TodaysClassesCard = async ({
   const { sessions } = await getTodaysClassesData(database, organizationId);
 
   return (
-    <Stat className="isolate h-full after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background">
-      <CardFrameHeader>
-        <CardFrameTitle className="text-base">
-          Today&apos;s Classes
-        </CardFrameTitle>
-        <CardFrameAction>
+    <PreviewCard
+      className="flex h-full flex-col"
+      header={
+        <>
+          <span className="font-medium text-foreground text-sm">
+            Today&apos;s Classes
+          </span>
           <Button render={<Link href="/schedules" />} size="sm" variant="link">
             View Schedule
           </Button>
-        </CardFrameAction>
-      </CardFrameHeader>
-      <Card className="min-h-0 flex-1 flex-col dark:bg-background">
-        {sessions.length === 0 ? (
-          <Empty>
-            <EmptyContent>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <CalendarDaysIcon className="size-4.5" />
-                </EmptyMedia>
-                <EmptyTitle>No classes today</EmptyTitle>
-                <EmptyDescription>
-                  Create a class session from the schedule to start managing
-                  today&apos;s attendance.
-                </EmptyDescription>
-              </EmptyHeader>
-              <Button render={<Link href="/classes/new" />} size="sm">
-                Create Class
-              </Button>
-            </EmptyContent>
-          </Empty>
-        ) : (
-          <div className="flex min-h-0 flex-1 flex-col">
-            <div className="hidden shrink-0 grid-cols-[4.5rem_1fr_1fr_4.5rem_6.5rem] gap-3 border-b px-3 py-2 font-medium text-muted-foreground text-xs md:grid">
-              <span>Time</span>
-              <span>Class</span>
-              <span>Teacher</span>
-              <span className="text-right">Students</span>
-              <span className="text-right">Status</span>
-            </div>
-            <div className="grid min-h-0 content-start gap-1 overflow-y-auto">
-              {sessions.map((session, index) => (
-                <SessionRow
-                  isLast={index === sessions.length - 1}
-                  key={session.id}
-                  session={session}
-                />
-              ))}
-            </div>
+        </>
+      }
+      stageClassName="min-h-0 flex-1 justify-start p-1 sm:p-1"
+    >
+      {sessions.length === 0 ? (
+        <Empty>
+          <EmptyContent>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <CalendarDaysIcon className="size-4.5" />
+              </EmptyMedia>
+              <EmptyTitle>No classes today</EmptyTitle>
+              <EmptyDescription>
+                Create a class session from the schedule to start managing
+                today&apos;s attendance.
+              </EmptyDescription>
+            </EmptyHeader>
+            <Button render={<Link href="/classes/new" />} size="sm">
+              Create Class
+            </Button>
+          </EmptyContent>
+        </Empty>
+      ) : (
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="hidden shrink-0 grid-cols-[4.5rem_1fr_1fr_4.5rem_6.5rem] gap-3 border-b px-3 py-2 font-medium text-muted-foreground text-xs md:grid">
+            <span>Time</span>
+            <span>Class</span>
+            <span>Teacher</span>
+            <span className="text-right">Students</span>
+            <span className="text-right">Status</span>
           </div>
-        )}
-      </Card>
-    </Stat>
+          <div className="grid min-h-0 content-start gap-1 overflow-y-auto">
+            {sessions.map((session, index) => (
+              <SessionRow
+                isLast={index === sessions.length - 1}
+                key={session.id}
+                session={session}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </PreviewCard>
   );
 };

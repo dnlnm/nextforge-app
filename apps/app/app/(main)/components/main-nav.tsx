@@ -9,11 +9,11 @@ import {
 } from "@repo/design-system/components/ui/accordion";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@repo/design-system/components/ui/dropdown-menu";
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuTrigger,
+} from "@repo/design-system/components/ui/menu";
 import {
   Sheet,
   SheetContent,
@@ -29,7 +29,7 @@ import {
   CreditCardIcon,
   GraduationCapIcon,
   type LucideIcon,
-  Menu,
+  Menu as MenuIcon,
   SettingsIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -127,8 +127,8 @@ export const MainNav = ({
           </li>
 
           <li>
-            <DropdownMenu>
-              <DropdownMenuTrigger
+            <Menu>
+              <MenuTrigger
                 render={
                   <Button
                     className={cn(
@@ -142,10 +142,10 @@ export const MainNav = ({
               >
                 My Workspaces
                 <ChevronDownIcon className="size-3.5 opacity-60" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-80 p-1">
+              </MenuTrigger>
+              <MenuContent align="start" className="w-80 p-1">
                 {workspaceItems.map((item) => (
-                  <DropdownMenuItem
+                  <MenuItem
                     key={item.title}
                     render={<Link href={item.href} />}
                   >
@@ -160,10 +160,10 @@ export const MainNav = ({
                         {item.description}
                       </p>
                     </div>
-                  </DropdownMenuItem>
+                  </MenuItem>
                 ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </MenuContent>
+            </Menu>
           </li>
 
           <li>
@@ -215,7 +215,7 @@ export const MainNav = ({
               />
             }
           >
-            <Menu className="size-4" />
+            <MenuIcon className="size-4" />
           </SheetTrigger>
           <SheetContent className="overflow-y-auto">
             <SheetHeader>

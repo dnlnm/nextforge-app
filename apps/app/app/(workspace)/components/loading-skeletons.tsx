@@ -1,5 +1,7 @@
 import { CardShell } from "@repo/design-system/components/ui/card-shell";
+import { PreviewCard } from "@repo/design-system/components/preview-card";
 import { Skeleton } from "@repo/design-system/components/ui/skeleton";
+import { cn } from "@repo/design-system/lib/utils";
 
 const HeaderSkeleton = () => (
   <header className="flex h-16 shrink-0 items-center justify-between gap-2">
@@ -44,16 +46,23 @@ const StatCardsSkeleton = ({
   return (
     <section className={`grid gap-3 ${className}`}>
       {cards.map((card) => (
-        <CardShell className="h-full" key={card.id}>
-          <div className="grid flex-1 grid-cols-[auto_1fr] gap-x-3 gap-y-2 p-4">
+        <PreviewCard
+          className="flex h-full flex-col"
+          key={card.id}
+          label={<Skeleton className="h-3 w-24" />}
+          footer={
+            <div className="relative z-10">
+              <Skeleton className="size-8" />
+            </div>
+          }
+          stageClassName="flex-col items-start justify-center gap-4 p-6 sm:p-6"
+        >
+          <div className="flex items-center gap-3">
             <Skeleton className="size-8 rounded-md" />
-            <Skeleton className="h-3 w-20 self-center" />
-            <Skeleton className="col-span-2 h-7 w-24" />
+            <Skeleton className="h-3 w-20" />
           </div>
-          <div className="flex min-h-12 items-center justify-between gap-2 px-4 py-3">
-            <Skeleton className="h-3 w-32" />
-          </div>
-        </CardShell>
+          <Skeleton className="h-7 w-24" />
+        </PreviewCard>
       ))}
     </section>
   );
@@ -145,21 +154,23 @@ const ChartCardSkeleton = ({
 }: {
   readonly height?: string;
 }) => (
-  <CardShell className={height} panelClassName="grid content-start gap-3 p-6">
-    <div className="flex items-center justify-between gap-4">
-      <div className="grid gap-2">
-        <Skeleton className="h-5 w-40" />
-        <Skeleton className="h-3 w-24" />
-      </div>
-      <Skeleton className="h-5 w-20" />
-    </div>
-    <div className="mt-2 grid gap-2">
+  <PreviewCard
+    className={cn("flex h-full flex-col", height)}
+    header={
+      <>
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="h-6 w-16" />
+      </>
+    }
+    stageClassName="min-h-0 flex-1 flex-col justify-start gap-3 p-4 sm:p-4"
+  >
+    <div className="grid gap-2">
       <Skeleton className="h-3 w-28" />
       <Skeleton className="h-8 w-40" />
       <Skeleton className="h-3 w-40" />
     </div>
     <Skeleton className="mt-auto h-48 w-full" />
-  </CardShell>
+  </PreviewCard>
 );
 
 export {

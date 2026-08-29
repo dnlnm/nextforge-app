@@ -17,7 +17,7 @@ import {
   StatPanel,
   StatValue,
 } from "@repo/design-system/components/ui/stat";
-import { EASE, INSTANT } from "@repo/design-system/lib/motion";
+import { easeOutStrong } from "@repo/design-system/lib/springs";
 import {
   UserRoundCheckIcon,
   UserRoundIcon,
@@ -112,7 +112,7 @@ export function TeachersPageClient({
               className="grid grid-cols-2 gap-5 overflow-hidden py-1.5 xl:grid-cols-4"
               exit={{ opacity: 0, height: 0, marginBottom: 0 }}
               initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-              transition={reduced ? INSTANT : { duration: 0.28, ease: EASE }}
+              transition={reduced ? { duration: 0 } : { duration: 0.28, ease: easeOutStrong }}
             >
               {[
                 {

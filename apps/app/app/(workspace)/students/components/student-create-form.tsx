@@ -34,6 +34,14 @@ import {
   SelectValue,
 } from "@repo/design-system/components/ui/select";
 import {
+  Select as TroveSelect,
+  SelectContent as TroveSelectContent,
+  SelectItem as TroveSelectItem,
+  SelectTrigger as TroveSelectTrigger,
+  SelectValue as TroveSelectValue,
+} from "@repo/design-system/components/trovecn/select";
+import { PreviewCard } from "@repo/design-system/components/preview-card";
+import {
   Tabs,
   TabsList,
   TabsPanel,
@@ -676,11 +684,24 @@ export const StudentCreateForm = ({
       />
 
       <section className="grid content-start gap-5 xl:col-start-1 xl:row-start-1">
-        <FormSectionCard
-          icon={UserRoundIcon}
-          subtitle="Legal name as per IC / birth certificate"
-          title="Student Information"
+        <PreviewCard
+          className="flex flex-col"
+          header={
+            <span className="flex items-center gap-2.5">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <UserRoundIcon className="size-4 text-primary" />
+              </span>
+              <span className="font-medium text-foreground text-sm">
+                Student Information
+              </span>
+            </span>
+          }
+          stageClassName="min-h-0 flex-1 flex-col justify-start gap-4 p-4 sm:p-5"
         >
+          <p className="text-muted-foreground text-xs">
+            Legal name as per IC / birth certificate
+          </p>
+          <div className="grid gap-4">
           <div className="flex items-start gap-5">
             <PhotoUploadTile onPreviewUrlChange={setPhotoUrl} />
             <div className="grid flex-1 gap-4 sm:grid-cols-2">
@@ -777,7 +798,7 @@ export const StudentCreateForm = ({
             </div>
             <div className="grid content-start gap-1.5">
               <FieldLabel required>Gender</FieldLabel>
-              <Select
+              <TroveSelect
                 items={Object.fromEntries(
                   GENDER_OPTIONS.map((option) => [option.value, option.label])
                 )}
@@ -788,20 +809,20 @@ export const StudentCreateForm = ({
                 }}
                 value={gender}
               >
-                <SelectTrigger
+                <TroveSelectTrigger
                   aria-invalid={errors.gender ? true : undefined}
                   className={errorClassName(Boolean(errors.gender))}
                 >
-                  <SelectValue placeholder="Select gender" />
-                </SelectTrigger>
-                <SelectContent>
+                  <TroveSelectValue placeholder="Select gender" />
+                </TroveSelectTrigger>
+                <TroveSelectContent>
                   {GENDER_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
+                    <TroveSelectItem key={option.value} value={option.value}>
                       {option.label}
-                    </SelectItem>
+                    </TroveSelectItem>
                   ))}
-                </SelectContent>
-              </Select>
+                </TroveSelectContent>
+              </TroveSelect>
               <FieldErrorText message={errors.gender} />
             </div>
           </div>
@@ -854,7 +875,8 @@ export const StudentCreateForm = ({
             />
             <Hint>Student's home address</Hint>
           </div>
-        </FormSectionCard>
+          </div>
+        </PreviewCard>
 
         <FormSectionCard icon={UsersRoundIcon} title="Parent / Guardian">
           <div className="grid gap-4">

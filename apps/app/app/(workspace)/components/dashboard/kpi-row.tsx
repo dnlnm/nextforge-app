@@ -5,15 +5,11 @@ import {
   ProgressTrack,
 } from "@repo/design-system/components/ui/progress";
 import {
-  Stat,
-  StatAction,
-  StatDescription,
-  StatFooter,
   StatIndicator,
   StatLabel,
-  StatPanel,
   StatValue,
 } from "@repo/design-system/components/ui/stat";
+import { PreviewCard } from "@repo/design-system/components/preview-card";
 import { cn } from "@repo/design-system/lib/utils";
 import type { DashboardKpiData } from "@repo/domain";
 import { formatMoneyWhole } from "@repo/money";
@@ -104,57 +100,58 @@ export const KpiRow = ({ currency, data }: KpiRowProps) => {
   return (
     <section className="grid grid-cols-2 gap-5 lg:grid-cols-3 2xl:grid-cols-5">
       {stats.map((stat, index) => (
-        <Stat
+        <PreviewCard
           className={cn(
-            "isolate h-full after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background",
+            "relative flex h-full flex-col",
             index === stats.length - 1 && "col-span-2 lg:col-span-1"
           )}
           key={stat.label}
+          label={stat.detail}
+          footer={
+            stat.action ? (
+              <div className="relative z-10">
+                <Button
+                  render={<Link href={stat.action.href} />}
+                  size="2xs"
+                  variant="elevated"
+                >
+                  <PlusIcon aria-hidden="true" data-icon="inline-start" />
+                  <span className="hidden md:inline">{stat.action.label}</span>
+                </Button>
+              </div>
+            ) : null
+          }
+          stageClassName="flex-col items-start justify-center gap-4 p-6 sm:p-6"
         >
-          <StatPanel className="dark:bg-background">
-            <StatLabel>{stat.label}</StatLabel>
+          <div className="flex items-center gap-3">
             <StatIndicator color={stat.color} variant="stacked">
               <stat.icon />
             </StatIndicator>
-            <StatValue>{stat.value}</StatValue>
-          </StatPanel>
-          <StatFooter>
-            {stat.progress !== null ? (
-              <Progress
-                aria-label={`${data.fees.targetPercent}% of target collected`}
-                className="w-full"
-                value={data.fees.targetPercent}
-              >
-                <ProgressTrack>
-                  <ProgressIndicator
-                    className="bg-success"
-                    style={{
-                      width: `${Math.min(100, data.fees.targetPercent)}%`,
-                    }}
-                  />
-                </ProgressTrack>
-              </Progress>
-            ) : null}
-            <StatDescription>{stat.detail}</StatDescription>
-            {stat.action ? (
-              <StatAction className="relative z-10">
-                <Button
-                  render={<Link href={stat.action.href} />}
-                  size="sm"
-                  variant="outline"
-                >
-                  <PlusIcon aria-hidden="true" />
-                  <span className="hidden md:inline">{stat.action.label}</span>
-                </Button>
-              </StatAction>
-            ) : null}
-          </StatFooter>
+            <StatLabel>{stat.label}</StatLabel>
+          </div>
+          <StatValue>{stat.value}</StatValue>
+          {stat.progress !== null ? (
+            <Progress
+              aria-label={`${data.fees.targetPercent}% of target collected`}
+              className="w-full max-w-40"
+              value={data.fees.targetPercent}
+            >
+              <ProgressTrack>
+                <ProgressIndicator
+                  className="bg-success"
+                  style={{
+                    width: `${Math.min(100, data.fees.targetPercent)}%`,
+                  }}
+                />
+              </ProgressTrack>
+            </Progress>
+          ) : null}
           <Link
             aria-label={stat.label}
-            className="absolute inset-0 rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="absolute inset-0 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             href={stat.href}
           />
-        </Stat>
+        </PreviewCard>
       ))}
     </section>
   );

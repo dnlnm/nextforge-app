@@ -8,13 +8,14 @@ import {
 } from "@repo/design-system/components/ui/avatar";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@repo/design-system/components/ui/dropdown-menu";
+  Menu,
+  MenuContent,
+  MenuGroup,
+  MenuItem,
+  MenuLabel,
+  MenuSeparator,
+  MenuTrigger,
+} from "@repo/design-system/components/ui/menu";
 import { LogOutIcon, UserIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -54,8 +55,8 @@ export const UserMenu = ({ userName }: UserMenuProperties) => {
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
+    <Menu>
+      <MenuTrigger
         render={
           <Button
             aria-label="Account menu"
@@ -73,41 +74,40 @@ export const UserMenu = ({ userName }: UserMenuProperties) => {
           />
           <AvatarFallback>{initials(userName ?? email ?? "U")}</AvatarFallback>
         </Avatar>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        className="w-56"
-        portalProps={{ keepMounted: true }}
-      >
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
-            <p className="font-medium text-sm leading-none">
-              {email ?? "Account"}
-            </p>
-            {userName ? (
-              <p className="text-muted-foreground text-xs leading-none">
-                {userName}
+      </MenuTrigger>
+      <MenuContent align="end" className="w-56">
+        <MenuGroup>
+          <MenuLabel className="normal-case font-normal">
+            <div className="flex flex-col space-y-1">
+              <p className="font-medium text-sm leading-none">
+                {email ?? "Account"}
               </p>
-            ) : null}
-          </div>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          // biome-ignore lint/a11y/useAnchorContent: DropdownMenuItem injects its children into the anchor via the render prop
+              {userName ? (
+                <p className="text-muted-foreground text-xs leading-none">
+                  {userName}
+                </p>
+              ) : null}
+            </div>
+          </MenuLabel>
+        </MenuGroup>
+        <MenuSeparator />
+        <MenuItem
+          // biome-ignore lint/a11y/useAnchorContent: MenuItem injects its children into the anchor via the render prop
           render={<a className="cursor-pointer" href="/account" />}
         >
           <UserIcon />
           Account Settings
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          className="cursor-pointer text-destructive"
+        </MenuItem>
+        <MenuSeparator />
+        <MenuItem
+          className="cursor-pointer"
+          variant="destructive"
           onClick={() => signOut()}
         >
           <LogOutIcon />
           Sign Out
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </MenuItem>
+      </MenuContent>
+    </Menu>
   );
 };

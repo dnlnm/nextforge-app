@@ -5,9 +5,9 @@
 
 @plugin "@tailwindcss/typography";
 
-/* Fonts are bundled by `next/font/local` in `lib/fonts.ts` (Cal Sans for
-   sans/heading, Chillax for the brand wordmark) and by `@fontsource` for
-   Geist Mono. No external font host is required at runtime. */
+/* Fonts are bundled by `next/font/google` (Geist for sans) in `lib/fonts.ts`,
+   by `next/font/local` for the Chillax brand wordmark, and by `@fontsource`
+   for Geist Mono. No external font host is required at runtime. */
 
 @custom-variant dark (&:is(.dark *));
 
@@ -61,6 +61,22 @@
   --color-code: var(--code);
   --color-code-foreground: var(--code-foreground);
   --color-code-highlight: var(--code-highlight);
+  /* trovecn theme tokens */
+  --color-link: var(--link);
+  --color-chrome: var(--chrome);
+  --color-scrim: var(--scrim);
+  --color-hover: var(--hover);
+  --color-active: var(--active);
+  --color-spine: var(--spine);
+  --color-spine-lit: var(--spine-lit);
+  --color-marquee-fill: var(--marquee-fill);
+  --color-marquee-stroke: var(--marquee-stroke);
+  --color-anchor-annotation: var(--anchor-annotation);
+  --color-anchor-hit: var(--anchor-hit);
+  --color-anchor-citation: var(--anchor-citation);
+  --color-anchor-flash: var(--anchor-flash);
+  --color-accent-blue: var(--accent-blue);
+  --color-accent-blue-hover: var(--accent-blue-hover);
   --font-sans: var(--font-sans);
   --font-heading: var(--font-sans);
   --font-mono: "Geist Mono Variable", ui-monospace, monospace;
@@ -159,6 +175,58 @@
 @theme {
   --ease-enter: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-leave: cubic-bezier(0.4, 0, 1, 1);
+  /* trovecn's `easeOutStrong` reachable from a class name. Plain-CSS
+     transitions have no way to consume the exported array form, and the
+     built-in easing keywords are too weak for anything that travels. */
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/*
+  Type scale — trovecn's. Small and tight, not the 16px-body/36px-heading
+  defaults Tailwind's named steps (`text-sm`, `text-lg`, …) assume — these
+  are new, separately-named utilities (`text-lede`, `text-title`, …) rather
+  than overrides of those defaults, so existing `text-sm`/`text-xs` usage
+  elsewhere (buttons, tabs, form controls) is unaffected. Sizes that pair
+  with a fixed weight/tracking bake it into the token via `--text-*`
+  --font-weight / `--text-*--letter-spacing` so the utility alone applies
+  the full treatment; sizes that get composed with different weights
+  per-instance (body copy, captions) are left bare.
+*/
+@theme {
+  --text-display: clamp(2rem, 5.6vw, 3.25rem); /* 32–52px, landing headline */
+  --text-display--line-height: 1.08;
+  --text-display--letter-spacing: -0.04em;
+  --text-display--font-weight: 500;
+
+  --text-title: 1.6875rem; /* 27px, page <h1> */
+  --text-title--line-height: 1.15;
+  --text-title--letter-spacing: -0.03em;
+  --text-title--font-weight: 500;
+
+  --text-lede: 0.9375rem; /* 15px, intro paragraph under a page title */
+
+  --text-body: 0.84375rem; /* 13.5px, paragraph / panel copy */
+
+  --text-control: 0.84375rem; /* 13.5px, card title / row name / control label */
+  --text-control--letter-spacing: -0.01em;
+  --text-control--font-weight: 500;
+
+  --text-caption: 0.8125rem; /* 13px, secondary copy, inline code, links */
+
+  /* Named "minor", not "secondary" — `--color-secondary` already claims the
+     `text-secondary` utility name for a text *color*; reusing it here would
+     silently lose one of the two rules to the class-name collision. */
+  --text-minor: 0.78125rem; /* 12.5px, sidebar row, breadcrumb */
+
+  --text-label: 0.6875rem; /* 11px, uppercase section label / column header */
+  --text-label--letter-spacing: 0.08em;
+  --text-label--font-weight: 600;
+
+  --text-2xs: 0.6875rem; /* 11px, plain small mono/status line */
+
+  --text-meta: 0.65625rem; /* 10.5px, metadata, source paths */
+
+  --text-micro: 0.59375rem; /* 9.5px, catalog numbers, tabular badges */
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -172,121 +240,177 @@
   }
 }
 
+/*
+  Zero chroma on the structural tokens — surfaces, borders, --primary
+  (button fill stays ink, not brand color), and --accent, which stays a
+  neutral hover-fill gray. --ring and --link are the exception: they share
+  one deliberate blue hue (~265) as the interaction accent for focus rings
+  and links. `--accent-blue`/`--accent-blue-hover` carry that same hue too,
+  but scoped to a single consumer — Switch's checked track — not a general
+  token other components should reach for. `--destructive` stays its own
+  semantic red, unrelated to any of the above. Components reference these
+  token *names* only (never a hardcoded hue), so a consuming project that
+  already defines its own theme tokens (shadcn or otherwise) can still
+  override any of these outright.
+  Light is the default theme; `.dark` is toggled via a class on <html>.
+*/
 :root {
-  --radius: 0.625rem;
-  --background: var(--color-white);
-  --foreground: var(--color-neutral-800);
-  --card: var(--color-white);
-  --card-foreground: var(--color-neutral-800);
-  --popover: var(--color-white);
-  --popover-foreground: var(--color-neutral-800);
-  --primary: var(--color-neutral-800);
-  --primary-foreground: var(--color-neutral-50);
-  --secondary: --alpha(var(--color-black) / 4%);
-  --secondary-foreground: var(--color-neutral-800);
-  --muted: --alpha(var(--color-black) / 4%);
-  --muted-foreground: color-mix(
-    in srgb,
-    var(--color-neutral-500) 90%,
-    var(--color-black)
-  );
-  --accent: --alpha(var(--color-black) / 4%);
-  --accent-foreground: var(--color-neutral-800);
-  --destructive: var(--color-red-500);
+  --background: oklch(0.98 0 0);
+  --foreground: oklch(0.18 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0 0);
+  /* The workbench chrome plane, one rung BELOW --card. */
+  --chrome: oklch(0.945 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.955 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.955 0 0);
+  --muted-foreground: oklch(0.45 0 0);
+  --agent-activity-shimmer-base: var(--muted-foreground);
+  --agent-activity-shimmer-peak: var(--foreground);
+  --accent: oklch(0.955 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  /* Interactive-state overlays, not surfaces — a foreground-tinted wash
+     rather than a flat token pinned to one lightness. */
+  --hover: color-mix(in oklab, var(--foreground) 4%, transparent);
+  --active: color-mix(in oklab, var(--foreground) 6%, transparent);
+  --destructive: oklch(0.577 0.245 27.325);
+  --success: oklch(0.6 0.15 145);
+  --accent-blue: oklch(0.693 0.161 265);
+  --accent-blue-hover: oklch(0.649 0.164 265);
+  --border: oklch(0.89 0 0);
+  --input: oklch(0.89 0 0);
+  --ring: oklch(0.556 0.161 265 / 40%);
+  --link: oklch(0.5 0.18 265);
+  --marquee-fill: oklch(0.556 0.161 265 / 12%);
+  --marquee-stroke: oklch(0.556 0.161 265 / 70%);
+  --spine: color-mix(in oklab, var(--border) 55%, transparent);
+  --spine-lit: color-mix(in oklab, var(--foreground) 22%, transparent);
+  --chart-1: oklch(0.4 0 0);
+  --chart-2: oklch(0.5 0 0);
+  --chart-3: oklch(0.6 0 0);
+  --chart-4: oklch(0.7 0 0);
+  --chart-5: oklch(0.8 0 0);
+  --anchor-annotation: oklch(0.85 0.15 95 / 40%);
+  --anchor-hit: oklch(0.6 0.19 264 / 22%);
+  --anchor-citation: oklch(0.62 0.19 310 / 20%);
+  --anchor-flash: oklch(0.85 0.19 70 / 65%);
+  --radius: 0.5rem;
+  /* The only z-index the application names. Not themed: it is a stacking
+     fact, not a colour. */
+  --z-overlay: 50;
+  --scrim: oklch(0.21 0 0 / 32%);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.18 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.955 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.89 0 0);
+  --sidebar-ring: oklch(0.556 0 0 / 40%);
+  /* App-specific semantic/status tokens kept from the previous theme. */
   --destructive-foreground: var(--color-red-700);
   --info: var(--color-blue-500);
   --info-foreground: var(--color-blue-700);
-  --success: var(--color-emerald-500);
   --success-foreground: var(--color-emerald-700);
   --warning: var(--color-amber-500);
   --warning-foreground: var(--color-amber-700);
-  --border: --alpha(var(--color-black) / 8%);
-  --input: --alpha(var(--color-black) / 10%);
-  --ring: var(--color-neutral-400);
-  --chart-1: var(--color-orange-600);
-  --chart-2: var(--color-teal-600);
-  --chart-3: var(--color-cyan-900);
-  --chart-4: var(--color-amber-400);
-  --chart-5: var(--color-amber-500);
-  --sidebar: var(--color-neutral-50);
-  --sidebar-foreground: color-mix(
-    in srgb,
-    var(--color-neutral-800) 64%,
-    var(--sidebar)
-  );
-  --sidebar-primary: var(--color-neutral-800);
-  --sidebar-primary-foreground: var(--color-neutral-50);
-  --sidebar-accent: --alpha(var(--color-black) / 4%);
-  --sidebar-accent-foreground: var(--color-neutral-800);
-  --sidebar-border: --alpha(var(--color-black) / 6%);
-  --sidebar-ring: var(--color-neutral-400);
   --code: var(--color-white);
   --code-foreground: var(--foreground);
   --code-highlight: --alpha(var(--color-black) / 4%);
+  /* Plain-CSS transition durations mirroring the motion tier durations. */
+  --duration-fast: 80ms;
+  --duration-quick: 140ms;
+  --duration-moderate: 200ms;
+  --duration-slow: 320ms;
 }
 
 .dark {
-  --background: color-mix(
-    in srgb,
-    var(--color-neutral-950) 96%,
-    var(--color-white)
+  /* Surfaces stay pure chroma-0 gray, same as light mode — just lightness
+     steps, no warm/brand tint. (--ring/--link carry the same 265 blue hue
+     as light mode, only relit for a dark surround.) */
+  --background: oklch(0.21 0 0);
+  --foreground: oklch(0.97 0 0);
+  --card: oklch(0.275 0 0);
+  --card-foreground: oklch(0.97 0 0);
+  --popover: oklch(0.3 0 0);
+  --popover-foreground: oklch(0.97 0 0);
+  --chrome: oklch(0.19 0 0);
+  --scrim: oklch(0.14 0 0 / 55%);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.33 0 0);
+  --secondary-foreground: oklch(0.97 0 0);
+  --muted: oklch(0.295 0 0);
+  --muted-foreground: oklch(0.72 0 0);
+  --agent-activity-shimmer-base: color-mix(
+    in oklab,
+    var(--muted-foreground) 42%,
+    var(--background)
   );
-  --foreground: var(--color-neutral-100);
-  --card: color-mix(in srgb, var(--background) 98%, var(--color-white));
-  --card-foreground: var(--color-neutral-100);
-  --popover: color-mix(in srgb, var(--background) 96%, var(--color-white));
-  --popover-foreground: var(--color-neutral-100);
-  --primary: var(--color-neutral-100);
-  --primary-foreground: var(--color-neutral-800);
-  --secondary: --alpha(var(--color-white) / 4%);
-  --secondary-foreground: var(--color-neutral-100);
-  --muted: --alpha(var(--color-white) / 4%);
-  --muted-foreground: color-mix(
-    in srgb,
-    var(--color-neutral-500) 90%,
-    var(--color-white)
-  );
-  --accent: --alpha(var(--color-white) / 4%);
-  --accent-foreground: var(--color-neutral-100);
-  --destructive: color-mix(
-    in srgb,
-    var(--color-red-500) 90%,
-    var(--color-white)
-  );
+  --agent-activity-shimmer-peak: var(--muted-foreground);
+  --accent: oklch(0.33 0 0);
+  --accent-foreground: oklch(0.97 0 0);
+  --hover: color-mix(in oklab, var(--foreground) 6%, transparent);
+  --active: color-mix(in oklab, var(--foreground) 10%, transparent);
+  --destructive: oklch(0.704 0.191 22.216);
+  --success: oklch(0.75 0.17 145);
+  --border: oklch(1 0 0 / 15%);
+  --input: oklch(1 0 0 / 18%);
+  --ring: oklch(0.72 0.14 265 / 45%);
+  --link: oklch(0.78 0.13 265);
+  --marquee-fill: oklch(0.72 0.14 265 / 16%);
+  --marquee-stroke: oklch(0.72 0.14 265 / 75%);
+  --chart-1: oklch(0.9 0 0);
+  --chart-2: oklch(0.75 0 0);
+  --chart-3: oklch(0.6 0 0);
+  --chart-4: oklch(0.45 0 0);
+  --chart-5: oklch(0.3 0 0);
+  --anchor-annotation: oklch(0.8 0.14 95 / 28%);
+  --anchor-hit: oklch(0.72 0.16 264 / 26%);
+  --anchor-citation: oklch(0.75 0.16 310 / 24%);
+  --anchor-flash: oklch(0.85 0.18 70 / 55%);
+  --sidebar: oklch(0.23 0 0);
+  --sidebar-foreground: oklch(0.97 0 0);
+  --sidebar-primary: oklch(0.922 0 0);
+  --sidebar-primary-foreground: oklch(0.205 0 0);
+  --sidebar-accent: oklch(0.33 0 0);
+  --sidebar-accent-foreground: oklch(0.97 0 0);
+  --sidebar-border: oklch(1 0 0 / 15%);
+  --sidebar-ring: oklch(0.72 0 0 / 45%);
   --destructive-foreground: var(--color-red-400);
   --info: var(--color-blue-500);
   --info-foreground: var(--color-blue-400);
-  --success: var(--color-emerald-500);
   --success-foreground: var(--color-emerald-400);
   --warning: var(--color-amber-500);
   --warning-foreground: var(--color-amber-400);
-  --border: --alpha(var(--color-white) / 6%);
-  --input: --alpha(var(--color-white) / 8%);
-  --ring: var(--color-neutral-500);
-  --chart-1: var(--color-blue-700);
-  --chart-2: var(--color-emerald-500);
-  --chart-3: var(--color-amber-500);
-  --chart-4: var(--color-purple-500);
-  --chart-5: var(--color-rose-500);
-  --sidebar: color-mix(
-    in srgb,
-    var(--color-neutral-950) 97%,
-    var(--color-white)
-  );
-  --sidebar-foreground: color-mix(
-    in srgb,
-    var(--color-neutral-100) 64%,
-    var(--sidebar)
-  );
-  --sidebar-primary: var(--color-neutral-100);
-  --sidebar-primary-foreground: var(--color-neutral-800);
-  --sidebar-accent: --alpha(var(--color-white) / 4%);
-  --sidebar-accent-foreground: var(--color-neutral-100);
-  --sidebar-border: --alpha(var(--color-white) / 5%);
-  --sidebar-ring: var(--color-neutral-400);
   --code: color-mix(in srgb, var(--background) 98%, var(--color-white));
   --code-foreground: var(--foreground);
   --code-highlight: --alpha(var(--color-white) / 4%);
+}
+
+/* Hand-written because `duration-*` is a built-in functional utility with no
+   theme namespace behind it — it takes bare numbers and arbitrary values
+   only. These mirror exactly what `duration-200` emits, so they compose
+   with `transition-*` and stack under variants (`active:duration-fast`). */
+@utility duration-fast {
+  --tw-duration: var(--duration-fast);
+  transition-duration: var(--duration-fast);
+}
+@utility duration-quick {
+  --tw-duration: var(--duration-quick);
+  transition-duration: var(--duration-quick);
+}
+@utility duration-moderate {
+  --tw-duration: var(--duration-moderate);
+  transition-duration: var(--duration-moderate);
+}
+@utility duration-slow {
+  --tw-duration: var(--duration-slow);
+  transition-duration: var(--duration-slow);
 }
 
 @layer base {
@@ -515,6 +639,83 @@
       }
     }
   }
+}
+
+/* Lifted-surface bevel: a soft drop shadow plus an inset top highlight, no
+   all-around inset ring. Used by Dialog's and Drawer's floating planes. */
+.shadow-panel {
+  box-shadow:
+    0 1px 2px oklch(0 0 0 / 5%),
+    0 12px 32px oklch(0 0 0 / 6%),
+    inset 0 1px 0 oklch(1 0 0 / 60%);
+}
+.dark .shadow-panel {
+  box-shadow:
+    0 1px 2px oklch(0 0 0 / 45%),
+    0 16px 40px oklch(0 0 0 / 45%),
+    inset 0 1px 0 oklch(1 0 0 / 10%);
+}
+
+/* Same layered shadow as .shadow-panel, plus a crisp 1px edge — for
+   `--popover` surfaces that anchor to and often visually sit on top of
+   another surface (Popover, Menu, Combobox). */
+.shadow-popover {
+  box-shadow:
+    0 0 0 1px oklch(0 0 0 / 8%),
+    0 1px 2px oklch(0 0 0 / 5%),
+    0 12px 32px oklch(0 0 0 / 6%),
+    inset 0 1px 0 oklch(1 0 0 / 60%);
+}
+.dark .shadow-popover {
+  box-shadow:
+    0 0 0 1px oklch(1 0 0 / 8%),
+    0 1px 2px oklch(0 0 0 / 45%),
+    0 16px 40px oklch(0 0 0 / 45%),
+    inset 0 1px 0 oklch(1 0 0 / 10%);
+}
+
+/* Same shadow-over-border bevel as .shadow-panel, scaled down for small
+   controls (the Button "elevated" variant) instead of a full panel-sized
+   blur. */
+.shadow-bevel {
+  box-shadow:
+    0 1px 2px oklch(0 0 0 / 6%),
+    inset 0 1px 0 oklch(1 0 0 / 50%);
+}
+.dark .shadow-bevel {
+  box-shadow:
+    0 1px 2px oklch(0 0 0 / 35%),
+    inset 0 1px 0 oklch(1 0 0 / 12%);
+}
+
+/* Same drop-shadow-plus-top-highlight bevel as .shadow-bevel, plus a third
+   layer: a 1px all-around ring at much lower opacity than --border. Use
+   this instead of `border border-border` on content cards that need a
+   legible edge on every side. */
+.shadow-card {
+  box-shadow:
+    0 1px 2px oklch(0 0 0 / 4%),
+    inset 0 1px 0 oklch(1 0 0 / 50%),
+    0 0 0 1px oklch(0 0 0 / 5%);
+}
+.dark .shadow-card {
+  box-shadow:
+    0 1px 2px oklch(0 0 0 / 35%),
+    inset 0 1px 0 oklch(1 0 0 / 12%),
+    0 0 0 1px oklch(1 0 0 / 5%);
+}
+
+/* The recessed counterpart to .shadow-card — a "cut in" slot rather than a
+   lifted surface. */
+.shadow-well {
+  box-shadow:
+    inset 0 1px 2px oklch(0 0 0 / 5%),
+    inset 0 0 0 1px oklch(0 0 0 / 10%);
+}
+.dark .shadow-well {
+  box-shadow:
+    inset 0 1px 3px oklch(0 0 0 / 40%),
+    inset 0 0 0 1px oklch(1 0 0 / 3%);
 }
 
 /* Shiki owns token colors while application surfaces own code backgrounds. */

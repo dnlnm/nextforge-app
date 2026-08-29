@@ -4,12 +4,7 @@ import { Checkbox as CheckboxPrimitive } from "@base-ui/react/checkbox";
 import { motion, type HTMLMotionProps, useReducedMotion } from "motion/react";
 import type React from "react";
 import { cn } from "@repo/design-system/lib/utils";
-import {
-  EASE,
-  INSTANT,
-  LEAVE,
-  SMALL,
-} from "@repo/design-system/lib/motion";
+import { easeOutStrong, spring } from "@repo/design-system/lib/springs";
 
 export function Checkbox({
   className,
@@ -45,10 +40,13 @@ export function Checkbox({
               }
               transition={
                 reduced
-                  ? INSTANT
+                  ? { duration: 0 }
                   : visible
-                    ? { ...SMALL, opacity: { duration: 0.18, ease: EASE } }
-                    : { duration: 0.14, ease: LEAVE }
+                    ? {
+                        ...spring.quick.enter,
+                        opacity: { duration: 0.18, ease: easeOutStrong },
+                      }
+                    : spring.quick.exit
               }
             >
               {state.indeterminate ? (
@@ -71,10 +69,10 @@ export function Checkbox({
                     animate={{ pathLength: visible ? 1 : 0 }}
                     transition={
                       reduced
-                        ? INSTANT
+                        ? { duration: 0 }
                         : visible
-                          ? SMALL
-                          : { duration: 0.12, ease: LEAVE }
+                          ? spring.quick.enter
+                          : spring.quick.exit
                     }
                   />
                 </svg>
@@ -98,10 +96,10 @@ export function Checkbox({
                     animate={{ pathLength: visible ? 1 : 0 }}
                     transition={
                       reduced
-                        ? INSTANT
+                        ? { duration: 0 }
                         : visible
-                          ? SMALL
-                          : { duration: 0.12, ease: LEAVE }
+                          ? spring.quick.enter
+                          : spring.quick.exit
                     }
                   />
                 </svg>

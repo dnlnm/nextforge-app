@@ -2,11 +2,11 @@
 
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@repo/design-system/components/ui/dropdown-menu";
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuTrigger,
+} from "@repo/design-system/components/ui/menu";
 import { createBrowserClient } from "@supabase/ssr";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -46,8 +46,8 @@ export const UserButton = ({ showName = false }: { showName?: boolean }) => {
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
+    <Menu>
+      <MenuTrigger
         render={
           <Button
             className="max-w-full justify-start truncate"
@@ -56,12 +56,12 @@ export const UserButton = ({ showName = false }: { showName?: boolean }) => {
         }
       >
         {showName ? (email ?? "Account") : "Account"}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
-        <DropdownMenuItem onClick={async () => signOut()}>
+      </MenuTrigger>
+      <MenuContent align="start">
+        <MenuItem onClick={async () => signOut()}>
           Sign out
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </MenuItem>
+      </MenuContent>
+    </Menu>
   );
 };

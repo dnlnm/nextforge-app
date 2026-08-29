@@ -9,16 +9,17 @@ import {
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from "@repo/design-system/components/ui/dropdown-menu";
+  Menu,
+  MenuContent,
+  MenuGroup,
+  MenuItem,
+  MenuLabel,
+  MenuSeparator,
+  MenuSub,
+  MenuSubContent,
+  MenuSubTrigger,
+  MenuTrigger,
+} from "@repo/design-system/components/ui/menu";
 import { useSidebar } from "@repo/design-system/components/ui/sidebar";
 import { cn } from "@repo/design-system/lib/utils";
 import {
@@ -73,8 +74,8 @@ export const SidebarUserMenu = () => {
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
+    <Menu>
+      <MenuTrigger
         render={
           <Button
             className={cn(
@@ -96,55 +97,57 @@ export const SidebarUserMenu = () => {
             <ChevronsUpDown className="ml-auto size-4 shrink-0" />
           </>
         )}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-56" sideOffset={8}>
-        <DropdownMenuLabel className="font-normal">
-          <span className="block font-medium text-sm">
-            {email ?? "Account"}
-          </span>
-          {organization?.role && (
-            <Badge className="mt-1" variant={roleBadgeVariant(organization.role)}>
-              {organization.role}
-            </Badge>
-          )}
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
+      </MenuTrigger>
+      <MenuContent align="start" className="w-56" sideOffset={8}>
+        <MenuGroup>
+          <MenuLabel className="normal-case font-normal">
+            <span className="block font-medium text-sm">
+              {email ?? "Account"}
+            </span>
+            {organization?.role && (
+              <Badge className="mt-1" variant={roleBadgeVariant(organization.role)}>
+                {organization.role}
+              </Badge>
+            )}
+          </MenuLabel>
+        </MenuGroup>
+        <MenuSeparator />
+        <MenuItem
           render={<a href={`https://${getMainDomain()}/account`} />}
         >
           <UserIcon />
           Account
-        </DropdownMenuItem>
-        <DropdownMenuItem render={<a href="/billing" />}>
+        </MenuItem>
+        <MenuItem render={<a href="/billing" />}>
           <CreditCardIcon />
           Subscription
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
+        </MenuItem>
+        <MenuSeparator />
+        <MenuSub>
+          <MenuSubTrigger>
             <MoonIcon />
             Theme
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent>
-            <DropdownMenuItem onClick={() => setTheme("light")}>
+          </MenuSubTrigger>
+          <MenuSubContent>
+            <MenuItem onClick={() => setTheme("light")}>
               <SunIcon />
               Light
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setTheme("dark")}>
+            </MenuItem>
+            <MenuItem onClick={() => setTheme("dark")}>
               <MoonIcon />
               Dark
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setTheme("system")}>
+            </MenuItem>
+            <MenuItem onClick={() => setTheme("system")}>
               System
-            </DropdownMenuItem>
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => signOut()}>
+            </MenuItem>
+          </MenuSubContent>
+        </MenuSub>
+        <MenuSeparator />
+        <MenuItem onClick={() => signOut()} variant="destructive">
           <LogOutIcon />
           Log out
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </MenuItem>
+      </MenuContent>
+    </Menu>
   );
 };

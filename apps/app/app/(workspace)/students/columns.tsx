@@ -8,11 +8,11 @@ import {
   createAppColumnHelper,
 } from "@repo/design-system/components/ui/data-table/table";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@repo/design-system/components/ui/dropdown-menu";
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuTrigger,
+} from "@repo/design-system/components/ui/menu";
 import { privateFileUrl } from "@repo/storage/client";
 import {
   ArchiveIcon,
@@ -62,20 +62,20 @@ export const StudentRowActions = ({ student }: { student: Student }) => {
 
   return (
     <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
-      <DropdownMenu>
-        <DropdownMenuTrigger
+      <Menu>
+        <MenuTrigger
           render={
             <Button aria-label="Row actions" size="icon" variant="ghost" />
           }
         >
           <MoreHorizontalIcon className="size-4" />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-44">
-          <DropdownMenuItem render={<Link href={`/students/${student.id}`} />}>
+        </MenuTrigger>
+        <MenuContent align="end" className="w-44">
+          <MenuItem render={<Link href={`/students/${student.id}`} />}>
             <EyeIcon />
             View profile
-          </DropdownMenuItem>
-          <DropdownMenuItem
+          </MenuItem>
+          <MenuItem
             render={
               <Link
                 href={guardian?.phone ? `https://wa.me/${guardian.phone}` : "#"}
@@ -84,30 +84,24 @@ export const StudentRowActions = ({ student }: { student: Student }) => {
           >
             <MessageCircleIcon />
             WhatsApp
-          </DropdownMenuItem>
+          </MenuItem>
           {isArchived ? (
-            <DropdownMenuItem onClick={() => setIsRestoreOpen(true)}>
+            <MenuItem onClick={() => setIsRestoreOpen(true)}>
               <RotateCcwIcon />
               Restore
-            </DropdownMenuItem>
+            </MenuItem>
           ) : (
-            <DropdownMenuItem
-              className="text-destructive focus:text-destructive"
-              onClick={() => setIsArchiveOpen(true)}
-            >
+            <MenuItem variant="destructive" onClick={() => setIsArchiveOpen(true)}>
               <ArchiveIcon />
               Archive
-            </DropdownMenuItem>
+            </MenuItem>
           )}
-          <DropdownMenuItem
-            className="text-destructive focus:text-destructive"
-            onClick={() => setIsDeleteOpen(true)}
-          >
+          <MenuItem variant="destructive" onClick={() => setIsDeleteOpen(true)}>
             <Trash2Icon />
             Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          </MenuItem>
+        </MenuContent>
+      </Menu>
       <ArchiveStudentDialog
         onOpenChange={setIsArchiveOpen}
         open={isArchiveOpen}

@@ -1,18 +1,13 @@
 import { database } from "@repo/database";
 import { formatRelativeTime } from "@repo/date";
 import {
-  Card,
-  CardFrameHeader,
-  CardFrameTitle,
-} from "@repo/design-system/components/ui/card";
-import {
   Empty,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
 } from "@repo/design-system/components/ui/empty";
-import { Stat } from "@repo/design-system/components/ui/stat";
+import { PreviewCard } from "@repo/design-system/components/preview-card";
 import { cn } from "@repo/design-system/lib/utils";
 import { type ActivityIconKey, getRecentActivityData } from "@repo/domain";
 import {
@@ -43,52 +38,55 @@ export const RecentActivityCard = async ({
   const { items } = await getRecentActivityData(database, organizationId);
 
   return (
-    <Stat className="isolate h-full after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background">
-      <CardFrameHeader>
-        <CardFrameTitle className="text-base">Recent Activity</CardFrameTitle>
-      </CardFrameHeader>
-      <Card className="min-h-0 flex-1 flex-col dark:bg-background">
-        {items.length === 0 ? (
-          <Empty>
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <ReceiptTextIcon className="size-4.5" />
-              </EmptyMedia>
-              <EmptyTitle>No recent activity</EmptyTitle>
-              <EmptyDescription>
-                Centre activity will appear here as your team starts using
-                KLIO.MY.
-              </EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        ) : (
-          <div className="grid min-h-0 gap-1 overflow-y-auto">
-            {items.map((item, index) => {
-              const Icon = ICON_BY_KEY[item.icon];
+    <PreviewCard
+      className="flex h-full flex-col"
+      header={
+        <span className="font-medium text-foreground text-sm">
+          Recent Activity
+        </span>
+      }
+      stageClassName="min-h-0 flex-1 justify-start p-1 sm:p-1"
+    >
+      {items.length === 0 ? (
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <ReceiptTextIcon className="size-4.5" />
+            </EmptyMedia>
+            <EmptyTitle>No recent activity</EmptyTitle>
+            <EmptyDescription>
+              Centre activity will appear here as your team starts using
+              KLIO.MY.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      ) : (
+        <div className="grid min-h-0 gap-1 overflow-y-auto">
+          {items.map((item, index) => {
+            const Icon = ICON_BY_KEY[item.icon];
 
-              return (
-                <div
-                  className={cn(
-                    "grid grid-cols-[2.5rem_1fr_auto] items-center gap-3 px-3 py-3 text-sm",
-                    index !== items.length - 1 && "border-b"
-                  )}
-                  key={item.id}
-                >
-                  <span className="flex size-9 items-center justify-center rounded-md border bg-muted/40 text-muted-foreground">
-                    <Icon className="size-4" />
-                  </span>
-                  <p className="truncate font-medium leading-5">
-                    {item.summary}
-                  </p>
-                  <p className="whitespace-nowrap text-muted-foreground text-xs">
-                    {formatRelativeTime(item.createdAt)}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </Card>
-    </Stat>
+            return (
+              <div
+                className={cn(
+                  "grid grid-cols-[2.5rem_1fr_auto] items-center gap-3 px-3 py-3 text-sm",
+                  index !== items.length - 1 && "border-b"
+                )}
+                key={item.id}
+              >
+                <span className="flex size-9 items-center justify-center rounded-md border bg-muted/40 text-muted-foreground">
+                  <Icon className="size-4" />
+                </span>
+                <p className="truncate font-medium leading-5">
+                  {item.summary}
+                </p>
+                <p className="whitespace-nowrap text-muted-foreground text-xs">
+                  {formatRelativeTime(item.createdAt)}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </PreviewCard>
   );
 };

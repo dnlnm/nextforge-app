@@ -2,11 +2,11 @@
 
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@repo/design-system/components/ui/dropdown-menu";
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuTrigger,
+} from "@repo/design-system/components/ui/menu";
 import { localizePath, normalizeLocale } from "@repo/internationalization/path";
 import { Languages } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
@@ -36,8 +36,8 @@ export const LanguageSwitcher = () => {
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
+    <Menu>
+      <MenuTrigger
         render={
           <Button
             className="relative size-9 shrink-0 text-foreground"
@@ -48,14 +48,14 @@ export const LanguageSwitcher = () => {
       >
         <Languages className="h-[1.2rem] w-[1.2rem]" />
         <span className="sr-only">Switch language</span>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      </MenuTrigger>
+      <MenuContent>
         {languages.map(({ label, value }) => (
-          <DropdownMenuItem key={value} onClick={() => switchLanguage(value)}>
+          <MenuItem key={value} onClick={() => switchLanguage(value)}>
             {label}
-          </DropdownMenuItem>
+          </MenuItem>
         ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </MenuContent>
+    </Menu>
   );
 };

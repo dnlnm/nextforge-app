@@ -6,11 +6,11 @@ import { Checkbox } from "@repo/design-system/components/ui/checkbox";
 import { DataTableSortableHeader } from "@repo/design-system/components/ui/data-table/data-table-column-header";
 import { createAppColumnHelper } from "@repo/design-system/components/ui/data-table/table";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@repo/design-system/components/ui/dropdown-menu";
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuTrigger,
+} from "@repo/design-system/components/ui/menu";
 import {
   ArchiveIcon,
   EyeIcon,
@@ -36,20 +36,20 @@ export interface Teacher {
 
 export const TeacherRowActions = ({ teacher }: { teacher: Teacher }) => (
   <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
-    <DropdownMenu>
-      <DropdownMenuTrigger
+    <Menu>
+      <MenuTrigger
         render={<Button aria-label="Row actions" size="icon" variant="ghost" />}
       >
         <MoreHorizontalIcon className="size-4" />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-44">
-        <DropdownMenuItem
+      </MenuTrigger>
+      <MenuContent align="end" className="w-44">
+        <MenuItem
           render={<Link href={`/teachers?teacherId=${teacher.id}`} />}
         >
           <EyeIcon />
           View profile
-        </DropdownMenuItem>
-        <DropdownMenuItem
+        </MenuItem>
+        <MenuItem
           render={
             <Link
               href={teacher.phone ? `https://wa.me/${teacher.phone}` : "#"}
@@ -58,8 +58,8 @@ export const TeacherRowActions = ({ teacher }: { teacher: Teacher }) => (
         >
           <MessageCircleIcon />
           WhatsApp
-        </DropdownMenuItem>
-        <DropdownMenuItem className="text-destructive focus:text-destructive">
+        </MenuItem>
+        <MenuItem variant="destructive">
           <form
             action={archiveTeacher}
             onSubmit={(e) => {
@@ -74,9 +74,9 @@ export const TeacherRowActions = ({ teacher }: { teacher: Teacher }) => (
               Archive
             </button>
           </form>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </MenuItem>
+      </MenuContent>
+    </Menu>
   </div>
 );
 

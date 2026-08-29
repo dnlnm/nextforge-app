@@ -2,11 +2,11 @@
 
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@repo/design-system/components/ui/dropdown-menu";
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuTrigger,
+} from "@repo/design-system/components/ui/menu";
 import {
   ArchiveIcon,
   MoreHorizontalIcon,
@@ -32,35 +32,29 @@ export const StudentProfileActions = ({
 
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger render={<Button variant="outline" />}>
+      <Menu>
+        <MenuTrigger render={<Button variant="outline" />}>
           <MoreHorizontalIcon className="size-4" />
           More
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-44">
+        </MenuTrigger>
+        <MenuContent align="end" className="w-44">
           {isArchived ? (
-            <DropdownMenuItem onClick={() => setIsRestoreOpen(true)}>
+            <MenuItem onClick={() => setIsRestoreOpen(true)}>
               <RotateCcwIcon />
               Restore
-            </DropdownMenuItem>
+            </MenuItem>
           ) : (
-            <DropdownMenuItem
-              className="text-destructive focus:text-destructive"
-              onClick={() => setIsArchiveOpen(true)}
-            >
+            <MenuItem variant="destructive" onClick={() => setIsArchiveOpen(true)}>
               <ArchiveIcon />
               Archive
-            </DropdownMenuItem>
+            </MenuItem>
           )}
-          <DropdownMenuItem
-            className="text-destructive focus:text-destructive"
-            onClick={() => setIsDeleteOpen(true)}
-          >
+          <MenuItem variant="destructive" onClick={() => setIsDeleteOpen(true)}>
             <Trash2Icon />
             Delete student
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          </MenuItem>
+        </MenuContent>
+      </Menu>
       <ArchiveStudentDialog
         onOpenChange={setIsArchiveOpen}
         open={isArchiveOpen}

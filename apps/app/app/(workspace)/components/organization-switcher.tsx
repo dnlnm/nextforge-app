@@ -5,13 +5,14 @@ import type { MembershipRole } from "@repo/database";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@repo/design-system/components/ui/dropdown-menu";
+  Menu,
+  MenuContent,
+  MenuGroup,
+  MenuItem,
+  MenuLabel,
+  MenuSeparator,
+  MenuTrigger,
+} from "@repo/design-system/components/ui/menu";
 import { Skeleton } from "@repo/design-system/components/ui/skeleton";
 import { ChevronDownIcon, PlusCircleIcon, Settings2Icon } from "lucide-react";
 import Link from "next/link";
@@ -80,8 +81,8 @@ export const OrganizationSwitcher = () => {
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
+    <Menu>
+      <MenuTrigger
         render={
           <Button
             className="h-auto w-full justify-between rounded-md border bg-background px-3 py-2 text-left shadow-none hover:bg-accent"
@@ -112,15 +113,17 @@ export const OrganizationSwitcher = () => {
           </span>
         </span>
         <ChevronDownIcon className="ml-3 size-4 shrink-0 text-muted-foreground" />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-72">
-        <DropdownMenuLabel>Organizations</DropdownMenuLabel>
-        <DropdownMenuSeparator />
+      </MenuTrigger>
+      <MenuContent align="start" className="w-72">
+        <MenuGroup>
+          <MenuLabel>Organizations</MenuLabel>
+        </MenuGroup>
+        <MenuSeparator />
         {memberships.map((membership) => {
           const isActive = membership.organization.id === activeOrganizationId;
 
           return (
-            <DropdownMenuItem
+            <MenuItem
               className="flex cursor-pointer items-center justify-between gap-3"
               key={membership.id}
               onClick={() => {
@@ -157,29 +160,29 @@ export const OrganizationSwitcher = () => {
                   Active
                 </span>
               ) : null}
-            </DropdownMenuItem>
+            </MenuItem>
           );
         })}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
+        <MenuSeparator />
+        <MenuItem
           render={
             <Link className="flex items-center gap-2" href="/center-setup" />
           }
         >
           <PlusCircleIcon className="size-4" />
           New Center
-        </DropdownMenuItem>
+        </MenuItem>
         {activeMembership?.role !== "TEACHER" && (
-          <DropdownMenuItem
+          <MenuItem
             render={
               <Link className="flex items-center gap-2" href="/settings" />
             }
           >
             <Settings2Icon className="size-4" />
             Manage
-          </DropdownMenuItem>
+          </MenuItem>
         )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </MenuContent>
+    </Menu>
   );
 };
