@@ -20,6 +20,10 @@ import {
   useSidebar,
 } from "@repo/design-system/components/ui/sidebar";
 import { cn } from "@repo/design-system/lib/utils";
+import { ProximityHoverPill } from "@repo/design-system/components/proximity-hover-pill";
+import {
+  useProximityHover,
+} from "@repo/design-system/hooks/use-proximity-hover";
 import {
   BarChart3Icon,
   BookOpenIcon,
@@ -39,7 +43,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Brand, BrandLogo } from "@/components/brand";
 
 type SidebarRole = "TEACHER" | "ADMIN" | "OWNER";
@@ -156,6 +160,119 @@ const getNavigationForRole = (role: SidebarRole): typeof navigationSections => {
   }));
 };
 
+interface SidebarProximityItemProperties {
+  readonly badges?: SidebarBadges;
+  readonly index: number;
+  readonly isMobile: boolean;
+  readonly item: NavigationItem;
+  readonly onNavigate: () => void;
+  readonly pathname: string;
+  readonly registerItem: (index: number, element: HTMLElement | null) => void;
+}
+
+/**
+ * Registers itself with the section's `useProximityHover` instance (the same
+ * self-registration pattern the trovecn docs sidebar uses). No `hover:bg-*`
+ * on the button — the proximity pill underneath is the sole hover indicator,
+ * so a competing opaque hover background can't hide it.
+ */
+const SidebarProximityItem = ({
+  badges,
+  index,
+  isMobile,
+  item,
+  onNavigate,
+  pathname,
+  registerItem,
+}: SidebarProximityItemProperties) => {
+  const ref = useRef<HTMLLIElement | null>(null);
+
+  useEffect(() => {
+    registerItem(index, ref.current);
+    return () => registerItem(index, null);
+  }, [index, registerItem]);
+
+  return (
+    <SidebarMenuItem ref={ref}>
+      <SidebarMenuButton
+        className="hover:bg-transparent active:bg-transparent"
+        isActive={isActivePath(pathname, item.url)}
+        onClick={onNavigate}
+        render={<Link href={item.url} />}
+        tooltip={item.title}
+      >
+        <item.icon />
+        <span>{item.title}</span>
+      </SidebarMenuButton>
+      {item.badge && badges?.[item.badge] ? (
+        <SidebarMenuBadge aria-hidden="true">
+          {badges[item.badge]}
+        </SidebarMenuBadge>
+      ) : null}
+    </SidebarMenuItem>
+  );
+};
+
+interface SidebarProximityMenuProperties {
+  readonly badges?: SidebarBadges;
+  readonly isMobile: boolean;
+  readonly items: readonly NavigationItem[];
+  readonly onNavigate: () => void;
+  readonly pathname: string;
+}
+
+/**
+ * Wraps a SidebarMenu with trovecn's proximity hover: as the cursor moves
+ * across the section's rows, a faint --hover wash pill follows the nearest
+ * item before it's clicked (the same pattern the trovecn docs sidebar uses),
+ * sitting behind the relative items.
+ */
+const SidebarProximityMenu = ({
+  badges,
+  isMobile,
+  items,
+  onNavigate,
+  pathname,
+}: SidebarProximityMenuProperties) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { activeIndex, itemRects, sessionRef, handlers, registerItem, measureItems } =
+    useProximityHover(containerRef, { axis: "y" });
+  const activeRect = activeIndex !== null ? itemRects[activeIndex] : null;
+
+  useEffect(() => {
+    measureItems();
+  }, [measureItems, items]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative"
+      onMouseEnter={handlers.onMouseEnter}
+      onMouseLeave={handlers.onMouseLeave}
+      onMouseMove={handlers.onMouseMove}
+    >
+      <ProximityHoverPill
+        activeRect={activeRect}
+        sessionKey={sessionRef.current}
+      />
+      <SidebarMenu>
+        {items.map((item, index) => (
+          <SidebarProximityItem
+            badges={badges}
+            index={index}
+            isMobile={isMobile}
+            item={item}
+            key={item.title}
+            onNavigate={onNavigate}
+            pathname={pathname}
+            registerItem={registerItem}
+          />
+        ))}
+      </SidebarMenu>
+    </div>
+  );
+};
+
 export const GlobalSidebar = ({
   badges,
   children,
@@ -239,30 +356,17 @@ export const GlobalSidebar = ({
                     />
                   </SidebarGroupLabel>
                   <CollapsibleContent>
-                    <SidebarMenu>
-                      {section.items.map((item) => (
-                        <SidebarMenuItem key={item.title}>
-                          <SidebarMenuButton
-                            isActive={isActivePath(pathname, item.url)}
-                            onClick={() => {
-                              if (isMobile) {
-                                setOpenMobile(false);
-                              }
-                            }}
-                            render={<Link href={item.url} />}
-                            tooltip={item.title}
-                          >
-                            <item.icon />
-                            <span>{item.title}</span>
-                          </SidebarMenuButton>
-                          {item.badge && badges?.[item.badge] ? (
-                            <SidebarMenuBadge aria-hidden="true">
-                              {badges[item.badge]}
-                            </SidebarMenuBadge>
-                          ) : null}
-                        </SidebarMenuItem>
-                      ))}
-                    </SidebarMenu>
+                    <SidebarProximityMenu
+                      badges={badges}
+                      isMobile={isMobile}
+                      items={section.items}
+                      onNavigate={() => {
+                        if (isMobile) {
+                          setOpenMobile(false);
+                        }
+                      }}
+                      pathname={pathname}
+                    />
                   </CollapsibleContent>
                 </SidebarGroup>
               </Collapsible>
