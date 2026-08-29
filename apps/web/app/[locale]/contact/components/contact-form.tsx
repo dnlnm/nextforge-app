@@ -29,7 +29,7 @@ export const ContactForm = ({ dictionary, locale }: ContactFormProps) => {
         <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
           <div className="flex flex-col gap-8">
             <div className="flex flex-col gap-3">
-              <h4 className="max-w-[16ch] text-left font-heading text-3xl leading-none tracking-[-0.03em] text-balance md:text-5xl">
+              <h4 className="max-w-[16ch] text-left font-heading text-3xl leading-none tracking-normal text-balance md:text-5xl">
                 {dictionary.web.contact.meta.title}
               </h4>
               <p className="max-w-[38ch] text-left text-[15px] leading-relaxed text-muted-foreground text-pretty">

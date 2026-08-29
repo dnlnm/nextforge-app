@@ -14,7 +14,7 @@ export const Availability = ({ dictionary }: AvailabilityProps) => {
       <div className="container mx-auto">
         <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2">
           <div className="flex flex-col items-start gap-4">
-            <h2 className="max-w-[18ch] text-balance text-left font-heading text-3xl leading-none tracking-[-0.03em] md:text-5xl">
+            <h2 className="max-w-[18ch] text-balance text-left font-heading text-3xl leading-none tracking-normal md:text-5xl">
               {availability.title}
             </h2>
             <p className="max-w-[42ch] text-pretty text-left text-[15px] text-muted-foreground leading-relaxed">

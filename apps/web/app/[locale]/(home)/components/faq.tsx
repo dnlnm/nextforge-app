@@ -22,7 +22,7 @@ export const FAQ = ({ dictionary, locale }: FAQProps) => (
         <div className="flex flex-col gap-6 lg:sticky lg:top-28 lg:self-start">
           <div className="flex flex-col gap-3">
             <span className="w-fit rounded-full border bg-muted px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">FAQ</span>
-            <h4 className="max-w-[14ch] text-left font-heading text-3xl leading-none tracking-[-0.03em] text-balance md:text-[2.5rem]">
+            <h4 className="max-w-[14ch] text-left font-heading text-3xl leading-none tracking-normal text-balance md:text-[2.5rem]">
               {dictionary.web.home.faq.title}
             </h4>
             <p className="max-w-[34ch] text-left text-[15px] leading-relaxed text-muted-foreground text-pretty">

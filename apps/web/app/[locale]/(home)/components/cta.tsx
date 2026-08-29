@@ -19,7 +19,7 @@ export const CTA = ({ dictionary, locale }: CTAProps) => (
           <div className="absolute inset-0 bg-[radial-gradient(800px_circle_at_50%_-10%,color-mix(in_oklab,var(--foreground)_14%,transparent),transparent_60%)]" />
         </div>
         <div className="flex flex-col gap-3">
-          <h3 className="mx-auto max-w-[20ch] font-heading text-3xl leading-none tracking-[-0.03em] text-balance md:text-5xl">
+          <h3 className="mx-auto max-w-[20ch] font-heading text-3xl leading-none tracking-normal text-balance md:text-5xl">
             {dictionary.web.home.cta.title}
           </h3>
           <p className="mx-auto max-w-[46ch] text-[15px] leading-relaxed text-muted-foreground text-pretty">

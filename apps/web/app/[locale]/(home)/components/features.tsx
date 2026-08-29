@@ -17,7 +17,7 @@ export const Features = ({ dictionary }: FeaturesProps) => (
     <div className="container mx-auto">
       <div className="flex flex-col gap-10">
         <div className="grid gap-6 lg:grid-cols-[1.05fr_0.85fr] lg:items-end">
-          <h2 className="max-w-[18ch] text-left font-heading text-3xl leading-none tracking-[-0.03em] text-balance md:text-5xl">
+          <h2 className="max-w-[18ch] text-left font-heading text-3xl leading-none tracking-normal text-balance md:text-5xl">
             {dictionary.web.home.features.title}
           </h2>
           <p className="max-w-[42ch] text-left text-[15px] leading-relaxed text-muted-foreground text-pretty lg:justify-self-end lg:text-right">

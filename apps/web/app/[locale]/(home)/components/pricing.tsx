@@ -30,7 +30,7 @@ export const Pricing = ({
           {dictionary.web.home.pricing.badge}
         </span>
         <div className="flex flex-col gap-3">
-          <h2 className="mx-auto max-w-[18ch] text-center font-heading text-3xl leading-none tracking-[-0.03em] text-balance md:text-5xl">
+          <h2 className="mx-auto max-w-[18ch] text-center font-heading text-3xl leading-none tracking-normal text-balance md:text-5xl">
             {dictionary.web.home.pricing.title}
           </h2>
           <p className="mx-auto max-w-[48ch] text-center text-[15px] leading-relaxed text-muted-foreground text-pretty">

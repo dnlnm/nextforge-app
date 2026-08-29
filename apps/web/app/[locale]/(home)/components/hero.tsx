@@ -40,7 +40,7 @@ export const Hero = ({ dictionary, locale }: HeroProps) => {
               </span>
               {hero.announcement}
             </span>
-            <h1 className="mx-auto max-w-[22ch] text-center font-heading text-5xl leading-[0.95] tracking-[-0.04em] text-balance md:text-6xl">
+            <h1 className="mx-auto max-w-[22ch] text-center font-heading text-5xl leading-normal tracking-normal text-balance md:text-6xl">
               {meta.title}
             </h1>
             <p className="mx-auto max-w-[52ch] text-center text-[15px] leading-relaxed text-muted-foreground text-balance md:text-[17px]">
