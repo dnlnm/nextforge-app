@@ -146,11 +146,14 @@ const getNavigationForRole = (role: SidebarRole): typeof navigationSections => {
   if (role === "ADMIN") {
     return navigationSections.map((section) => ({
       ...section,
-      items: section.items.filter((item) => item.title !== "Members"),
+      items: section.items.filter((item) => item.title !== "Today"),
     }));
   }
 
-  return navigationSections;
+  return navigationSections.map((section) => ({
+    ...section,
+    items: section.items.filter((item) => item.title !== "Today"),
+  }));
 };
 
 export const GlobalSidebar = ({

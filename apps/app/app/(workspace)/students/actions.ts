@@ -985,8 +985,8 @@ export async function getStudentsForTable(params: StudentsQueryParams) {
       }
     }
   } else {
-    // Default sorting
-    orderBy.push({ fullName: "asc" });
+    // Default sorting: newest first
+    orderBy.push({ createdAt: "desc" });
   }
 
   // Execute query with pagination

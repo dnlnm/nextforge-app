@@ -2,7 +2,7 @@ import { requireTenantRole } from "@repo/auth/authorization";
 import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
 import { Button } from "@repo/design-system/components/ui/button";
-import { PlusIcon, SendIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { Header } from "../components/header";
 import {
@@ -10,7 +10,6 @@ import {
   KpiVisibilityProvider,
 } from "../components/kpi-visibility";
 import { getTeachersForTable } from "./actions";
-import { PendingInvitations } from "./pending-invitations";
 import { TeachersPageClient } from "./teachers-page-client";
 
 const TeachersPage = async () => {
@@ -19,7 +18,7 @@ const TeachersPage = async () => {
   const [teachers, archivedTeachers, initialTableData] = await Promise.all([
     database.teacherProfile.findMany({
       where: { organizationId: tenant.organizationId, archivedAt: null },
-      orderBy: { fullName: "asc" },
+      orderBy: { createdAt: "desc" },
       include: {
         branch: true,
         classes: {
@@ -69,15 +68,6 @@ const TeachersPage = async () => {
           <div className="flex w-full gap-2 md:w-auto">
             <Button
               className="min-w-0 flex-1 md:flex-none"
-              render={<Link href="/teachers/invite" />}
-              variant="outline"
-            >
-              <SendIcon className="size-4" />
-              <span className="hidden sm:inline">Invite Teacher</span>
-              <span className="sm:hidden">Invite</span>
-            </Button>
-            <Button
-              className="min-w-0 flex-1 md:flex-none"
               render={<Link href="/teachers/new" />}
             >
               <PlusIcon className="size-4" />
@@ -87,8 +77,6 @@ const TeachersPage = async () => {
             <KpiToggleButton />
           </div>
         </div>
-
-        <PendingInvitations />
 
         <TeachersPageClient
           activeTeachers={teachers.length}

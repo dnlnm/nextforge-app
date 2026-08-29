@@ -12,13 +12,13 @@ import { Label } from "@repo/design-system/components/ui/label";
 import { MailPlusIcon, UserRoundIcon } from "lucide-react";
 import Link from "next/link";
 import { Header } from "../../components/header";
-import { inviteTeacher } from "../actions";
+import { inviteTeacher } from "../../teachers/actions";
 
 const InviteTeacherPage = () => (
   <>
     <Header
       page="Invite Teacher"
-      pages={[`${appName}`, { href: "/teachers", label: "Teachers" }]}
+      pages={[`${appName}`, { href: "/members", label: "Members" }]}
     />
     <main className="grid gap-5 p-4 pt-4">
       <div>
@@ -70,7 +70,7 @@ const InviteTeacherPage = () => (
 
         <div className="flex gap-3">
           <Button
-            render={<Link href="/teachers" />}
+            render={<Link href="/members" />}
             size="lg"
             variant="outline"
           >

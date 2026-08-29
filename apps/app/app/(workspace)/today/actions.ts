@@ -1,13 +1,19 @@
 "use server";
 
-import { requireTenantRole } from "@repo/auth/authorization";
+import { requireTenant } from "@repo/auth/authorization";
 import { database } from "@repo/database";
-import { getTeacherProfileId } from "@/lib/teacher-profile";
 import { revalidatePath } from "next/cache";
+import { notFound } from "next/navigation";
+import { getTeacherProfileId } from "@/lib/teacher-profile";
 import { getMalaysiaDateParts } from "./date";
 
 export const createTodaySessions = async () => {
-  const tenant = await requireTenantRole(["TEACHER"]);
+  const tenant = await requireTenant();
+
+  if (tenant.role !== "TEACHER") {
+    notFound();
+  }
+
   const today = getMalaysiaDateParts();
   const teacherProfileId = await getTeacherProfileId(tenant);
   const schedules = await database.classSchedule.findMany({

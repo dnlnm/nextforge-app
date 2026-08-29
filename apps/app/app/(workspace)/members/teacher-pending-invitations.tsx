@@ -7,9 +7,12 @@ import {
 } from "@repo/design-system/components/ui/card";
 import { CardShell } from "@repo/design-system/components/ui/card-shell";
 import { MailXIcon } from "lucide-react";
-import { getPendingInvitations, revokeInvitation } from "./actions";
+import {
+  getPendingInvitations,
+  revokeInvitation,
+} from "../teachers/actions";
 
-export const PendingInvitations = async () => {
+export const TeacherPendingInvitations = async () => {
   const invitations = await getPendingInvitations();
 
   return (
@@ -17,7 +20,7 @@ export const PendingInvitations = async () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-3 text-base">
           <MailXIcon className="size-5 text-muted-foreground" />
-          Pending Invitations
+          Pending Teacher Invitations
         </CardTitle>
         <CardDescription>
           Teachers who haven&apos;t accepted their invitation yet.

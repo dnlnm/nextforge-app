@@ -25,6 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@repo/design-system/components/ui/table";
+import { notFound } from "next/navigation";
 import { findTeacherProfileForUser } from "@/lib/teacher-profile";
 import {
   markAttendance,
@@ -43,6 +44,11 @@ const statusLabels: Record<AttendanceStatus, string> = {
 
 const TodayPage = async () => {
   const tenant = await requireTenant();
+
+  if (tenant.role !== "TEACHER") {
+    notFound();
+  }
+
   const today = getMalaysiaDateParts();
   const teacher =
     tenant.role === "TEACHER"

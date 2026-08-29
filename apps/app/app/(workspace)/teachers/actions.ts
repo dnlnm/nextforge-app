@@ -285,6 +285,7 @@ export const inviteTeacher = async (formData: FormData) => {
 
   await createInvitationAndNotify(tenant, email, fullName);
 
+  revalidatePath("/members");
   revalidatePath("/teachers");
 };
 
@@ -322,6 +323,7 @@ export const revokeInvitation = async (formData: FormData) => {
     data: { status: "REVOKED", revokedAt: new Date() },
   });
 
+  revalidatePath("/members");
   revalidatePath("/teachers");
 };
 
@@ -472,7 +474,7 @@ export async function getTeachersForTable(params: TeachersQueryParams) {
       }
     }
   } else {
-    orderBy.push({ fullName: "asc" });
+    orderBy.push({ createdAt: "desc" });
   }
 
   const [teachers, totalCount] = await Promise.all([

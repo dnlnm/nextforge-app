@@ -217,13 +217,13 @@ export const getPendingAdminInvitations = async () => {
   }));
 };
 
-export const getAdminMembers = async () => {
-  const tenant = await requireTenantRole(["OWNER"]);
+export const getMembers = async () => {
+  const tenant = await requireTenantRole(["ADMIN"]);
 
   const members = await database.organizationMembership.findMany({
     where: {
       organizationId: tenant.organizationId,
-      role: { in: ["OWNER", "ADMIN"] },
+      role: { in: ["OWNER", "ADMIN", "TEACHER"] },
       status: "ACTIVE",
     },
     include: {

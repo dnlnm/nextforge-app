@@ -24,13 +24,12 @@ import {
   ChevronRightIcon,
   FilterIcon,
   MoreHorizontalIcon,
-  PlusIcon,
   SearchIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-interface ClassTableItem {
+export interface ClassTableItem {
   readonly capacity: number | null;
   readonly code: string;
   readonly enrollments: readonly { readonly id: string }[];
@@ -193,6 +192,7 @@ export const ClassesTable = ({ classes }: { classes: ClassTableItem[] }) => {
             </Select>
           </div>
           <Button
+            className="ml-auto"
             onClick={() => {
               setSearch("");
               setSubjectFilter("all");
@@ -203,10 +203,6 @@ export const ClassesTable = ({ classes }: { classes: ClassTableItem[] }) => {
           >
             <FilterIcon className="size-4" />
             Reset
-          </Button>
-          <Button className="ml-auto" render={<Link href="/classes/new" />}>
-            <PlusIcon className="size-4" />
-            Add New Class
           </Button>
         </div>
       </div>
