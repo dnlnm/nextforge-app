@@ -27,7 +27,6 @@ interface SubscriptionManagementWrapperProps {
   readonly isCancelled: boolean;
   readonly isTrial: boolean;
   readonly organizationId: string;
-  readonly trialDaysLeft: number | null;
 }
 
 const paidPlans = billingSDKPlans.filter((plan) => plan.id !== "TRIAL");
@@ -37,7 +36,6 @@ export const SubscriptionManagementWrapper = ({
   organizationId,
   isTrial,
   isCancelled,
-  trialDaysLeft,
 }: SubscriptionManagementWrapperProps) => {
   const [pending, startTransition] = useTransition();
 
@@ -132,64 +130,46 @@ export const SubscriptionManagementWrapper = ({
   };
 
   if (isTrial) {
-    const trialEnded = trialDaysLeft === 0;
-
     return (
-      <div className="mb-6">
-        <CardShell className="mb-4">
-          <CardContent className="py-4">
-            <p className="font-medium">
-              {trialEnded
-                ? "Your free trial has ended"
-                : `${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left in your free trial`}
-            </p>
-            <p className="mt-1 text-muted-foreground text-sm">
-              {trialEnded
-                ? "Subscribe to a plan to keep using all features."
-                : "Choose a plan to keep using all features after the trial."}
-            </p>
-          </CardContent>
-        </CardShell>
-        <div className="grid gap-4 md:grid-cols-2">
-          {paidPlans.map((plan) => (
-            <CardShell key={plan.id}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>{plan.title}</CardTitle>
-                  {plan.badge ? (
-                    <span className="rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary text-xs">
-                      {plan.badge}
-                    </span>
-                  ) : null}
-                </div>
-                <CardDescription>{plan.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="font-semibold text-2xl">
-                  RM{plan.monthlyPrice}
-                  <span className="font-normal text-muted-foreground text-sm">
-                    /month
+      <div className="mb-6 grid gap-4 md:grid-cols-2">
+        {paidPlans.map((plan) => (
+          <CardShell key={plan.id}>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>{plan.title}</CardTitle>
+                {plan.badge ? (
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary text-xs">
+                    {plan.badge}
                   </span>
-                </p>
-                <ul className="space-y-2 text-sm">
-                  {plan.features.map((feature) => (
-                    <li className="flex items-center gap-2" key={feature.name}>
-                      <CheckIcon className="size-4 text-primary" />
-                      {feature.name}
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  className="w-full"
-                  disabled={pending}
-                  onClick={() => handleSubscribe(plan.id)}
-                >
-                  {pending ? "Redirecting..." : `Subscribe to ${plan.title}`}
-                </Button>
-              </CardContent>
-            </CardShell>
-          ))}
-        </div>
+                ) : null}
+              </div>
+              <CardDescription>{plan.description}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="font-semibold text-2xl">
+                RM{plan.monthlyPrice}
+                <span className="font-normal text-muted-foreground text-sm">
+                  /month
+                </span>
+              </p>
+              <ul className="space-y-2 text-sm">
+                {plan.features.map((feature) => (
+                  <li className="flex items-center gap-2" key={feature.name}>
+                    <CheckIcon className="size-4 text-primary" />
+                    {feature.name}
+                  </li>
+                ))}
+              </ul>
+              <Button
+                className="w-full"
+                disabled={pending}
+                onClick={() => handleSubscribe(plan.id)}
+              >
+                {pending ? "Redirecting..." : `Subscribe to ${plan.title}`}
+              </Button>
+            </CardContent>
+          </CardShell>
+        ))}
       </div>
     );
   }

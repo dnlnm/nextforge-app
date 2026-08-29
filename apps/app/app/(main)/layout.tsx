@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 import { env } from "@/env";
 import { NotificationsProvider } from "../(workspace)/components/notifications-provider";
 import { MainNav } from "./components/main-nav";
+import { TrialBanner } from "./components/trial-banner";
 
 interface MainLayoutProperties {
   readonly children: ReactNode;
@@ -54,13 +55,36 @@ const MainLayout = async ({ children }: MainLayoutProperties) => {
         status: "ACTIVE",
         organization: { status: "ACTIVE" },
       },
-      select: { organization: { select: { id: true } } },
+      select: {
+        organization: {
+          select: {
+            id: true,
+            subscription: {
+              select: {
+                plan: true,
+                status: true,
+                trialEndsAt: true,
+              },
+            },
+          },
+        },
+      },
     }),
   ]);
+
+  const isOnTrial = ownedCentre?.organization.subscription?.plan === "TRIAL";
 
   return (
     <NotificationsProvider userId={user.id}>
       <div className="min-h-svh bg-background">
+        {isOnTrial ? (
+          <TrialBanner
+            organizationId={ownedCentre.organization.id}
+            trialEndsAt={
+              ownedCentre.organization.subscription?.trialEndsAt ?? null
+            }
+          />
+        ) : null}
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="flex h-16 items-center px-4 sm:px-6">
             <MainNav
