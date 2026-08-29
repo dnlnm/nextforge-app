@@ -211,7 +211,7 @@ export const assertWithinPlanLimitTx = async (
   const canUsePaidFeatures =
     activeSubscriptionStatuses.has(subscription?.status ?? "TRIALING") &&
     !trialExpired;
-  const plan = planDefinitions[subscription?.plan ?? "STARTER"];
+  const plan = planDefinitions[subscription?.plan ?? "TRIAL"];
   const usage = await getSubscriptionUsage(organizationId, tx);
 
   assertPlanLimit(
@@ -240,6 +240,7 @@ export const getPlanUsageRows = (
 ];
 
 const adminPlanLimits: Record<SubscriptionPlan, number | null> = {
+  TRIAL: 0,
   STARTER: 1,
   PRO: 5,
   MAX: 10,

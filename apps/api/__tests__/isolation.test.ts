@@ -112,7 +112,7 @@ const withAuth = (token = "valid-token") => {
 
 const subscription = {
   id: "subscription-1",
-  plan: "STARTER",
+  plan: "TRIAL",
   status: "TRIALING",
   trialEndsAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
 };

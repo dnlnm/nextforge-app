@@ -5,9 +5,10 @@ import {
 } from "@repo/date";
 
 export const paidPlanRank: Record<SubscriptionPlan, number> = {
-  MAX: 3,
-  PRO: 2,
+  TRIAL: 0,
   STARTER: 1,
+  PRO: 2,
+  MAX: 3,
 };
 
 export const formatDate = (date?: Date | null) =>

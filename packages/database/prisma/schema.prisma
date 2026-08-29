@@ -101,7 +101,7 @@ model OrganizationSequence {
 model OrganizationSubscription {
   id                   String             @id @default(cuid())
   organizationId       String             @unique
-  plan                 SubscriptionPlan   @default(STARTER)
+  plan                 SubscriptionPlan   @default(TRIAL)
   status               SubscriptionStatus @default(TRIALING)
   stripeCustomerId     String?            @unique
   stripeSubscriptionId String?            @unique
@@ -866,6 +866,7 @@ enum PaymentStatus {
 }
 
 enum SubscriptionPlan {
+  TRIAL
   STARTER
   PRO
   MAX

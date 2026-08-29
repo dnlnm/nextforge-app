@@ -159,7 +159,7 @@ export const orgProcedure = protectedProcedure.use(async (opts) => {
       userId: membership.userId,
       subscription: {
         canUsePaidFeatures,
-        plan: subscription?.plan ?? "STARTER",
+        plan: subscription?.plan ?? "TRIAL",
         status: subscription?.status ?? "TRIALING",
         trialExpired,
       },

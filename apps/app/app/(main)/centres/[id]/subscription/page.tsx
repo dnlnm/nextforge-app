@@ -1,6 +1,7 @@
 import { ensureLocalUser } from "@repo/auth/organizations";
 import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
+import { differenceInMalaysiaCalendarDays } from "@repo/date";
 import { InvoiceHistory } from "@repo/design-system/components/billingsdk/invoice-history";
 import {
   CardContent,
@@ -68,6 +69,15 @@ const CentreBillingPage = async ({
   const paymentMethod = await getPaymentMethod(organization.id);
   const currentPlan = mapToCurrentPlan(state, paymentMethod);
   const isTrial = state.subscription.stripeSubscriptionId === null;
+  const trialDaysLeft = state.subscription.trialEndsAt
+    ? Math.max(
+        0,
+        differenceInMalaysiaCalendarDays(
+          state.subscription.trialEndsAt,
+          new Date()
+        )
+      )
+    : null;
   const checkoutStatus =
     checkout === "success" || checkout === "cancelled" ? checkout : undefined;
 
@@ -123,6 +133,7 @@ const CentreBillingPage = async ({
         isCancelled={state.subscription.cancelAtPeriodEnd}
         isTrial={isTrial}
         organizationId={organization.id}
+        trialDaysLeft={trialDaysLeft}
       />
 
       <CardShell className="mb-6">

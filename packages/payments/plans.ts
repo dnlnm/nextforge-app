@@ -13,13 +13,21 @@ export interface PlanDefinition {
 export const trialDays = 14;
 
 export const planDefinitions: Record<SubscriptionPlan, PlanDefinition> = {
-  MAX: {
-    classes: 200,
-    invoicesPerMonth: 1000,
-    monthlyPrice: "RM199/month",
-    name: "Max",
-    students: 500,
-    teachers: 100,
+  TRIAL: {
+    classes: 10,
+    invoicesPerMonth: 50,
+    monthlyPrice: "Free trial",
+    name: "Trial",
+    students: 50,
+    teachers: 5,
+  },
+  STARTER: {
+    classes: 20,
+    invoicesPerMonth: 100,
+    monthlyPrice: "RM49/month",
+    name: "Starter",
+    students: 100,
+    teachers: 10,
   },
   PRO: {
     classes: 60,
@@ -29,13 +37,13 @@ export const planDefinitions: Record<SubscriptionPlan, PlanDefinition> = {
     students: 300,
     teachers: 30,
   },
-  STARTER: {
-    classes: 20,
-    invoicesPerMonth: 100,
-    monthlyPrice: "RM49/month",
-    name: "Starter",
-    students: 100,
-    teachers: 10,
+  MAX: {
+    classes: 200,
+    invoicesPerMonth: 1000,
+    monthlyPrice: "RM199/month",
+    name: "Max",
+    students: 500,
+    teachers: 100,
   },
 };
 
@@ -48,6 +56,7 @@ export const getStripePriceId = (plan: SubscriptionPlan) => {
   const env = keys();
 
   const priceIds: Record<SubscriptionPlan, string | undefined> = {
+    TRIAL: undefined,
     STARTER:
       env.KLIO_STRIPE_STARTER_PRICE_ID ?? env.TLAS_STRIPE_STARTER_PRICE_ID,
     PRO: env.KLIO_STRIPE_PRO_PRICE_ID ?? env.TLAS_STRIPE_PRO_PRICE_ID,

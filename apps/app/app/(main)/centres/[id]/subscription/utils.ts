@@ -4,7 +4,7 @@ import { billingSDKPlans } from "@repo/payments/billingsdk-plans";
 
 interface BillingState {
   subscription: {
-    plan: "STARTER" | "PRO" | "MAX";
+    plan: "TRIAL" | "STARTER" | "PRO" | "MAX";
     status:
       | "TRIALING"
       | "ACTIVE"

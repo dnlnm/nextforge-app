@@ -111,8 +111,6 @@ export const startSubscriptionCheckout = async (
     mode: "subscription",
     subscription_data: {
       metadata: { organizationId, plan },
-      // Every plan grants a 14-day trial, after which Stripe bills the plan.
-      trial_period_days: 14,
     },
     success_url: `${env.NEXT_PUBLIC_APP_URL}/centres/${organizationId}/subscription?checkout=success`,
     cancel_url: `${env.NEXT_PUBLIC_APP_URL}/centres/${organizationId}/subscription?checkout=cancelled`,

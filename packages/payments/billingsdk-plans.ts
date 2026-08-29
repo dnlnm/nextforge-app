@@ -45,6 +45,16 @@ const planColumns = (
 
 export const billingSDKPlans: Plan[] = [
   {
+    id: "TRIAL",
+    title: "Trial",
+    description: "Free 14-day trial to explore the full workflow.",
+    currency: "RM",
+    monthlyPrice: "0",
+    yearlyPrice: "0",
+    buttonText: "Trial",
+    features: planColumns(50, 5, 10, 50),
+  },
+  {
     id: "STARTER",
     title: "Starter",
     description: "Perfect for small tuition centres just getting started.",
