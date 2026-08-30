@@ -121,7 +121,7 @@
             "price": "RM49",
             "period": " / bulan",
             "cta": "Pilih Starter",
-            "highlighted": true,
+            "highlighted": false,
             "features": [
               {
                 "title": "50 pelajar aktif",

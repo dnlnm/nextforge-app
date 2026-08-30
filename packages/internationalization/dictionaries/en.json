@@ -121,7 +121,7 @@
             "price": "RM49",
             "period": " / month",
             "cta": "Choose Starter",
-            "highlighted": true,
+            "highlighted": false,
             "features": [
               {
                 "title": "50 active students",
