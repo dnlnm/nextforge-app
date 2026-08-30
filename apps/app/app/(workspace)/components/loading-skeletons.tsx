@@ -68,27 +68,30 @@ const StatCardsSkeleton = ({
   );
 };
 
-const FormCardSkeleton = ({ fields = 2 }: { readonly fields?: number }) => {
+const FormCardSkeleton = ({ fields = 3 }: { readonly fields?: number }) => {
   const inputs = Array.from({ length: fields }, (_, index) => ({
     id: `field-${index}`,
   }));
 
   return (
-    <CardShell>
-      <div className="grid gap-2 p-6">
-        <Skeleton className="h-5 w-36" />
-        <Skeleton className="h-4 w-56 max-w-full" />
-      </div>
-      <div className="grid gap-4 p-6 pt-0">
+    <PreviewCard
+      header={
+        <span className="flex items-center gap-2.5">
+          <Skeleton className="size-8 rounded-lg" />
+          <Skeleton className="h-4 w-36" />
+        </span>
+      }
+      stageClassName="min-h-0 flex-1 flex-col justify-start gap-4 p-4 sm:p-5"
+    >
+      <div className="grid gap-4">
         {inputs.map((input) => (
-          <div className="grid gap-2" key={input.id}>
+          <div className="grid gap-1.5" key={input.id}>
             <Skeleton className="h-3 w-24" />
-            <Skeleton className="h-9 w-full" />
+            <Skeleton className="h-9 w-full rounded-lg" />
           </div>
         ))}
-        <Skeleton className="h-9 w-32" />
       </div>
-    </CardShell>
+    </PreviewCard>
   );
 };
 

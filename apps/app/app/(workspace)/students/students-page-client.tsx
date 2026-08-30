@@ -177,7 +177,7 @@ export function StudentsPageClient({
         open={drawerOpen && !!selectedStudent}
         position="right"
       >
-        <DrawerPopup variant="inset">
+        <DrawerPopup className="w-[480px] max-w-[92vw]" variant="inset">
           {selectedStudent && (
             <>
               <DrawerHeader>
