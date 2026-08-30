@@ -128,7 +128,7 @@ export const IsoDatePicker = ({
                 }
               }}
               type="button"
-              variant="outline"
+              variant="elevated"
             />
           }
         >
