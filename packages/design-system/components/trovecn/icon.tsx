@@ -14,14 +14,11 @@ const iconVariants = cva(
     },
     variants: {
       color: {
-        default: "border-border bg-background dark:border-input dark:bg-input/30",
-        error:
-          "border-destructive/24 bg-destructive/16 text-destructive dark:border-destructive/32 dark:bg-destructive/24",
-        info: "border-info/24 bg-info/16 text-info dark:border-info/32 dark:bg-info/24",
-        success:
-          "border-success/24 bg-success/16 text-success dark:border-success/32 dark:bg-success/24",
-        warning:
-          "border-warning/24 bg-warning/16 text-warning dark:border-warning/32 dark:bg-warning/24",
+        default: "border-transparent bg-primary text-primary-foreground",
+        error: "border-transparent bg-destructive text-white",
+        info: "border-transparent bg-info text-white",
+        success: "border-transparent bg-success text-white",
+        warning: "border-transparent bg-warning text-neutral-950",
       },
       size: {
         default: "size-8",
@@ -30,8 +27,10 @@ const iconVariants = cva(
       },
       variant: {
         default: "border-transparent bg-muted text-muted-foreground",
-        elevated: "shadow-bevel border-border bg-background dark:border-input dark:bg-input/30",
-        "elevated-filled": "shadow-bevel",
+        elevated:
+          "shadow-bevel border-border bg-background dark:border-input dark:bg-input/30",
+        "elevated-filled":
+          "shadow-bevel shadow-[0_4px_12px_oklch(0_0_0/.12)] dark:shadow-[0_0_0_1px_oklch(1_0_0/.18),0_12px_28px_oklch(0_0_0/.75),0_4px_12px_oklch(0_0_0/.7),inset_0_1px_0_oklch(1_0_0/.38)]",
       },
     },
   },
