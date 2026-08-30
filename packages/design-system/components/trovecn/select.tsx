@@ -82,12 +82,19 @@ function Select<Value, Multiple extends boolean | undefined = false>({
 }
 
 const selectTriggerVariants = cva(
-  "inline-flex h-8 w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-input bg-background not-dark:bg-clip-padding px-2.5 text-left text-sm text-foreground outline-none transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-quick select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:transition-none hover:bg-muted hover:text-foreground active:duration-fast active:not-aria-[haspopup]:translate-y-px active:not-aria-[haspopup]:scale-[0.98] data-disabled:pointer-events-none data-disabled:opacity-50 dark:border-input dark:bg-input/30 dark:hover:bg-input/50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "inline-flex h-8 w-full min-w-0 items-center justify-between gap-2 rounded-lg not-dark:bg-clip-padding px-2.5 text-left text-sm text-foreground outline-none transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-quick select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:transition-none hover:bg-muted hover:text-foreground active:duration-fast active:not-aria-[haspopup]:translate-y-px active:not-aria-[haspopup]:scale-[0.98] data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     defaultVariants: {
       size: "default",
+      variant: "elevated",
     },
     variants: {
+      variant: {
+        default:
+          "border border-input bg-background dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+        elevated:
+          "shadow-bevel border border-border bg-background dark:border-input dark:bg-input/30",
+      },
       size: {
         default: "",
         sm: "h-7",
@@ -100,14 +107,16 @@ const selectTriggerVariants = cva(
 function SelectTrigger({
   className,
   size = "default",
+  variant = "elevated",
   children,
   ...props
 }: SelectPrimitive.Trigger.Props &
   VariantProps<typeof selectTriggerVariants>): React.ReactElement {
   return (
     <SelectPrimitive.Trigger
-      className={cn(selectTriggerVariants({ size }), className)}
+      className={cn(selectTriggerVariants({ size, variant }), className)}
       data-slot="select-trigger"
+      data-variant={variant}
       {...props}
     >
       {children}
