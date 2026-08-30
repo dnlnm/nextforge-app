@@ -93,7 +93,7 @@ const FormCardSkeleton = ({ fields = 2 }: { readonly fields?: number }) => {
 };
 
 const TableCardSkeleton = ({
-  columns: _columns = 4,
+  columns = 4,
   rows = 6,
   toolbar = false,
 }: {
@@ -101,51 +101,76 @@ const TableCardSkeleton = ({
   readonly rows?: number;
   readonly toolbar?: boolean;
 }) => {
+  const cols = Array.from({ length: columns }, (_, index) => ({
+    id: `col-${index}`,
+  }));
   const skeletonRows = Array.from({ length: rows }, (_, index) => ({
     id: `row-${index}`,
   }));
 
   return (
-    <CardShell>
-      <div className="flex items-center justify-between gap-4 p-6 pb-4">
-        <div className="grid gap-2">
-          <Skeleton className="h-5 w-32" />
-          <Skeleton className="h-4 w-48 max-w-full" />
-        </div>
-        <Skeleton className="h-9 w-24" />
-      </div>
-      {toolbar && (
-        <div className="flex flex-wrap items-end gap-3 border-t p-4">
-          <Skeleton className="h-9 w-64 max-w-full" />
-          <Skeleton className="h-9 w-36" />
-          <Skeleton className="h-9 w-36" />
-          <Skeleton className="h-9 w-28" />
-        </div>
-      )}
-      <div className="grid gap-0 border-t p-4 pt-0">
-        <div className="grid grid-cols-[2.5rem_1fr_auto] items-center gap-4 border-b py-3">
-          <Skeleton className="size-10" />
-          <div className="grid gap-2">
-            <Skeleton className="h-4 w-48 max-w-full" />
-            <Skeleton className="h-3 w-32 max-w-full" />
+    <PreviewCard
+      footer={
+        <div className="flex w-full items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-4 w-14" />
+            <Skeleton className="h-7 w-16 rounded-md" />
+            <Skeleton className="h-4 w-24" />
           </div>
-          <Skeleton className="h-6 w-20" />
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-8 w-[84px] rounded-md" />
+            <Skeleton className="h-8 w-16 rounded-md" />
+          </div>
+        </div>
+      }
+      header={
+        toolbar ? (
+          <div className="flex w-full flex-wrap items-center justify-between gap-2">
+            <Skeleton className="h-9 w-full max-w-sm rounded-lg" />
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-8 w-20 rounded-md" />
+              <Skeleton className="h-8 w-20 rounded-md" />
+            </div>
+          </div>
+        ) : undefined
+      }
+      stageClassName="flex-col p-0"
+    >
+      {/* Desktop table */}
+      <div className="hidden w-full md:block">
+        <div className="flex gap-3 border-b px-2.5 py-3">
+          {cols.map((col) => (
+            <Skeleton className="h-4 flex-1" key={col.id} />
+          ))}
         </div>
         {skeletonRows.map((row) => (
           <div
-            className="grid grid-cols-[2.5rem_1fr_auto] items-center gap-4 border-b py-3 last:border-b-0"
+            className="flex items-center gap-3 border-b px-2.5 py-4 last:border-b-0"
             key={row.id}
           >
-            <Skeleton className="size-10" />
-            <div className="grid gap-2">
-              <Skeleton className="h-4 w-48 max-w-full" />
-              <Skeleton className="h-3 w-32 max-w-full" />
-            </div>
-            <Skeleton className="h-6 w-20" />
+            {cols.map((col) => (
+              <Skeleton className="h-5 flex-1" key={col.id} />
+            ))}
           </div>
         ))}
       </div>
-    </CardShell>
+      {/* Mobile cards */}
+      <div className="grid gap-0 px-4 md:hidden">
+        {skeletonRows.slice(0, Math.min(rows, 4)).map((row) => (
+          <div
+            className="flex items-center gap-4 border-b py-3 last:border-b-0"
+            key={row.id}
+          >
+            <Skeleton className="size-10 rounded-full" />
+            <div className="grid flex-1 gap-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+            <Skeleton className="h-6 w-16" />
+          </div>
+        ))}
+      </div>
+    </PreviewCard>
   );
 };
 

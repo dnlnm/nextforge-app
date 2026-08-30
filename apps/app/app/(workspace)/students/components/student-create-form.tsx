@@ -9,12 +9,6 @@ import {
 } from "@repo/date";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardFrame,
-  CardFrameHeader,
-} from "@repo/design-system/components/ui/card";
-import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -83,7 +77,6 @@ import {
 import { REFERRAL_SOURCES } from "../lib/options";
 import { ClassPicker, type EnrollableClassOption } from "./class-picker";
 import { CreateProfilePreview } from "./create-profile-preview";
-import { FormSectionCard } from "./form-section-card";
 import { type GuardianDraft, GuardianEditor } from "./guardian-editor";
 import { IsoDatePicker } from "./iso-date-picker";
 
@@ -871,21 +864,42 @@ export const StudentCreateForm = ({
           </div>
         </PreviewCard>
 
-        <FormSectionCard icon={UsersRoundIcon} title="Parent / Guardian">
-          <div className="grid gap-4">
-            <GuardianEditor
-              errors={errors}
-              guardian={guardian}
-              onUpdate={updateGuardian}
-              studentAddress={studentAddress}
-            />
-          </div>
-        </FormSectionCard>
+        <PreviewCard
+          className="flex flex-col"
+          header={
+            <span className="flex items-center gap-2.5">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <UsersRoundIcon className="size-4 text-primary" />
+              </span>
+              <span className="font-medium text-foreground text-sm">Parent / Guardian</span>
+            </span>
+          }
+          stageClassName="min-h-0 flex-1 flex-col justify-start gap-4 p-4 sm:p-5"
+        >
+          <GuardianEditor
+            errors={errors}
+            guardian={guardian}
+            onUpdate={updateGuardian}
+            studentAddress={studentAddress}
+          />
+        </PreviewCard>
 
-        <FormSectionCard
-          icon={GraduationCapIcon}
-          subtitle="Academic placement, subjects, fees, and start date"
-          title="School &amp; Enrollment"
+        <PreviewCard
+          className="flex flex-col"
+          header={
+            <span className="flex items-center gap-2.5">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <GraduationCapIcon className="size-4 text-primary" />
+              </span>
+              <span className="flex min-w-0 flex-col">
+                <span className="font-medium text-foreground text-sm">School &amp; Enrollment</span>
+                <span className="text-muted-foreground text-xs">
+                  Academic placement, subjects, fees, and start date
+                </span>
+              </span>
+            </span>
+          }
+          stageClassName="min-h-0 flex-1 flex-col justify-start gap-4 p-4 sm:p-5"
         >
           <Tabs defaultValue="school">
             <div className="border-b">
@@ -1023,34 +1037,37 @@ export const StudentCreateForm = ({
               />
             </TabsPanel>
           </Tabs>
-        </FormSectionCard>
+        </PreviewCard>
 
         <Collapsible>
-          <CardFrame className="isolate after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background">
-            <CardFrameHeader className="grid-cols-[1fr_auto] items-center gap-4">
-              <div className="flex items-center gap-3">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                  <MoreHorizontalIcon className="size-4 text-primary" />
+          <PreviewCard
+            className="flex flex-col"
+            header={
+              <div className="flex w-full items-center justify-between gap-4">
+                <span className="flex items-center gap-3">
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                    <MoreHorizontalIcon className="size-4 text-primary" />
+                  </span>
+                  <span className="flex min-w-0 flex-col">
+                    <span className="font-semibold text-foreground text-sm">
+                      Additional Information
+                    </span>
+                    <span className="text-muted-foreground text-xs">
+                      Medical notes, emergency contact, referral — optional
+                    </span>
+                  </span>
                 </span>
-                <div>
-                  <p className="font-semibold text-sm">
-                    Additional Information
-                  </p>
-                  <p className="text-muted-foreground text-xs">
-                    Medical notes, emergency contact, referral — optional
-                  </p>
-                </div>
+                <CollapsibleTrigger
+                  render={<Button size="icon" type="button" variant="ghost" />}
+                >
+                  <ChevronDownIcon className="size-4 in-[[data-panel-open]]:rotate-180 transition-transform" />
+                  <span className="sr-only">Toggle additional information</span>
+                </CollapsibleTrigger>
               </div>
-              <CollapsibleTrigger
-                render={<Button size="icon" type="button" variant="ghost" />}
-              >
-                <ChevronDownIcon className="size-4 in-[[data-panel-open]]:rotate-180 transition-transform" />
-                <span className="sr-only">Toggle additional information</span>
-              </CollapsibleTrigger>
-            </CardFrameHeader>
-            <CollapsibleContent>
-              <Card className="min-h-0 flex-1 flex-col dark:bg-background">
-                <CardContent className="grid gap-4">
+            }
+            stageClassName="min-h-0 flex-1 flex-col justify-start gap-4 p-4 sm:p-5"
+          >
+            <CollapsibleContent className="grid gap-4">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="grid content-start gap-1.5">
                       <FieldLabel htmlFor="emergencyContactName">
@@ -1111,10 +1128,8 @@ export const StudentCreateForm = ({
                       rows={2}
                     />
                   </div>
-                </CardContent>
-              </Card>
             </CollapsibleContent>
-          </CardFrame>
+          </PreviewCard>
         </Collapsible>
 
         {Object.keys(errors).length > 0 ? (

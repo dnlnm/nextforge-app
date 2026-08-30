@@ -1,10 +1,6 @@
 ﻿"use client";
 
 import { Button } from "@repo/design-system/components/ui/button";
-import {
-  CardFrame,
-  CardFrameFooter,
-} from "@repo/design-system/components/ui/card";
 import { PreviewCard } from "@repo/design-system/components/preview-card";
 import {
   type ExtendedColumnFilter,
@@ -312,62 +308,54 @@ export function StudentsTable({
             </div>
           </div>
         }
-        label={`${totalCount} ${totalCount === 1 ? "student" : "students"}`}
+        footer={<table.Pagination />}
         stageClassName="flex-col p-0"
       >
-        <div className="grid min-h-0 px-4 pb-4">
-          <CardFrame className="w-full">
-            <div className="hidden overflow-x-auto md:block">
-              <Table className="table-fixed" variant="card">
-                <TableHeader>
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => {
-                        const columnSize = header.column.getSize();
-                        return (
-                          <TableHead
-                            key={header.id}
-                            style={
-                              columnSize
-                                ? { width: `${columnSize}px` }
-                                : undefined
-                            }
-                          >
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
-                          </TableHead>
-                        );
-                      })}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>{renderBody()}</TableBody>
-              </Table>
-            </div>
+        <div className="hidden min-h-0 w-full overflow-x-auto md:block">
+          <Table className="table-fixed" variant="card">
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    const columnSize = header.column.getSize();
+                    return (
+                      <TableHead
+                        key={header.id}
+                        style={
+                          columnSize
+                            ? { width: `${columnSize}px` }
+                            : undefined
+                        }
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>{renderBody()}</TableBody>
+          </Table>
+        </div>
 
-            <div className="px-4 md:hidden">
-              <DataTableMobileCards
-                emptyLabel="No students found"
-                getRowKey={(student) => student.id}
-                isLoading={isLoading}
-                items={data}
-                renderCard={(student) => (
-                  <StudentCard
-                    onRowClick={handleRowClick}
-                    student={student}
-                  />
-                )}
+        <div className="px-4 md:hidden">
+          <DataTableMobileCards
+            emptyLabel="No students found"
+            getRowKey={(student) => student.id}
+            isLoading={isLoading}
+            items={data}
+            renderCard={(student) => (
+              <StudentCard
+                onRowClick={handleRowClick}
+                student={student}
               />
-            </div>
-
-            <CardFrameFooter className="p-2">
-              <table.Pagination />
-            </CardFrameFooter>
-          </CardFrame>
+            )}
+          />
         </div>
       </PreviewCard>
     </table.AppTable>

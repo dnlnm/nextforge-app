@@ -23,7 +23,7 @@ const Loading = () => (
 
       <div className="grid content-start gap-5">
         <StatCardsSkeleton className="grid-cols-2 xl:grid-cols-4" />
-        <TableCardSkeleton columns={4} rows={6} toolbar />
+        <TableCardSkeleton columns={6} rows={6} toolbar />
       </div>
     </main>
   </>

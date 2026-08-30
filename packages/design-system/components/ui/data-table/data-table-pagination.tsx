@@ -33,7 +33,7 @@ export function DataTablePagination() {
   }, [pageCount, pageSize, totalCount]);
 
   return (
-    <div className="flex items-center justify-between gap-2">
+    <div className="flex w-full items-center justify-between gap-2">
       {/* Results range selector */}
       <div className="flex items-center gap-2 whitespace-nowrap">
         <p className="text-muted-foreground text-sm">Viewing</p>

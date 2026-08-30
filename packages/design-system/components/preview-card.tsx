@@ -42,7 +42,7 @@ export function PreviewCard({
             </span>
           ) : null}
           {footer ? (
-            <div className="flex shrink-0 items-center gap-1.5">{footer}</div>
+            <div className="flex flex-1 items-center gap-1.5 [&>div]:w-full">{footer}</div>
           ) : null}
         </div>
       ) : null}
