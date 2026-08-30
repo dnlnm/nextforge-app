@@ -33,13 +33,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/design-system/components/ui/select";
-import {
-  Select as TroveSelect,
-  SelectContent as TroveSelectContent,
-  SelectItem as TroveSelectItem,
-  SelectTrigger as TroveSelectTrigger,
-  SelectValue as TroveSelectValue,
-} from "@repo/design-system/components/trovecn/select";
 import { PreviewCard } from "@repo/design-system/components/preview-card";
 import {
   Tabs,
@@ -798,7 +791,7 @@ export const StudentCreateForm = ({
             </div>
             <div className="grid content-start gap-1.5">
               <FieldLabel required>Gender</FieldLabel>
-              <TroveSelect
+              <Select
                 items={Object.fromEntries(
                   GENDER_OPTIONS.map((option) => [option.value, option.label])
                 )}
@@ -809,20 +802,20 @@ export const StudentCreateForm = ({
                 }}
                 value={gender}
               >
-                <TroveSelectTrigger
+                <SelectTrigger
                   aria-invalid={errors.gender ? true : undefined}
                   className={errorClassName(Boolean(errors.gender))}
                 >
-                  <TroveSelectValue placeholder="Select gender" />
-                </TroveSelectTrigger>
-                <TroveSelectContent>
+                  <SelectValue placeholder="Select gender" />
+                </SelectTrigger>
+                <SelectContent>
                   {GENDER_OPTIONS.map((option) => (
-                    <TroveSelectItem key={option.value} value={option.value}>
+                    <SelectItem key={option.value} value={option.value}>
                       {option.label}
-                    </TroveSelectItem>
+                    </SelectItem>
                   ))}
-                </TroveSelectContent>
-              </TroveSelect>
+                </SelectContent>
+              </Select>
               <FieldErrorText message={errors.gender} />
             </div>
           </div>

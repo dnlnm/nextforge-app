@@ -5,7 +5,12 @@ import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
 import { PanelLeftIcon } from "lucide-react";
 import * as React from "react";
+import { motion, useReducedMotion } from "motion/react";
 import { useMediaQuery } from "@repo/design-system/hooks/use-media-query";
+import {
+  sizeTransition,
+  spring,
+} from "@repo/design-system/lib/springs";
 import { cn } from "@repo/design-system/lib/utils";
 import { Button } from "@repo/design-system/components/ui/button";
 import { Input } from "@repo/design-system/components/ui/input";
@@ -31,6 +36,30 @@ const SIDEBAR_WIDTH: string = "16rem";
 const SIDEBAR_WIDTH_MOBILE: string = "18rem";
 const SIDEBAR_WIDTH_ICON: string = "3rem";
 const SIDEBAR_KEYBOARD_SHORTCUT: string = "b";
+
+/** Resolves a `{n}rem` length to pixels at the current root font size. */
+const remToPx = (rem: string): number => {
+  const root = parseFloat(getComputedStyle(document.documentElement).fontSize);
+  return parseFloat(rem) * (Number.isFinite(root) && root > 0 ? root : 16);
+};
+
+/**
+ * Animated pixel width for the desktop `collapsible="icon"` collapse. The
+ * fixed container gets the icon width plus its `p-2` inset (and a hairline
+ * `+2px`) so the inner panel lands flush, matching the shadcn `icon`
+ * overrides these motion.divs replace. Only the icon collapsible animates;
+ * offcanvas/none keep their static CSS widths.
+ */
+const iconSidebarWidths = (variant: string) => {
+  const expanded = remToPx(SIDEBAR_WIDTH);
+  const inset = variant === "inset" || variant === "floating";
+  const base = remToPx(SIDEBAR_WIDTH_ICON) + remToPx("1rem");
+  return {
+    expanded,
+    gap: inset ? base : remToPx(SIDEBAR_WIDTH_ICON),
+    container: inset ? base + 2 : remToPx(SIDEBAR_WIDTH_ICON),
+  };
+};
 
 const sidebarMenuButtonVariants = cva(
   "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-lg p-2 text-left text-sm outline-hidden ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pe-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg:not([class*='size-'])]:size-4 [&>svg]:shrink-0",
@@ -183,6 +212,12 @@ export function Sidebar({
   collapsible = "offcanvas",
   className,
   children,
+  onAnimationStart: _onAnimationStart,
+  onDrag: _onDrag,
+  onDragEnd: _onDragEnd,
+  onDragStart: _onDragStart,
+  onTransitionEnd: _onTransitionEnd,
+  onTransitionStart: _onTransitionStart,
   ...props
 }: React.ComponentProps<"div"> & {
   side?: "left" | "right";
@@ -190,6 +225,27 @@ export function Sidebar({
   collapsible?: "offcanvas" | "icon" | "none";
 }): React.ReactElement {
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+  const reduced = useReducedMotion();
+  const open = state === "expanded";
+  const [widths, setWidths] = React.useState<ReturnType<typeof iconSidebarWidths> | null>(
+    null,
+  );
+
+  React.useLayoutEffect(() => {
+    setWidths(iconSidebarWidths(variant));
+  }, [variant]);
+
+  const animatedWidths = collapsible === "icon" ? widths : null;
+  const gapWidth = animatedWidths
+    ? open
+      ? animatedWidths.expanded
+      : animatedWidths.gap
+    : undefined;
+  const containerWidth = animatedWidths
+    ? open
+      ? animatedWidths.expanded
+      : animatedWidths.container
+    : undefined;
 
   if (collapsible === "none") {
     return (
@@ -241,40 +297,40 @@ export function Sidebar({
       data-variant={variant}
     >
       {/* This is what handles the sidebar gap on desktop */}
-      <div
+      <motion.div
         className={cn(
-          "relative w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear",
+          "relative w-(--sidebar-width) bg-transparent",
           "group-data-[collapsible=offcanvas]:w-0",
           "group-data-[side=right]:rotate-180",
-          variant === "floating" || variant === "inset"
-            ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]"
-            : "group-data-[collapsible=icon]:w-(--sidebar-width-icon)",
         )}
+        animate={{ width: gapWidth }}
         data-slot="sidebar-gap"
+        transition={sizeTransition(spring.moderate, open, reduced)}
       />
-      <div
+      <motion.div
+        {...props}
         className={cn(
-          "fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex",
+          "fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) md:flex",
           side === "left"
             ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
             : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
           // Adjust the padding for floating and inset variants.
           variant === "floating" || variant === "inset"
-            ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]"
-            : "group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-r group-data-[side=right]:border-l",
+            ? "p-2"
+            : "group-data-[side=left]:border-r group-data-[side=right]:border-l",
           className,
         )}
+        animate={{ width: containerWidth }}
         data-slot="sidebar-container"
-        {...props}
-      >
-        <div
+        transition={sizeTransition(spring.moderate, open, reduced)}
+      >        <div
           className="flex h-full w-full flex-col bg-[color-mix(in_srgb,var(--sidebar),var(--foreground)_4%)] group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow-sm/5"
           data-sidebar="sidebar"
           data-slot="sidebar-inner"
         >
           {children}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
