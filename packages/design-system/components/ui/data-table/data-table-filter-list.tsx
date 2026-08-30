@@ -255,9 +255,7 @@ export function DataTableFilterList() {
   return (
     <Popover onOpenChange={setOpen} open={open}>
       <PopoverTrigger
-        render={
-          <Button className="[&_svg]:size-3" size="sm" variant="outline" />
-        }
+        render={<Button variant="elevated" />}
       >
         <ListFilterIcon aria-hidden="true" />
         Filter

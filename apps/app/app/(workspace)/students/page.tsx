@@ -120,7 +120,7 @@ const StudentsPage = async () => {
             <Button
               className="min-w-0 flex-1 md:flex-none"
               render={<Link href="/students/import" />}
-              variant="outline"
+              variant="elevated"
             >
               <UploadIcon className="size-4" />
               <span className="hidden sm:inline">Import Students</span>

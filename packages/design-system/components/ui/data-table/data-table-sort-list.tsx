@@ -56,9 +56,7 @@ export function DataTableSortList() {
   return (
     <Popover onOpenChange={setOpen} open={open}>
       <PopoverTrigger
-        render={
-          <Button className="[&_svg]:size-3" size="sm" variant="outline" />
-        }
+        render={<Button variant="elevated" />}
       >
         <ArrowDownUpIcon aria-hidden="true" />
         Sort
