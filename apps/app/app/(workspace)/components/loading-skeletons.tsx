@@ -55,7 +55,7 @@ const StatCardsSkeleton = ({
               <Skeleton className="size-8" />
             </div>
           }
-          stageClassName="flex-col items-start justify-center gap-4 p-6 sm:p-6"
+          stageClassName="flex-col items-start justify-center gap-3 p-4 sm:p-4"
         >
           <div className="flex items-center gap-3">
             <Skeleton className="size-8 rounded-md" />

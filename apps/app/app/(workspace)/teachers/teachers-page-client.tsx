@@ -8,15 +8,9 @@ import {
   DrawerPopup,
   DrawerTitle,
 } from "@repo/design-system/components/ui/drawer";
-import {
-  Stat,
-  StatDescription,
-  StatFooter,
-  StatIndicator,
-  StatLabel,
-  StatPanel,
-  StatValue,
-} from "@repo/design-system/components/ui/stat";
+import { Icon } from "@repo/design-system/components/ui/icon";
+import { StatLabel, StatValue } from "@repo/design-system/components/ui/stat";
+import { PreviewCard } from "@repo/design-system/components/preview-card";
 import { easeOutStrong } from "@repo/design-system/lib/springs";
 import {
   UserRoundCheckIcon,
@@ -154,26 +148,25 @@ export function TeachersPageClient({
                   value: archivedTeachers.toLocaleString(),
                 },
               ].map((stat) => (
-                <Stat
-                  className="isolate h-full after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background"
+                <PreviewCard
+                  className="relative flex h-full flex-col"
                   key={stat.label}
+                  label={stat.detail}
+                  stageClassName="flex-col items-start justify-center gap-3 p-4 sm:p-4"
                 >
-                  <StatPanel className="dark:bg-background">
-                    <StatLabel>{stat.label}</StatLabel>
-                    <StatIndicator color={stat.color} variant="stacked">
+                  <div className="flex items-center gap-3">
+                    <Icon color={stat.color} variant="elevated-filled">
                       <stat.icon />
-                    </StatIndicator>
-                    <StatValue>{stat.value}</StatValue>
-                  </StatPanel>
-                  <StatFooter>
-                    <StatDescription>{stat.detail}</StatDescription>
-                  </StatFooter>
+                    </Icon>
+                    <StatLabel>{stat.label}</StatLabel>
+                  </div>
+                  <StatValue>{stat.value}</StatValue>
                   <Link
                     aria-label={stat.label}
-                    className="absolute inset-0 rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    className="absolute inset-0 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     href={stat.href}
                   />
-                </Stat>
+                </PreviewCard>
               ))}
             </motion.section>
           )}

@@ -42,7 +42,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
-import { FormSectionCard } from "../../students/components/form-section-card";
+import { PreviewCard } from "@repo/design-system/components/preview-card";
 import { createTeacher } from "../actions";
 
 interface TeacherCreateFormProperties {
@@ -324,10 +324,22 @@ export const TeacherCreateForm = ({
       <input name="sendInvite" type="hidden" value={sendInvite ? "on" : ""} />
 
       <section className="grid content-start gap-5 xl:col-start-1 xl:row-start-1">
-        <FormSectionCard
-          icon={UserRoundIcon}
-          subtitle="Basic details used for the teacher's profile."
-          title="Personal Information"
+        <PreviewCard
+          className="flex flex-col"
+          header={
+            <span className="flex items-center gap-2.5">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <UserRoundIcon className="size-4 text-primary" />
+              </span>
+              <span className="flex min-w-0 flex-col">
+                <span className="font-medium text-foreground text-sm">Personal Information</span>
+                <span className="text-muted-foreground text-xs">
+                  Basic details used for the teacher's profile.
+                </span>
+              </span>
+            </span>
+          }
+          stageClassName="min-h-0 flex-1 flex-col justify-start gap-4 p-4 sm:p-5"
         >
           <div className="flex items-start gap-5">
             <PhotoUploadTile onPreviewUrlChange={setPhotoUrl} />
@@ -433,12 +445,22 @@ export const TeacherCreateForm = ({
               </Select>
             </div>
           </div>
-        </FormSectionCard>
+        </PreviewCard>
 
-        <FormSectionCard
-          icon={GraduationCapIcon}
-          subtitle="Employment and pay details."
-          title="Teaching Details"
+        <PreviewCard
+          className="flex flex-col"
+          header={
+            <span className="flex items-center gap-2.5">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <GraduationCapIcon className="size-4 text-primary" />
+              </span>
+              <span className="flex min-w-0 flex-col">
+                <span className="font-medium text-foreground text-sm">Teaching Details</span>
+                <span className="text-muted-foreground text-xs">Employment and pay details.</span>
+              </span>
+            </span>
+          }
+          stageClassName="min-h-0 flex-1 flex-col justify-start gap-4 p-4 sm:p-5"
         >
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid content-start gap-1.5">
@@ -532,7 +554,7 @@ export const TeacherCreateForm = ({
               rows={3}
             />
           </div>
-        </FormSectionCard>
+        </PreviewCard>
       </section>
 
       <aside className="order-2 grid content-start gap-4 xl:sticky xl:top-4 xl:col-start-2 xl:row-start-1 xl:self-start">

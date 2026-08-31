@@ -8,11 +8,8 @@ import {
   DrawerPopup,
   DrawerTitle,
 } from "@repo/design-system/components/ui/drawer";
-import {
-  StatIndicator,
-  StatLabel,
-  StatValue,
-} from "@repo/design-system/components/ui/stat";
+import { Icon } from "@repo/design-system/components/ui/icon";
+import { StatLabel, StatValue } from "@repo/design-system/components/ui/stat";
 import { PreviewCard } from "@repo/design-system/components/preview-card";
 import { easeOutStrong } from "@repo/design-system/lib/springs";
 import { formatMoneyWhole as formatMoneyShared } from "@repo/money";
@@ -143,12 +140,12 @@ export function StudentsPageClient({
                   className="relative flex h-full flex-col"
                   key={stat.label}
                   label={stat.detail}
-                  stageClassName="flex-col items-start justify-center gap-4 p-6 sm:p-6"
+                  stageClassName="flex-col items-start justify-center gap-3 p-4 sm:p-4"
                 >
                   <div className="flex items-center gap-3">
-                    <StatIndicator color={stat.color} variant="stacked">
+                    <Icon color={stat.color} variant="elevated-filled">
                       <stat.icon />
-                    </StatIndicator>
+                    </Icon>
                     <StatLabel>{stat.label}</StatLabel>
                   </div>
                   <StatValue>{stat.value}</StatValue>

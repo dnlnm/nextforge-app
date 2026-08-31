@@ -1,12 +1,7 @@
 "use client";
 
 import { Button } from "@repo/design-system/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFrame,
-  CardFrameFooter,
-} from "@repo/design-system/components/ui/card";
+import { PreviewCard } from "@repo/design-system/components/preview-card";
 import {
   type ExtendedColumnFilter,
   toFilterValueArray,
@@ -258,105 +253,85 @@ export function TeachersTable({
 
   return (
     <table.AppTable>
-      <CardFrame className="overflow-visible! isolate after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background">
-        <Card className="min-h-0 flex-1 flex-col dark:bg-background">
-          <CardContent className="flex min-h-0 flex-1 flex-col p-0">
-            <div className="grid gap-3 p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="relative w-full max-w-sm">
-                  <SearchIcon className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    className="pl-8"
-                    onChange={(event) =>
-                      setUrlParams({ search: event.target.value, page: 0 })
-                    }
-                    placeholder="Search teachers..."
-                    type="search"
-                    value={urlParams.search}
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  {hasActiveState ? (
-                    <Button
-                      className="[&_svg]:size-3"
-                      onClick={() =>
-                        setUrlParams({
-                          filters: [],
-                          page: 0,
-                          search: "",
-                          sorting: [],
-                        })
-                      }
-                      size="sm"
-                      variant="outline"
-                    >
-                      <RotateCcwIcon aria-hidden="true" />
-                      Reset
-                    </Button>
-                  ) : null}
-                  <table.FilterList />
-                  <table.SortList />
-                </div>
-              </div>
+      <PreviewCard
+        header={
+          <div className="flex w-full flex-wrap items-center justify-between gap-2">
+            <div className="relative w-full max-w-sm">
+              <SearchIcon className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                className="pl-8"
+                onChange={(event) => setUrlParams({ search: event.target.value, page: 0 })}
+                placeholder="Search teachers..."
+                type="search"
+                value={urlParams.search}
+              />
             </div>
-
-            <div className="min-h-0 px-4 pb-4">
-              <CardFrame className="w-full">
-                <div className="hidden overflow-x-auto md:block">
-                  <Table className="table-fixed" variant="card">
-                    <TableHeader>
-                      {table.getHeaderGroups().map((headerGroup) => (
-                        <TableRow key={headerGroup.id}>
-                          {headerGroup.headers.map((header) => {
-                            const columnSize = header.column.getSize();
-                            return (
-                              <TableHead
-                                key={header.id}
-                                style={
-                                  columnSize
-                                    ? { width: `${columnSize}px` }
-                                    : undefined
-                                }
-                              >
-                                {header.isPlaceholder
-                                  ? null
-                                  : flexRender(
-                                      header.column.columnDef.header,
-                                      header.getContext()
-                                    )}
-                              </TableHead>
-                            );
-                          })}
-                        </TableRow>
-                      ))}
-                    </TableHeader>
-                    <TableBody>{renderBody()}</TableBody>
-                  </Table>
-                </div>
-
-                <div className="px-4 md:hidden">
-                  <DataTableMobileCards
-                    emptyLabel="No teachers found"
-                    getRowKey={(teacher) => teacher.id}
-                    isLoading={isLoading}
-                    items={data}
-                    renderCard={(teacher) => (
-                      <TeacherCard
-                        onRowClick={handleRowClick}
-                        teacher={teacher}
-                      />
-                    )}
-                  />
-                </div>
-
-                <CardFrameFooter className="p-2">
-                  <table.Pagination />
-                </CardFrameFooter>
-              </CardFrame>
+            <div className="flex items-center gap-2">
+              {hasActiveState ? (
+                <Button
+                  className="[&_svg]:size-3"
+                  onClick={() =>
+                    setUrlParams({
+                      filters: [],
+                      page: 0,
+                      search: "",
+                      sorting: [],
+                    })
+                  }
+                  size="sm"
+                  variant="outline"
+                >
+                  <RotateCcwIcon aria-hidden="true" />
+                  Reset
+                </Button>
+              ) : null}
+              <table.FilterList />
+              <table.SortList />
             </div>
-          </CardContent>
-        </Card>
-      </CardFrame>
+          </div>
+        }
+        footer={<table.Pagination />}
+        stageClassName="flex-col p-0"
+      >
+        <div className="hidden min-h-0 w-full overflow-x-auto md:block">
+          <Table className="table-fixed" variant="card">
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    const columnSize = header.column.getSize();
+                    return (
+                      <TableHead
+                        key={header.id}
+                        style={
+                          columnSize ? { width: `${columnSize}px` } : undefined
+                        }
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(header.column.columnDef.header, header.getContext())}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>{renderBody()}</TableBody>
+          </Table>
+        </div>
+
+        <div className="px-4 md:hidden">
+          <DataTableMobileCards
+            emptyLabel="No teachers found"
+            getRowKey={(teacher) => teacher.id}
+            isLoading={isLoading}
+            items={data}
+            renderCard={(teacher) => (
+              <TeacherCard onRowClick={handleRowClick} teacher={teacher} />
+            )}
+          />
+        </div>
+      </PreviewCard>
     </table.AppTable>
   );
 }

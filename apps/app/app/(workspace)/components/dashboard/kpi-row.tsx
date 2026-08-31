@@ -106,7 +106,7 @@ export const KpiRow = ({ currency, data }: KpiRowProps) => {
           label={stat.detail}
           footer={
             stat.action ? (
-              <div className="relative z-10">
+              <div className="relative z-10 ml-auto flex justify-end">
                 <Button
                   render={<Link href={stat.action.href} />}
                   size="2xs"
@@ -118,7 +118,7 @@ export const KpiRow = ({ currency, data }: KpiRowProps) => {
               </div>
             ) : null
           }
-          stageClassName="flex-col items-start justify-center gap-4 p-6 sm:p-6"
+          stageClassName="flex-col items-start justify-center gap-3 p-4 sm:p-4"
         >
           <div className="flex items-center gap-3">
             <Icon color={stat.color} variant="elevated-filled">
