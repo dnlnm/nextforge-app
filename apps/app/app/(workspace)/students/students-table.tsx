@@ -9,6 +9,7 @@ import {
   useAppTable,
 } from "@repo/design-system/components/ui/data-table/table";
 import { Input } from "@repo/design-system/components/ui/input";
+import { Separator } from "@repo/design-system/components/ui/separator";
 import { Skeleton } from "@repo/design-system/components/ui/skeleton";
 import {
   Table,
@@ -229,7 +230,7 @@ export function StudentsTable({
   const renderBody = () => {
     if (isLoading) {
       return SKELETON_ROW_KEYS.map((key) => (
-        <TableRow key={key}>
+        <TableRow className="border-border" key={key}>
           {columns.map((column) => (
             <TableCell key={column.id}>
               <Skeleton className="h-5 w-full" />
@@ -243,7 +244,7 @@ export function StudentsTable({
 
     if (rows.length === 0) {
       return (
-        <TableRow>
+        <TableRow className="border-0">
           <TableCell className="h-24 text-center" colSpan={columns.length}>
             No students found.
           </TableCell>
@@ -253,7 +254,7 @@ export function StudentsTable({
 
     return rows.map((row) => (
       <TableRow
-        className="cursor-pointer"
+        className="cursor-pointer border-border last:border-0"
         data-state={row.getIsSelected() ? "selected" : undefined}
         key={row.id}
         onClick={() => handleRowClick(row.original)}
@@ -309,13 +310,13 @@ export function StudentsTable({
           </div>
         }
         footer={<table.Pagination />}
-        stageClassName="flex-col p-0"
+        stageClassName="flex-col items-stretch justify-start overflow-hidden p-0 sm:p-0"
       >
         <div className="hidden min-h-0 w-full overflow-x-auto md:block">
-          <Table className="table-fixed" variant="card">
+          <Table className="w-full table-fixed">
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
+                <TableRow className="border-border hover:bg-transparent" key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     const columnSize = header.column.getSize();
                     return (
@@ -341,6 +342,7 @@ export function StudentsTable({
             </TableHeader>
             <TableBody>{renderBody()}</TableBody>
           </Table>
+          <Separator className="bg-border/60" />
         </div>
 
         <div className="px-4 md:hidden">

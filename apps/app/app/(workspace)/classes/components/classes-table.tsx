@@ -9,6 +9,7 @@ import {
   useAppTable,
 } from "@repo/design-system/components/ui/data-table/table";
 import { Input } from "@repo/design-system/components/ui/input";
+import { Separator } from "@repo/design-system/components/ui/separator";
 import {
   Table,
   TableBody,
@@ -251,13 +252,13 @@ export const ClassesTable = ({ classes }: { classes: ClassTableItem[] }) => {
           </div>
         }
         footer={<table.Pagination />}
-        stageClassName="flex-col p-0"
+        stageClassName="flex-col items-stretch justify-start overflow-hidden p-0 sm:p-0"
       >
         <div className="hidden min-h-0 w-full overflow-x-auto md:block">
-          <Table className="table-fixed" variant="card">
+          <Table className="w-full table-fixed">
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
+                <TableRow className="border-border hover:bg-transparent" key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     const columnSize = header.column.getSize();
                     return (
@@ -276,14 +277,14 @@ export const ClassesTable = ({ classes }: { classes: ClassTableItem[] }) => {
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows.length === 0 ? (
-                <TableRow>
+                <TableRow className="border-0">
                   <TableCell className="h-24 text-center" colSpan={columns.length}>
                     No classes found.
                   </TableCell>
                 </TableRow>
               ) : (
                 table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
+                  <TableRow className="border-border last:border-0" key={row.id}>
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -294,6 +295,7 @@ export const ClassesTable = ({ classes }: { classes: ClassTableItem[] }) => {
               )}
             </TableBody>
           </Table>
+          <Separator className="bg-border/60" />
         </div>
         <div className="px-4 md:hidden">
           <div className="grid gap-3">
