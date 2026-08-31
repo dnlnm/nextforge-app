@@ -8,7 +8,7 @@ import { CreateClassForm } from "./create-class-form";
 const CreateClassPage = async () => {
   const tenant = await requireTenantRole(["ADMIN"]);
 
-  const [subjects, teachers, levels, rooms] = await Promise.all([
+  const [subjects, teachers, levels, rooms, settings] = await Promise.all([
     database.subject.findMany({
       where: { organizationId: tenant.organizationId, status: "ACTIVE" },
       orderBy: [{ name: "asc" }],
@@ -48,6 +48,10 @@ const CreateClassPage = async () => {
         name: true,
       },
     }),
+    database.organizationSettings.findUnique({
+      where: { organizationId: tenant.organizationId },
+      select: { currency: true },
+    }),
   ]);
 
   return (
@@ -56,19 +60,18 @@ const CreateClassPage = async () => {
         page="Add New Class"
         pages={[`${appName}`, { href: "/classes", label: "Classes" }]}
       />
-      <main className="grid gap-5 p-4 pt-4 xl:grid-cols-[1fr_360px]">
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end xl:col-span-full">
-          <div>
-            <h1 className="font-semibold text-2xl tracking-tight">
-              Add New Class
-            </h1>
-            <p className="text-muted-foreground text-sm">
-              Set up a new tuition class with schedule, subject, and teacher.
-            </p>
-          </div>
+      <main className="mx-auto grid w-full max-w-6xl gap-5 p-4 pt-4">
+        <div>
+          <h1 className="font-semibold text-2xl tracking-tight">
+            Add New Class
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Set up a new class and define its schedule, teacher and capacity.
+          </p>
         </div>
         <CreateClassForm
           academicYearOptions={getAcademicYearOptions()}
+          currency={settings?.currency ?? "MYR"}
           levels={levels}
           rooms={rooms}
           subjects={subjects}

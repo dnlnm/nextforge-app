@@ -1,6 +1,9 @@
+import { mergeProps } from "@base-ui/react/merge-props"
+import { useRender } from "@base-ui/react/use-render"
 import { Separator } from "@repo/design-system/components/ui/separator"
 import { cn } from "@repo/design-system/lib/utils"
 import { cva, type VariantProps } from "class-variance-authority"
+import type * as React from "react"
 
 const groupVariants = cva(
   "flex items-stretch rounded-lg border border-border bg-card [&>*]:focus-visible:z-10 [&>*]:focus-visible:relative",
@@ -53,4 +56,24 @@ function GroupSeparator({
   )
 }
 
-export { Group, GroupSeparator, groupVariants }
+function GroupText({
+  className,
+  render,
+  ...props
+}: React.ComponentProps<"div"> & { render?: React.ReactElement }) {
+  const defaultProps = {
+    className: cn(
+      "flex shrink-0 items-center bg-transparent px-3 text-sm font-medium text-muted-foreground",
+      className,
+    ),
+    "data-slot": "group-text" as const,
+  }
+
+  return useRender({
+    defaultTagName: "div",
+    props: mergeProps<"div">(defaultProps, props),
+    render,
+  })
+}
+
+export { Group, GroupSeparator, GroupText, groupVariants }
