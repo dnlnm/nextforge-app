@@ -1,20 +1,28 @@
 "use client";
 
-import { formatWallClockTime } from "@repo/date";
-import { Badge } from "@repo/design-system/components/ui/badge";
-import { Card, CardContent } from "@repo/design-system/components/ui/card";
-import { Input } from "@repo/design-system/components/ui/input";
-import { Label } from "@repo/design-system/components/ui/label";
+import { IlamyCalendar, useIlamyCalendarContext } from "@ilamy/calendar";
+import type { CalendarEvent } from "@ilamy/calendar";
+import { Button } from "@repo/design-system/components/ui/button";
+import { PreviewCard } from "@repo/design-system/components/preview-card";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@repo/design-system/components/ui/select";
-import { SearchIcon } from "lucide-react";
-import Link from "next/link";
+  createAppColumnHelper,
+  useAppTable,
+} from "@repo/design-system/components/ui/data-table/table";
+import type { ExtendedColumnFilter } from "@repo/design-system/components/ui/data-table/table";
+import { Tabs, TabsList, TabsTrigger } from "@repo/design-system/components/trovecn/tabs";
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { createPortal } from "react-dom";
+import { DataTableFilterList } from "@repo/design-system/components/ui/data-table/data-table-filter-list";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+const KL_TZ = "Asia/Kuala_Lumpur";
 
 interface ScheduleBlock {
   readonly classId: string;
@@ -33,101 +41,164 @@ interface ScheduleBlock {
   readonly teacherName: string | null;
 }
 
-type GroupMode = "class" | "room" | "teacher";
+const DAY_NUM: Record<string, number> = {
+  SUNDAY: 0,
+  MONDAY: 1,
+  TUESDAY: 2,
+  WEDNESDAY: 3,
+  THURSDAY: 4,
+  FRIDAY: 5,
+  SATURDAY: 6,
+};
 
-const DAY_ORDER = [
-  "MONDAY",
-  "TUESDAY",
-  "WEDNESDAY",
-  "THURSDAY",
-  "FRIDAY",
-  "SATURDAY",
-  "SUNDAY",
+const CHART_COLORS = [
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
 ];
 
-const DAY_LABEL: Record<string, string> = {
-  FRIDAY: "Fri",
-  MONDAY: "Mon",
-  SATURDAY: "Sat",
-  SUNDAY: "Sun",
-  THURSDAY: "Thu",
-  TUESDAY: "Tue",
-  WEDNESDAY: "Wed",
+const colorFor = (subjectId: string) => {
+  let h = 0;
+  for (let i = 0; i < subjectId.length; i++) h = (h * 31 + subjectId.charCodeAt(i)) >>> 0;
+  return CHART_COLORS[h % CHART_COLORS.length] ?? CHART_COLORS[0];
 };
 
-const formatTime = (value: string) => formatWallClockTime(value);
-
-const matchesFilters = (
-  block: ScheduleBlock,
-  filters: {
-    readonly classFilter: string;
-    readonly levelFilter: string;
-    readonly query: string;
-    readonly roomFilter: string;
-    readonly subjectFilter: string;
-    readonly teacherFilter: string;
-  }
-): boolean => {
-  const {
-    classFilter,
-    levelFilter,
-    query,
-    roomFilter,
-    subjectFilter,
-    teacherFilter,
-  } = filters;
-
-  if (classFilter !== "all" && block.classId !== classFilter) {
-    return false;
-  }
-  if (roomFilter !== "all" && block.roomId !== roomFilter) {
-    return false;
-  }
-  if (subjectFilter !== "all" && block.subjectId !== subjectFilter) {
-    return false;
-  }
-  if (teacherFilter !== "all" && block.teacherId !== teacherFilter) {
-    return false;
-  }
-  if (levelFilter !== "all" && block.levelId !== levelFilter) {
-    return false;
-  }
-
-  const normalized = query.trim().toLowerCase();
-
-  if (
-    normalized &&
-    !block.className.toLowerCase().includes(normalized) &&
-    !block.code.toLowerCase().includes(normalized) &&
-    !(block.subjectName ?? "").toLowerCase().includes(normalized) &&
-    !(block.teacherName ?? "").toLowerCase().includes(normalized)
-  ) {
-    return false;
-  }
-
-  return true;
+const parseHm = (v: string) => {
+  const [h, m] = v.split(":").map(Number);
+  return { h: h ?? 0, m: m ?? 0 };
 };
 
-const groupKeyFor = (block: ScheduleBlock, mode: GroupMode): string => {
-  switch (mode) {
-    case "room":
-      return block.roomId ?? "__unassigned__";
-    case "teacher":
-      return block.teacherId ?? "__unassigned__";
-    default:
-      return block.classId;
-  }
+const selectFilterFn = (row: { getValue: (id: string) => unknown }, columnId: string, filterValue: unknown): boolean => {
+  const rowVal = String(row.getValue(columnId) ?? "");
+  const arr: string[] = Array.isArray(filterValue)
+    ? (filterValue as string[])
+    : filterValue != null && filterValue !== ""
+      ? [String(filterValue)]
+      : [];
+  if (arr.length === 0) return true;
+  return arr.includes(rowVal);
 };
 
-const groupLabelFor = (block: ScheduleBlock, mode: GroupMode): string => {
-  switch (mode) {
-    case "room":
-      return block.roomName ?? "Unassigned room";
-    case "teacher":
-      return block.teacherName ?? "Unassigned teacher";
-    default:
-      return block.className;
+const getScheduleColumns = (filters: ScheduleCalendarProps["filters"]) => {
+  const helper = createAppColumnHelper<ScheduleBlock>();
+  return helper.columns([
+    helper.accessor((row) => row.classId, {
+      id: "classId",
+      header: "Class",
+      enableSorting: false,
+      filterFn: selectFilterFn,
+      meta: {
+        label: "Class",
+        variant: "select",
+        options: filters.classes.map((c) => ({ label: c.name, value: c.id })),
+      },
+    }),
+    helper.accessor((row) => row.levelId ?? "", {
+      id: "levelId",
+      header: "Level",
+      enableSorting: false,
+      filterFn: selectFilterFn,
+      meta: {
+        label: "Level",
+        variant: "select",
+        options: filters.levels.map((l) => ({ label: l.name, value: l.id })),
+      },
+    }),
+    helper.accessor((row) => row.subjectId, {
+      id: "subjectId",
+      header: "Subject",
+      enableSorting: false,
+      filterFn: selectFilterFn,
+      meta: {
+        label: "Subject",
+        variant: "select",
+        options: filters.subjects.map((s) => ({ label: s.name, value: s.id })),
+      },
+    }),
+    helper.accessor((row) => row.teacherId ?? "", {
+      id: "teacherId",
+      header: "Teacher",
+      enableSorting: false,
+      filterFn: selectFilterFn,
+      meta: {
+        label: "Teacher",
+        variant: "select",
+        options: filters.teachers.map((t) => ({ label: t.name, value: t.id })),
+      },
+    }),
+    helper.accessor((row) => row.roomId ?? "", {
+      id: "roomId",
+      header: "Room",
+      enableSorting: false,
+      filterFn: selectFilterFn,
+      meta: {
+        label: "Room",
+        variant: "select",
+        options: filters.rooms.map((r) => ({ label: r.name, value: r.id })),
+      },
+    }),
+    helper.accessor("dayOfWeek", {
+      id: "dayOfWeek",
+      header: "Day",
+      enableSorting: false,
+      filterFn: selectFilterFn,
+      meta: {
+        label: "Day",
+        variant: "select",
+        options: [
+          { label: "Monday", value: "MONDAY" },
+          { label: "Tuesday", value: "TUESDAY" },
+          { label: "Wednesday", value: "WEDNESDAY" },
+          { label: "Thursday", value: "THURSDAY" },
+          { label: "Friday", value: "FRIDAY" },
+          { label: "Saturday", value: "SATURDAY" },
+          { label: "Sunday", value: "SUNDAY" },
+        ],
+      },
+    }),
+    helper.accessor("code", {
+      id: "code",
+      header: "Code",
+      enableSorting: false,
+      meta: { label: "Code", variant: "text" },
+    }),
+  ]);
+};
+
+const scheduleBlocksToEvents = (blocks: ScheduleBlock[]): CalendarEvent[] => {
+  const anchor = dayjs.tz(dayjs(), KL_TZ);
+  const startDay = anchor.subtract(30, "day").startOf("day");
+  const endDay = anchor.add(30, "day").endOf("day");
+  const events: CalendarEvent[] = [];
+  for (let d = startDay; d.isBefore(endDay) || d.isSame(endDay, "day"); d = d.add(1, "day")) {
+    const dow = d.day();
+    for (const b of blocks) {
+      if (DAY_NUM[b.dayOfWeek] !== dow) continue;
+      const { h: sh, m: sm } = parseHm(b.startsAt);
+      const { h: eh, m: em } = parseHm(b.endsAt);
+      const dateStr = d.format("YYYY-MM-DD");
+      const start = dayjs.tz(`${dateStr} ${String(sh).padStart(2, "0")}:${String(sm).padStart(2, "0")}`, KL_TZ);
+      let end = dayjs.tz(`${dateStr} ${String(eh).padStart(2, "0")}:${String(em).padStart(2, "0")}`, KL_TZ);
+      if (!end.isAfter(start)) end = end.add(1, "day");
+      events.push({
+        id: `${b.classId}-${b.dayOfWeek}-${b.startsAt}-${dateStr}`,
+        title: `${b.className} · ${b.subjectName}`,
+        start,
+        end,
+        color: colorFor(b.subjectId),
+        data: {
+          classId: b.classId,
+          code: b.code,
+          roomName: b.roomName ?? "",
+          teacherName: b.teacherName ?? "",
+          subjectName: b.subjectName,
+        },
+      });
+    }
   }
+  return events;
 };
 
 interface ScheduleCalendarProps {
@@ -141,243 +212,132 @@ interface ScheduleCalendarProps {
   };
 }
 
-export const ScheduleCalendar = ({
-  blocks,
-  filters,
-}: ScheduleCalendarProps) => {
-  const [mode, setMode] = useState<GroupMode>("class");
-  const [classFilter, setClassFilter] = useState("all");
-  const [levelFilter, setLevelFilter] = useState("all");
-  const [roomFilter, setRoomFilter] = useState("all");
-  const [subjectFilter, setSubjectFilter] = useState("all");
-  const [teacherFilter, setTeacherFilter] = useState("all");
-  const [query, setQuery] = useState("");
+function FilterButton() {
+  return <DataTableFilterList />;
+}
 
-  const filteredBlocks = useMemo(
-    () =>
-      blocks.filter((block) =>
-        matchesFilters(block, {
-          classFilter,
-          levelFilter,
-          query,
-          roomFilter,
-          subjectFilter,
-          teacherFilter,
-        })
-      ),
-    [
-      blocks,
-      classFilter,
-      levelFilter,
-      query,
-      roomFilter,
-      subjectFilter,
-      teacherFilter,
-    ]
+/** Header that portals the toolbar (calendar nav + view + filter) into the PreviewCard header. Filter is most-right. */
+function UnifiedHeader({ portalEl }: { portalEl: HTMLDivElement | null }) {
+  const { nextPeriod, prevPeriod, today, currentDate, view, setView, getViews, t } = useIlamyCalendarContext();
+  const views = getViews();
+
+  if (!portalEl) return null;
+
+  return createPortal(
+    <div className="flex w-full flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex h-9 items-center rounded-lg border bg-background">
+          <Button aria-label={t("previous")} className="h-full" onClick={prevPeriod} size="icon" variant="ghost">
+            <ChevronLeftIcon className="size-4" />
+          </Button>
+          <Button aria-label={t("next")} className="h-full" onClick={nextPeriod} size="icon" variant="ghost">
+            <ChevronRightIcon className="size-4" />
+          </Button>
+        </div>
+        <Button onClick={today} size="default" variant="outline">
+          {t("today")}
+        </Button>
+        <span className="min-w-0 truncate px-1 text-sm font-medium">
+          {currentDate.tz(KL_TZ).format(view === "month" || view === "year" ? "MMMM YYYY" : "MMM D, YYYY")}
+        </span>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <Tabs value={view} onValueChange={(v) => setView(v as never)}>
+          <TabsList>
+            {views.map((v) => (
+              <TabsTrigger key={v.name} value={v.name}>
+                {v.label ?? v.name}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+        <FilterButton />
+      </div>
+    </div>,
+    portalEl
   );
+}
 
-  const groups = useMemo(() => {
-    const grouped = new Map<string, ScheduleBlock[]>();
+export const ScheduleCalendar = ({ blocks, filters }: ScheduleCalendarProps) => {
+  const router = useRouter();
+  const [headerPortalEl, setHeaderPortalEl] = useState<HTMLDivElement | null>(null);
 
-    for (const block of filteredBlocks) {
-      const key = groupKeyFor(block, mode);
-      const label = groupLabelFor(block, mode);
+  const columns = useMemo(() => getScheduleColumns(filters), [filters]);
+  const [columnFilters, setColumnFilters] = useState<ExtendedColumnFilter[]>([]);
 
-      const current = grouped.get(key) ?? [];
-      current.push({ ...block, className: label });
-      grouped.set(key, current);
-    }
+  const table = useAppTable({
+    columns,
+    data: blocks,
+    state: { columnFilters },
+    onColumnFiltersChange: (updater) => {
+      const next = typeof updater === "function" ? (updater as (prev: ExtendedColumnFilter[]) => ExtendedColumnFilter[])(columnFilters) : updater;
+      setColumnFilters(next);
+    },
+  });
 
-    return Array.from(grouped.entries()).sort(([a], [b]) => a.localeCompare(b));
-  }, [filteredBlocks, mode]);
+  const filteredBlocks = useMemo(() => table.getRowModel().rows.map((r) => r.original), [table]);
 
-  const hasLevels = filters.levels.length > 0;
+  const events = useMemo(() => scheduleBlocksToEvents(filteredBlocks), [filteredBlocks]);
 
   return (
-    <div className="grid gap-4">
-      <Card>
-        <CardContent className="grid gap-4 p-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex w-fit items-center gap-1 rounded-lg bg-muted p-1">
-              {(
-                [
-                  ["class", "By Class"],
-                  ["room", "By Room"],
-                  ["teacher", "By Teacher"],
-                ] as const
-              ).map(([value, label]) => (
-                <button
-                  className={
-                    mode === value
-                      ? "rounded-md bg-background px-3 py-1 font-medium text-sm shadow"
-                      : "rounded-md px-3 py-1 font-medium text-muted-foreground text-sm"
-                  }
-                  key={value}
-                  onClick={() => setMode(value)}
-                  type="button"
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            <div className="relative md:ml-auto md:min-w-56">
-              <SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                className="pl-9"
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search schedule..."
-                value={query}
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-            <FilterSelect
-              label="Class"
-              onChange={setClassFilter}
-              options={filters.classes}
-              value={classFilter}
-            />
-            {hasLevels ? (
-              <FilterSelect
-                label="Level"
-                onChange={setLevelFilter}
-                options={filters.levels}
-                value={levelFilter}
-              />
+    <table.AppTable>
+      <PreviewCard
+        header={
+          <div ref={setHeaderPortalEl} className="flex w-full items-center justify-between gap-2 min-h-9">
+            {/* Content is portaled from UnifiedHeader (inside IlamyCalendar) so it has calendar + table context */}
+            {!headerPortalEl ? (
+              <div className="flex w-full items-center justify-between gap-2 opacity-60">
+                <span className="text-sm text-muted-foreground">Loading toolbar…</span>
+              </div>
             ) : null}
-            <FilterSelect
-              label="Subject"
-              onChange={setSubjectFilter}
-              options={filters.subjects}
-              value={subjectFilter}
-            />
-            <FilterSelect
-              label="Teacher"
-              onChange={setTeacherFilter}
-              options={filters.teachers}
-              value={teacherFilter}
-            />
-            <FilterSelect
-              label="Room"
-              onChange={setRoomFilter}
-              options={filters.rooms}
-              value={roomFilter}
+          </div>
+        }
+        stageClassName="flex flex-col !p-0 sm:!p-0 !shadow-none bg-transparent gap-0"
+      >
+        {blocks.length === 0 ? (
+          <div className="w-full p-8 text-center text-muted-foreground text-sm">No schedules yet.</div>
+        ) : filteredBlocks.length === 0 ? (
+          <div className="w-full p-8 text-center text-muted-foreground text-sm">No schedules match your filters.</div>
+        ) : null}
+        {blocks.length > 0 && filteredBlocks.length === 0 ? null : (
+          <div className="flex w-full flex-1 overflow-hidden [&_[data-calendar-viewport]]:!border-0 [&_[data-calendar-viewport]]:!rounded-none [&_[data-calendar-viewport]]:!shadow-none h-[720px]">
+            <IlamyCalendar
+              events={events}
+              initialView="week"
+              firstDayOfWeek="monday"
+              timezone={KL_TZ}
+              locale="en-MY"
+              disableDragAndDrop
+              disableCellClick
+              hideExportButton
+              dayMaxEvents={3}
+              slotDuration={30}
+              headerComponent={<UnifiedHeader portalEl={headerPortalEl} />}
+              scrollTime="08:00"
+              onEventClick={(ev) => {
+                const classId = (ev.data as { classId?: string } | undefined)?.classId;
+                if (classId) router.push(`/classes/${classId}`);
+              }}
+              renderEvent={(ev) => {
+                const d = ev.data as { teacherName?: string; roomName?: string } | undefined;
+                return (
+                  <div className="truncate px-1 py-0.5 text-[11px] leading-tight">
+                    <div className="truncate font-medium">{ev.title}</div>
+                    {d?.roomName || d?.teacherName ? (
+                      <div className="truncate opacity-80">{[d.roomName, d.teacherName].filter(Boolean).join(" · ")}</div>
+                    ) : null}
+                  </div>
+                );
+              }}
             />
           </div>
-        </CardContent>
-      </Card>
-
-      {groups.length === 0 ? (
-        <Card>
-          <CardContent className="p-8 text-center text-muted-foreground text-sm">
-            No schedules match your filters.
-          </CardContent>
-        </Card>
-      ) : (
-        groups.map(([key, groupBlocks]) => (
-          <Card key={key}>
-            <CardContent className="grid gap-3 p-4">
-              <div className="flex items-center gap-2">
-                <Badge>{groupBlocks[0]?.className ?? key}</Badge>
-                <span className="text-muted-foreground text-xs">
-                  {groupBlocks.length} schedule
-                  {groupBlocks.length === 1 ? "" : "s"}
-                </span>
-              </div>
-
-              <div className="grid gap-2 md:grid-cols-7">
-                {DAY_ORDER.map((day) => {
-                  const dayBlocks = groupBlocks
-                    .filter((block) => block.dayOfWeek === day)
-                    .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
-
-                  return (
-                    <div
-                      className="grid min-h-28 content-start gap-1.5 rounded-md border bg-muted/30 p-2"
-                      key={day}
-                    >
-                      <span className="font-medium text-muted-foreground text-xs">
-                        {DAY_LABEL[day]}
-                      </span>
-                      {dayBlocks.length === 0 ? (
-                        <span className="text-muted-foreground/50 text-xs">
-                          —
-                        </span>
-                      ) : (
-                        dayBlocks.map((block) => (
-                          <Link
-                            className="grid gap-0.5 rounded-md border bg-background px-2 py-1.5 text-xs transition-colors hover:bg-accent"
-                            href={`/classes/${block.classId}`}
-                            key={`${block.classId}-${block.startsAt}-${block.endsAt}-${block.roomId ?? "noroom"}`}
-                          >
-                            <span className="font-medium">
-                              {block.subjectName}
-                            </span>
-                            <span className="text-muted-foreground">
-                              {formatTime(block.startsAt)} -{" "}
-                              {formatTime(block.endsAt)}
-                            </span>
-                            {mode !== "teacher" && block.teacherName ? (
-                              <span className="truncate text-muted-foreground">
-                                {block.teacherName}
-                              </span>
-                            ) : null}
-                            {mode !== "room" && block.roomName ? (
-                              <span className="truncate text-muted-foreground">
-                                {block.roomName}
-                              </span>
-                            ) : null}
-                          </Link>
-                        ))
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        ))
-      )}
-    </div>
+        )}
+        {filteredBlocks.length > 0 ? (
+          <div className="w-full border-t px-3 py-2 text-muted-foreground text-xs">
+            {filteredBlocks.length} template{filteredBlocks.length === 1 ? "" : "s"} · {events.length} occurrences (±30 days)
+          </div>
+        ) : null}
+      </PreviewCard>
+    </table.AppTable>
   );
 };
-
-const FilterSelect = ({
-  label,
-  onChange,
-  options,
-  value,
-}: {
-  readonly label: string;
-  readonly onChange: (value: string) => void;
-  readonly options: Array<{ readonly id: string; readonly name: string }>;
-  readonly value: string;
-}) => (
-  <div className="grid gap-1.5">
-    <Label className="text-xs">{label}</Label>
-    <Select
-      items={{
-        all: `All ${label}s`,
-        ...Object.fromEntries(
-          options.map((option) => [option.id, option.name])
-        ),
-      }}
-      onValueChange={(v) => onChange(v ?? "")}
-      value={value}
-    >
-      <SelectTrigger>
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="all">All {label}s</SelectItem>
-        {options.map((option) => (
-          <SelectItem key={option.id} value={option.id}>
-            {option.name}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  </div>
-);

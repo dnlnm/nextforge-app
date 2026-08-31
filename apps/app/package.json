@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
+    "@ilamy/calendar": "^2.0.3",
     "@repo/analytics": "workspace:*",
     "@repo/auth": "workspace:*",
     "@repo/collaboration": "workspace:*",
@@ -33,6 +34,7 @@
     "@sentry/nextjs": "^10.42.0",
     "@t3-oss/env-nextjs": "^0.13.10",
     "@tanstack/react-table": "^9.1.2",
+    "dayjs": "^1.11.23",
     "exceljs": "^4.4.0",
     "fuse.js": "^7.1.0",
     "import-in-the-middle": "^3.0.0",

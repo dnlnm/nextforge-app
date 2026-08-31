@@ -4,5 +4,13 @@
     "docs": {
       "path": "/ref_code",
     },
+    "trovecn": {
+      "repository": "PPRAMANIK62/trovecn",
+      "description": "Use for Trovecn design system, components, and UI patterns",
+    },
+    "ilamy-calendar": {
+      "repository": "kcsujeet/ilamy-calendar",
+      "description": "Use for ilamy calendar component, scheduling and date patterns",
+    },
   },
 }

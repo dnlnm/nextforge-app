@@ -17,18 +17,18 @@ export function PreviewCard({
 }) {
   return (
     <div
-      className={cn("rounded-xl bg-card p-[5px] shadow-card", className)}
+      className={cn("overflow-hidden rounded-xl bg-card p-[5px] shadow-card", className)}
       data-slot="preview-card"
       {...props}
     >
       {header ? (
-        <div className="flex items-center justify-between px-2.5 pt-2 pb-3 text-meta text-muted-foreground">
+        <div className="flex items-center justify-between overflow-hidden rounded-t-lg px-2.5 pt-2 pb-3 text-meta text-muted-foreground">
           {header}
         </div>
       ) : null}
       <div
         className={cn(
-          "flex justify-center rounded-lg bg-background p-8 shadow-well sm:p-12",
+          "flex justify-center overflow-hidden rounded-lg bg-background p-8 shadow-well sm:p-12",
           stageClassName,
         )}
       >
