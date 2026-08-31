@@ -28,9 +28,9 @@ const iconVariants = cva(
       variant: {
         default: "border-transparent bg-muted text-muted-foreground",
         elevated:
-          "shadow-bevel border-border bg-background dark:border-input dark:bg-input/30",
+          "shadow-[0_1px_2px_oklch(0_0_0/.06),inset_0_1px_0_oklch(1_0_0/.50)] border-border bg-background dark:border-input dark:bg-input/30",
         "elevated-filled":
-          "shadow-bevel shadow-[0_4px_12px_oklch(0_0_0/.12)] dark:shadow-[0_0_0_1px_oklch(1_0_0/.18),0_12px_28px_oklch(0_0_0/.75),0_4px_12px_oklch(0_0_0/.7),inset_0_1px_0_oklch(1_0_0/.38)]",
+          "shadow-[0_1px_2px_oklch(0_0_0/.06),inset_0_1px_0_oklch(1_0_0/.50),0_4px_12px_oklch(0_0_0/.12)]",
       },
     },
   },
