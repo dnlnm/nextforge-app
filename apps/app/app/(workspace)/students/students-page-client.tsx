@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useKpiVisibility } from "../components/kpi-visibility";
 import { getStudentDetail } from "./actions";
 import type { Student } from "./columns";
@@ -73,6 +73,11 @@ export function StudentsPageClient({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { showKpis } = useKpiVisibility();
   const reduced = useReducedMotion();
+  const [hasMounted, setHasMounted] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setHasMounted(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
 
   // When the user selects a row that isn't the default, hydrate its detail
   // (primary guardian + invoices) on demand instead of shipping every student.
@@ -96,8 +101,16 @@ export function StudentsPageClient({
               animate={{ opacity: 1, height: "auto", marginBottom: "1.25rem" }}
               className="grid grid-cols-2 gap-5 overflow-hidden py-1.5 xl:grid-cols-4"
               exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-              transition={reduced ? { duration: 0 } : { duration: 0.28, ease: easeOutStrong }}
+              initial={
+                hasMounted ? { opacity: 0, height: 0, marginBottom: 0 } : false
+              }
+              transition={
+                hasMounted
+                  ? reduced
+                    ? { duration: 0 }
+                    : { duration: 0.28, ease: easeOutStrong }
+                  : undefined
+              }
             >
               {[
                 {

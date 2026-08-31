@@ -1,14 +1,8 @@
 "use client";
 
-import {
-  Stat,
-  StatDescription,
-  StatFooter,
-  StatIndicator,
-  StatLabel,
-  StatPanel,
-  StatValue,
-} from "@repo/design-system/components/ui/stat";
+import { Icon } from "@repo/design-system/components/ui/icon";
+import { StatLabel, StatValue } from "@repo/design-system/components/ui/stat";
+import { PreviewCard } from "@repo/design-system/components/preview-card";
 import { easeOutStrong } from "@repo/design-system/lib/springs";
 import {
   BarChart3Icon,
@@ -18,6 +12,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useKpiVisibility } from "../components/kpi-visibility";
 import { ClassesTable, type ClassTableItem } from "./components/classes-table";
 
@@ -38,6 +33,11 @@ export function ClassesPageClient({
 }: ClassesPageClientProps) {
   const { showKpis } = useKpiVisibility();
   const reduced = useReducedMotion();
+  const [hasMounted, setHasMounted] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setHasMounted(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
 
   return (
     <div className="grid gap-5">
@@ -48,8 +48,16 @@ export function ClassesPageClient({
               animate={{ opacity: 1, height: "auto", marginBottom: "1.25rem" }}
               className="grid grid-cols-2 gap-5 overflow-hidden py-1.5 xl:grid-cols-4"
               exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-              transition={reduced ? { duration: 0 } : { duration: 0.28, ease: easeOutStrong }}
+              initial={
+                hasMounted ? { opacity: 0, height: 0, marginBottom: 0 } : false
+              }
+              transition={
+                hasMounted
+                  ? reduced
+                    ? { duration: 0 }
+                    : { duration: 0.28, ease: easeOutStrong }
+                  : undefined
+              }
             >
               {[
                 {
@@ -88,26 +96,25 @@ export function ClassesPageClient({
                   value: averageClassSize.toFixed(1),
                 },
               ].map((stat) => (
-                <Stat
-                  className="isolate h-full after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 dark:bg-background"
+                <PreviewCard
+                  className="relative flex h-full flex-col"
                   key={stat.label}
+                  label={stat.detail}
+                  stageClassName="flex-col items-start justify-center gap-3 p-4 sm:p-4"
                 >
-                  <StatPanel className="dark:bg-background">
-                    <StatLabel>{stat.label}</StatLabel>
-                    <StatIndicator color={stat.color} variant="stacked">
+                  <div className="flex items-center gap-3">
+                    <Icon color={stat.color} variant="elevated-filled">
                       <stat.icon />
-                    </StatIndicator>
-                    <StatValue>{stat.value}</StatValue>
-                  </StatPanel>
-                  <StatFooter>
-                    <StatDescription>{stat.detail}</StatDescription>
-                  </StatFooter>
+                    </Icon>
+                    <StatLabel>{stat.label}</StatLabel>
+                  </div>
+                  <StatValue>{stat.value}</StatValue>
                   <Link
                     aria-label={stat.label}
-                    className="absolute inset-0 rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    className="absolute inset-0 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     href={stat.href}
                   />
-                </Stat>
+                </PreviewCard>
               ))}
             </motion.section>
           )}
