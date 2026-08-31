@@ -3,14 +3,12 @@
 import { formatWallClockTime } from "@repo/date";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
-import { Input } from "@repo/design-system/components/ui/input";
+import { PreviewCard } from "@repo/design-system/components/preview-card";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@repo/design-system/components/ui/select";
+  createAppColumnHelper,
+  useAppTable,
+} from "@repo/design-system/components/ui/data-table/table";
+import { Input } from "@repo/design-system/components/ui/input";
 import {
   Table,
   TableBody,
@@ -19,15 +17,10 @@ import {
   TableHeader,
   TableRow,
 } from "@repo/design-system/components/ui/table";
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  FilterIcon,
-  MoreHorizontalIcon,
-  SearchIcon,
-} from "lucide-react";
+import { flexRender } from "@tanstack/react-table";
+import { MoreHorizontalIcon, RotateCcwIcon, SearchIcon } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 export interface ClassTableItem {
   readonly capacity: number | null;
@@ -70,266 +63,270 @@ const teacherInitials = (name?: string | null) =>
     .join("")
     .toUpperCase() || "--";
 
-const PAGE_SIZE = 10;
-
 export const ClassesTable = ({ classes }: { classes: ClassTableItem[] }) => {
-  const [search, setSearch] = useState("");
-  const [subjectFilter, setSubjectFilter] = useState("all");
-  const [levelFilter, setLevelFilter] = useState("all");
-  const [page, setPage] = useState(0);
-
   const subjects = useMemo(
     () =>
       Array.from(
         new Set(
-          classes
-            .map((item) => item.subject?.name)
-            .filter((name): name is string => Boolean(name))
-        )
-      ).sort(),
-    [classes]
+          classes.map((item) => item.subject?.name).filter((name): name is string => Boolean(name)),
+        ),
+      )
+        .sort()
+        .map((name) => ({ label: name, value: name })),
+    [classes],
   );
   const levels = useMemo(
     () =>
-      Array.from(
-        new Set(classes.map((item) => item.level?.name ?? "General"))
-      ).sort(),
-    [classes]
+      Array.from(new Set(classes.map((item) => item.level?.name ?? "General")))
+        .sort()
+        .map((name) => ({ label: name, value: name })),
+    [classes],
   );
 
-  const filtered = useMemo(() => {
-    const query = search.trim().toLowerCase();
-
-    return classes.filter((item) => {
-      if (
-        query &&
-        !item.name.toLowerCase().includes(query) &&
-        !item.code.toLowerCase().includes(query) &&
-        !(item.subject?.name ?? "").toLowerCase().includes(query)
-      ) {
-        return false;
-      }
-      if (subjectFilter !== "all" && item.subject?.name !== subjectFilter) {
-        return false;
-      }
-      if (
-        levelFilter !== "all" &&
-        (item.level?.name ?? "General") !== levelFilter
-      ) {
-        return false;
-      }
-      return true;
-    });
-  }, [classes, levelFilter, search, subjectFilter]);
-
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const currentPage = Math.min(page, pageCount - 1);
-  const visible = filtered.slice(
-    currentPage * PAGE_SIZE,
-    (currentPage + 1) * PAGE_SIZE
+  const columnHelper = createAppColumnHelper<ClassTableItem>();
+  const columns = useMemo(
+    () =>
+      columnHelper.columns([
+        columnHelper.display({
+          id: "index",
+          header: "#",
+          cell: ({ row }) => row.index + 1,
+          enableSorting: false,
+          enableColumnFilter: false,
+          size: 56,
+        }),
+        columnHelper.accessor("name", {
+          id: "name",
+          header: "Class Name",
+          cell: ({ row }) => (
+            <div className="grid gap-1">
+              <Link className="font-medium hover:underline" href={`/classes/${row.original.id}`}>
+                {row.original.name}
+              </Link>
+              <span className="text-muted-foreground text-xs">{row.original.code}</span>
+            </div>
+          ),
+          meta: { label: "Class Name", variant: "text" },
+          enableColumnFilter: true,
+          size: 180,
+        }),
+        columnHelper.accessor((row) => row.subject?.name ?? "", {
+          id: "subject",
+          header: "Subject",
+          cell: ({ row }) => <Badge variant="secondary">{row.original.subject?.name ?? "—"}</Badge>,
+          meta: { label: "Subject", variant: "multi-select", options: subjects },
+          enableColumnFilter: true,
+          size: 140,
+        }),
+        columnHelper.accessor((row) => row.level?.name ?? "General", {
+          id: "level",
+          header: "Level",
+          cell: ({ row }) => (
+            <Badge variant="secondary">{row.original.level?.name ?? "General"}</Badge>
+          ),
+          meta: { label: "Level", variant: "multi-select", options: levels },
+          enableColumnFilter: true,
+          size: 140,
+        }),
+        columnHelper.accessor((row) => row.teacher?.fullName ?? "", {
+          id: "teacher",
+          header: "Teacher",
+          cell: ({ row }) => (
+            <div className="flex items-center gap-2">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-full border bg-muted text-muted-foreground text-xs">
+                {teacherInitials(row.original.teacher?.fullName)}
+              </div>
+              <span>{row.original.teacher?.fullName ?? "-"}</span>
+            </div>
+          ),
+          meta: { label: "Teacher", variant: "text" },
+          enableColumnFilter: true,
+          size: 160,
+        }),
+        columnHelper.display({
+          id: "schedule",
+          header: "Schedule",
+          cell: ({ row }) =>
+            row.original.schedules.length === 0 ? (
+              <span className="text-xs">No schedule</span>
+            ) : (
+              <div className="grid gap-1 text-xs">
+                {row.original.schedules.map((schedule) => (
+                  <span key={schedule.dayOfWeek}>
+                    {dayLabel[schedule.dayOfWeek]}, {formatTime(schedule.startsAt)} - {formatTime(schedule.endsAt)}
+                    {schedule.room ? ` (${schedule.room.name})` : ""}
+                  </span>
+                ))}
+              </div>
+            ),
+          enableSorting: false,
+          enableColumnFilter: false,
+          size: 180,
+        }),
+        columnHelper.display({
+          id: "students",
+          header: "Students",
+          cell: ({ row }) => `${row.original.enrollments.length} / ${row.original.capacity ?? "-"}`,
+          enableSorting: true,
+          enableColumnFilter: false,
+          size: 100,
+        }),
+        columnHelper.accessor("status", {
+          id: "status",
+          header: "Status",
+          cell: ({ row }) => (
+            <Badge variant="outline">{row.original.status === "ACTIVE" ? "Active" : "Upcoming"}</Badge>
+          ),
+          meta: {
+            label: "Status",
+            variant: "select",
+            options: [
+              { label: "Active", value: "ACTIVE" },
+              { label: "Upcoming", value: "UPCOMING" },
+            ],
+          },
+          enableColumnFilter: true,
+          size: 110,
+        }),
+        columnHelper.display({
+          id: "actions",
+          header: () => <div className="text-right">Action</div>,
+          cell: ({ row }) => (
+            <div className="flex justify-end">
+              <Button render={<Link href={`/classes/${row.original.id}`} />} size="icon" variant="outline">
+                <MoreHorizontalIcon className="size-4" />
+              </Button>
+            </div>
+          ),
+          enableSorting: false,
+          enableColumnFilter: false,
+          size: 80,
+        }),
+      ]),
+    [levels, subjects],
   );
-  const first = filtered.length === 0 ? 0 : currentPage * PAGE_SIZE + 1;
-  const last = Math.min((currentPage + 1) * PAGE_SIZE, filtered.length);
+
+  const table = useAppTable({
+    columns,
+    data: classes,
+  });
+
+  const hasActiveState =
+    !!table.state.globalFilter ||
+    table.state.columnFilters.length > 0 ||
+    table.state.sorting.length > 0;
 
   return (
-    <CardInner>
-      <div className="grid gap-4 p-4">
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="relative min-w-64 flex-1 sm:max-w-sm">
-            <SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              className="pl-9"
-              onChange={(event) => {
-                setSearch(event.target.value);
-                setPage(0);
-              }}
-              placeholder="Search classes by name, code or subject..."
-              value={search}
-            />
+    <table.AppTable>
+      <PreviewCard
+        header={
+          <div className="flex w-full flex-wrap items-center justify-between gap-2">
+            <div className="relative w-full max-w-sm">
+              <SearchIcon className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                className="pl-8"
+                onChange={(event) => table.setGlobalFilter(event.target.value)}
+                placeholder="Search classes by name, code or subject..."
+                value={(table.state.globalFilter as string) ?? ""}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              {hasActiveState ? (
+                <Button
+                  onClick={() => {
+                    table.resetGlobalFilter();
+                    table.resetColumnFilters();
+                    table.resetSorting();
+                  }}
+                  size="sm"
+                  variant="outline"
+                >
+                  <RotateCcwIcon aria-hidden="true" />
+                  Reset
+                </Button>
+              ) : null}
+              <table.FilterList />
+              <table.SortList />
+            </div>
           </div>
-          <div className="grid w-36 gap-1">
-            <span className="text-muted-foreground text-xs">Subject</span>
-            <Select
-              onValueChange={(value) => {
-                setSubjectFilter(value ?? "");
-                setPage(0);
-              }}
-              value={subjectFilter}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Subjects</SelectItem>
-                {subjects.map((subject) => (
-                  <SelectItem key={subject} value={subject}>
-                    {subject}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid w-36 gap-1">
-            <span className="text-muted-foreground text-xs">Level</span>
-            <Select
-              onValueChange={(value) => {
-                setLevelFilter(value ?? "");
-                setPage(0);
-              }}
-              value={levelFilter}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Levels</SelectItem>
-                {levels.map((level) => (
-                  <SelectItem key={level} value={level}>
-                    {level}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <Button
-            className="ml-auto"
-            onClick={() => {
-              setSearch("");
-              setSubjectFilter("all");
-              setLevelFilter("all");
-              setPage(0);
-            }}
-            variant="outline"
-          >
-            <FilterIcon className="size-4" />
-            Reset
-          </Button>
+        }
+        footer={<table.Pagination />}
+        stageClassName="flex-col p-0"
+      >
+        <div className="hidden min-h-0 w-full overflow-x-auto md:block">
+          <Table className="table-fixed" variant="card">
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    const columnSize = header.column.getSize();
+                    return (
+                      <TableHead
+                        key={header.id}
+                        style={columnSize ? { width: `${columnSize}px` } : undefined}
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(header.column.columnDef.header, header.getContext())}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.length === 0 ? (
+                <TableRow>
+                  <TableCell className="h-24 text-center" colSpan={columns.length}>
+                    No classes found.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
         </div>
-      </div>
-
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-12">#</TableHead>
-              <TableHead>Class Name</TableHead>
-              <TableHead>Subject</TableHead>
-              <TableHead>Level</TableHead>
-              <TableHead>Teacher</TableHead>
-              <TableHead>Schedule</TableHead>
-              <TableHead>Students</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {visible.map((item, index) => (
-              <TableRow key={item.id}>
-                <TableCell>{currentPage * PAGE_SIZE + index + 1}</TableCell>
-                <TableCell>
-                  <div className="grid gap-1">
-                    <Link
-                      className="font-medium hover:underline"
-                      href={`/classes/${item.id}`}
-                    >
-                      {item.name}
-                    </Link>
-                    <span className="text-muted-foreground text-xs">
-                      {item.code}
+        <div className="px-4 md:hidden">
+          <div className="grid gap-3">
+            {table.getRowModel().rows.map((row) => {
+              const item = row.original;
+              return (
+                <div className="rounded-lg border bg-card p-4" key={item.id}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <Link className="font-medium hover:underline" href={`/classes/${item.id}`}>
+                        {item.name}
+                      </Link>
+                      <p className="text-muted-foreground text-xs">{item.code}</p>
+                    </div>
+                    <Badge variant="outline">
+                      {item.status === "ACTIVE" ? "Active" : "Upcoming"}
+                    </Badge>
+                  </div>
+                  <div className="grid gap-1 pt-3 text-xs">
+                    <span className="text-muted-foreground">
+                      {item.subject?.name ?? "—"} · {item.level?.name ?? "General"}
+                    </span>
+                    <span>{item.teacher?.fullName ?? "-"}</span>
+                    <span>
+                      {item.enrollments.length} / {item.capacity ?? "-"} students
                     </span>
                   </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="secondary">{item.subject?.name ?? "—"}</Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="secondary">
-                    {item.level?.name ?? "General"}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <div className="flex size-8 shrink-0 items-center justify-center rounded-full border bg-muted text-muted-foreground text-xs">
-                      {teacherInitials(item.teacher?.fullName)}
-                    </div>
-                    <span>{item.teacher?.fullName ?? "-"}</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  {item.schedules.length === 0 ? (
-                    <span className="text-xs">No schedule</span>
-                  ) : (
-                    <div className="grid gap-1 text-xs">
-                      {item.schedules.map((schedule) => (
-                        <span key={schedule.dayOfWeek}>
-                          {dayLabel[schedule.dayOfWeek]},{" "}
-                          {formatTime(schedule.startsAt)} -{" "}
-                          {formatTime(schedule.endsAt)}
-                          {schedule.room ? ` (${schedule.room.name})` : ""}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {item.enrollments.length} / {item.capacity ?? "-"}
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline">
-                    {item.status === "ACTIVE" ? "Active" : "Upcoming"}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <div className="flex justify-end">
-                    <Button
-                      render={<Link href={`/classes/${item.id}`} />}
-                      size="icon"
-                      variant="outline"
-                    >
-                      <MoreHorizontalIcon className="size-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-
-      <div className="flex flex-col gap-3 border-t p-4 text-muted-foreground text-sm md:flex-row md:items-center md:justify-between">
-        <p>
-          Showing {first} to {last} of {filtered.length} classes
-        </p>
-        <div className="flex items-center gap-2">
-          <Button
-            disabled={currentPage === 0}
-            onClick={() => setPage((value) => Math.max(0, value - 1))}
-            size="icon"
-            variant="outline"
-          >
-            <ChevronLeftIcon className="size-4" />
-          </Button>
-          <span className="min-w-16 text-center">
-            {currentPage + 1} / {pageCount}
-          </span>
-          <Button
-            disabled={currentPage >= pageCount - 1}
-            onClick={() =>
-              setPage((value) => Math.min(pageCount - 1, value + 1))
-            }
-            size="icon"
-            variant="outline"
-          >
-            <ChevronRightIcon className="size-4" />
-          </Button>
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </div>
-    </CardInner>
+      </PreviewCard>
+    </table.AppTable>
   );
 };
-
-const CardInner = ({ children }: { children: React.ReactNode }) => (
-  <div className="rounded-xl border bg-card text-card-foreground shadow">
-    {children}
-  </div>
-);
