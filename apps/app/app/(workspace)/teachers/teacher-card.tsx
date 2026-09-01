@@ -2,8 +2,10 @@
 
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Card } from "@repo/design-system/components/ui/card";
-import { UserRoundIcon } from "lucide-react";
+import { privateFileUrl } from "@repo/storage/client";
 import Link from "next/link";
+
+import { StudentAvatar } from "../components/student-avatar";
 
 import { type Teacher, TeacherRowActions } from "./columns";
 
@@ -20,9 +22,12 @@ export function TeacherCard({
       onClick={() => onRowClick?.(teacher)}
     >
       <div className="flex items-center gap-3">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-full border bg-muted text-muted-foreground">
-          <UserRoundIcon className="size-5" />
-        </div>
+        <StudentAvatar
+          className="size-10"
+          gender={teacher.gender}
+          name={teacher.fullName}
+          photoUrl={privateFileUrl(teacher.photoKey)}
+        />
         <div className="min-w-0 flex-1">
           <Link
             className="block truncate font-medium hover:underline"

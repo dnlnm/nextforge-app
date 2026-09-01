@@ -162,7 +162,7 @@ export const getStudentColumns = ({
       ),
       enableSorting: false,
       enableHiding: false,
-      size: 28,
+      size: 24,
     }),
     columnHelper.accessor("fullName", {
       header: ({ header }) => <DataTableSortableHeader header={header} />,

@@ -260,7 +260,7 @@ export function StudentsTable({
         onClick={() => handleRowClick(row.original)}
       >
         {row.getVisibleCells().map((cell) => (
-          <TableCell key={cell.id}>
+          <TableCell className={cell.column.id === "fullName" ? "!ps-0" : undefined} key={cell.id}>
             {flexRender(cell.column.columnDef.cell, cell.getContext())}
           </TableCell>
         ))}
@@ -322,6 +322,7 @@ export function StudentsTable({
                     return (
                       <TableHead
                         key={header.id}
+                        className={header.column.id === "fullName" ? "!ps-0" : undefined}
                         style={
                           columnSize
                             ? { width: `${columnSize}px` }

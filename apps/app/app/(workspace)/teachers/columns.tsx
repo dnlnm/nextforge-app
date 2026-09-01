@@ -11,15 +11,16 @@ import {
   MenuItem,
   MenuTrigger,
 } from "@repo/design-system/components/ui/menu";
+import { privateFileUrl } from "@repo/storage/client";
 import {
   ArchiveIcon,
   EyeIcon,
   MessageCircleIcon,
   MoreHorizontalIcon,
-  UserRoundIcon,
 } from "lucide-react";
 import Link from "next/link";
 
+import { StudentAvatar } from "../components/student-avatar";
 import { archiveTeacher } from "./actions";
 
 export interface Teacher {
@@ -28,8 +29,10 @@ export interface Teacher {
   code: string;
   email: string | null;
   fullName: string;
+  gender: string | null;
   id: string;
   phone: string | null;
+  photoKey: string | null;
   status: string;
   subjects: string[];
 }
@@ -110,9 +113,12 @@ export const createColumns = () => {
       cell: ({ row }) => {
         return (
           <div className="flex max-w-full items-center gap-3">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-full border bg-muted text-muted-foreground">
-              <UserRoundIcon className="size-5" />
-            </div>
+            <StudentAvatar
+              className="size-10"
+              gender={row.original.gender}
+              name={row.original.fullName}
+              photoUrl={privateFileUrl(row.original.photoKey)}
+            />
             <div className="min-w-0 flex-1">
               <Link
                 className="block truncate font-medium hover:underline"

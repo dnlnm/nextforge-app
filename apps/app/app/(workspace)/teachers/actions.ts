@@ -507,8 +507,10 @@ export async function getTeachersForTable(params: TeachersQueryParams) {
       code: teacher.code,
       email: teacher.email,
       fullName: teacher.fullName,
+      gender: teacher.gender ?? null,
       id: teacher.id,
       phone: teacher.phone,
+      photoKey: teacher.photoKey ?? null,
       status: "ACTIVE",
       subjects: Array.from(
         new Set(

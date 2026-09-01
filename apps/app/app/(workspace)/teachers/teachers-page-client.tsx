@@ -43,9 +43,11 @@ interface Teacher {
   createdAt: Date;
   email: string | null;
   fullName: string;
+  gender: string | null;
   id: string;
   notes: string | null;
   phone: string | null;
+  photoKey: string | null;
 }
 
 interface TeachersPageClientProps {
@@ -60,6 +62,8 @@ interface TeachersPageClientProps {
     phone: string | null;
     branchName: string | null;
     code: string;
+    gender: string | null;
+    photoKey: string | null;
     subjects: string[];
     classCount: number;
     status: string;

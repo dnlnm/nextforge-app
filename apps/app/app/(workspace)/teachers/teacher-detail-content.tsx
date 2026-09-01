@@ -8,8 +8,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
-import { ChevronRightIcon, UserRoundIcon } from "lucide-react";
+import { privateFileUrl } from "@repo/storage/client";
+import { ChevronRightIcon } from "lucide-react";
 import Link from "next/link";
+
+import { StudentAvatar } from "../components/student-avatar";
 
 export type TeacherDetail = {
   branch: {
@@ -25,9 +28,11 @@ export type TeacherDetail = {
   createdAt: Date;
   email: string | null;
   fullName: string;
+  gender: string | null;
   id: string;
   notes: string | null;
   phone: string | null;
+  photoKey: string | null;
 };
 
 type TeacherDetailContentProps = {
@@ -48,9 +53,12 @@ export function TeacherDetailContent({ teacher }: TeacherDetailContentProps) {
   return (
     <>
       <CardHeader className="border-b">
-        <div className="flex size-20 items-center justify-center rounded-full border bg-muted text-muted-foreground">
-          <UserRoundIcon className="size-10" />
-        </div>
+        <StudentAvatar
+          className="size-20"
+          gender={teacher.gender}
+          name={teacher.fullName}
+          photoUrl={privateFileUrl(teacher.photoKey)}
+        />
         <div className="min-w-0">
           <CardTitle className="text-xl">
             <span className="text-balance">{teacher.fullName}</span>
