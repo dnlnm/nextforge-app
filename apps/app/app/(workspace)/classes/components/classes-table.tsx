@@ -1,6 +1,5 @@
 "use client";
 
-import { formatWallClockTime } from "@repo/date";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import { PreviewCard } from "@repo/design-system/components/preview-card";
@@ -41,19 +40,7 @@ export interface ClassTableItem {
   readonly teacher: { readonly fullName: string } | null;
 }
 
-const dayLabel: Record<string, string> = {
-  FRIDAY: "Fri",
-  MONDAY: "Mon",
-  SATURDAY: "Sat",
-  SUNDAY: "Sun",
-  THURSDAY: "Thu",
-  TUESDAY: "Tue",
-  WEDNESDAY: "Wed",
-};
-
 const whitespaceRegex = /\s+/;
-
-const formatTime = (time: string) => formatWallClockTime(time);
 
 const teacherInitials = (name?: string | null) =>
   name
@@ -143,34 +130,6 @@ export const ClassesTable = ({ classes }: { classes: ClassTableItem[] }) => {
           meta: { label: "Teacher", variant: "text" },
           enableColumnFilter: true,
           size: 160,
-        }),
-        columnHelper.display({
-          id: "schedule",
-          header: "Schedule",
-          cell: ({ row }) =>
-            row.original.schedules.length === 0 ? (
-              <span className="text-xs">No schedule</span>
-            ) : (
-              <div className="grid gap-1 text-xs">
-                {row.original.schedules.map((schedule) => (
-                  <span key={schedule.dayOfWeek}>
-                    {dayLabel[schedule.dayOfWeek]}, {formatTime(schedule.startsAt)} - {formatTime(schedule.endsAt)}
-                    {schedule.room ? ` (${schedule.room.name})` : ""}
-                  </span>
-                ))}
-              </div>
-            ),
-          enableSorting: false,
-          enableColumnFilter: false,
-          size: 180,
-        }),
-        columnHelper.display({
-          id: "students",
-          header: "Students",
-          cell: ({ row }) => `${row.original.enrollments.length} / ${row.original.capacity ?? "-"}`,
-          enableSorting: true,
-          enableColumnFilter: false,
-          size: 100,
         }),
         columnHelper.accessor("status", {
           id: "status",
@@ -319,9 +278,6 @@ export const ClassesTable = ({ classes }: { classes: ClassTableItem[] }) => {
                       {item.subject?.name ?? "—"} · {item.level?.name ?? "General"}
                     </span>
                     <span>{item.teacher?.fullName ?? "-"}</span>
-                    <span>
-                      {item.enrollments.length} / {item.capacity ?? "-"} students
-                    </span>
                   </div>
                 </div>
               );

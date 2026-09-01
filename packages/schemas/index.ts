@@ -7,5 +7,6 @@ export * from "./enums";
 export * from "./invoices";
 export * from "./organizations";
 export * from "./payments";
+export * from "./rooms";
 export * from "./students";
 export * from "./today";
