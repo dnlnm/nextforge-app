@@ -12,5 +12,9 @@
       "repository": "kcsujeet/ilamy-calendar",
       "description": "Use for ilamy calendar component, scheduling and date patterns",
     },
+    "fluid-functionalism": {
+      "repository": "mickadesign/fluid-functionalism",
+      "description": "Use for refined shadcn/ui components with spring-based, proximity-hover motion (accordion, dropdown, select, Tabs, Dialog, Tooltip, Card, Button, Table and more) via the @fluid registry",
+    },
   },
 }
