@@ -19,11 +19,11 @@ import {
   SelectValue,
 } from "@repo/design-system/components/ui/select";
 import {
+  TabItem,
+  TabPanel,
   Tabs,
-  TabsContent,
   TabsList,
-  TabsTrigger,
-} from "@repo/design-system/components/ui/tabs";
+} from "@repo/design-system/components/ui/fluid-tabs";
 import { toastManager } from "@repo/design-system/components/ui/toast";
 import { formatMoneyWhole as formatMoneyShared } from "@repo/money";
 import { Loader2Icon, SearchIcon } from "lucide-react";
@@ -296,14 +296,14 @@ export const EnrollmentCenter = ({
 
   return (
     <Tabs className="gap-4" defaultValue="enroll">
-      <TabsList className="grid h-auto w-full grid-cols-4">
-        <TabsTrigger value="enroll">Enroll</TabsTrigger>
-        <TabsTrigger value="bulk">Bulk Add</TabsTrigger>
-        <TabsTrigger value="transfer">Transfer</TabsTrigger>
-        <TabsTrigger value="end">End</TabsTrigger>
+      <TabsList className="flex w-full">
+        <TabItem className="flex-1" label="Enroll" value="enroll" />
+        <TabItem className="flex-1" label="Bulk Add" value="bulk" />
+        <TabItem className="flex-1" label="Transfer" value="transfer" />
+        <TabItem className="flex-1" label="End" value="end" />
       </TabsList>
 
-      <TabsContent value="enroll">
+      <TabPanel value="enroll">
         <Card>
           <CardHeader>
             <CardTitle>Enroll a student</CardTitle>
@@ -390,9 +390,9 @@ export const EnrollmentCenter = ({
             </div>
           </CardContent>
         </Card>
-      </TabsContent>
+      </TabPanel>
 
-      <TabsContent value="bulk">
+      <TabPanel value="bulk">
         <Card>
           <CardHeader>
             <CardTitle>Bulk add students</CardTitle>
@@ -471,9 +471,9 @@ export const EnrollmentCenter = ({
             </div>
           </CardContent>
         </Card>
-      </TabsContent>
+      </TabPanel>
 
-      <TabsContent value="transfer">
+      <TabPanel value="transfer">
         <Card>
           <CardHeader>
             <CardTitle>Transfer a student</CardTitle>
@@ -568,9 +568,9 @@ export const EnrollmentCenter = ({
             </div>
           </CardContent>
         </Card>
-      </TabsContent>
+      </TabPanel>
 
-      <TabsContent value="end">
+      <TabPanel value="end">
         <Card>
           <CardHeader>
             <CardTitle>End an enrollment</CardTitle>
@@ -620,7 +620,7 @@ export const EnrollmentCenter = ({
             </Button>
           </CardContent>
         </Card>
-      </TabsContent>
+      </TabPanel>
     </Tabs>
   );
 };

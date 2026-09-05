@@ -3,6 +3,7 @@
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupLabel,
   SidebarHeader,
@@ -32,6 +33,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Brand } from "@/components/brand";
+import { SidebarFooterUserMenu, SidebarFooterThemeAction, SidebarFooterShapeAction } from "./sidebar-footer-user-menu";
 import type { SidebarBadges } from "./sidebar";
 
 type SidebarRole = "TEACHER" | "ADMIN" | "OWNER";
@@ -191,6 +193,15 @@ export const FluidSidebar = ({
             </SidebarGroup>
           ))}
         </SidebarContent>
+        <SidebarFooter>
+          <div className="flex items-center gap-1">
+            <div className="min-w-0 flex-1">
+              <SidebarFooterUserMenu />
+            </div>
+            <SidebarFooterThemeAction />
+            <SidebarFooterShapeAction />
+          </div>
+        </SidebarFooter>
       </Sidebar>
       <SidebarInset>{children}</SidebarInset>
     </>

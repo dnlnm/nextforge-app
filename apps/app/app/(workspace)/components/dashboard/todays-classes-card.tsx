@@ -14,7 +14,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@repo/design-system/components/ui/empty";
-import { PreviewCard } from "@repo/design-system/components/preview-card";
+import { FluidPanel } from "@repo/design-system/components/fluid-panel";
 import { cn } from "@repo/design-system/lib/utils";
 import {
   type DashboardSessionRow,
@@ -146,7 +146,7 @@ export const TodaysClassesCard = async ({
   const { sessions } = await getTodaysClassesData(database, organizationId);
 
   return (
-    <PreviewCard
+    <FluidPanel
       className="flex h-full flex-col"
       header={
         <>
@@ -198,6 +198,6 @@ export const TodaysClassesCard = async ({
           </div>
         </div>
       )}
-    </PreviewCard>
+    </FluidPanel>
   );
 };

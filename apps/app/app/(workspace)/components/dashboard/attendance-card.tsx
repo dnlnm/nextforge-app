@@ -8,7 +8,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@repo/design-system/components/ui/empty";
-import { PreviewCard } from "@repo/design-system/components/preview-card";
+import { FluidPanel } from "@repo/design-system/components/fluid-panel";
 import {
   StatDescription,
   StatTrend,
@@ -36,7 +36,7 @@ export const AttendanceCard = async ({
   const hasAttendance = data.monthlyPercentage !== null;
 
   return (
-    <PreviewCard
+    <FluidPanel
       className="flex h-full flex-col"
       header={
         <>
@@ -141,6 +141,6 @@ export const AttendanceCard = async ({
           </EmptyContent>
         </Empty>
       )}
-    </PreviewCard>
+    </FluidPanel>
   );
 };

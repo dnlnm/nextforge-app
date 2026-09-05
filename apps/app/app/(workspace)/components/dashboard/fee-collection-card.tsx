@@ -14,7 +14,7 @@ import {
   ProgressIndicator,
   ProgressTrack,
 } from "@repo/design-system/components/ui/progress";
-import { PreviewCard } from "@repo/design-system/components/preview-card";
+import { FluidPanel } from "@repo/design-system/components/fluid-panel";
 import { type FeeCollectionPoint, getFeeCollectionData } from "@repo/domain";
 import { formatMoneyWhole } from "@repo/money";
 import { ReceiptTextIcon } from "lucide-react";
@@ -37,7 +37,7 @@ export const FeeCollectionCard = async ({
   const trend: FeeCollectionPoint[] = data.trend;
 
   return (
-    <PreviewCard
+    <FluidPanel
       className="flex h-full flex-col"
       header={
         <>
@@ -111,6 +111,6 @@ export const FeeCollectionCard = async ({
           </EmptyContent>
         </Empty>
       )}
-    </PreviewCard>
+    </FluidPanel>
   );
 };

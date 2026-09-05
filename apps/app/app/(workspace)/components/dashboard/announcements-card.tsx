@@ -7,11 +7,11 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@repo/design-system/components/ui/empty";
-import { PreviewCard } from "@repo/design-system/components/preview-card";
+import { FluidPanel } from "@repo/design-system/components/fluid-panel";
 import { MegaphoneIcon } from "lucide-react";
 
 export const AnnouncementsCard = () => (
-  <PreviewCard
+  <FluidPanel
     className="flex h-full flex-col"
     header={
       <>
@@ -41,5 +41,5 @@ export const AnnouncementsCard = () => (
         </Button>
       </EmptyContent>
     </Empty>
-  </PreviewCard>
+  </FluidPanel>
 );

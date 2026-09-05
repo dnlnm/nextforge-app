@@ -1,4 +1,4 @@
-import { Button } from "@repo/design-system/components/ui/button";
+import { Button } from "@repo/design-system/components/ui/fluid-button";
 import {
   Progress,
   ProgressIndicator,
@@ -6,7 +6,7 @@ import {
 } from "@repo/design-system/components/ui/progress";
 import { Icon } from "@repo/design-system/components/ui/icon";
 import { StatLabel, StatValue } from "@repo/design-system/components/ui/stat";
-import { PreviewCard } from "@repo/design-system/components/preview-card";
+import { FluidPanel } from "@repo/design-system/components/fluid-panel";
 import { cn } from "@repo/design-system/lib/utils";
 import type { DashboardKpiData } from "@repo/domain";
 import { formatMoneyWhole } from "@repo/money";
@@ -97,7 +97,7 @@ export const KpiRow = ({ currency, data }: KpiRowProps) => {
   return (
     <section className="grid grid-cols-2 gap-5 lg:grid-cols-3 2xl:grid-cols-5">
       {stats.map((stat, index) => (
-        <PreviewCard
+        <FluidPanel
           className={cn(
             "relative flex h-full flex-col",
             index === stats.length - 1 && "col-span-2 lg:col-span-1"
@@ -108,12 +108,15 @@ export const KpiRow = ({ currency, data }: KpiRowProps) => {
             stat.action ? (
               <div className="relative z-10 ml-auto flex justify-end">
                 <Button
-                  render={<Link href={stat.action.href} />}
-                  size="2xs"
-                  variant="elevated"
+                  asChild
+                  className="shrink-0"
+                  size="compact"
+                  variant="tertiary"
                 >
-                  <PlusIcon aria-hidden="true" data-icon="inline-start" />
-                  <span className="hidden md:inline">{stat.action.label}</span>
+                  <Link href={stat.action.href}>
+                    <PlusIcon aria-hidden="true" className="size-3.5" />
+                    <span className="hidden md:inline">{stat.action.label}</span>
+                  </Link>
                 </Button>
               </div>
             ) : null
@@ -148,7 +151,7 @@ export const KpiRow = ({ currency, data }: KpiRowProps) => {
             className="absolute inset-0 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             href={stat.href}
           />
-        </PreviewCard>
+        </FluidPanel>
       ))}
     </section>
   );

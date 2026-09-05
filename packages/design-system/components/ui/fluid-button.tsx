@@ -236,11 +236,15 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
                   className="transition-[stroke-width] duration-80 group-hover:stroke-[2]"
                 />
               )}
-              {/* text-box only applies to block containers, so the trim lives
-                  on the label span (a blockified flex item), not the flex root.
-                  The button's height is fixed (h-*), so this doesn't change
-                  layout — it just centers the cap-to-baseline box optically. */}
-              <span className="[text-box:trim-both_cap_alphabetic]">{label}</span>
+              {/* Label flows side by side with a consistent gap: JSX strips
+                  whitespace-only lines between an icon child and the text,
+                  so a plain span leaves them touching. inline-flex +
+                  gap-[inherit] reuses the root's gap tier (gap-1 compact,
+                  gap-1.5 default) exactly, like the content wrapper above.
+                  Note: text-box trim below only applies to block containers,
+                  so on this flex span it is inert — vertical centering comes
+                  from items-center instead. */}
+              <span className="inline-flex items-center gap-[inherit] whitespace-nowrap [text-box:trim-both_cap_alphabetic]">{label}</span>
               {TrailingIcon && (
                 <TrailingIcon
                   size={iconSize}

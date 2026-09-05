@@ -66,7 +66,7 @@ export const Header = ({ pages, page, children }: HeaderProps) => {
       </Breadcrumb>
     </div>
     <div className="flex items-center gap-2 px-4">
-      <SidebarUserMenu />
+      {fluidSidebarEnabled ? null : <SidebarUserMenu />}
       {children}
     </div>
   </header>

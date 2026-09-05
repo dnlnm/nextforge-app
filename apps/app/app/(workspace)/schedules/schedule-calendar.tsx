@@ -3,13 +3,13 @@
 import { IlamyCalendar, useIlamyCalendarContext } from "@ilamy/calendar";
 import type { CalendarEvent } from "@ilamy/calendar";
 import { Button } from "@repo/design-system/components/ui/button";
-import { PreviewCard } from "@repo/design-system/components/preview-card";
+import { FluidPanel } from "@repo/design-system/components/fluid-panel";
 import {
   createAppColumnHelper,
   useAppTable,
 } from "@repo/design-system/components/ui/data-table/table";
 import type { ExtendedColumnFilter } from "@repo/design-system/components/ui/data-table/table";
-import { Tabs, TabsList, TabsTrigger } from "@repo/design-system/components/trovecn/tabs";
+import { TabItem, Tabs, TabsList } from "@repo/design-system/components/ui/fluid-tabs";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -244,11 +244,11 @@ function UnifiedHeader({ portalEl }: { portalEl: HTMLDivElement | null }) {
       <div className="flex flex-wrap items-center gap-2">
         <Tabs value={view} onValueChange={(v) => setView(v as never)}>
           <TabsList>
-            {views.map((v) => (
-              <TabsTrigger key={v.name} value={v.name}>
-                {v.label ?? v.name}
-              </TabsTrigger>
-            ))}
+            {views
+              .filter((v) => v.name !== "year")
+              .map((v) => (
+                <TabItem key={v.name} label={v.label ?? v.name} value={v.name} />
+              ))}
           </TabsList>
         </Tabs>
         <FilterButton />
@@ -281,7 +281,7 @@ export const ScheduleCalendar = ({ blocks, filters }: ScheduleCalendarProps) => 
 
   return (
     <table.AppTable>
-      <PreviewCard
+      <FluidPanel
         header={
           <div ref={setHeaderPortalEl} className="flex w-full items-center justify-between gap-2 min-h-9">
             {/* Content is portaled from UnifiedHeader (inside IlamyCalendar) so it has calendar + table context */}
@@ -337,7 +337,7 @@ export const ScheduleCalendar = ({ blocks, filters }: ScheduleCalendarProps) => 
             {filteredBlocks.length} template{filteredBlocks.length === 1 ? "" : "s"} · {events.length} occurrences (±30 days)
           </div>
         ) : null}
-      </PreviewCard>
+      </FluidPanel>
     </table.AppTable>
   );
 };

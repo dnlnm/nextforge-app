@@ -849,6 +849,16 @@
   --shadow-surface-8: var(--shadow-8);
 }
 
+/* Stable viewport gutter: reserve scrollbar space on every page so navigating
+   between long pages (scrollbar present) and short pages (absent) never
+   shifts centered content sideways. No explicit overflow here: an explicit
+   `overflow-y` on the root would stop dialog scroll locks
+   (`body { overflow: hidden }`) from propagating to the viewport and break
+   position: sticky for rails and sidebars. */
+html {
+  scrollbar-gutter: stable;
+}
+
 /* Fluid shape-transition guard + native scrollbar language. */
 html.transitioning *,
 html.transitioning *::before,
@@ -868,5 +878,192 @@ html.transitioning *::after {
   * {
     scrollbar-width: thin;
     scrollbar-color: rgb(var(--overlay) / 0.08) transparent;
+  }
+}
+
+/* ── scroll-fade — vendored equivalent of shadcn's scroll-fade utility ──
+   (https://ui.shadcn.com/docs/utils/scroll-fade). A mask-image dissolves the
+   content toward the edges that have more to scroll. CSS scroll-driven
+   animations make it scroll-aware: the true start/end edge stays crisp until
+   you scroll past it. Browsers without scroll-driven animations fall back to a
+   static fade on both edges. Apply to a scroll container, or to a ScrollArea
+   via `viewportClassName`. */
+
+@property --sf-start {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+@property --sf-end {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+
+@keyframes sf-reveal-start {
+  from {
+    --sf-start: 1;
+  }
+  to {
+    --sf-start: 0;
+  }
+}
+@keyframes sf-reveal-end {
+  from {
+    --sf-end: 0;
+  }
+  to {
+    --sf-end: 1;
+  }
+}
+
+.scroll-fade,
+.scroll-fade-x {
+  --scroll-fade-size: 48px;
+}
+
+/* Static fallback: fade both edges. */
+.scroll-fade {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 var(--scroll-fade-size),
+    #000 calc(100% - var(--scroll-fade-size)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 var(--scroll-fade-size),
+    #000 calc(100% - var(--scroll-fade-size)),
+    transparent 100%
+  );
+}
+.scroll-fade-x {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--scroll-fade-size),
+    #000 calc(100% - var(--scroll-fade-size)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--scroll-fade-size),
+    #000 calc(100% - var(--scroll-fade-size)),
+    transparent 100%
+  );
+}
+
+/* ── scroll-divider — a hairline marking a scroll edge ──────────────────────
+   Pairs with .scroll-fade on a descendant viewport: where the fade dissolves
+   content, this draws the line that says "the region continues". The line
+   can't live inside the scroller — the fade's own mask would erase it at
+   exactly the edge it belongs on — so it rides the parent's pseudo-elements
+   and borrows the scroller's timeline by name. Browsers without scroll-driven
+   timelines simply get the fade, as before. */
+@keyframes sf-divider-start {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes sf-divider-end {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@supports (timeline-scope: --sf) {
+  .scroll-divider {
+    position: relative;
+    timeline-scope: --sf-scroller;
+    --scroll-divider-size: 48px;
+  }
+  .scroll-divider .scroll-fade {
+    scroll-timeline-name: --sf-scroller;
+  }
+  .scroll-divider::before,
+  .scroll-divider::after {
+    content: "";
+    position: absolute;
+    /* Inset so the line can hug the content's own gutter rather than the
+       panel edge — the sidebar's inset variant sets this to 8px. */
+    left: var(--scroll-divider-inset, 0px);
+    right: var(--scroll-divider-inset, 0px);
+    height: 1px;
+    background-color: var(--border);
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0;
+  }
+  /* Top edge: absent at rest, fading in as content passes above. */
+  .scroll-divider::before {
+    top: 0;
+    animation: sf-divider-start both linear;
+    animation-timeline: --sf-scroller;
+    animation-range: 0 var(--scroll-divider-size);
+  }
+  /* A region flush with the panel's own top edge has nothing above for
+     content to pass under, so the start line would read as a stray border. */
+  .scroll-divider:first-child::before {
+    content: none;
+  }
+  /* Bottom edge: present while content continues below, gone at the end. */
+  .scroll-divider::after {
+    bottom: 0;
+    animation: sf-divider-end both linear;
+    animation-timeline: --sf-scroller;
+    animation-range: calc(100% - var(--scroll-divider-size)) 100%;
+  }
+}
+
+/* Scroll-aware: the start/end edge stays solid until there's content past it. */
+@supports (animation-timeline: scroll()) {
+  .scroll-fade {
+    mask-image: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, var(--sf-start)) 0,
+      #000 var(--scroll-fade-size),
+      #000 calc(100% - var(--scroll-fade-size)),
+      rgba(0, 0, 0, var(--sf-end)) 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, var(--sf-start)) 0,
+      #000 var(--scroll-fade-size),
+      #000 calc(100% - var(--scroll-fade-size)),
+      rgba(0, 0, 0, var(--sf-end)) 100%
+    );
+    animation: sf-reveal-start both linear, sf-reveal-end both linear;
+    animation-timeline: scroll(self), scroll(self);
+    animation-range-start: 0, calc(100% - var(--scroll-fade-size));
+    animation-range-end: var(--scroll-fade-size), 100%;
+  }
+  .scroll-fade-x {
+    mask-image: linear-gradient(
+      to right,
+      rgba(0, 0, 0, var(--sf-start)) 0,
+      #000 var(--scroll-fade-size),
+      #000 calc(100% - var(--scroll-fade-size)),
+      rgba(0, 0, 0, var(--sf-end)) 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      to right,
+      rgba(0, 0, 0, var(--sf-start)) 0,
+      #000 var(--scroll-fade-size),
+      #000 calc(100% - var(--scroll-fade-size)),
+      rgba(0, 0, 0, var(--sf-end)) 100%
+    );
+    animation: sf-reveal-start both linear, sf-reveal-end both linear;
+    animation-timeline: scroll(self inline), scroll(self inline);
+    animation-range-start: 0, calc(100% - var(--scroll-fade-size));
+    animation-range-end: var(--scroll-fade-size), 100%;
   }
 }

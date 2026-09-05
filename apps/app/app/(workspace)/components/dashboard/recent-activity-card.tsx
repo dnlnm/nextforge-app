@@ -7,7 +7,8 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@repo/design-system/components/ui/empty";
-import { PreviewCard } from "@repo/design-system/components/preview-card";
+import { FluidPanel } from "@repo/design-system/components/fluid-panel";
+import { ScrollArea } from "@repo/design-system/components/ui/fluid-scroll-area";
 import { cn } from "@repo/design-system/lib/utils";
 import { type ActivityIconKey, getRecentActivityData } from "@repo/domain";
 import {
@@ -38,7 +39,7 @@ export const RecentActivityCard = async ({
   const { items } = await getRecentActivityData(database, organizationId);
 
   return (
-    <PreviewCard
+    <FluidPanel
       className="flex h-full flex-col"
       header={
         <span className="font-medium text-foreground text-sm">
@@ -61,32 +62,36 @@ export const RecentActivityCard = async ({
           </EmptyHeader>
         </Empty>
       ) : (
-        <div className="grid min-h-0 gap-1 overflow-y-auto">
-          {items.map((item, index) => {
-            const Icon = ICON_BY_KEY[item.icon];
+        <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col">
+          <ScrollArea className="scroll-divider min-h-0 flex-1" viewportClassName="scroll-fade">
+            <div className="grid gap-1">
+              {items.map((item, index) => {
+                const Icon = ICON_BY_KEY[item.icon];
 
-            return (
-              <div
-                className={cn(
-                  "grid grid-cols-[2.5rem_1fr_auto] items-center gap-3 px-3 py-3 text-sm",
-                  index !== items.length - 1 && "border-b"
-                )}
-                key={item.id}
-              >
-                <span className="flex size-9 items-center justify-center rounded-md border bg-muted/40 text-muted-foreground">
-                  <Icon className="size-4" />
-                </span>
-                <p className="truncate font-medium leading-5">
-                  {item.summary}
-                </p>
-                <p className="whitespace-nowrap text-muted-foreground text-xs">
-                  {formatRelativeTime(item.createdAt)}
-                </p>
-              </div>
-            );
-          })}
+                return (
+                  <div
+                    className={cn(
+                      "grid grid-cols-[2.5rem_1fr_auto] items-center gap-3 px-3 py-3 text-sm",
+                      index !== items.length - 1 && "border-b"
+                    )}
+                    key={item.id}
+                  >
+                    <span className="flex size-9 items-center justify-center rounded-md border bg-muted/40 text-muted-foreground">
+                      <Icon className="size-4" />
+                    </span>
+                    <p className="truncate font-medium leading-5">
+                      {item.summary}
+                    </p>
+                    <p className="whitespace-nowrap text-muted-foreground text-xs">
+                      {formatRelativeTime(item.createdAt)}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </ScrollArea>
         </div>
       )}
-    </PreviewCard>
+    </FluidPanel>
   );
 };

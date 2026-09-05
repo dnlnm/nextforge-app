@@ -16,14 +16,16 @@ import {
   DropdownTrigger,
 } from "@repo/design-system/components/ui/fluid-dropdown";
 import { MenuItem } from "@repo/design-system/components/ui/fluid-menu-item";
-import { useSidebar as useClassicSidebar } from "@repo/design-system/components/ui/sidebar";
-import { useSidebar as useFluidSidebar } from "@repo/design-system/components/ui/fluid-sidebar";
-import { cn } from "@repo/design-system/lib/utils";
+import { Tooltip } from "@repo/design-system/components/ui/fluid-tooltip";
+import { useShapeContext } from "@repo/design-system/lib/shape-context";
 import {
   ChevronsUpDown,
   CreditCardIcon,
   LogOutIcon,
+  MonitorIcon,
   MoonIcon,
+  RectangleHorizontalIcon,
+  SquareIcon,
   SunIcon,
   UserIcon,
 } from "lucide-react";
@@ -31,7 +33,6 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { useOrganization } from "./organization-context";
-import { fluidSidebarEnabled } from "./sidebar-variant";
 
 const initials = (email: string) =>
   (email.split("@")[0]?.slice(0, 2) ?? "AC").toUpperCase();
@@ -49,21 +50,13 @@ const roleBadgeVariant = (
   }
 };
 
-export const SidebarUserMenu = () => {
+export const SidebarFooterUserMenu = () => {
   const router = useRouter();
-  const { setTheme, theme } = useTheme();
-  const useSidebar = fluidSidebarEnabled ? useFluidSidebar : useClassicSidebar;
-  const { state, isMobile } = useSidebar();
   const organization = useOrganization();
-  const collapsed = state === "collapsed" || isMobile;
-  // Gate theme-derived UI on mount (see SidebarFooterThemeAction): `theme`
-  // is undefined on the server and first client render.
-  const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
-    setMounted(true);
     supabase.auth
       .getUser()
       .then(({ data }) => setEmail(data.user?.email ?? null))
@@ -80,28 +73,18 @@ export const SidebarUserMenu = () => {
     <DropdownMenu>
       <DropdownTrigger
         render={
-          <Button
-            className={cn(
-              "gap-2 px-2",
-              collapsed ? "justify-center" : "w-full justify-start"
-            )}
-            variant="ghost"
-          />
+          <Button className="w-full justify-start gap-2 px-2" variant="ghost" />
         }
       >
         <Avatar className="size-8">
           <AvatarFallback>{initials(email ?? "")}</AvatarFallback>
         </Avatar>
-        {!collapsed && (
-          <>
-            <span className="flex-1 truncate text-left">
-              {email ?? "Account"}
-            </span>
-            <ChevronsUpDown className="ml-auto size-4 shrink-0" />
-          </>
-        )}
+        <span className="flex-1 truncate text-left">
+          {email ?? "Account"}
+        </span>
+        <ChevronsUpDown className="ml-auto size-4 shrink-0" />
       </DropdownTrigger>
-      <DropdownContent align="start" className="w-56" sideOffset={8}>
+      <DropdownContent align="start" className="w-56" side="top" sideOffset={8}>
         <DropdownLabel className="normal-case font-normal">
           <span className="block font-medium text-sm">
             {email ?? "Account"}
@@ -129,33 +112,65 @@ export const SidebarUserMenu = () => {
         />
         <DropdownSeparator />
         <MenuItem
-          checked={mounted && theme === "light"}
-          icon={SunIcon}
-          index={2}
-          label="Light"
-          onSelect={() => setTheme("light")}
-        />
-        <MenuItem
-          checked={mounted && theme === "dark"}
-          icon={MoonIcon}
-          index={3}
-          label="Dark"
-          onSelect={() => setTheme("dark")}
-        />
-        <MenuItem
-          checked={mounted && theme === "system"}
-          index={4}
-          label="System"
-          onSelect={() => setTheme("system")}
-        />
-        <DropdownSeparator />
-        <MenuItem
           icon={LogOutIcon}
-          index={5}
+          index={2}
           label="Log out"
           onSelect={() => signOut()}
         />
       </DropdownContent>
     </DropdownMenu>
+  );
+};
+
+const THEME_CYCLE = ["light", "dark", "system"] as const;
+
+/** Footer shape action: icon button toggling pill ↔ rounded. */
+export const SidebarFooterShapeAction = () => {
+  const { shape, setShape } = useShapeContext();
+  const Icon = shape === "pill" ? RectangleHorizontalIcon : SquareIcon;
+
+  return (
+    <Tooltip content={`Shape: ${shape}`} side="top">
+      <Button
+        aria-label="Switch shape"
+        onClick={() => setShape(shape === "pill" ? "rounded" : "pill")}
+        size="icon"
+        variant="ghost"
+      >
+        <Icon />
+      </Button>
+    </Tooltip>
+  );
+};
+
+/** Footer theme action: icon button cycling light → dark → system. */
+export const SidebarFooterThemeAction = () => {
+  const { setTheme, theme } = useTheme();
+  // next-themes resolves `theme` only after mount (undefined on the server
+  // and first client render) — render the fallback until then so server and
+  // client HTML agree and hydration doesn't mismatch.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const resolved = (
+    mounted ? (theme ?? "system") : "system"
+  ) as "light" | "dark" | "system";
+  const Icon =
+    resolved === "dark" ? MoonIcon : resolved === "light" ? SunIcon : MonitorIcon;
+
+  return (
+    <Tooltip content={`Theme: ${resolved}`} side="top">
+      <Button
+        aria-label="Switch theme"
+        onClick={() =>
+          setTheme(
+            THEME_CYCLE[(THEME_CYCLE.indexOf(resolved) + 1) % THEME_CYCLE.length]
+          )
+        }
+        size="icon"
+        variant="ghost"
+      >
+        <Icon />
+      </Button>
+    </Tooltip>
   );
 };

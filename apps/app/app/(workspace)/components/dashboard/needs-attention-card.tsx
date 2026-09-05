@@ -7,7 +7,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@repo/design-system/components/ui/empty";
-import { PreviewCard } from "@repo/design-system/components/preview-card";
+import { FluidPanel } from "@repo/design-system/components/fluid-panel";
 import { cn } from "@repo/design-system/lib/utils";
 import {
   type AttentionIconKey,
@@ -50,7 +50,7 @@ export const NeedsAttentionCard = async ({
   const { items } = await getNeedsAttentionData(database, organizationId);
 
   return (
-    <PreviewCard
+    <FluidPanel
       className="flex h-full flex-col"
       header={
         <span className="font-medium text-foreground text-sm">
@@ -114,6 +114,6 @@ export const NeedsAttentionCard = async ({
           })}
         </div>
       )}
-    </PreviewCard>
+    </FluidPanel>
   );
 };

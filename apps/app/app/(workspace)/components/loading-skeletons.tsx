@@ -1,5 +1,5 @@
 import { CardShell } from "@repo/design-system/components/ui/card-shell";
-import { PreviewCard } from "@repo/design-system/components/preview-card";
+import { FluidPanel } from "@repo/design-system/components/fluid-panel";
 import { Skeleton } from "@repo/design-system/components/ui/skeleton";
 import { cn } from "@repo/design-system/lib/utils";
 
@@ -46,7 +46,7 @@ const StatCardsSkeleton = ({
   return (
     <section className={`grid gap-3 ${className}`}>
       {cards.map((card) => (
-        <PreviewCard
+        <FluidPanel
           className="flex h-full flex-col"
           key={card.id}
           label={<Skeleton className="h-3 w-24" />}
@@ -62,7 +62,7 @@ const StatCardsSkeleton = ({
             <Skeleton className="h-3 w-20" />
           </div>
           <Skeleton className="h-7 w-24" />
-        </PreviewCard>
+        </FluidPanel>
       ))}
     </section>
   );
@@ -74,7 +74,7 @@ const FormCardSkeleton = ({ fields = 3 }: { readonly fields?: number }) => {
   }));
 
   return (
-    <PreviewCard
+    <FluidPanel
       header={
         <span className="flex items-center gap-2.5">
           <Skeleton className="size-8 rounded-lg" />
@@ -91,7 +91,7 @@ const FormCardSkeleton = ({ fields = 3 }: { readonly fields?: number }) => {
           </div>
         ))}
       </div>
-    </PreviewCard>
+    </FluidPanel>
   );
 };
 
@@ -112,7 +112,7 @@ const TableCardSkeleton = ({
   }));
 
   return (
-    <PreviewCard
+    <FluidPanel
       footer={
         <div className="flex w-full items-center justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -173,7 +173,7 @@ const TableCardSkeleton = ({
           </div>
         ))}
       </div>
-    </PreviewCard>
+    </FluidPanel>
   );
 };
 
@@ -182,7 +182,7 @@ const ChartCardSkeleton = ({
 }: {
   readonly height?: string;
 }) => (
-  <PreviewCard
+  <FluidPanel
     className={cn("flex h-full flex-col", height)}
     header={
       <>
@@ -198,7 +198,7 @@ const ChartCardSkeleton = ({
       <Skeleton className="h-3 w-40" />
     </div>
     <Skeleton className="mt-auto h-48 w-full" />
-  </PreviewCard>
+  </FluidPanel>
 );
 
 export {

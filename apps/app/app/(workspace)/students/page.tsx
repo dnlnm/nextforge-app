@@ -3,7 +3,7 @@ import { appName } from "@repo/config/brand";
 import type { InvoiceStatus } from "@repo/database";
 import { database } from "@repo/database";
 import { formatMonthShort, getMalaysiaToday } from "@repo/date";
-import { Button } from "@repo/design-system/components/ui/button";
+import { Button } from "@repo/design-system/components/ui/fluid-button";
 import { PlusIcon, UploadIcon } from "lucide-react";
 import Link from "next/link";
 import { getOrganizationCurrency } from "@/lib/currency";
@@ -118,21 +118,26 @@ const StudentsPage = async () => {
           </div>
           <div className="flex w-full gap-2 md:w-auto">
             <Button
-              className="min-w-0 flex-1 md:flex-none"
-              render={<Link href="/students/import" />}
-              variant="elevated"
+              asChild
+              className="min-w-0 flex-1 whitespace-nowrap md:flex-none"
+              variant="tertiary"
             >
-              <UploadIcon className="size-4" />
-              <span className="hidden sm:inline">Import Students</span>
-              <span className="sm:hidden">Import</span>
+              <Link href="/students/import">
+                <UploadIcon className="size-4" />
+                <span className="hidden sm:inline">Import Students</span>
+                <span className="sm:hidden">Import</span>
+              </Link>
             </Button>
             <Button
-              className="min-w-0 flex-1 md:flex-none"
-              render={<Link href="/students/new" />}
+              asChild
+              className="min-w-0 flex-1 whitespace-nowrap md:flex-none"
+              variant="primary"
             >
-              <PlusIcon className="size-4" />
-              <span className="hidden sm:inline">Add Student</span>
-              <span className="sm:hidden">Add</span>
+              <Link href="/students/new">
+                <PlusIcon className="size-4" />
+                <span className="hidden sm:inline">Add Student</span>
+                <span className="sm:hidden">Add</span>
+              </Link>
             </Button>
             <KpiToggleButton />
           </div>
