@@ -7,10 +7,12 @@ import {
   BreadcrumbSeparator,
 } from "@repo/design-system/components/ui/breadcrumb";
 import { Separator } from "@repo/design-system/components/ui/separator";
-import { SidebarTrigger } from "@repo/design-system/components/ui/sidebar";
+import { SidebarTrigger as ClassicSidebarTrigger } from "@repo/design-system/components/ui/sidebar";
+import { SidebarTrigger as FluidSidebarTrigger } from "@repo/design-system/components/ui/fluid-sidebar";
 import Link from "next/link";
 import { Fragment, type ReactNode } from "react";
 import { SidebarUserMenu } from "./sidebar-user-menu";
+import { fluidSidebarEnabled } from "./sidebar-variant";
 
 type BreadcrumbParent =
   | string
@@ -25,7 +27,12 @@ interface HeaderProps {
   pages: BreadcrumbParent[];
 }
 
-export const Header = ({ pages, page, children }: HeaderProps) => (
+export const Header = ({ pages, page, children }: HeaderProps) => {
+  const SidebarTrigger = fluidSidebarEnabled
+    ? FluidSidebarTrigger
+    : ClassicSidebarTrigger;
+
+  return (
   <header className="flex h-16 shrink-0 items-center justify-between gap-2">
     <div className="flex items-center gap-2 px-4">
       <SidebarTrigger className="-ml-1" />
@@ -63,4 +70,5 @@ export const Header = ({ pages, page, children }: HeaderProps) => (
       {children}
     </div>
   </header>
-);
+  );
+};

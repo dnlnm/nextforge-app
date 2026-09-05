@@ -5,7 +5,6 @@ import {
   useState,
   useCallback,
   useEffect,
-  useLayoutEffect,
   type Dispatch,
   type RefObject,
   type SetStateAction,
@@ -23,6 +22,9 @@ export interface ItemRect {
  * item" wash (Accordion, Tabs, DocsSidebar, DocsMobileSidebar, the Drawer
  * examples' nav/settings lists — anywhere `useProximityHover` drives a
  * pill). A faint --foreground tint reused as-is everywhere.
+ *
+ * Local addition (no fluid equivalent — fluid renders the wash inside each
+ * component): kept so `ProximityHoverPill` and existing consumers keep working.
  */
 export const proximityHoverWashClassName = "bg-hover";
 
@@ -44,6 +46,13 @@ interface UseProximityHoverOptions {
    *          measured by Euclidean distance to each item's center
    */
   axis?: "x" | "y" | "xy";
+  /**
+   * Makes an item invisible to hit-testing without unregistering it — for
+   * rows that stay mounted while clipped away (a collapsed sub-tree).
+   * Unregistering would invalidate every measurement; a skipped item keeps
+   * the set stable. Consulted per mouse move, so keep it cheap.
+   */
+  isItemDisabled?: (element: HTMLElement) => boolean;
 }
 
 interface UseProximityHoverReturn {
@@ -84,23 +93,15 @@ interface UseProximityHoverReturn {
  */
 const measurementAttempts = 3;
 
-/**
- * Drives "proximity hover": in an interactive list/grid, highlight the item
- * nearest the cursor before the user clicks, rather than only lighting up
- * on direct :hover. Consumers register their item elements by index and get
- * back the nearest index plus its rect, to position a moving highlight
- * behind the list.
- */
 export function useProximityHover<T extends HTMLElement>(
   containerRef: RefObject<T | null>,
-  options: UseProximityHoverOptions = {},
+  options: UseProximityHoverOptions = {}
 ): UseProximityHoverReturn {
-  const { axis = "y" } = options;
+  const { axis = "y", isItemDisabled } = options;
   const itemsRef = useRef(new Map<number, HTMLElement>());
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [itemRects, setItemRects] = useState<ItemRect[]>([]);
   const [isMeasured, setIsMeasured] = useState(false);
-  const [registerTick, setRegisterTick] = useState(0);
   const itemRectsRef = useRef<ItemRect[]>([]);
   const sessionRef = useRef(0);
   const rafIdRef = useRef<number | null>(null);
@@ -124,7 +125,9 @@ export function useProximityHover<T extends HTMLElement>(
       // incomplete. A boxless element is the only case: `position: fixed`
       // items also have no offsetParent but do have a size.
       const hasLayoutBox =
-        element.offsetParent !== null || element.offsetWidth > 0 || element.offsetHeight > 0;
+        element.offsetParent !== null ||
+        element.offsetWidth > 0 ||
+        element.offsetHeight > 0;
       if (!hasLayoutBox) {
         everyItemHasLayout = false;
         return;
@@ -133,11 +136,23 @@ export function useProximityHover<T extends HTMLElement>(
       // unaffected by CSS transforms (e.g. scaleY animation on the parent
       // motion.div). offsetTop/offsetLeft are layout values relative to the
       // offsetParent (the scroll container), matching the coordinate space
-      // used by `position: absolute` children.
+      // used by `position: absolute` children. Items nested inside positioned
+      // descendants of the container (a sidebar sub-menu's rows live inside a
+      // positioned row) accumulate those ancestors' offsets, so every rect
+      // lands in the container's own coordinate space; for a flat list the
+      // loop never runs and this is exactly the plain offsetTop/offsetLeft.
+      let top = element.offsetTop;
+      let left = element.offsetLeft;
+      let ancestor = element.offsetParent as HTMLElement | null;
+      while (ancestor && ancestor !== container && container.contains(ancestor)) {
+        top += ancestor.offsetTop + ancestor.clientTop;
+        left += ancestor.offsetLeft + ancestor.clientLeft;
+        ancestor = ancestor.offsetParent as HTMLElement | null;
+      }
       rects[index] = {
-        top: element.offsetTop,
+        top,
         height: element.offsetHeight,
-        left: element.offsetLeft,
+        left,
         width: element.offsetWidth,
       };
     });
@@ -189,7 +204,7 @@ export function useProximityHover<T extends HTMLElement>(
         }
       });
     },
-    [runMeasurement],
+    [runMeasurement]
   );
 
   const remeasure = useCallback(() => {
@@ -200,35 +215,39 @@ export function useProximityHover<T extends HTMLElement>(
     scheduleMeasurement(measurementAttempts);
   }, [scheduleMeasurement]);
 
-  const registerItem = useCallback((index: number, element: HTMLElement | null) => {
-    if (element) {
-      itemsRef.current.set(index, element);
-    } else {
-      itemsRef.current.delete(index);
+  // Observes the registered items themselves (not just the container): rows
+  // that change size in place — e.g. the site-wide size step flipping while a
+  // selection background is up — must invalidate the published rects even when
+  // the container the effect below captured has since been remounted and the
+  // ref points at a different element than the one being observed.
+  const itemRoRef = useRef<ResizeObserver | null>(null);
+  const getItemRo = useCallback(() => {
+    if (itemRoRef.current === null && typeof ResizeObserver !== "undefined") {
+      itemRoRef.current = new ResizeObserver(() =>
+        scheduleMeasurement(measurementAttempts)
+      );
     }
-    // Bump a tick rather than calling remeasure() directly. Consumers that
-    // register items from a `useLayoutEffect` (e.g. Tabs) all fire within the
-    // same pre-paint commit; React batches the resulting setState calls, so
-    // the effect below runs once, after every sibling has registered, still
-    // before the browser paints — no bare-then-populated flash on mount, and
-    // no per-item measurement pass reading a still-partial item set.
-    setRegisterTick((t) => t + 1);
-  }, []);
+    return itemRoRef.current;
+  }, [scheduleMeasurement]);
 
-  // Coalesced pass for registration changes specifically (see registerItem
-  // above). Falls back to the rAF retry loop only when an item exists but
-  // hasn't been laid out yet (e.g. it's inside a not-yet-visible popup) —
-  // the same case `runMeasurement`/`scheduleMeasurement` already handle.
-  useLayoutEffect(() => {
-    if (registerTick === 0) return;
-    if (runMeasurement()) {
-      setIsMeasured(true);
-    } else {
-      setIsMeasured(false);
-      scheduleMeasurement(measurementAttempts);
-    }
-    // oxlint-disable-next-line react-hooks/exhaustive-deps
-  }, [registerTick]);
+  const registerItem = useCallback(
+    (index: number, element: HTMLElement | null) => {
+      if (element) {
+        itemsRef.current.set(index, element);
+        getItemRo()?.observe(element);
+      } else {
+        const previous = itemsRef.current.get(index);
+        if (previous) itemRoRef.current?.unobserve(previous);
+        itemsRef.current.delete(index);
+      }
+      // Coalesce rapid register/unregister calls (e.g. when an AnimatePresence
+      // remounts a list of rows) into a single remeasure on the next frame,
+      // so consumers don't have to manually call measureItems after the
+      // container's children swap.
+      remeasure();
+    },
+    [remeasure, getItemRo]
+  );
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent) => {
@@ -237,6 +256,7 @@ export function useProximityHover<T extends HTMLElement>(
       // into a shared Viewport elsewhere in the DOM) still reaches this
       // handler. Guard on real DOM containment so hovering that portaled
       // content can't drag the pill across unrelated trigger rects.
+      // Local addition (no fluid equivalent): kept for existing consumers.
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         return;
       }
@@ -256,10 +276,10 @@ export function useProximityHover<T extends HTMLElement>(
         const containerRect = container.getBoundingClientRect();
 
         // ── 2-D grid path ──────────────────────────────────────────
-        // When items wrap into rows and columns, a single-axis nearest pick
-        // can't tell which card the cursor is closest to. Resolve by
-        // Euclidean distance to each item's center, and prefer any item the
-        // cursor is actually inside (point-in-rect).
+        // When items wrap into rows and columns, a single-axis nearest
+        // pick can't tell which card the cursor is closest to. Resolve
+        // by Euclidean distance to each item's center, and prefer any
+        // item the cursor is actually inside (point-in-rect).
         if (axis === "xy") {
           let closestIndex: number | null = null;
           let closestDistance = Infinity;
@@ -274,13 +294,19 @@ export function useProximityHover<T extends HTMLElement>(
           // cumulative ancestor transform: scale (see the single-axis note
           // below). X and Y scale independently.
           const scaleX =
-            container.offsetWidth > 0 ? containerRect.width / container.offsetWidth : 1;
+            container.offsetWidth > 0
+              ? containerRect.width / container.offsetWidth
+              : 1;
           const scaleY =
-            container.offsetHeight > 0 ? containerRect.height / container.offsetHeight : 1;
+            container.offsetHeight > 0
+              ? containerRect.height / container.offsetHeight
+              : 1;
 
           for (let index = 0; index < rects.length; index++) {
             const r = rects[index];
             if (!r) continue;
+            const el = itemsRef.current.get(index);
+            if (el && isItemDisabled?.(el)) continue;
 
             const left = containerRect.left + (borderX + r.left - scrollX) * scaleX;
             const top = containerRect.top + (borderY + r.top - scrollY) * scaleY;
@@ -317,14 +343,14 @@ export function useProximityHover<T extends HTMLElement>(
         let containingIndex: number | null = null;
 
         const rects = itemRectsRef.current;
-        // Convert content-relative rects to viewport coords using live scroll.
+        // Convert content-relative rects to viewport coords using live scroll
         const scrollOffset = axis === "x" ? container.scrollLeft : container.scrollTop;
         const borderOffset = axis === "x" ? container.clientLeft : container.clientTop;
         const containerEdge = axis === "x" ? containerRect.left : containerRect.top;
-        // Item rects are layout values (offset*); the container's bounding
-        // rect reflects any cumulative ancestor transform: scale. Compute the
-        // scale factor so we can map layout coords into the same visual
-        // viewport space the mouse cursor lives in.
+        // Item rects are layout values (offset*); the container's bounding rect
+        // reflects any cumulative ancestor transform: scale. Compute the scale
+        // factor so we can map layout coords into the same visual viewport
+        // space the mouse cursor lives in.
         const layoutSize = axis === "x" ? container.offsetWidth : container.offsetHeight;
         const visualSize = axis === "x" ? containerRect.width : containerRect.height;
         const scale = layoutSize > 0 ? visualSize / layoutSize : 1;
@@ -332,6 +358,8 @@ export function useProximityHover<T extends HTMLElement>(
         for (let index = 0; index < rects.length; index++) {
           const r = rects[index];
           if (!r) continue;
+          const el = itemsRef.current.get(index);
+          if (el && isItemDisabled?.(el)) continue;
 
           const contentPos = axis === "x" ? r.left : r.top;
           const itemStart = containerEdge + (borderOffset + contentPos - scrollOffset) * scale;
@@ -354,7 +382,7 @@ export function useProximityHover<T extends HTMLElement>(
         setActiveIndex(containingIndex ?? closestIndex);
       });
     },
-    [axis, containerRef],
+    [axis, containerRef, isItemDisabled]
   );
 
   const handleMouseEnter = useCallback(() => {
@@ -371,8 +399,8 @@ export function useProximityHover<T extends HTMLElement>(
 
   // Remeasure when the container resizes — a reflow moves items even though
   // the registered set is unchanged, which would otherwise leave itemRects
-  // stale. Coalesced through the same rAF as register/unregister. Readiness
-  // is deliberately not dropped: the item set is unchanged, so the published
+  // stale. Coalesced through the same rAF as register/unregister. Readiness is
+  // deliberately not dropped: the item set is unchanged, so the published
   // rects stay usable, and hiding overlays on every reflow would flicker them.
   useEffect(() => {
     const container = containerRef.current;
@@ -382,6 +410,7 @@ export function useProximityHover<T extends HTMLElement>(
     return () => ro.disconnect();
   }, [containerRef, scheduleMeasurement]);
 
+  // Clean up rAF and the item observer on unmount
   useEffect(() => {
     return () => {
       if (rafIdRef.current !== null) {
@@ -390,6 +419,8 @@ export function useProximityHover<T extends HTMLElement>(
       if (remeasureRafIdRef.current !== null) {
         cancelAnimationFrame(remeasureRafIdRef.current);
       }
+      itemRoRef.current?.disconnect();
+      itemRoRef.current = null;
     };
   }, []);
 
@@ -401,11 +432,26 @@ export function useProximityHover<T extends HTMLElement>(
     sessionRef,
     handlers: {
       onMouseMove: handleMouseMove,
-      onMouseEnter: handleMouseEnter,
       onMouseLeave: handleMouseLeave,
+      onMouseEnter: handleMouseEnter,
     },
     registerItem,
     remeasure,
     measureItems,
   };
+}
+
+/**
+ * Hook for child items to register themselves with the proximity hover system.
+ * Call in useEffect with the item's ref and index.
+ */
+export function useRegisterProximityItem(
+  registerItem: (index: number, element: HTMLElement | null) => void,
+  index: number,
+  ref: RefObject<HTMLElement | null>
+) {
+  useEffect(() => {
+    registerItem(index, ref.current);
+    return () => registerItem(index, null);
+  }, [index, registerItem, ref]);
 }

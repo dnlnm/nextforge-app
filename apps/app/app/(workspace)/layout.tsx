@@ -2,7 +2,8 @@ import { currentUser } from "@repo/auth/server";
 import { requireTenant } from "@repo/auth/tenant";
 import { isSuperadminUserId } from "@repo/auth/superadmin";
 import { database } from "@repo/database";
-import { SidebarProvider } from "@repo/design-system/components/ui/sidebar";
+import { SidebarProvider as ClassicSidebarProvider } from "@repo/design-system/components/ui/sidebar";
+import { SidebarProvider as FluidSidebarProvider } from "@repo/design-system/components/ui/fluid-sidebar";
 import { showBetaFeature } from "@repo/feature-flags";
 import { secure } from "@repo/security";
 import { redirect } from "next/navigation";
@@ -11,6 +12,8 @@ import { env } from "@/env";
 import { NotificationsProvider } from "./components/notifications-provider";
 import { OrganizationProvider } from "./components/organization-context";
 import { GlobalSidebar, type SidebarBadges } from "./components/sidebar";
+import { FluidSidebar } from "./components/fluid-sidebar";
+import { fluidSidebarEnabled } from "./components/sidebar-variant";
 
 interface WorkspaceLayoutProperties {
   readonly children: ReactNode;
@@ -66,15 +69,22 @@ const WorkspaceLayout = async ({ children }: WorkspaceLayoutProperties) => {
     pendingPayments,
   };
 
+  const SidebarProvider = fluidSidebarEnabled
+    ? FluidSidebarProvider
+    : ClassicSidebarProvider;
+  const SidebarShell = fluidSidebarEnabled ? FluidSidebar : GlobalSidebar;
+
   return (
     <NotificationsProvider userId={user.id}>
       <OrganizationProvider
         organization={{ ...organization, role: tenant.role }}
       >
-        <SidebarProvider>
-          <GlobalSidebar badges={badges} role={tenant.role}>
+        <SidebarProvider
+          className={fluidSidebarEnabled ? "bg-surface-1" : undefined}
+        >
+          <SidebarShell badges={badges} role={tenant.role}>
             {children}
-          </GlobalSidebar>
+          </SidebarShell>
         </SidebarProvider>
       </OrganizationProvider>
     </NotificationsProvider>

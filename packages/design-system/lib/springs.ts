@@ -81,3 +81,11 @@ export function sizeTransition(
   if (reduced === true) return { duration: 0 };
   return open ? tier.enter : tier.exit;
 }
+
+// Fluid-compat: deferred-unmount fallback for popups that keep their portal
+// mounted until onAnimationComplete fires. A throttled/background tab can
+// stall the animation, so force-unmount after the tier's exit duration plus
+// a safety buffer. Local 4-tier durations kept (incl. `quick`); only the
+// helper shape matches fluid so ported components work unchanged.
+export const exitFallbackMs = (tier: { exit: { duration: number } }) =>
+  Math.round(tier.exit.duration * 1000) + 100;

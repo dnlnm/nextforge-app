@@ -20,7 +20,8 @@ import {
   MenuSubTrigger,
   MenuTrigger,
 } from "@repo/design-system/components/ui/menu";
-import { useSidebar } from "@repo/design-system/components/ui/sidebar";
+import { useSidebar as useClassicSidebar } from "@repo/design-system/components/ui/sidebar";
+import { useSidebar as useFluidSidebar } from "@repo/design-system/components/ui/fluid-sidebar";
 import { cn } from "@repo/design-system/lib/utils";
 import {
   ChevronsUpDown,
@@ -34,6 +35,7 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { useOrganization } from "./organization-context";
+import { fluidSidebarEnabled } from "./sidebar-variant";
 
 const initials = (email: string) =>
   (email.split("@")[0]?.slice(0, 2) ?? "AC").toUpperCase();
@@ -54,6 +56,7 @@ const roleBadgeVariant = (
 export const SidebarUserMenu = () => {
   const router = useRouter();
   const { setTheme } = useTheme();
+  const useSidebar = fluidSidebarEnabled ? useFluidSidebar : useClassicSidebar;
   const { state, isMobile } = useSidebar();
   const organization = useOrganization();
   const collapsed = state === "collapsed" || isMobile;

@@ -24,6 +24,7 @@
     "@coss": "https://coss.com/ui/r/{name}.json",
     "@evilcharts": "https://evilcharts.com/r/{name}.json",
     "@cardcn": "https://cardcn.dev/r/{name}.json",
-    "@trovecn": "https://trovecn.dev/r/{name}.json"
+    "@trovecn": "https://trovecn.dev/r/{name}.json",
+    "@fluid": "https://www.fluidfunctionalism.com/r/{name}.json"
   }
 }

@@ -9,4 +9,9 @@
 export const fontWeights = {
   normal: "'wght' 400",
   medium: "'wght' 500",
+  // Fluid additions (Inter opsz-compensated values; harmless on Geist which
+  // lacks an opsz axis — the extra axis is ignored — and required by
+  // fluid-card / fluid-table ghost-span weight animation).
+  semibold: "'wght' 550, 'opsz' 18",
+  bold: "'wght' 700, 'opsz' 25",
 } as const;

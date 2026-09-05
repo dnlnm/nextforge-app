@@ -142,7 +142,7 @@ function MenuContent({
       };
   // Without this, `{ registerItem }` is a fresh object every render, so
   // every item's registration effect (keyed on this context value) re-fires
-  // every render, bumps useProximityHover's registerTick, and re-renders
+  // every render, triggers useProximityHover's remeasure, and re-renders
   // this popup — an infinite loop caught as "Maximum update depth
   // exceeded." `registerItem` itself is already a stable useCallback.
   const proximityContextValue = useMemo(() => ({ registerItem }), [registerItem]);

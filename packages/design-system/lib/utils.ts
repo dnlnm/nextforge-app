@@ -24,6 +24,23 @@ const twMerge = extendTailwindMerge({
         "2xs",
         "meta",
         "micro",
+        // fluid type-scale roles (additive; trovecn names kept above)
+        "subtitle",
+      ],
+    },
+    classGroups: {
+      // fluid surface ladder: bg-surface-N are background colors, but
+      // tailwind-merge can't know custom names — without this,
+      // cn("bg-surface-3", "bg-surface-5") would keep both instead of the latter.
+      "bg-color": [
+        "bg-surface-1",
+        "bg-surface-2",
+        "bg-surface-3",
+        "bg-surface-4",
+        "bg-surface-5",
+        "bg-surface-6",
+        "bg-surface-7",
+        "bg-surface-8",
       ],
     },
   },

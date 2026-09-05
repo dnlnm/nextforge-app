@@ -281,9 +281,9 @@ function TabsTrigger({
   const { registerTab, hoveredIndex, selectedValue, setOptimisticIndex } = useTabsListContext();
   const ref = useRef<HTMLElement>(null);
 
-  // useLayoutEffect, not useEffect: pairs with useProximityHover's
-  // registration-tick effect so the selected pill is measured and painted in
-  // the same pre-paint commit as mount, instead of popping in a frame later.
+  // useLayoutEffect, not useEffect: registration lands before paint so the
+  // hover pill's measurement pass reads the full item set on its first frame
+  // instead of popping in a frame later.
   useLayoutEffect(() => {
     registerTab(_index, ref.current);
     return () => registerTab(_index, null);
