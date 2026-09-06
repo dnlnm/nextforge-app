@@ -2,20 +2,21 @@
 
 import { ArrowDownUpIcon, Trash2Icon } from "lucide-react";
 import * as React from "react";
-import { Badge } from "@repo/design-system/components/ui/badge";
-import { Button } from "@repo/design-system/components/ui/button";
+import { Badge } from "@repo/design-system/components/ui/fluid-badge";
+import { Button } from "@repo/design-system/components/ui/fluid-button";
 import {
-  Popover,
-  PopoverPopup,
-  PopoverTrigger,
-} from "@repo/design-system/components/ui/popover";
+  FluidPopover,
+  FluidPopoverContent,
+  FluidPopoverTrigger,
+} from "@repo/design-system/components/ui/fluid-popover";
+import { ScrollArea } from "@repo/design-system/components/ui/fluid-scroll-area";
 import {
   Select,
+  SelectContent,
   SelectItem,
-  SelectPopup,
   SelectTrigger,
-  SelectValue,
-} from "@repo/design-system/components/ui/select";
+} from "@repo/design-system/components/ui/fluid-select";
+import { SizeProvider } from "@repo/design-system/lib/size-context";
 import { useTableContext } from "./table";
 
 export function DataTableSortList() {
@@ -54,22 +55,24 @@ export function DataTableSortList() {
   );
 
   return (
-    <Popover onOpenChange={setOpen} open={open}>
-      <PopoverTrigger
-        render={<Button variant="elevated" />}
+    <FluidPopover onOpenChange={setOpen} open={open}>
+      <FluidPopoverTrigger
+        render={<Button variant="tertiary" />}
       >
-        <ArrowDownUpIcon aria-hidden="true" />
+        <ArrowDownUpIcon aria-hidden="true" className="size-4" />
         Sort
         {sorting.length > 0 ? (
           <Badge
-            className="h-[1.14rem] rounded-[0.2rem] px-[0.32rem] font-mono font-normal text-[0.65rem]"
-            variant="secondary"
+            className="font-mono"
+            color="gray"
+            size="compact"
+            variant="solid"
           >
             {sorting.length}
           </Badge>
         ) : null}
-      </PopoverTrigger>
-      <PopoverPopup
+      </FluidPopoverTrigger>
+      <FluidPopoverContent
         align="start"
         className="flex w-[min(26rem,calc(100vw-2rem))] flex-col gap-2 p-3"
       >
@@ -85,123 +88,114 @@ export function DataTableSortList() {
         </div>
 
         {sorting.length > 0 ? (
-          <div className="flex max-h-[300px] flex-col gap-2 overflow-y-auto p-0.5">
-            {sorting.map((sort) => {
-              const column = sortableColumns.find((col) => col.id === sort.id);
-              const columnLabel = column?.columnDef.meta?.label ?? sort.id;
-              return (
-                <div
-                  className="grid grid-cols-[minmax(0,1fr)_5rem_2rem] items-center gap-2"
-                  key={sort.id}
-                >
-                  <Select
-                    items={sortableColumns
-                      .filter(
-                        (column) =>
-                          !sorting.some(
-                            (sortItem) =>
-                              sortItem.id === column.id &&
-                              sortItem.id !== sort.id
-                          )
+          <ScrollArea
+            className="max-h-[300px]"
+            viewportClassName="scroll-fade"
+          >
+            <SizeProvider size="compact">
+              <div className="flex flex-col gap-2 p-0.5">
+                {sorting.map((sort) => {
+                  const column = sortableColumns.find((col) => col.id === sort.id);
+                  const columnLabel = column?.columnDef.meta?.label ?? sort.id;
+                  const availableColumns = sortableColumns.filter(
+                    (column) =>
+                      !sorting.some(
+                        (sortItem) =>
+                          sortItem.id === column.id &&
+                          sortItem.id !== sort.id
                       )
-                      .map((column) => ({
-                        label: column.columnDef.meta?.label ?? column.id,
-                        value: column.id,
-                      }))}
-                    onValueChange={(value) => {
-                      const nextId = value as string;
-                      table.setSorting(
-                        sorting.map((sortItem) =>
-                          sortItem.id === sort.id
-                            ? { ...sortItem, id: nextId }
-                            : sortItem
-                        )
-                      );
-                    }}
-                    value={sort.id}
-                  >
-                    <SelectTrigger
-                      aria-label="Select column to sort by"
-                      className="min-w-none"
-                      size="sm"
+                  );
+                  return (
+                    <div
+                      className="grid grid-cols-[minmax(0,1fr)_5rem_2rem] items-center gap-2"
+                      key={sort.id}
                     >
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectPopup>
-                      {sortableColumns
-                        .filter(
-                          (column) =>
-                            !sorting.some(
-                              (sortItem) =>
-                                sortItem.id === column.id &&
-                                sortItem.id !== sort.id
+                      <Select
+                        onValueChange={(value) => {
+                          const nextId = value as string;
+                          table.setSorting(
+                            sorting.map((sortItem) =>
+                              sortItem.id === sort.id
+                                ? { ...sortItem, id: nextId }
+                                : sortItem
                             )
-                        )
-                        .map((column) => (
-                          <SelectItem key={column.id} value={column.id}>
-                            {column.columnDef.meta?.label ?? column.id}
+                          );
+                        }}
+                        size="compact"
+                        value={sort.id}
+                      >
+                        <SelectTrigger
+                          aria-label="Select column to sort by"
+                        />
+                        <SelectContent>
+                          {availableColumns.map((column, itemIndex) => (
+                            <SelectItem
+                              index={itemIndex}
+                              key={column.id}
+                              value={column.id}
+                            >
+                              {column.columnDef.meta?.label ?? column.id}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      <Select
+                        onValueChange={(value) =>
+                          updateSort(sort.id, { desc: value === "desc" })
+                        }
+                        size="compact"
+                        value={sort.desc ? "desc" : "asc"}
+                      >
+                        <SelectTrigger
+                          aria-label={`Sort direction for ${columnLabel}`}
+                        />
+                        <SelectContent>
+                          <SelectItem index={0} value="asc">
+                            Asc
                           </SelectItem>
-                        ))}
-                    </SelectPopup>
-                  </Select>
+                          <SelectItem index={1} value="desc">
+                            Desc
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
 
-                  <Select
-                    items={[
-                      { label: "Asc", value: "asc" },
-                      { label: "Desc", value: "desc" },
-                    ]}
-                    onValueChange={(value) =>
-                      updateSort(sort.id, { desc: value === "desc" })
-                    }
-                    value={sort.desc ? "desc" : "asc"}
-                  >
-                    <SelectTrigger
-                      aria-label={`Sort direction for ${columnLabel}`}
-                      className="min-w-none"
-                      size="sm"
-                    >
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectPopup>
-                      <SelectItem value="asc">Asc</SelectItem>
-                      <SelectItem value="desc">Desc</SelectItem>
-                    </SelectPopup>
-                  </Select>
-
-                  <Button
-                    aria-label={`Remove sort for ${columnLabel}`}
-                    className="size-8"
-                    onClick={() => removeSort(sort.id)}
-                    size="icon"
-                    variant="outline"
-                  >
-                    <Trash2Icon className="size-3.5" />
-                  </Button>
-                </div>
-              );
-            })}
-          </div>
+                      <Button
+                        aria-label={`Remove sort for ${columnLabel}`}
+                        onClick={() => removeSort(sort.id)}
+                        size="icon-compact"
+                        variant="ghost"
+                      >
+                        <Trash2Icon className="size-3.5" />
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            </SizeProvider>
+          </ScrollArea>
         ) : null}
 
         <div className="mt-2 flex items-center gap-2">
           <Button
             disabled={sorting.length >= sortableColumns.length}
             onClick={addSort}
-            size="sm"
+            size="compact"
+            variant="primary"
           >
             Add sort
           </Button>
           {sorting.length > 0 ? (
             <Button
               onClick={() => table.resetSorting()}
-              size="sm"
-              variant="outline"
+              size="compact"
+              variant="tertiary"
             >
               Reset
             </Button>
           ) : null}
         </div>
-      </PopoverPopup>
-    </Popover>
+      </FluidPopoverContent>
+    </FluidPopover>
   );
 }

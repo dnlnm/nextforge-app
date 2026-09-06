@@ -2,25 +2,26 @@
 
 import { ListFilterIcon, Trash2Icon } from "lucide-react";
 import * as React from "react";
-import { Badge } from "@repo/design-system/components/ui/badge";
-import { Button } from "@repo/design-system/components/ui/button";
-import { Input } from "@repo/design-system/components/ui/input";
+import { Badge } from "@repo/design-system/components/ui/fluid-badge";
+import { Button } from "@repo/design-system/components/ui/fluid-button";
+import { InputField, InputGroup } from "@repo/design-system/components/ui/fluid-input-group";
 import {
-  Popover,
-  PopoverPopup,
-  PopoverTrigger,
-} from "@repo/design-system/components/ui/popover";
+  FluidPopover,
+  FluidPopoverContent,
+  FluidPopoverTrigger,
+} from "@repo/design-system/components/ui/fluid-popover";
+import { ScrollArea } from "@repo/design-system/components/ui/fluid-scroll-area";
 import {
   Select,
+  SelectContent,
   SelectItem,
-  SelectPopup,
   SelectTrigger,
-  SelectValue,
-} from "@repo/design-system/components/ui/select";
+} from "@repo/design-system/components/ui/fluid-select";
+import { SizeProvider } from "@repo/design-system/lib/size-context";
 import { getFilterOperators } from "./lib/data-table";
 import { useTableContext } from "./table";
 import type { ExtendedColumnFilter, FilterOperator, JoinOperator } from "./types";
-import { Faceted } from "./faceted";
+import { Faceted } from "./fluid-faceted";
 
 function getColumnOptions(column: {
   columnDef: { meta?: { options?: Array<{ label: string; value: string }> } };
@@ -95,7 +96,8 @@ export function DataTableFilterList() {
 
   const renderValueInput = (
     column: { id: string; columnDef: { meta?: { label?: string; variant?: string; options?: Array<{ label: string; value: string }> } } },
-    filter: ExtendedColumnFilter
+    filter: ExtendedColumnFilter,
+    index: number
   ) => {
     const variant = getColumnVariant(column);
     const columnLabel = column.columnDef.meta?.label ?? column.id;
@@ -123,16 +125,19 @@ export function DataTableFilterList() {
     }
 
     return (
-      <Input
-        className="min-w-0"
-        onChange={(event) =>
-          updateFilter(filter.filterId as string, { value: event.target.value })
-        }
-        placeholder={`Search ${columnLabel}...`}
-        size="sm"
-        type="text"
-        value={(filter.value ?? "") as string}
-      />
+      <InputGroup className="w-full min-w-0">
+        <InputField
+          index={index}
+          label={`Search ${columnLabel}`}
+          labelHidden
+          onChange={(value) =>
+            updateFilter(filter.filterId as string, { value })
+          }
+          placeholder={`Search ${columnLabel}...`}
+          type="text"
+          value={(filter.value ?? "") as string}
+        />
+      </InputGroup>
     );
   };
 
@@ -152,10 +157,6 @@ export function DataTableFilterList() {
           <span className="text-center text-muted-foreground text-sm">Where</span>
         ) : (
           <Select
-            items={[
-              { label: "and", value: "and" },
-              { label: "or", value: "or" },
-            ]}
             onValueChange={(value) => {
               if (filter.filterId) {
                 updateFilter(filter.filterId, {
@@ -163,55 +164,45 @@ export function DataTableFilterList() {
                 });
               }
             }}
+            size="compact"
             value={(filter.joinOperator ?? "and") as JoinOperator}
           >
-            <SelectTrigger
-              aria-label="Select join operator"
-              className="min-w-none"
-              size="sm"
-            >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectPopup>
-              <SelectItem value="and">and</SelectItem>
-              <SelectItem value="or">or</SelectItem>
-            </SelectPopup>
+            <SelectTrigger aria-label="Select join operator" />
+            <SelectContent>
+              <SelectItem index={0} value="and">
+                and
+              </SelectItem>
+              <SelectItem index={1} value="or">
+                or
+              </SelectItem>
+            </SelectContent>
           </Select>
         )}
 
         <Select
-          items={filterableColumns.map((col) => ({
-            label: col.columnDef.meta?.label ?? col.id,
-            value: col.id,
-          }))}
           onValueChange={(value) => {
             if (filter.filterId) {
               updateFilter(filter.filterId, { id: value as string });
             }
           }}
+          size="compact"
           value={filter.id}
         >
-          <SelectTrigger
-            aria-label="Select filter field"
-            className="min-w-none"
-            size="sm"
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectPopup>
-            {filterableColumns.map((col) => (
-              <SelectItem key={col.id} value={col.id}>
+          <SelectTrigger aria-label="Select filter field" />
+          <SelectContent>
+            {filterableColumns.map((col, itemIndex) => (
+              <SelectItem
+                index={itemIndex}
+                key={col.id}
+                value={col.id}
+              >
                 {col.columnDef.meta?.label ?? col.id}
               </SelectItem>
             ))}
-          </SelectPopup>
+          </SelectContent>
         </Select>
 
         <Select
-          items={operators.map((operator) => ({
-            label: operator.label,
-            value: operator.value,
-          }))}
           onValueChange={(value) => {
             if (filter.filterId) {
               updateFilter(filter.filterId, {
@@ -219,32 +210,30 @@ export function DataTableFilterList() {
               });
             }
           }}
+          size="compact"
           value={(filter.operator ?? operators[0].value) as FilterOperator}
         >
-          <SelectTrigger
-            aria-label="Select filter operator"
-            className="min-w-none"
-            size="sm"
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectPopup>
-            {operators.map((operator) => (
-              <SelectItem key={operator.value} value={operator.value}>
+          <SelectTrigger aria-label="Select filter operator" />
+          <SelectContent>
+            {operators.map((operator, itemIndex) => (
+              <SelectItem
+                index={itemIndex}
+                key={operator.value}
+                value={operator.value}
+              >
                 {operator.label}
               </SelectItem>
             ))}
-          </SelectPopup>
+          </SelectContent>
         </Select>
 
-        {renderValueInput(column, filter)}
+        {renderValueInput(column, filter, index)}
 
         <Button
           aria-label={`Remove ${columnLabel} filter`}
-          className="size-8"
           onClick={() => removeFilter(filter.filterId as string)}
-          size="icon"
-          variant="outline"
+          size="icon-compact"
+          variant="ghost"
         >
           <Trash2Icon className="size-3.5" />
         </Button>
@@ -253,22 +242,24 @@ export function DataTableFilterList() {
   };
 
   return (
-    <Popover onOpenChange={setOpen} open={open}>
-      <PopoverTrigger
-        render={<Button variant="elevated" />}
+    <FluidPopover onOpenChange={setOpen} open={open}>
+      <FluidPopoverTrigger
+        render={<Button variant="tertiary" />}
       >
-        <ListFilterIcon aria-hidden="true" />
+        <ListFilterIcon aria-hidden="true" className="size-4" />
         Filter
         {columnFilters.length > 0 ? (
           <Badge
-            className="h-[1.14rem] rounded-[0.2rem] px-[0.32rem] font-mono font-normal text-[0.65rem]"
-            variant="secondary"
+            className="font-mono"
+            color="gray"
+            size="compact"
+            variant="solid"
           >
             {columnFilters.length}
           </Badge>
         ) : null}
-      </PopoverTrigger>
-      <PopoverPopup
+      </FluidPopoverTrigger>
+      <FluidPopoverContent
         align="start"
         className="flex w-[min(40rem,calc(100vw-2rem))] flex-col gap-2 p-3"
       >
@@ -282,30 +273,37 @@ export function DataTableFilterList() {
         </div>
 
         {columnFilters.length > 0 ? (
-          <div className="flex max-h-[300px] flex-col gap-2 overflow-y-auto p-0.5">
-            {columnFilters.map((filter, index) => (
-              <React.Fragment key={filter.filterId}>
-                {renderFilterRow(filter, index)}
-              </React.Fragment>
-            ))}
-          </div>
+          <ScrollArea
+            className="max-h-[300px]"
+            viewportClassName="scroll-fade"
+          >
+            <SizeProvider size="compact">
+              <div className="flex flex-col gap-2 p-0.5">
+                {columnFilters.map((filter, index) => (
+                  <React.Fragment key={filter.filterId}>
+                    {renderFilterRow(filter, index)}
+                  </React.Fragment>
+                ))}
+              </div>
+            </SizeProvider>
+          </ScrollArea>
         ) : null}
 
         <div className="mt-3 flex items-center gap-2">
-          <Button onClick={addFilter} size="sm">
+          <Button onClick={addFilter} size="compact" variant="primary">
             Add filter
           </Button>
           {columnFilters.length > 0 ? (
             <Button
               onClick={() => setColumnFilters([])}
-              size="sm"
-              variant="outline"
+              size="compact"
+              variant="tertiary"
             >
               Reset filters
             </Button>
           ) : null}
         </div>
-      </PopoverPopup>
-    </Popover>
+      </FluidPopoverContent>
+    </FluidPopover>
   );
 }

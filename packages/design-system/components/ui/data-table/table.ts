@@ -29,4 +29,4 @@ export const {
 
 export type { ExtendedColumnFilter, ColumnMeta, JoinOperator, FilterOperator } from "./types";
 export { getFilterOperators, mapOperatorForServer, mapOperatorForUi, toFilterValueArray } from "./lib/data-table";
-export { Faceted, type FacetedOption } from "./faceted";
+export { Faceted, FacetedChipList, type FacetedOption } from "./fluid-faceted";
