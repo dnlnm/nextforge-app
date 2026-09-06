@@ -162,8 +162,10 @@ const InputField = forwardRef<HTMLDivElement, InputFieldProps>(
       bgClass = "bg-muted/50";
       ringClass = "ring-border";
     } else {
+      // Rest: transparent fill but a persistent hairline so the box is
+      // always visible, even without hover or focus.
       bgClass = "bg-transparent";
-      ringClass = "ring-transparent";
+      ringClass = "ring-border";
     }
 
     return (

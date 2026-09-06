@@ -14,6 +14,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@repo/design-system/components/ui/fluid-sidebar";
+import { MobileDrawer } from "@repo/design-system/components/ui/fluid-mobile-drawer";
 import {
   BarChart3Icon,
   BookOpenIcon,
@@ -139,13 +140,76 @@ const getNavigationForRole = (role: SidebarRole): typeof navigationSections => {
   }));
 };
 
+interface SidebarNavContentProperties {
+  readonly badges?: SidebarBadges;
+  readonly onNavigate: () => void;
+  readonly pathname: string;
+  readonly sections: readonly NavigationSection[];
+}
+
+/** Brand row shared by the desktop shell and the mobile drawer. */
+const SidebarBrandLink = ({ onNavigate }: { onNavigate: () => void }) => (
+  <Link
+    aria-label="Home"
+    className="mb-2 block px-2"
+    href="/"
+    onClick={onNavigate}
+  >
+    <Brand />
+  </Link>
+);
+
+/** Collapsible nav groups shared by the desktop shell and the mobile drawer. */
+const SidebarNavGroups = ({
+  badges,
+  onNavigate,
+  pathname,
+  sections,
+}: SidebarNavContentProperties) => (
+  <>
+    {sections.map((section) => (
+      <SidebarGroup collapsible defaultOpen key={section.title}>
+        <SidebarGroupLabel>{section.title}</SidebarGroupLabel>
+        <SidebarMenu>
+          {section.items.map((item) => (
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton
+                icon={item.icon}
+                isActive={isActivePath(pathname, item.url)}
+                onClick={onNavigate}
+                render={<Link href={item.url} />}
+              >
+                {item.title}
+              </SidebarMenuButton>
+              {item.badge && badges?.[item.badge] ? (
+                <SidebarMenuBadge>{badges[item.badge]}</SidebarMenuBadge>
+              ) : null}
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarGroup>
+    ))}
+  </>
+);
+
+/** Footer identity + theme/shape actions shared by shell and drawer. */
+const SidebarFooterRow = () => (
+  <div className="flex items-center gap-1">
+    <div className="min-w-0 flex-1">
+      <SidebarFooterUserMenu />
+    </div>
+    <SidebarFooterThemeAction />
+    <SidebarFooterShapeAction />
+  </div>
+);
+
 export const FluidSidebar = ({
   badges,
   children,
   role,
 }: FluidSidebarProperties) => {
   const pathname = usePathname();
-  const { isMobile, setOpenMobile } = useSidebar();
+  const { isMobile, openMobile, setOpenMobile } = useSidebar();
   const filteredSections = getNavigationForRole(role);
 
   const closeOnNavigate = () => {
@@ -154,55 +218,42 @@ export const FluidSidebar = ({
     }
   };
 
+  const navContentProps = {
+    badges,
+    onNavigate: closeOnNavigate,
+    pathname,
+    sections: filteredSections,
+  };
+
   return (
     <>
-      <Sidebar collapsible="offcanvas" variant="inset">
+      <Sidebar
+        className="max-md:hidden"
+        collapsible={isMobile ? "none" : "offcanvas"}
+        variant="inset"
+      >
         <SidebarHeader>
-          <Link
-            aria-label="Home"
-            className="mb-2 block px-2"
-            href="/"
-            onClick={closeOnNavigate}
-          >
-            <Brand />
-          </Link>
+          <SidebarBrandLink onNavigate={closeOnNavigate} />
         </SidebarHeader>
         <SidebarContent>
-          {filteredSections.map((section) => (
-            <SidebarGroup collapsible defaultOpen key={section.title}>
-              <SidebarGroupLabel>{section.title}</SidebarGroupLabel>
-              <SidebarMenu>
-                {section.items.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      icon={item.icon}
-                      isActive={isActivePath(pathname, item.url)}
-                      onClick={closeOnNavigate}
-                      render={<Link href={item.url} />}
-                    >
-                      {item.title}
-                    </SidebarMenuButton>
-                    {item.badge && badges?.[item.badge] ? (
-                      <SidebarMenuBadge>
-                        {badges[item.badge]}
-                      </SidebarMenuBadge>
-                    ) : null}
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroup>
-          ))}
+          <SidebarNavGroups {...navContentProps} />
         </SidebarContent>
         <SidebarFooter>
-          <div className="flex items-center gap-1">
-            <div className="min-w-0 flex-1">
-              <SidebarFooterUserMenu />
-            </div>
-            <SidebarFooterThemeAction />
-            <SidebarFooterShapeAction />
-          </div>
+          <SidebarFooterRow />
         </SidebarFooter>
       </Sidebar>
+      <MobileDrawer
+        onClose={() => setOpenMobile(false)}
+        open={openMobile}
+      >
+        <div className="flex min-h-full flex-col gap-2">
+          <SidebarBrandLink onNavigate={closeOnNavigate} />
+          <SidebarNavGroups {...navContentProps} />
+          <div className="mt-auto pt-2">
+            <SidebarFooterRow />
+          </div>
+        </div>
+      </MobileDrawer>
       <SidebarInset>{children}</SidebarInset>
     </>
   );

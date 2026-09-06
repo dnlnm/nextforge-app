@@ -10,7 +10,7 @@ import {
 } from "@repo/design-system/components/ui/drawer";
 import { Icon } from "@repo/design-system/components/ui/icon";
 import { StatLabel, StatValue } from "@repo/design-system/components/ui/stat";
-import { PreviewCard } from "@repo/design-system/components/preview-card";
+import { FluidPanel } from "@repo/design-system/components/fluid-panel";
 import { easeOutStrong } from "@repo/design-system/lib/springs";
 import { formatMoneyWhole as formatMoneyShared } from "@repo/money";
 import {
@@ -149,7 +149,7 @@ export function StudentsPageClient({
                   value: formatMoney(outstandingSen),
                 },
               ].map((stat) => (
-                <PreviewCard
+                <FluidPanel
                   className="relative flex h-full flex-col"
                   key={stat.label}
                   label={stat.detail}
@@ -167,7 +167,7 @@ export function StudentsPageClient({
                     className="absolute inset-0 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     href={stat.href}
                   />
-                </PreviewCard>
+                </FluidPanel>
               ))}
             </motion.section>
           )}

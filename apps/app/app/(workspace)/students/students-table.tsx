@@ -1,14 +1,14 @@
 ﻿"use client";
 
 import { Button } from "@repo/design-system/components/ui/button";
-import { PreviewCard } from "@repo/design-system/components/preview-card";
+import { FluidPanel } from "@repo/design-system/components/fluid-panel";
 import {
   type ExtendedColumnFilter,
   mapOperatorForServer,
   mapOperatorForUi,
   useAppTable,
 } from "@repo/design-system/components/ui/data-table/table";
-import { Input } from "@repo/design-system/components/ui/input";
+import { InputField, InputGroup } from "@repo/design-system/components/ui/fluid-input-group";
 import { Separator } from "@repo/design-system/components/ui/separator";
 import { Skeleton } from "@repo/design-system/components/ui/skeleton";
 import {
@@ -270,21 +270,23 @@ export function StudentsTable({
 
   return (
     <table.AppTable>
-      <PreviewCard
+      <FluidPanel
         header={
           <div className="flex w-full flex-wrap items-center justify-between gap-2">
-            <div className="relative w-full max-w-sm">
-              <SearchIcon className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                className="pl-8"
-                onChange={(event) =>
-                  setUrlParams({ search: event.target.value, page: 0 })
+            <InputGroup className="w-full max-w-sm">
+              <InputField
+                icon={SearchIcon}
+                index={0}
+                label="Search students"
+                labelHidden
+                onChange={(value) =>
+                  setUrlParams({ search: value, page: 0 })
                 }
                 placeholder="Search students..."
                 type="search"
                 value={urlParams.search}
               />
-            </div>
+            </InputGroup>
             <div className="flex items-center gap-2">
               {hasActiveState ? (
                 <Button
@@ -360,7 +362,7 @@ export function StudentsTable({
             )}
           />
         </div>
-      </PreviewCard>
+      </FluidPanel>
     </table.AppTable>
   );
 }

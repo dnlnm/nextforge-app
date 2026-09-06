@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@repo/design-system/components/ui/button";
+import { Button } from "@repo/design-system/components/ui/fluid-button";
 import { cn } from "@repo/design-system/lib/utils";
 import { ChevronDownIcon } from "lucide-react";
 import { createContext, useContext, useEffect, useState } from "react";
@@ -57,7 +57,7 @@ export function KpiToggleButton() {
       className="shrink-0 md:hidden"
       onClick={toggleKpis}
       size="icon"
-      variant="outline"
+      variant="tertiary"
     >
       <ChevronDownIcon
         className={cn("size-4 transition-transform", !showKpis && "rotate-180")}
