@@ -1,21 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { Button } from "@repo/design-system/components/ui/button";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationNext,
-  PaginationPrevious,
-} from "@repo/design-system/components/ui/pagination";
+import { Button } from "@repo/design-system/components/ui/fluid-button";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import {
   Select,
+  SelectContent,
   SelectItem,
-  SelectPopup,
   SelectTrigger,
-  SelectValue,
-} from "@repo/design-system/components/ui/select";
+} from "@repo/design-system/components/ui/fluid-select";
 import { useTableContext } from "./table";
 
 export function DataTablePagination() {
@@ -38,24 +31,25 @@ export function DataTablePagination() {
       <div className="flex items-center gap-2 whitespace-nowrap">
         <p className="text-muted-foreground text-sm">Viewing</p>
         <Select
-          items={rangeOptions}
-          onValueChange={(value) => table.setPageIndex((value as number) - 1)}
-          value={pageIndex + 1}
+          onValueChange={(value) => table.setPageIndex(Number(value) - 1)}
+          size="compact"
+          value={String(pageIndex + 1)}
         >
           <SelectTrigger
             aria-label="Select result range"
-            className="w-fit min-w-none"
-            size="sm"
-          >
-            <SelectValue className="flex-none" />
-          </SelectTrigger>
-          <SelectPopup>
-            {rangeOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
+            className="w-fit"
+          />
+          <SelectContent>
+            {rangeOptions.map((option, itemIndex) => (
+              <SelectItem
+                index={itemIndex}
+                key={option.value}
+                value={String(option.value)}
+              >
                 {option.label}
               </SelectItem>
             ))}
-          </SelectPopup>
+          </SelectContent>
         </Select>
         <p className="text-muted-foreground text-sm">
           of{" "}
@@ -65,36 +59,26 @@ export function DataTablePagination() {
       </div>
 
       {/* Pagination */}
-      <Pagination className="justify-end">
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious
-              className="sm:*:[svg]:hidden"
-              render={
-                <Button
-                  disabled={!table.getCanPreviousPage()}
-                  onClick={() => table.previousPage()}
-                  size="sm"
-                  variant="outline"
-                />
-              }
-            />
-          </PaginationItem>
-          <PaginationItem>
-            <PaginationNext
-              className="sm:*:[svg]:hidden"
-              render={
-                <Button
-                  disabled={!table.getCanNextPage()}
-                  onClick={() => table.nextPage()}
-                  size="sm"
-                  variant="outline"
-                />
-              }
-            />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
+      <div className="flex items-center gap-2">
+        <Button
+          aria-label="Previous page"
+          disabled={!table.getCanPreviousPage()}
+          onClick={() => table.previousPage()}
+          size="icon"
+          variant="tertiary"
+        >
+          <ChevronLeftIcon className="size-4" />
+        </Button>
+        <Button
+          aria-label="Next page"
+          disabled={!table.getCanNextPage()}
+          onClick={() => table.nextPage()}
+          size="icon"
+          variant="tertiary"
+        >
+          <ChevronRightIcon className="size-4" />
+        </Button>
+      </div>
     </div>
   );
 }

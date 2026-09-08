@@ -1,15 +1,15 @@
 "use client";
 
 import {
-  Drawer,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerPanel,
-  DrawerPopup,
-  DrawerTitle,
-} from "@repo/design-system/components/ui/drawer";
-import { Icon } from "@repo/design-system/components/ui/icon";
+  VanillaDrawer,
+  VanillaDrawerDescription,
+  VanillaDrawerHeader,
+  VanillaDrawerPanel,
+  VanillaDrawerPopup,
+  VanillaDrawerTitle,
+} from "@repo/design-system/components/ui/drawer-vanilla";
 import { StatLabel, StatValue } from "@repo/design-system/components/ui/stat";
+import { KpiStatIcon } from "../components/kpi-stat-icon";
 import { FluidPanel } from "@repo/design-system/components/fluid-panel";
 import { easeOutStrong } from "@repo/design-system/lib/springs";
 import { formatMoneyWhole as formatMoneyShared } from "@repo/money";
@@ -156,9 +156,7 @@ export function StudentsPageClient({
                   stageClassName="flex-col items-start justify-center gap-3 p-4 sm:p-4"
                 >
                   <div className="flex items-center gap-3">
-                    <Icon color={stat.color} variant="elevated-filled">
-                      <stat.icon />
-                    </Icon>
+                    <KpiStatIcon color={stat.color} icon={stat.icon} />
                     <StatLabel>{stat.label}</StatLabel>
                   </div>
                   <StatValue>{stat.value}</StatValue>
@@ -182,32 +180,31 @@ export function StudentsPageClient({
         />
       </section>
 
-      <Drawer
+      <VanillaDrawer
         onOpenChange={setDrawerOpen}
         open={drawerOpen && !!selectedStudent}
-        position="right"
       >
-        <DrawerPopup className="w-[480px] max-w-[92vw]" variant="inset">
+        <VanillaDrawerPopup>
           {selectedStudent && (
             <>
-              <DrawerHeader>
-                <DrawerTitle>{selectedStudent.fullName}</DrawerTitle>
-                <DrawerDescription>
+              <VanillaDrawerHeader>
+                <VanillaDrawerTitle>{selectedStudent.fullName}</VanillaDrawerTitle>
+                <VanillaDrawerDescription>
                   {selectedStudent.code} ·{" "}
                   {selectedStudent.level?.name ?? "No level"} ·{" "}
                   {selectedStudent.status === "ACTIVE" ? "Active" : "Archived"}
-                </DrawerDescription>
-              </DrawerHeader>
-              <DrawerPanel className="p-0">
+                </VanillaDrawerDescription>
+              </VanillaDrawerHeader>
+              <VanillaDrawerPanel className="p-0">
                 <StudentDetailContent
                   currency={currency}
                   student={selectedStudent}
                 />
-              </DrawerPanel>
+              </VanillaDrawerPanel>
             </>
           )}
-        </DrawerPopup>
-      </Drawer>
+        </VanillaDrawerPopup>
+      </VanillaDrawer>
     </div>
   );
 }

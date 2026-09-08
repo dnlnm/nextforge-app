@@ -1,12 +1,7 @@
 "use client";
 
 import { formatShortDate } from "@repo/date";
-import { Button } from "@repo/design-system/components/ui/button";
-import {
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@repo/design-system/components/ui/card";
+import { Button } from "@repo/design-system/components/ui/fluid-button";
 import { formatMoneyWhole as formatMoneyShared } from "@repo/money";
 import { privateFileUrl } from "@repo/storage/client";
 import Link from "next/link";
@@ -96,7 +91,7 @@ export function StudentDetailContent({
 
   return (
     <>
-      <CardHeader className="border-b">
+      <div className="grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 border-b p-6">
         <StudentAvatar
           className="size-20"
           gender={student.gender}
@@ -104,36 +99,32 @@ export function StudentDetailContent({
           photoUrl={privateFileUrl(student.photoKey)}
         />
         <div className="min-w-0">
-          <CardTitle className="text-xl">
+          <div className="font-heading font-semibold text-xl leading-none">
             <span className="text-balance">{student.fullName}</span>
-          </CardTitle>
+          </div>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-muted-foreground text-sm">
             <span>{student.code}</span>
             <StudentStatusBadge status={student.status} />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-2">
-          <Button render={<Link href={`/students/${student.id}`} />}>
-            More
+          <Button asChild>
+            <Link href={`/students/${student.id}`}>More</Link>
           </Button>
-          <Button
-            render={<Link href={`https://wa.me/${guardian?.phone ?? ""}`} />}
-            variant="outline"
-          >
-            WhatsApp
+          <Button asChild variant="tertiary">
+            <Link href={`https://wa.me/${guardian?.phone ?? ""}`}>
+              WhatsApp
+            </Link>
           </Button>
-          <Button
-            onClick={() => setIsArchiveOpen(true)}
-            variant="destructive-outline"
-          >
+          <Button onClick={() => setIsArchiveOpen(true)} variant="tertiary">
             Archive
           </Button>
-          <Button onClick={() => setIsDeleteOpen(true)} variant="destructive">
+          <Button onClick={() => setIsDeleteOpen(true)} variant="tertiary">
             Delete
           </Button>
         </div>
-      </CardHeader>
-      <CardContent className="grid gap-5 p-0">
+      </div>
+      <div className="grid gap-5 p-0">
         <section className="grid gap-3 border-b p-4">
           <h2 className="font-semibold text-sm">Student Information</h2>
           {[
@@ -207,7 +198,7 @@ export function StudentDetailContent({
             </div>
           ))}
         </section>
-      </CardContent>
+      </div>
       <ArchiveStudentDialog
         onOpenChange={setIsArchiveOpen}
         open={isArchiveOpen}

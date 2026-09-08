@@ -1,15 +1,15 @@
 "use client";
 
 import {
-  AlertDialog,
-  AlertDialogClose,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@repo/design-system/components/ui/alert-dialog";
-import { Button } from "@repo/design-system/components/ui/button";
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@repo/design-system/components/ui/fluid-dialog";
+import { Button } from "@repo/design-system/components/ui/fluid-button";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toastManager } from "@repo/design-system/components/ui/toast";
@@ -60,30 +60,26 @@ export const DeleteStudentDialog = ({
   };
 
   return (
-    <AlertDialog onOpenChange={onOpenChange} open={open}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Delete student?</AlertDialogTitle>
-          <AlertDialogDescription>
+    <Dialog onOpenChange={onOpenChange} open={open}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Delete student?</DialogTitle>
+          <DialogDescription>
             This permanently removes the student and their enrollments,
             attendance, and guardian links. This action cannot be undone.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogClose
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <DialogClose
             render={<Button variant="ghost" disabled={isPending} />}
           >
             Cancel
-          </AlertDialogClose>
-          <Button
-            disabled={isPending}
-            onClick={() => handleDelete()}
-            variant="destructive"
-          >
-            {isPending ? "Deleting..." : "Delete"}
+          </DialogClose>
+          <Button loading={isPending} onClick={() => handleDelete()}>
+            Delete
           </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };

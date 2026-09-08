@@ -1,15 +1,15 @@
 "use client";
 
 import {
-  AlertDialog,
-  AlertDialogClose,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@repo/design-system/components/ui/alert-dialog";
-import { Button } from "@repo/design-system/components/ui/button";
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@repo/design-system/components/ui/fluid-dialog";
+import { Button } from "@repo/design-system/components/ui/fluid-button";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toastManager } from "@repo/design-system/components/ui/toast";
@@ -59,26 +59,26 @@ export const RestoreStudentDialog = ({
   };
 
   return (
-    <AlertDialog onOpenChange={onOpenChange} open={open}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Restore student?</AlertDialogTitle>
-          <AlertDialogDescription>
+    <Dialog onOpenChange={onOpenChange} open={open}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Restore student?</DialogTitle>
+          <DialogDescription>
             This reactivates the student and restores their archived
             enrollments, making them visible again.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogClose
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <DialogClose
             render={<Button variant="ghost" disabled={isPending} />}
           >
             Cancel
-          </AlertDialogClose>
-          <Button disabled={isPending} onClick={() => handleRestore()}>
-            {isPending ? "Restoring..." : "Restore"}
+          </DialogClose>
+          <Button loading={isPending} onClick={() => handleRestore()}>
+            Restore
           </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };

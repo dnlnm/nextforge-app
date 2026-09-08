@@ -7,40 +7,29 @@ import {
   getMalaysiaToday,
   parseLocalCalendarDate,
 } from "@repo/date";
-import { Button } from "@repo/design-system/components/ui/button";
+import { Button } from "@repo/design-system/components/ui/fluid-button";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@repo/design-system/components/ui/collapsible";
-import { Input } from "@repo/design-system/components/ui/input";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@repo/design-system/components/ui/input-group";
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@repo/design-system/components/ui/fluid-accordion";
+import { InputField, InputGroup } from "@repo/design-system/components/ui/fluid-input-group";
 import { Label } from "@repo/design-system/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@repo/design-system/components/ui/select";
-import { PreviewCard } from "@repo/design-system/components/preview-card";
+} from "@repo/design-system/components/ui/fluid-select";
+import { FluidPanel } from "@repo/design-system/components/fluid-panel";
 import {
-  Tabs,
-  TabsList,
-  TabsPanel,
-  TabsTab,
-} from "@repo/design-system/components/ui/tabs";
-import { Textarea } from "@repo/design-system/components/ui/textarea";
+  TabsSubtle,
+  TabsSubtleItem,
+  TabsSubtlePanel,
+} from "@repo/design-system/components/ui/fluid-tabs-subtle";
 import { toastManager } from "@repo/design-system/components/ui/toast";
-import {
-  Tooltip,
-  TooltipPopup,
-  TooltipTrigger,
-} from "@repo/design-system/components/ui/tooltip";
+import { Tooltip } from "@repo/design-system/components/ui/fluid-tooltip";
 import { cn } from "@repo/design-system/lib/utils";
 import { formatMoney } from "@repo/money";
 import type { Gender } from "@repo/schemas/enums";
@@ -54,10 +43,8 @@ import {
   BookOpenIcon,
   CameraIcon,
   CheckIcon,
-  ChevronDownIcon,
   GraduationCapIcon,
   InfoIcon,
-  Loader2Icon,
   MoreHorizontalIcon,
   UserRoundIcon,
   UsersRoundIcon,
@@ -376,34 +363,28 @@ const CustomFeeField = ({
 }) => (
   <div className="grid content-start gap-1.5">
     <FieldLabel htmlFor="customFee">Custom monthly fee (optional)</FieldLabel>
-    <div className="relative">
-      <span className="absolute top-1/2 left-3 -translate-y-1/2 font-semibold text-muted-foreground text-sm">
-        RM
-      </span>
-      <Input
-        aria-invalid={error ? true : undefined}
-        className={cn(
-          "pl-10",
-          error && "border-destructive focus-visible:ring-destructive/50"
-        )}
+    <InputGroup className="contents">
+      <InputField
         disabled={!singleSelection}
+        error={error}
         id="customFee"
+        index={0}
         inputMode="decimal"
+        label="Custom monthly fee (optional)"
+        labelHidden
         min="0"
-        onChange={(event) => onChange(event.target.value)}
+        onChange={onChange}
         placeholder={
           singleSelection && subjectTotalSen > 0
-            ? (subjectTotalSen / 100).toFixed(2)
-            : "0.00"
+            ? `RM ${(subjectTotalSen / 100).toFixed(2)}`
+            : "RM 0.00"
         }
         step="0.01"
         type="number"
         value={customFee}
       />
-    </div>
-    {error ? (
-      <FieldErrorText message={error} />
-    ) : (
+    </InputGroup>
+    {!error && (
       <Hint>
         {singleSelection
           ? "Overrides the subject-based total"
@@ -456,6 +437,11 @@ export const StudentCreateForm = ({
   const [customFee, setCustomFee] = useState("");
   const [startDate, setStartDate] = useState(getMalaysiaCalendarDate());
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [emergencyContactName, setEmergencyContactName] = useState("");
+  const [emergencyContactPhone, setEmergencyContactPhone] = useState("");
+  const [medicalNotes, setMedicalNotes] = useState("");
+  const [notes, setNotes] = useState("");
+  const [schoolTab, setSchoolTab] = useState(0);
 
   useEffect(() => {
     if (state.error) {
@@ -645,9 +631,6 @@ export const StudentCreateForm = ({
     ...(singleSelection && customFeeSen !== null ? { customFeeSen } : {}),
   }));
 
-  const errorClassName = (hasError: boolean) =>
-    hasError ? "border-destructive focus-visible:ring-destructive/50" : "";
-
   return (
     <form
       action={formAction}
@@ -670,7 +653,7 @@ export const StudentCreateForm = ({
       />
 
       <section className="grid content-start gap-5 xl:col-start-1 xl:row-start-1">
-        <PreviewCard
+        <FluidPanel
           className="flex flex-col"
           header={
             <span className="flex items-center gap-2.5">
@@ -695,35 +678,41 @@ export const StudentCreateForm = ({
                 <FieldLabel htmlFor="firstName" required>
                   First name
                 </FieldLabel>
-                <Input
-                  aria-invalid={errors.firstName ? true : undefined}
-                  className={errorClassName(Boolean(errors.firstName))}
-                  id="firstName"
-                  onChange={(event) => {
-                    setFirstName(event.target.value);
-                    clearError("firstName");
-                  }}
-                  placeholder="e.g. Nurul Aisyah / Wei Jie / Priya"
-                  value={firstName}
-                />
-                <FieldErrorText message={errors.firstName} />
+                <InputGroup className="contents">
+                  <InputField
+                    error={errors.firstName}
+                    id="firstName"
+                    index={0}
+                    label="First name"
+                    labelHidden
+                    onChange={(value) => {
+                      setFirstName(value);
+                      clearError("firstName");
+                    }}
+                    placeholder="e.g. Nurul Aisyah / Wei Jie / Priya"
+                    value={firstName}
+                  />
+                </InputGroup>
               </div>
               <div className="grid content-start gap-1.5">
                 <FieldLabel htmlFor="lastName" required>
                   Last name / Family name
                 </FieldLabel>
-                <Input
-                  aria-invalid={errors.lastName ? true : undefined}
-                  className={errorClassName(Boolean(errors.lastName))}
-                  id="lastName"
-                  onChange={(event) => {
-                    setLastName(event.target.value);
-                    clearError("lastName");
-                  }}
-                  placeholder="e.g. binti Ahmad / Tan / a/p Kumar"
-                  value={lastName}
-                />
-                <FieldErrorText message={errors.lastName} />
+                <InputGroup className="contents">
+                  <InputField
+                    error={errors.lastName}
+                    id="lastName"
+                    index={0}
+                    label="Last name / Family name"
+                    labelHidden
+                    onChange={(value) => {
+                      setLastName(value);
+                      clearError("lastName");
+                    }}
+                    placeholder="e.g. binti Ahmad / Tan / a/p Kumar"
+                    value={lastName}
+                  />
+                </InputGroup>
               </div>
             </div>
           </div>
@@ -733,41 +722,32 @@ export const StudentCreateForm = ({
               <FieldLabel htmlFor="icNumber" required>
                 IC / MyKid number
               </FieldLabel>
-              {/* Align the trio with the app's control rhythm: upstream
-                  InputGroup is content-height (34/30px) while Button and
-                  SelectTrigger render 36/32px. */}
-              <InputGroup className="h-9 sm:h-8">
-                <InputGroupAddon>
-                  <Tooltip>
-                    <TooltipTrigger
-                      render={
-                        <Button
-                          aria-label="About IC / MyKid number"
-                          size="icon-xs"
-                          variant="ghost"
-                        />
-                      }
-                    >
-                      <InfoIcon />
-                    </TooltipTrigger>
-                    <TooltipPopup>
-                      12 digits — auto-detects date of birth and gender
-                    </TooltipPopup>
-                  </Tooltip>
-                </InputGroupAddon>
-                <InputGroupInput
-                  aria-invalid={errors.icNumber ? true : undefined}
-                  id="icNumber"
-                  inputMode="numeric"
-                  maxLength={12}
-                  onChange={(event) => handleIcChange(event.target.value)}
-                  placeholder="e.g. 120304145678"
-                  value={icDigits}
-                />
-              </InputGroup>
-              {errors.icNumber ? (
-                <FieldErrorText message={errors.icNumber} />
-              ) : null}
+              {/* Info button + field share the control rhythm (both h-9). */}
+              <div className="flex items-center gap-2">
+                <Tooltip content="12 digits — auto-detects date of birth and gender">
+                  <Button
+                    aria-label="About IC / MyKid number"
+                    size="icon"
+                    variant="ghost"
+                  >
+                    <InfoIcon className="size-4" />
+                  </Button>
+                </Tooltip>
+                <InputGroup className="min-w-0 flex-1 contents">
+                  <InputField
+                    error={errors.icNumber}
+                    id="icNumber"
+                    index={0}
+                    inputMode="numeric"
+                    label="IC / MyKid number"
+                    labelHidden
+                    maxLength={12}
+                    onChange={handleIcChange}
+                    placeholder="e.g. 120304145678"
+                    value={icDigits}
+                  />
+                </InputGroup>
+              </div>
             </div>
             <div className="grid content-start gap-1.5">
               <FieldLabel required>Date of birth</FieldLabel>
@@ -783,75 +763,81 @@ export const StudentCreateForm = ({
               <FieldErrorText message={errors.dateOfBirth} />
             </div>
             <div className="grid content-start gap-1.5">
-              <FieldLabel required>Gender</FieldLabel>
-              <Select
-                items={Object.fromEntries(
-                  GENDER_OPTIONS.map((option) => [option.value, option.label])
-                )}
-                name="gender"
-                onValueChange={(value) => {
-                  setGender(value ?? "");
-                  clearError("gender");
-                }}
-                value={gender}
-              >
-                <SelectTrigger
-                  aria-invalid={errors.gender ? true : undefined}
-                  className={errorClassName(Boolean(errors.gender))}
+                <FieldLabel required>Gender</FieldLabel>
+                <Select
+                  name="gender"
+                  onValueChange={(value) => {
+                    setGender((value as Gender) || "");
+                    clearError("gender");
+                  }}
+                  value={gender}
                 >
-                  <SelectValue placeholder="Select gender" />
-                </SelectTrigger>
-                <SelectContent>
-                  {GENDER_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FieldErrorText message={errors.gender} />
-            </div>
+                  <SelectTrigger
+                    aria-invalid={errors.gender ? true : undefined}
+                    error={errors.gender}
+                    placeholder="Select gender"
+                  />
+                  <SelectContent>
+                    {GENDER_OPTIONS.map((option, itemIndex) => (
+                      <SelectItem
+                        index={itemIndex}
+                        key={option.value}
+                        value={option.value}
+                      >
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid content-start gap-1.5">
-              <FieldLabel htmlFor="studentEmail">Email address</FieldLabel>
-              <Input
-                aria-invalid={errors.studentEmail ? true : undefined}
-                className={errorClassName(Boolean(errors.studentEmail))}
-                id="studentEmail"
-                name="studentEmail"
-                onChange={(event) => {
-                  setStudentEmail(event.target.value);
-                  clearError("studentEmail");
-                }}
-                placeholder="e.g. student@email.com"
-                type="email"
-                value={studentEmail}
-              />
-              <FieldErrorText message={errors.studentEmail} />
-            </div>
-            <div className="grid content-start gap-1.5">
-              <FieldLabel htmlFor="studentPhone">Phone number</FieldLabel>
-              <Input
-                aria-invalid={errors.studentPhone ? true : undefined}
-                className={errorClassName(Boolean(errors.studentPhone))}
-                id="studentPhone"
-                name="studentPhone"
-                onChange={(event) => {
-                  setStudentPhone(event.target.value);
-                  clearError("studentPhone");
-                }}
-                placeholder="e.g. 0123456789"
-                value={studentPhone}
-              />
-              <FieldErrorText message={errors.studentPhone} />
-            </div>
+                <FieldLabel htmlFor="studentEmail">Email address</FieldLabel>
+                <InputGroup className="contents">
+                  <InputField
+                    error={errors.studentEmail}
+                    id="studentEmail"
+                    index={0}
+                    label="Email address"
+                    labelHidden
+                    name="studentEmail"
+                    onChange={(value) => {
+                      setStudentEmail(value);
+                      clearError("studentEmail");
+                    }}
+                    placeholder="e.g. student@email.com"
+                    type="email"
+                    value={studentEmail}
+                  />
+                </InputGroup>
+              </div>
+              <div className="grid content-start gap-1.5">
+                <FieldLabel htmlFor="studentPhone">Phone number</FieldLabel>
+                <InputGroup className="contents">
+                  <InputField
+                    error={errors.studentPhone}
+                    id="studentPhone"
+                    index={0}
+                    label="Phone number"
+                    labelHidden
+                    name="studentPhone"
+                    onChange={(value) => {
+                      setStudentPhone(value);
+                      clearError("studentPhone");
+                    }}
+                    placeholder="e.g. 0123456789"
+                    value={studentPhone}
+                  />
+                </InputGroup>
+              </div>
           </div>
 
           <div className="grid content-start gap-1.5">
             <FieldLabel htmlFor="addressLine1">Address</FieldLabel>
-            <Textarea
+            <textarea
+              className="w-full rounded-lg px-2.5 py-2 text-[13px] text-foreground ring-1 ring-border transition-all duration-80 outline-none placeholder:text-muted-foreground focus:bg-card"
               id="addressLine1"
               name="addressLine1"
               onChange={(event) => setStudentAddress(event.target.value)}
@@ -859,12 +845,12 @@ export const StudentCreateForm = ({
               rows={2}
               value={studentAddress}
             />
-            <Hint>Student's home address</Hint>
+            <Hint>Student&apos;s home address</Hint>
           </div>
           </div>
-        </PreviewCard>
+        </FluidPanel>
 
-        <PreviewCard
+        <FluidPanel
           className="flex flex-col"
           header={
             <span className="flex items-center gap-2.5">
@@ -882,9 +868,9 @@ export const StudentCreateForm = ({
             onUpdate={updateGuardian}
             studentAddress={studentAddress}
           />
-        </PreviewCard>
+        </FluidPanel>
 
-        <PreviewCard
+        <FluidPanel
           className="flex flex-col"
           header={
             <span className="flex items-center gap-2.5">
@@ -901,40 +887,40 @@ export const StudentCreateForm = ({
           }
           stageClassName="min-h-0 flex-1 flex-col justify-start gap-4 p-4 sm:p-5"
         >
-          <Tabs defaultValue="school">
-            <div className="border-b">
-              <TabsList variant="underline">
-                <TabsTab value="school">
-                  <GraduationCapIcon aria-hidden="true" className="size-4" />
-                  School &amp; Level
-                </TabsTab>
-                <TabsTab value="enrollment">
-                  <BookOpenIcon aria-hidden="true" className="size-4" />
-                  Enrollment
-                </TabsTab>
-              </TabsList>
-            </div>
-            <TabsPanel
-              className="grid content-start gap-4 pt-2"
-              keepMounted
-              value="school"
-            >
+          <TabsSubtle
+            idPrefix="school-enrollment"
+            onSelect={setSchoolTab}
+            selectedIndex={schoolTab}
+          >
+            <TabsSubtleItem
+              icon={GraduationCapIcon}
+              index={0}
+              label="School & Level"
+            />
+            <TabsSubtleItem
+              icon={BookOpenIcon}
+              index={1}
+              label="Enrollment"
+            />
+          </TabsSubtle>
+          <TabsSubtlePanel
+            className="grid content-start gap-4 pt-2"
+            idPrefix="school-enrollment"
+            index={0}
+            selectedIndex={schoolTab}
+          >
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid content-start gap-1.5">
                   <FieldLabel required>Stage</FieldLabel>
-                  <Select
-                    items={Object.fromEntries(
-                      stageOptions.map((option) => [option.value, option.label])
-                    )}
-                    onValueChange={handleStageChange}
-                    value={selectedStage}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select stage..." />
-                    </SelectTrigger>
+                  <Select onValueChange={handleStageChange} value={selectedStage}>
+                    <SelectTrigger placeholder="Select stage..." />
                     <SelectContent>
-                      {stageOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
+                      {stageOptions.map((option, itemIndex) => (
+                        <SelectItem
+                          index={itemIndex}
+                          key={option.value}
+                          value={option.value}
+                        >
                           {option.label}
                         </SelectItem>
                       ))}
@@ -945,53 +931,56 @@ export const StudentCreateForm = ({
                   <FieldLabel required>Level</FieldLabel>
                   <Select
                     disabled={!selectedStage}
-                    items={Object.fromEntries(
-                      stageLevels.map((level) => [level.id, level.name])
-                    )}
                     name="levelId"
                     onValueChange={handleLevelChange}
                     value={levelId}
                   >
                     <SelectTrigger
                       aria-invalid={errors.levelId ? true : undefined}
-                      className={errorClassName(Boolean(errors.levelId))}
-                    >
-                      <SelectValue placeholder={levelPlaceholder} />
-                    </SelectTrigger>
+                      error={errors.levelId}
+                      placeholder={levelPlaceholder}
+                    />
                     <SelectContent>
-                      {stageLevels.map((level) => (
-                        <SelectItem key={level.id} value={level.id}>
+                      {stageLevels.map((level, itemIndex) => (
+                        <SelectItem
+                          index={itemIndex}
+                          key={level.id}
+                          value={level.id}
+                        >
                           {level.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <FieldErrorText message={errors.levelId} />
                 </div>
                 <div className="grid content-start gap-1.5 sm:col-span-2">
                   <FieldLabel htmlFor="schoolName" required>
                     School name
                   </FieldLabel>
-                  <Input
-                    aria-invalid={errors.schoolName ? true : undefined}
-                    className={errorClassName(Boolean(errors.schoolName))}
-                    id="schoolName"
-                    name="schoolName"
-                    onChange={(event) => {
-                      setSchoolName(event.target.value);
-                      clearError("schoolName");
-                    }}
-                    placeholder="e.g. SMK Kajang, SJKC Chong Hwa..."
-                    value={schoolName}
-                  />
-                  <FieldErrorText message={errors.schoolName} />
+                  <InputGroup className="contents">
+                    <InputField
+                      error={errors.schoolName}
+                      id="schoolName"
+                      index={0}
+                      label="School name"
+                      labelHidden
+                      name="schoolName"
+                      onChange={(value) => {
+                        setSchoolName(value);
+                        clearError("schoolName");
+                      }}
+                      placeholder="e.g. SMK Kajang, SJKC Chong Hwa..."
+                      value={schoolName}
+                    />
+                  </InputGroup>
                 </div>
               </div>
-            </TabsPanel>
-            <TabsPanel
+            </TabsSubtlePanel>
+            <TabsSubtlePanel
               className="grid content-start gap-4 pt-2"
-              keepMounted
-              value="enrollment"
+              idPrefix="school-enrollment"
+              index={1}
+              selectedIndex={schoolTab}
             >
               <div className="grid gap-4">
                 <div className="grid content-start gap-1.5">
@@ -1035,20 +1024,21 @@ export const StudentCreateForm = ({
                 singleSelection={singleSelection}
                 subjectTotalSen={subjectTotalSen}
               />
-            </TabsPanel>
-          </Tabs>
-        </PreviewCard>
+            </TabsSubtlePanel>
+        </FluidPanel>
 
-        <Collapsible>
-          <PreviewCard
-            className="flex flex-col"
-            header={
-              <div className="flex w-full items-center justify-between gap-4">
+        <FluidPanel
+          className="flex flex-col"
+          stageClassName="min-h-0 flex-1 flex-col justify-start gap-4 p-4 sm:p-5"
+        >
+          <Accordion>
+            <AccordionItem value="additional">
+              <AccordionTrigger>
                 <span className="flex items-center gap-3">
                   <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                     <MoreHorizontalIcon className="size-4 text-primary" />
                   </span>
-                  <span className="flex min-w-0 flex-col">
+                  <span className="flex min-w-0 flex-col text-left">
                     <span className="font-semibold text-foreground text-sm">
                       Additional Information
                     </span>
@@ -1057,80 +1047,90 @@ export const StudentCreateForm = ({
                     </span>
                   </span>
                 </span>
-                <CollapsibleTrigger
-                  render={<Button size="icon" type="button" variant="ghost" />}
-                >
-                  <ChevronDownIcon className="size-4 in-[[data-panel-open]]:rotate-180 transition-transform" />
-                  <span className="sr-only">Toggle additional information</span>
-                </CollapsibleTrigger>
-              </div>
-            }
-            stageClassName="min-h-0 flex-1 flex-col justify-start gap-4 p-4 sm:p-5"
-          >
-            <CollapsibleContent className="grid gap-4">
+              </AccordionTrigger>
+              <AccordionContent className="grid gap-4">
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="grid content-start gap-1.5">
-                      <FieldLabel htmlFor="emergencyContactName">
-                        Emergency contact name
-                      </FieldLabel>
-                      <Input
-                        id="emergencyContactName"
-                        name="emergencyContactName"
-                        placeholder="Name of emergency contact"
-                      />
-                    </div>
-                    <div className="grid content-start gap-1.5">
-                      <FieldLabel htmlFor="emergencyContactPhone">
-                        Emergency contact phone
-                      </FieldLabel>
-                      <Input
-                        id="emergencyContactPhone"
-                        name="emergencyContactPhone"
-                        placeholder="0123456789"
-                      />
-                    </div>
-                  </div>
-
                   <div className="grid content-start gap-1.5">
-                    <FieldLabel htmlFor="medicalNotes">
-                      Medical conditions / allergies
+                    <FieldLabel htmlFor="emergencyContactName">
+                      Emergency contact name
                     </FieldLabel>
-                    <Textarea
-                      id="medicalNotes"
-                      name="medicalNotes"
-                      placeholder="e.g. Peanut allergy, asthma inhaler required, wears glasses..."
-                      rows={2}
-                    />
+                    <InputGroup className="contents">
+                      <InputField
+                        id="emergencyContactName"
+                        index={0}
+                        label="Emergency contact name"
+                        labelHidden
+                        name="emergencyContactName"
+                        onChange={setEmergencyContactName}
+                        placeholder="Name of emergency contact"
+                        value={emergencyContactName}
+                      />
+                    </InputGroup>
                   </div>
-
                   <div className="grid content-start gap-1.5">
-                    <FieldLabel>How did they find us?</FieldLabel>
-                    <Select name="referralSource">
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select source..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {REFERRAL_SOURCES.map((source) => (
-                          <SelectItem key={source} value={source}>
-                            {source}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FieldLabel htmlFor="emergencyContactPhone">
+                      Emergency contact phone
+                    </FieldLabel>
+                    <InputGroup className="contents">
+                      <InputField
+                        id="emergencyContactPhone"
+                        index={0}
+                        label="Emergency contact phone"
+                        labelHidden
+                        name="emergencyContactPhone"
+                        onChange={setEmergencyContactPhone}
+                        placeholder="0123456789"
+                        value={emergencyContactPhone}
+                      />
+                    </InputGroup>
                   </div>
+                </div>
 
-                  <div className="grid content-start gap-1.5">
-                    <FieldLabel htmlFor="notes">Internal notes</FieldLabel>
-                    <Textarea
-                      id="notes"
-                      name="notes"
-                      placeholder="e.g. Sibling of existing student, requires extra attention in Maths..."
-                      rows={2}
-                    />
-                  </div>
-            </CollapsibleContent>
-          </PreviewCard>
-        </Collapsible>
+                <div className="grid content-start gap-1.5">
+                  <FieldLabel htmlFor="medicalNotes">
+                    Medical conditions / allergies
+                  </FieldLabel>
+                  <textarea
+                    className="w-full rounded-lg px-2.5 py-2 text-[13px] text-foreground ring-1 ring-border transition-all duration-80 outline-none placeholder:text-muted-foreground focus:bg-card"
+                    id="medicalNotes"
+                    name="medicalNotes"
+                    onChange={(event) => setMedicalNotes(event.target.value)}
+                    placeholder="e.g. Peanut allergy, asthma inhaler required, wears glasses..."
+                    rows={2}
+                    value={medicalNotes}
+                  />
+                </div>
+
+                <div className="grid content-start gap-1.5">
+                  <FieldLabel>How did they find us?</FieldLabel>
+                  <Select name="referralSource">
+                    <SelectTrigger placeholder="Select source..." />
+                    <SelectContent>
+                      {REFERRAL_SOURCES.map((source, itemIndex) => (
+                        <SelectItem index={itemIndex} key={source} value={source}>
+                          {source}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid content-start gap-1.5">
+                  <FieldLabel htmlFor="notes">Internal notes</FieldLabel>
+                  <textarea
+                    className="w-full rounded-lg px-2.5 py-2 text-[13px] text-foreground ring-1 ring-border transition-all duration-80 outline-none placeholder:text-muted-foreground focus:bg-card"
+                    id="notes"
+                    name="notes"
+                    onChange={(event) => setNotes(event.target.value)}
+                    placeholder="e.g. Sibling of existing student, requires extra attention in Maths..."
+                    rows={2}
+                    value={notes}
+                  />
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </FluidPanel>
 
         {Object.keys(errors).length > 0 ? (
           <div className="flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-destructive text-sm">
@@ -1165,21 +1165,17 @@ export const StudentCreateForm = ({
       </aside>
 
       <div className="order-3 flex flex-col gap-3 sm:flex-row xl:col-start-1 xl:row-start-2">
-        <Button className="flex-1" disabled={isPending} size="lg" type="submit">
-          {isPending ? (
-            <>
-              <Loader2Icon className="size-4 animate-spin" />
-              Saving...
-            </>
-          ) : (
-            <>
-              <CheckIcon className="size-4" />
-              Save Student
-            </>
-          )}
+        <Button
+          className="flex-1"
+          loading={isPending}
+          size="lg"
+          type="submit"
+        >
+          <CheckIcon className="size-4" />
+          Save Student
         </Button>
-        <Button render={<Link href="/students" />} size="lg" variant="outline">
-          Cancel
+        <Button asChild size="lg" variant="tertiary">
+          <Link href="/students">Cancel</Link>
         </Button>
       </div>
     </form>

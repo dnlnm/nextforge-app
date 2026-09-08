@@ -4,8 +4,8 @@ import {
   ProgressIndicator,
   ProgressTrack,
 } from "@repo/design-system/components/ui/progress";
-import { Icon } from "@repo/design-system/components/ui/icon";
 import { StatLabel, StatValue } from "@repo/design-system/components/ui/stat";
+import { KpiStatIcon } from "../kpi-stat-icon";
 import { FluidPanel } from "@repo/design-system/components/fluid-panel";
 import { cn } from "@repo/design-system/lib/utils";
 import type { DashboardKpiData } from "@repo/domain";
@@ -124,9 +124,7 @@ export const KpiRow = ({ currency, data }: KpiRowProps) => {
           stageClassName="flex-col items-start justify-center gap-3 p-4 sm:p-4"
         >
           <div className="flex items-center gap-3">
-            <Icon color={stat.color} variant="elevated-filled">
-              <stat.icon />
-            </Icon>
+            <KpiStatIcon color={stat.color} icon={stat.icon} />
             <StatLabel>{stat.label}</StatLabel>
           </div>
           <StatValue>{stat.value}</StatValue>

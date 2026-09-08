@@ -1,18 +1,18 @@
 "use client";
 
-import { Button } from "@repo/design-system/components/ui/button";
-import { Checkbox } from "@repo/design-system/components/ui/checkbox";
+import { Button } from "@repo/design-system/components/ui/fluid-button";
+import { VanillaCheckbox as Checkbox } from "@repo/design-system/components/ui/checkbox-vanilla";
 import { DataTableSortableHeader } from "@repo/design-system/components/ui/data-table/data-table-column-header";
 import {
   type ColumnMeta,
   createAppColumnHelper,
 } from "@repo/design-system/components/ui/data-table/table";
 import {
-  Menu,
-  MenuContent,
-  MenuItem,
-  MenuTrigger,
-} from "@repo/design-system/components/ui/menu";
+  DropdownContent,
+  DropdownMenu,
+  DropdownTrigger,
+} from "@repo/design-system/components/ui/fluid-dropdown";
+import { MenuItem } from "@repo/design-system/components/ui/fluid-menu-item";
 import { privateFileUrl } from "@repo/storage/client";
 import {
   ArchiveIcon,
@@ -23,6 +23,7 @@ import {
   Trash2Icon,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { ArchiveStudentDialog } from "../components/archive-student-dialog";
@@ -54,6 +55,7 @@ export interface FilterOption {
 }
 
 export const StudentRowActions = ({ student }: { student: Student }) => {
+  const router = useRouter();
   const [isArchiveOpen, setIsArchiveOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isRestoreOpen, setIsRestoreOpen] = useState(false);
@@ -62,46 +64,54 @@ export const StudentRowActions = ({ student }: { student: Student }) => {
 
   return (
     <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
-      <Menu>
-        <MenuTrigger
+      <DropdownMenu>
+        <DropdownTrigger
           render={
             <Button aria-label="Row actions" size="icon" variant="ghost" />
           }
         >
           <MoreHorizontalIcon className="size-4" />
-        </MenuTrigger>
-        <MenuContent align="end" className="w-44">
-          <MenuItem render={<Link href={`/students/${student.id}`} />}>
-            <EyeIcon />
-            View profile
-          </MenuItem>
+        </DropdownTrigger>
+        <DropdownContent align="end" className="w-44">
           <MenuItem
-            render={
-              <Link
-                href={guardian?.phone ? `https://wa.me/${guardian.phone}` : "#"}
-              />
-            }
-          >
-            <MessageCircleIcon />
-            WhatsApp
-          </MenuItem>
+            icon={EyeIcon}
+            index={0}
+            label="View profile"
+            onSelect={() => router.push(`/students/${student.id}`)}
+          />
+          <MenuItem
+            icon={MessageCircleIcon}
+            index={1}
+            label="WhatsApp"
+            onSelect={() => {
+              window.location.href = guardian?.phone
+                ? `https://wa.me/${guardian.phone}`
+                : "#";
+            }}
+          />
           {isArchived ? (
-            <MenuItem onClick={() => setIsRestoreOpen(true)}>
-              <RotateCcwIcon />
-              Restore
-            </MenuItem>
+            <MenuItem
+              icon={RotateCcwIcon}
+              index={2}
+              label="Restore"
+              onSelect={() => setIsRestoreOpen(true)}
+            />
           ) : (
-            <MenuItem variant="destructive" onClick={() => setIsArchiveOpen(true)}>
-              <ArchiveIcon />
-              Archive
-            </MenuItem>
+            <MenuItem
+              icon={ArchiveIcon}
+              index={2}
+              label="Archive"
+              onSelect={() => setIsArchiveOpen(true)}
+            />
           )}
-          <MenuItem variant="destructive" onClick={() => setIsDeleteOpen(true)}>
-            <Trash2Icon />
-            Delete
-          </MenuItem>
-        </MenuContent>
-      </Menu>
+          <MenuItem
+            icon={Trash2Icon}
+            index={3}
+            label="Delete"
+            onSelect={() => setIsDeleteOpen(true)}
+          />
+        </DropdownContent>
+      </DropdownMenu>
       <ArchiveStudentDialog
         onOpenChange={setIsArchiveOpen}
         open={isArchiveOpen}

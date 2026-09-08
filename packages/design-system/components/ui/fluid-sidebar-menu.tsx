@@ -29,6 +29,8 @@ import { spring } from "@repo/design-system/lib/springs";
 import { fontWeights } from "@repo/design-system/lib/font-weight";
 import { useShape } from "@repo/design-system/lib/shape-context";
 import { useSize, SizeProvider, type SizeVariant } from "@repo/design-system/lib/size-context";
+import { useSurface } from "@repo/design-system/lib/surface-context";
+import { surfaceClasses } from "@repo/design-system/lib/surface-classes";
 import { useProximityHover, type ItemRect } from "@repo/design-system/hooks/use-proximity-hover";
 import type { IconComponent } from "@repo/design-system/lib/icon-context";
 import { resolveSlotTemplate, slotElement } from "@repo/design-system/components/ui/fluid-sidebar-core";
@@ -354,6 +356,11 @@ function useMenuScope(containerRef: RefObject<HTMLElement | null>): MenuScope {
   );
 
   const shape = useShape();
+  // Elevated active row: the selection reads as a raised card (substrate + 2
+  // with the popup-tier shadow) instead of a flat wash. Hover keeps its
+  // translucent wash on top.
+  const substrate = useSurface();
+  const activeSurface = surfaceClasses(Math.min(substrate + 2, 8), 3);
   // Every active row gets its own background — the buttons' own text styling
   // already lights each active row, so the overlays must match. Keys are the
   // row's level (root, or its sub-menu) plus its occurrence within that
@@ -425,12 +432,14 @@ function useMenuScope(containerRef: RefObject<HTMLElement | null>): MenuScope {
 
   const overlays = isMeasured ? (
     <>
-      {/* Active row backgrounds — one per active row (see activeRects above) */}
+      {/* Active row backgrounds — one per active row (see activeRects above).
+          Elevated surface instead of a flat wash so the selection reads as
+          a raised card; paints below the rows (overlays render first). */}
       <AnimatePresence>
         {activeRects.map(({ key, rect, rowChanged }) => (
           <motion.div
             key={key}
-            className={`absolute ${shape.bg} bg-active pointer-events-none`}
+            className={cn("absolute pointer-events-none", shape.bg, activeSurface)}
             initial={false}
             animate={{
               top: rect.top,

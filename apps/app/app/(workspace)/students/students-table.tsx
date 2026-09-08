@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { Button } from "@repo/design-system/components/ui/button";
+import { Button } from "@repo/design-system/components/ui/fluid-button";
 import { FluidPanel } from "@repo/design-system/components/fluid-panel";
 import {
   type ExtendedColumnFilter,
@@ -9,8 +9,6 @@ import {
   useAppTable,
 } from "@repo/design-system/components/ui/data-table/table";
 import { InputField, InputGroup } from "@repo/design-system/components/ui/fluid-input-group";
-import { Separator } from "@repo/design-system/components/ui/separator";
-import { Skeleton } from "@repo/design-system/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -18,7 +16,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@repo/design-system/components/ui/table";
+} from "@repo/design-system/components/ui/fluid-table";
 import { sortingSchema } from "@repo/schemas/common";
 import {
   type StudentTableFilter,
@@ -229,15 +227,15 @@ export function StudentsTable({
 
   const renderBody = () => {
     if (isLoading) {
-      return SKELETON_ROW_KEYS.map((key) => (
-        <TableRow className="border-border" key={key}>
-          {columns.map((column) => (
-            <TableCell key={column.id}>
-              <Skeleton className="h-5 w-full" />
-            </TableCell>
-          ))}
-        </TableRow>
-      ));
+    return SKELETON_ROW_KEYS.map((key) => (
+      <TableRow className="border-border" key={key}>
+        {columns.map((column) => (
+          <TableCell key={column.id}>
+            <div className="h-5 w-full animate-pulse rounded-sm bg-muted" />
+          </TableCell>
+        ))}
+      </TableRow>
+    ));
     }
 
     const rows = table.getRowModel().rows;
@@ -252,10 +250,11 @@ export function StudentsTable({
       );
     }
 
-    return rows.map((row) => (
+    return rows.map((row, rowIndex) => (
       <TableRow
         className="cursor-pointer border-border last:border-0"
         data-state={row.getIsSelected() ? "selected" : undefined}
+        index={rowIndex}
         key={row.id}
         onClick={() => handleRowClick(row.original)}
       >
@@ -290,7 +289,7 @@ export function StudentsTable({
             <div className="flex items-center gap-2">
               {hasActiveState ? (
                 <Button
-                  className="[&_svg]:size-3"
+                  leadingIcon={RotateCcwIcon}
                   onClick={() =>
                     setUrlParams({
                       filters: [],
@@ -299,10 +298,9 @@ export function StudentsTable({
                       sorting: [],
                     })
                   }
-                  size="sm"
-                  variant="outline"
+                  size="compact"
+                  variant="tertiary"
                 >
-                  <RotateCcwIcon aria-hidden="true" />
                   Reset
                 </Button>
               ) : null}
@@ -314,7 +312,7 @@ export function StudentsTable({
         footer={<table.Pagination />}
         stageClassName="flex-col items-stretch justify-start overflow-hidden p-0 sm:p-0"
       >
-        <div className="hidden min-h-0 w-full overflow-x-auto md:block">
+        <div className="hidden min-h-0 w-full overflow-x-auto overflow-y-clip md:block">
           <Table className="w-full table-fixed">
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -345,7 +343,7 @@ export function StudentsTable({
             </TableHeader>
             <TableBody>{renderBody()}</TableBody>
           </Table>
-          <Separator className="bg-border/60" />
+          <div aria-orientation="horizontal" className="h-px w-full bg-border/60" role="separator" />
         </div>
 
         <div className="px-4 md:hidden">

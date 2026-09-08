@@ -1,6 +1,5 @@
 "use client";
 
-import { Card } from "@repo/design-system/components/ui/card";
 import { privateFileUrl } from "@repo/storage/client";
 import Link from "next/link";
 
@@ -16,8 +15,8 @@ export function StudentCard({
   student: Student;
 }) {
   return (
-    <Card
-      className="isolate cursor-pointer p-4 transition-colors after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:border-border/64 hover:bg-muted/30 dark:bg-background"
+    <div
+      className="cursor-pointer rounded-xl border bg-card p-4 transition-colors hover:bg-muted/30 dark:bg-background"
       onClick={() => onRowClick?.(student)}
     >
       <div className="flex items-center gap-3">
@@ -47,6 +46,6 @@ export function StudentCard({
         </span>
         <StudentStatusBadge status={student.status} />
       </div>
-    </Card>
+    </div>
   );
 }

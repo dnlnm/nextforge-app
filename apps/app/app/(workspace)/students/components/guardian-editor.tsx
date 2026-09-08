@@ -1,18 +1,14 @@
 "use client";
 
-import { Checkbox } from "@repo/design-system/components/ui/checkbox";
-import { Input } from "@repo/design-system/components/ui/input";
+import { VanillaCheckbox as Checkbox } from "@repo/design-system/components/ui/checkbox-vanilla";
+import { InputField, InputGroup } from "@repo/design-system/components/ui/fluid-input-group";
 import { Label } from "@repo/design-system/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@repo/design-system/components/ui/select";
-import { Textarea } from "@repo/design-system/components/ui/textarea";
-import { cn } from "@repo/design-system/lib/utils";
-import { AlertCircleIcon } from "lucide-react";
+} from "@repo/design-system/components/ui/fluid-select";
 
 export interface GuardianDraft {
   readonly address: string;
@@ -56,39 +52,39 @@ export const GuardianEditor = ({
           <Label htmlFor={`guardian-first-name-${guardian.id}`}>
             First name <span className="text-destructive text-xs">*</span>
           </Label>
-          <Input
-            aria-invalid={Boolean(fieldError("firstName"))}
-            className={cn(
-              fieldError("firstName") &&
-                "border-destructive focus-visible:ring-destructive/50"
-            )}
-            id={`guardian-first-name-${guardian.id}`}
-            onChange={(event) =>
-              onUpdate(guardian.id, { firstName: event.target.value })
-            }
-            placeholder="e.g. Nurul Aisyah / Wei Jie"
-            value={guardian.firstName}
-          />
-          <FieldMessage error={fieldError("firstName")} />
+          <InputGroup className="contents">
+            <InputField
+              error={fieldError("firstName")}
+              id={`guardian-first-name-${guardian.id}`}
+              index={0}
+              label="First name"
+              labelHidden
+              onChange={(value) =>
+                onUpdate(guardian.id, { firstName: value })
+              }
+              placeholder="e.g. Nurul Aisyah / Wei Jie"
+              value={guardian.firstName}
+            />
+          </InputGroup>
         </div>
         <div className="grid content-start gap-1.5">
           <Label htmlFor={`guardian-last-name-${guardian.id}`}>
             Last name / Family name <span className="text-destructive text-xs">*</span>
           </Label>
-          <Input
-            aria-invalid={Boolean(fieldError("lastName"))}
-            className={cn(
-              fieldError("lastName") &&
-                "border-destructive focus-visible:ring-destructive/50"
-            )}
-            id={`guardian-last-name-${guardian.id}`}
-            onChange={(event) =>
-              onUpdate(guardian.id, { lastName: event.target.value })
-            }
-            placeholder="e.g. binti Ahmad / Tan"
-            value={guardian.lastName}
-          />
-          <FieldMessage error={fieldError("lastName")} />
+          <InputGroup className="contents">
+            <InputField
+              error={fieldError("lastName")}
+              id={`guardian-last-name-${guardian.id}`}
+              index={0}
+              label="Last name / Family name"
+              labelHidden
+              onChange={(value) =>
+                onUpdate(guardian.id, { lastName: value })
+              }
+              placeholder="e.g. binti Ahmad / Tan"
+              value={guardian.lastName}
+            />
+          </InputGroup>
         </div>
       </div>
 
@@ -96,46 +92,45 @@ export const GuardianEditor = ({
         <div className="grid content-start gap-1.5">
           <Label>Relationship <span className="text-destructive text-xs">*</span></Label>
           <Select
-            items={Object.fromEntries(
-              RELATIONSHIPS.map((item) => [item.value, item.label])
-            )}
             onValueChange={(value) =>
               onUpdate(guardian.id, { relationship: value ?? "" })
             }
             value={guardian.relationship}
           >
-            <SelectTrigger id={`guardian-relationship-${guardian.id}`}>
-              <SelectValue placeholder="Select..." />
-            </SelectTrigger>
+            <SelectTrigger
+              aria-invalid={Boolean(fieldError("relationship"))}
+              error={fieldError("relationship")}
+              id={`guardian-relationship-${guardian.id}`}
+              placeholder="Select..."
+            />
             <SelectContent>
-              {RELATIONSHIPS.map((item) => (
-                <SelectItem key={item.value} value={item.value}>
+              {RELATIONSHIPS.map((item, itemIndex) => (
+                <SelectItem index={itemIndex} key={item.value} value={item.value}>
                   {item.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <FieldMessage error={fieldError("relationship")} />
         </div>
         <div className="grid content-start gap-1.5">
           <Label htmlFor={`guardian-ic-${guardian.id}`}>
             IC number <span className="text-destructive text-xs">*</span>
           </Label>
-          <Input
-            aria-invalid={Boolean(fieldError("ic"))}
-            className={cn(
-              fieldError("ic") &&
-                "border-destructive focus-visible:ring-destructive/50"
-            )}
-            id={`guardian-ic-${guardian.id}`}
-            maxLength={12}
-            onChange={(event) =>
-              onUpdate(guardian.id, { icNumber: event.target.value })
-            }
-            placeholder="901231145678"
-            value={guardian.icNumber}
-          />
-          <FieldMessage error={fieldError("ic")} />
+          <InputGroup className="contents">
+            <InputField
+              error={fieldError("ic")}
+              id={`guardian-ic-${guardian.id}`}
+              index={0}
+              label="IC number"
+              labelHidden
+              maxLength={12}
+              onChange={(value) =>
+                onUpdate(guardian.id, { icNumber: value })
+              }
+              placeholder="901231145678"
+              value={guardian.icNumber}
+            />
+          </InputGroup>
         </div>
       </div>
 
@@ -145,46 +140,47 @@ export const GuardianEditor = ({
             Email address
             <span className="text-destructive text-xs"> *</span>
           </Label>
-          <Input
-            aria-invalid={Boolean(fieldError("email"))}
-            className={cn(
-              fieldError("email") &&
-                "border-destructive focus-visible:ring-destructive/50"
-            )}
-            id={`guardian-email-${guardian.id}`}
-            onChange={(event) =>
-              onUpdate(guardian.id, { email: event.target.value })
-            }
-            placeholder="example@gmail.com"
-            type="email"
-            value={guardian.email}
-          />
-          <FieldMessage error={fieldError("email")} />
+          <InputGroup className="contents">
+            <InputField
+              error={fieldError("email")}
+              id={`guardian-email-${guardian.id}`}
+              index={0}
+              label="Email address"
+              labelHidden
+              onChange={(value) =>
+                onUpdate(guardian.id, { email: value })
+              }
+              placeholder="example@gmail.com"
+              type="email"
+              value={guardian.email}
+            />
+          </InputGroup>
         </div>
         <div className="grid content-start gap-1.5">
           <Label htmlFor={`guardian-phone-${guardian.id}`}>
             Phone number <span className="text-destructive text-xs">*</span>
           </Label>
-          <Input
-            aria-invalid={Boolean(fieldError("phone"))}
-            className={cn(
-              fieldError("phone") &&
-                "border-destructive focus-visible:ring-destructive/50"
-            )}
-            id={`guardian-phone-${guardian.id}`}
-            onChange={(event) =>
-              onUpdate(guardian.id, { phone: event.target.value })
-            }
-            placeholder="0123456789"
-            value={guardian.phone}
-          />
-          <FieldMessage error={fieldError("phone")} />
+          <InputGroup className="contents">
+            <InputField
+              error={fieldError("phone")}
+              id={`guardian-phone-${guardian.id}`}
+              index={0}
+              label="Phone number"
+              labelHidden
+              onChange={(value) =>
+                onUpdate(guardian.id, { phone: value })
+              }
+              placeholder="0123456789"
+              value={guardian.phone}
+            />
+          </InputGroup>
         </div>
       </div>
 
       <div className="grid content-start gap-1.5">
         <Label htmlFor={`guardian-address-${guardian.id}`}>Address</Label>
-        <Textarea
+        <textarea
+          className="w-full rounded-lg px-2.5 py-2 text-[13px] text-foreground ring-1 ring-border transition-all duration-80 outline-none placeholder:text-muted-foreground focus:bg-card disabled:cursor-not-allowed disabled:opacity-50"
           disabled={guardian.sameAsStudent}
           id={`guardian-address-${guardian.id}`}
           onChange={(event) =>
@@ -211,11 +207,3 @@ export const GuardianEditor = ({
     </div>
   );
 };
-
-const FieldMessage = ({ error }: { readonly error?: string }) =>
-  error ? (
-    <p className="flex items-center gap-1 text-destructive text-xs">
-      <AlertCircleIcon className="size-3" />
-      {error}
-    </p>
-  ) : null;

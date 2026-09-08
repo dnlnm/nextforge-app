@@ -1,7 +1,6 @@
 "use client";
 
-import { Badge } from "@repo/design-system/components/ui/badge";
-import { cn } from "@repo/design-system/lib/utils";
+import { Badge } from "@repo/design-system/components/ui/fluid-badge";
 
 export const StudentStatusBadge = ({
   status,
@@ -11,14 +10,7 @@ export const StudentStatusBadge = ({
   const isActive = status === "ACTIVE";
 
   return (
-    <Badge variant="outline">
-      <span
-        aria-hidden="true"
-        className={cn(
-          "size-1.5 rounded-full",
-          isActive ? "bg-emerald-500" : "bg-muted-foreground"
-        )}
-      />
+    <Badge color={isActive ? "emerald" : "gray"} variant="dot">
       {isActive ? "Active" : "Archived"}
     </Badge>
   );

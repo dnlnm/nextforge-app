@@ -1,7 +1,6 @@
 "use client";
 
-import { Checkbox } from "@repo/design-system/components/ui/checkbox";
-import { Group, GroupSeparator } from "@repo/design-system/components/ui/group";
+import { VanillaCheckbox as Checkbox } from "@repo/design-system/components/ui/checkbox-vanilla";
 import { cn } from "@repo/design-system/lib/utils";
 import { formatMoney } from "@repo/money";
 import { InfoIcon } from "lucide-react";
@@ -100,8 +99,11 @@ export const ClassPicker = ({
           const full = isFull(learningClass);
 
           return (
-            <Group
-              className={cn("ms-4", full && "opacity-60")}
+            <div
+              className={cn(
+                "ms-4 flex items-stretch divide-x divide-border overflow-hidden rounded-lg border",
+                full && "opacity-60"
+              )}
               key={learningClass.id}
             >
               <span className="flex items-center py-1.5 pr-2 pl-3">
@@ -111,20 +113,17 @@ export const ClassPicker = ({
                   onCheckedChange={() => onToggle(learningClass.id)}
                 />
               </span>
-              <GroupSeparator />
               <span className="self-center px-2 text-muted-foreground font-mono text-xs">
                 {learningClass.code}
               </span>
-              <GroupSeparator />
               <span className="min-w-0 self-center px-2 text-sm font-medium">
                 {learningClass.name}
               </span>
-              <GroupSeparator />
               <span className="self-center pr-3 pl-2 text-muted-foreground text-xs">
                 {format(learningClass.monthlyFeeSen)}/mo
                 {full ? " · Full" : ""}
               </span>
-            </Group>
+            </div>
           );
         })
       )}
