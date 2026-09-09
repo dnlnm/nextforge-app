@@ -64,10 +64,10 @@ export const StudentRowActions = ({ student }: { student: Student }) => {
 
   return (
     <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
-      <DropdownMenu>
+      <DropdownMenu size="compact">
         <DropdownTrigger
           render={
-            <Button aria-label="Row actions" size="icon" variant="ghost" />
+            <Button aria-label="Row actions" size="icon-compact" variant="ghost" />
           }
         >
           <MoreHorizontalIcon className="size-4" />

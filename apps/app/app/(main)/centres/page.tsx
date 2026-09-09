@@ -1,25 +1,18 @@
-import { buildWorkspaceUrl } from "@repo/auth/domain";
 import { ensureLocalUser } from "@repo/auth/organizations";
-import { appName, formatWorkspaceHostname } from "@repo/config/brand";
+import { appName } from "@repo/config/brand";
 import { database } from "@repo/database";
-import { Badge } from "@repo/design-system/components/ui/badge";
-import { Button } from "@repo/design-system/components/ui/button";
-import {
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@repo/design-system/components/ui/card";
-import { CardShell } from "@repo/design-system/components/ui/card-shell";
-import {
-  CreditCardIcon,
-  ExternalLinkIcon,
-  PlusCircleIcon,
-  SettingsIcon,
-} from "lucide-react";
+import { differenceInMalaysiaCalendarDays } from "@repo/date";
+import { Button } from "@repo/design-system/components/ui/fluid-button";
+import { getBillingState } from "@repo/payments/subscription";
+import { PlusCircleIcon } from "lucide-react";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { CentreAffiliations } from "./components/centre-affiliations";
+import { CentreCapacityCard } from "./components/centre-capacity-card";
+import { CentreEmptyState } from "./components/centre-empty-state";
+import { CentreHero } from "./components/centre-hero";
+import { CentreQuickActions } from "./components/centre-quick-actions";
 
 export const metadata: Metadata = {
   title: `My Centre - ${appName}`,
@@ -33,202 +26,148 @@ const CentresPage = async () => {
     redirect("/sign-in");
   }
 
-  const memberships = await database.organizationMembership.findMany({
-    where: {
-      userId: user.id,
-      role: "OWNER",
-      status: "ACTIVE",
-      organization: { status: "ACTIVE" },
-    },
-    orderBy: { createdAt: "asc" },
-    select: {
-      id: true,
-      role: true,
-      organization: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          imageUrl: true,
-          subscription: {
-            select: { plan: true, status: true },
-          },
-          _count: {
-            select: {
-              students: { where: { archivedAt: null } },
-              teachers: { where: { archivedAt: null } },
-              classes: { where: { archivedAt: null } },
+  const [ownedMembership, rawAffiliations] = await Promise.all([
+    database.organizationMembership.findFirst({
+      where: {
+        userId: user.id,
+        role: "OWNER",
+        status: "ACTIVE",
+        organization: { status: "ACTIVE" },
+      },
+      select: {
+        id: true,
+        role: true,
+        organization: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            imageUrl: true,
+            createdAt: true,
+            branch: {
+              select: {
+                name: true,
+                phone: true,
+                city: true,
+                state: true,
+              },
+            },
+            subscription: {
+              select: {
+                plan: true,
+                status: true,
+                trialEndsAt: true,
+              },
+            },
+            _count: {
+              select: {
+                students: { where: { archivedAt: null } },
+                teachers: { where: { archivedAt: null } },
+                classes: { where: { archivedAt: null } },
+              },
             },
           },
         },
       },
-    },
-  });
+    }),
+    database.organizationMembership.findMany({
+      where: {
+        userId: user.id,
+        role: { in: ["ADMIN", "TEACHER"] },
+        status: "ACTIVE",
+        organization: { status: "ACTIVE" },
+      },
+      orderBy: { createdAt: "asc" },
+      select: {
+        id: true,
+        role: true,
+        organization: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            imageUrl: true,
+            _count: {
+              select: {
+                students: { where: { archivedAt: null } },
+                classes: { where: { archivedAt: null } },
+              },
+            },
+          },
+        },
+      },
+    }),
+  ]);
 
-  const canCreateCentre = memberships.length === 0;
+  const affiliations = rawAffiliations.filter(
+    (item): item is typeof item & { role: "ADMIN" | "TEACHER" } =>
+      item.role === "ADMIN" || item.role === "TEACHER"
+  );
+
+  const billingState = ownedMembership
+    ? await getBillingState(ownedMembership.organization.id)
+    : null;
+
+  const trialDaysLeft = billingState?.subscription.trialEndsAt
+    ? Math.max(
+        0,
+        differenceInMalaysiaCalendarDays(
+          billingState.subscription.trialEndsAt,
+          new Date()
+        )
+      )
+    : null;
 
   return (
-    <div className="container mx-auto max-w-6xl px-4 py-8 sm:px-6">
-      <div className="mb-8 flex items-center justify-between">
+    <div className="container mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6">
+      {/* Page header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-semibold text-3xl tracking-tight">My Centre</h1>
-          <p className="text-muted-foreground">
-            Manage your tuition centre and access your workspaces
+          <h1 className="font-semibold text-3xl text-foreground tracking-tight">
+            My Centre
+          </h1>
+          <p className="mt-1 text-muted-foreground text-sm">
+            Command hub for your tuition centre workspace, subscription, and
+            operations
           </p>
         </div>
-        {canCreateCentre && (
-          <Button render={<Link href="/center-setup" />} size="lg">
-            <PlusCircleIcon className="mr-2 size-5" />
-            Create Centre
+
+        {ownedMembership ? null : (
+          <Button asChild size="default">
+            <Link href="/center-setup">
+              <PlusCircleIcon className="size-4" />
+              Create Centre
+            </Link>
           </Button>
         )}
       </div>
 
-      {memberships.length === 0 ? (
-        <CardShell className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-16">
-            <div className="mb-4 flex size-20 items-center justify-center rounded-full bg-primary/10">
-              <PlusCircleIcon className="size-10 text-primary" />
-            </div>
-            <h3 className="mb-2 font-semibold text-xl">No centres yet</h3>
-            <p className="mb-6 max-w-md text-center text-muted-foreground">
-              Create your first tuition centre to start managing students,
-              classes, and attendance.
-            </p>
-            <Button render={<Link href="/center-setup" />} size="lg">
-              <PlusCircleIcon className="mr-2 size-5" />
-              Create Your First Centre
-            </Button>
-          </CardContent>
-        </CardShell>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {memberships.map(({ organization, role }) => {
-            const workspaceUrl = buildWorkspaceUrl(organization.slug);
-            const roleVariant = "default";
+      {/* Main content */}
+      {ownedMembership ? (
+        <div className="space-y-6">
+          {/* Identity & Subdomain Hero */}
+          <CentreHero organization={ownedMembership.organization} />
 
-            return (
-              <CardShell
-                className="transition-shadow hover:shadow-lg"
-                key={organization.id}
-                panelClassName="flex flex-col overflow-hidden"
-              >
-                <CardHeader className="pb-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      {organization.imageUrl ? (
-                        <Image
-                          alt={organization.name}
-                          className="size-12 rounded object-cover"
-                          height={48}
-                          src={organization.imageUrl}
-                          unoptimized
-                          width={48}
-                        />
-                      ) : (
-                        <div className="flex size-12 items-center justify-center rounded bg-primary font-semibold text-lg text-primary-foreground">
-                          {organization.name[0]?.toUpperCase()}
-                        </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <CardTitle className="truncate text-lg">
-                          {organization.name}
-                        </CardTitle>
-                        <p className="truncate text-muted-foreground text-sm">
-                          {formatWorkspaceHostname(organization.slug)}
-                        </p>
-                      </div>
-                    </div>
-                    <Badge className="shrink-0" variant={roleVariant}>
-                      {role}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="flex flex-1 flex-col gap-4">
-                  <div className="grid grid-cols-3 gap-3 text-center">
-                    <div>
-                      <p className="font-semibold text-2xl">
-                        {organization._count.students}
-                      </p>
-                      <p className="text-muted-foreground text-xs">Students</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-2xl">
-                        {organization._count.teachers}
-                      </p>
-                      <p className="text-muted-foreground text-xs">Teachers</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-2xl">
-                        {organization._count.classes}
-                      </p>
-                      <p className="text-muted-foreground text-xs">Classes</p>
-                    </div>
-                  </div>
+          {/* 2-Column Section: Capacity & Subscriptions + Quick Workflows */}
+          <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-2">
+            {billingState ? (
+              <CentreCapacityCard
+                organizationId={ownedMembership.organization.id}
+                plan={billingState.plan}
+                subscription={billingState.subscription}
+                trialDaysLeft={trialDaysLeft}
+                usage={billingState.usage}
+              />
+            ) : null}
 
-                  {role === "OWNER" && organization.subscription ? (
-                    <div className="rounded-lg border bg-muted/50 p-3">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Plan</span>
-                        <Badge variant="secondary">
-                          {organization.subscription.plan}
-                        </Badge>
-                      </div>
-                      <div className="mt-1 flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Status</span>
-                        <span className="font-medium">
-                          {organization.subscription.status}
-                        </span>
-                      </div>
-                    </div>
-                  ) : null}
+            <CentreQuickActions slug={ownedMembership.organization.slug} />
+          </div>
 
-                  <div className="mt-auto space-y-2">
-                    <Button
-                      className="w-full"
-                      render={
-                        <a aria-label="Open Workspace" href={workspaceUrl} />
-                      }
-                      size="lg"
-                    >
-                      Open Workspace
-                      <ExternalLinkIcon className="ml-2 size-4" />
-                    </Button>
-
-                    {role === "OWNER" ? (
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button
-                          render={
-                            <Link
-                              href={`/centres/${organization.id}/settings`}
-                            />
-                          }
-                          size="sm"
-                          variant="outline"
-                        >
-                          <SettingsIcon className="mr-2 size-4" />
-                          Settings
-                        </Button>
-                        <Button
-                          render={
-                            <Link
-                              href={`/centres/${organization.id}/subscription`}
-                            />
-                          }
-                          size="sm"
-                          variant="outline"
-                        >
-                          <CreditCardIcon className="mr-2 size-4" />
-                          Subscription
-                        </Button>
-                      </div>
-                    ) : null}
-                  </div>
-                </CardContent>
-              </CardShell>
-            );
-          })}
+          {/* Secondary Affiliations (if any) */}
+          <CentreAffiliations affiliations={affiliations} />
         </div>
+      ) : (
+        <CentreEmptyState />
       )}
     </div>
   );

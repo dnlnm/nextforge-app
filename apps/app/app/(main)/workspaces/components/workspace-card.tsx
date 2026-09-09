@@ -1,15 +1,16 @@
 import { buildWorkspaceUrl } from "@repo/auth/domain";
 import { formatWorkspaceHostname } from "@repo/config/brand";
-import { Badge } from "@repo/design-system/components/ui/badge";
-import { Button } from "@repo/design-system/components/ui/button";
+import { Badge } from "@repo/design-system/components/ui/fluid-badge";
+import { Button } from "@repo/design-system/components/ui/fluid-button";
 import {
+  Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@repo/design-system/components/ui/card";
-import { CardShell } from "@repo/design-system/components/ui/card-shell";
+} from "@repo/design-system/components/ui/fluid-card";
 import { ExternalLinkIcon } from "lucide-react";
 import Image from "next/image";
+import { CentreCardFrame } from "../../centres/components/centre-card-frame";
 
 interface WorkspaceCardProperties {
   readonly imageUrl: string | null;
@@ -22,14 +23,6 @@ interface WorkspaceCardProperties {
   };
 }
 
-const roleVariant: Record<
-  WorkspaceCardProperties["role"],
-  "outline" | "secondary"
-> = {
-  ADMIN: "secondary",
-  TEACHER: "outline",
-};
-
 export const WorkspaceCard = ({
   imageUrl,
   name,
@@ -40,59 +33,59 @@ export const WorkspaceCard = ({
   const workspaceUrl = buildWorkspaceUrl(slug);
 
   return (
-    <CardShell
-      className="transition-shadow hover:shadow-lg"
-      panelClassName="flex flex-col overflow-hidden"
-    >
-      <CardHeader className="pb-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-3">
-            {imageUrl ? (
-              <Image
-                alt={name}
-                className="size-12 shrink-0 rounded object-cover"
-                height={48}
-                src={imageUrl}
-                unoptimized
-                width={48}
-              />
-            ) : (
-              <div className="flex size-12 shrink-0 items-center justify-center rounded bg-primary font-semibold text-lg text-primary-foreground">
-                {name[0]?.toUpperCase()}
+    <CentreCardFrame>
+      <Card className="flex flex-col">
+        <CardHeader className="pb-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              {imageUrl ? (
+                <Image
+                  alt={name}
+                  className="size-12 shrink-0 rounded object-cover"
+                  height={48}
+                  src={imageUrl}
+                  unoptimized
+                  width={48}
+                />
+              ) : (
+                <div className="flex size-12 shrink-0 items-center justify-center rounded bg-primary font-semibold text-lg text-primary-foreground">
+                  {name[0]?.toUpperCase()}
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <CardTitle className="truncate text-lg">{name}</CardTitle>
+                <p className="truncate text-muted-foreground text-sm">
+                  {formatWorkspaceHostname(slug)}
+                </p>
               </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <CardTitle className="truncate text-lg">{name}</CardTitle>
-              <p className="truncate text-muted-foreground text-sm">
-                {formatWorkspaceHostname(slug)}
-              </p>
+            </div>
+            <Badge
+              className="shrink-0"
+              variant={role === "ADMIN" ? "solid" : "dot"}
+            >
+              {role}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="flex flex-1 flex-col gap-4">
+          <div className="grid grid-cols-2 gap-3 text-center">
+            <div>
+              <p className="font-semibold text-2xl">{stats.students}</p>
+              <p className="text-muted-foreground text-xs">Students</p>
+            </div>
+            <div>
+              <p className="font-semibold text-2xl">{stats.classes}</p>
+              <p className="text-muted-foreground text-xs">Classes</p>
             </div>
           </div>
-          <Badge className="shrink-0" variant={roleVariant[role]}>
-            {role}
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="flex flex-1 flex-col gap-4">
-        <div className="grid grid-cols-2 gap-3 text-center">
-          <div>
-            <p className="font-semibold text-2xl">{stats.students}</p>
-            <p className="text-muted-foreground text-xs">Students</p>
-          </div>
-          <div>
-            <p className="font-semibold text-2xl">{stats.classes}</p>
-            <p className="text-muted-foreground text-xs">Classes</p>
-          </div>
-        </div>
-        <Button
-          className="mt-auto w-full"
-          render={<a aria-label="Open Workspace" href={workspaceUrl} />}
-          size="lg"
-        >
-          Open Workspace
-          <ExternalLinkIcon className="ml-2 size-4" />
-        </Button>
-      </CardContent>
-    </CardShell>
+          <Button asChild className="mt-auto w-full" size="lg">
+            <a aria-label="Open Workspace" href={workspaceUrl}>
+              Open Workspace
+              <ExternalLinkIcon className="size-4" />
+            </a>
+          </Button>
+        </CardContent>
+      </Card>
+    </CentreCardFrame>
   );
 };
