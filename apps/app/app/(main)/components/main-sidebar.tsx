@@ -58,6 +58,9 @@ export interface MainCounts {
 interface NavigationItem {
   readonly badge?: number;
   readonly icon: LucideIcon;
+  /** Opt into prefix matching (e.g. section indexes with child routes).
+   *  Default is exact — so a parent row never lights up with its child. */
+  readonly matchPrefix?: boolean;
   readonly title: string;
   readonly url: string;
 }
@@ -80,8 +83,8 @@ interface MainSidebarProperties {
   readonly userName: string | null;
 }
 
-const isActivePath = (pathname: string, url: string) =>
-  url === "/" ? pathname === "/" : pathname.startsWith(url);
+const isActiveItem = (pathname: string, item: NavigationItem) =>
+  item.matchPrefix ? pathname.startsWith(item.url) : pathname === item.url;
 
 const SidebarBrandLink = ({ onNavigate }: { onNavigate: () => void }) => (
   <Link
@@ -112,7 +115,7 @@ const SidebarNavGroups = ({
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
                 icon={item.icon}
-                isActive={isActivePath(pathname, item.url)}
+                isActive={isActiveItem(pathname, item)}
                 onClick={onNavigate}
                 render={<Link href={item.url} />}
               >
